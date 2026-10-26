@@ -14,6 +14,10 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
+## Fatto (v0.4.1)
+- [x] Valutazione a fragoline al posto delle stelle (HUD, card, vittoria, progressi)
+- [x] Boba Sort: 3 fragoline col minimo, 2 entro il 70% delle mosse extra, 1 oltre (test)
+
 ## Fatto (v0.4.0)
 - [x] Boba Sort: minimo esatto con A* (test contro BFS), mosse concesse = minimo +15% (+2…+6), contatore mosse rimaste
 - [x] Boba Sort: sconfitta per mosse finite, nessuna versata possibile o vicolo cieco → finestra e Riprova

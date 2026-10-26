@@ -8,7 +8,7 @@
   --card: rgba(255, 251, 248, .86); --card-solid: #fffaf6; --line: rgba(75, 46, 40, .14); --line-2: rgba(75, 46, 40, .22);
   --accent: #ff6f9c; --accent-2: #d9497a; --accent-ink: #ffffff;
   --mint: #4fc7ab; --mint-2: #2b9e85; --on-mint: #133f36; --sun: #ffc95e; --sun-2: #e9a12a; --sky: #8cc4ff;
-  --bad: #ff4f6d; --gold: #ffc53d; --gold-2: #d99210; --star-off: rgba(75, 46, 40, .16);
+  --bad: #ff4f6d; --berry: #ff4d72; --berry-2: #c92a4f; --berry-seed: #ffe9a8; --gold: #ffc53d; --gold-2: #d99210; --star-off: rgba(75, 46, 40, .16);
   --acorn: #cf8a52; --acorn-cap: #7a4a2c;
   --shadow: 0 14px 32px -16px rgba(130, 60, 70, .5); --shadow-s: 0 5px 14px -8px rgba(130, 60, 70, .45);
   --text-shadow-c: rgba(130, 60, 70, .28);
@@ -245,8 +245,15 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .card-stats { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
 .stars { display: inline-flex; gap: 2px; align-items: center; }
-.st { width: 22px; height: 22px; fill: var(--star-off); }
-.st.on { fill: var(--gold); stroke: var(--gold-2); stroke-width: 1.2; filter: drop-shadow(0 2px 0 var(--gold-2)); }
+.st { width: 22px; height: 22px; overflow: visible; }
+.st .b, .st .l { fill: var(--star-off); }
+.st .sd { fill: transparent; }
+.st .hl { fill: none; stroke: transparent; stroke-width: 1.3; stroke-linecap: round; }
+.st.on .b { fill: var(--berry); stroke: var(--berry-2); stroke-width: .8; }
+.st.on .l { fill: var(--mint); stroke: var(--mint-2); stroke-width: .6; stroke-linejoin: round; }
+.st.on .sd { fill: var(--berry-seed); }
+.st.on .hl { stroke: rgba(255, 255, 255, .6); }
+.st.on { filter: drop-shadow(0 2px 0 var(--berry-2)); }
 .best { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .best svg { width: 18px; height: 18px; color: var(--sun-2); }
 .best b { color: var(--ink); }

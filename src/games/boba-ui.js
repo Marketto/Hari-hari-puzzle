@@ -403,8 +403,11 @@
 
   HH.games.push({
     id: 'boba', name: 'Boba Sort', rules: 'r2', art, create,
-    // 3★ col minimo esatto, 2★ entro metà del margine, 1★ entro il limite
-    rate: (s) => (s.moves <= s.par ? 3 : s.moves <= s.par + Math.ceil(((s.max || s.par + 2) - s.par) / 2) ? 2 : 1),
+    // fragoline: 3 col minimo esatto, 2 se usi al massimo il 70% delle mosse in più concesse, 1 oltre
+    rate: (s) => {
+      const extra = (s.max || s.par + 2) - s.par, used = s.moves - s.par;
+      return used <= 0 ? 3 : used <= Math.floor(extra * 0.7) ? 2 : 1;
+    },
     parTime: (s) => (s.start.length - 2) * 22,
     // somma degli strati "giusti" alla base di ogni bicchiere: 0 all'inizio, 1 a soluzione
     progress: (s) => {

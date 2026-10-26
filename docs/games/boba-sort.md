@@ -26,7 +26,8 @@ bicchiere si inclina, e gli strati si svuotano dall'alto. Lo sciabordio è una m
   - mosse finite senza aver risolto;
   - nessuna versata possibile;
   - vicolo cieco: si può ancora versare ma il livello non è più risolvibile (A* esplora tutto e non trova soluzione).
-- Stelle: 3 con il minimo esatto, 2 entro metà del margine, 1 entro il limite.
+- Valutazione a **fragoline** (lo spuntino di Hari): 3 col minimo esatto, 2 se usi al massimo il 70% delle mosse in più concesse
+  (arrotondato per difetto), 1 oltre. Es. minimo 10, limite 12: 10 → 3, 11 → 2, 12 → 1.
 - Suoni: vetro sollevato (fruscio + "tink") e riappoggiato ("tok"), niente campanella.
 
 ## Difficoltà

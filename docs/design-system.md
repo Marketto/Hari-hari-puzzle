@@ -24,5 +24,9 @@ Tinte fisse (uguali nei due temi): regioni Hedgedoku `--r0…--r7`, gusti Boba `
 `src/core/mascot.js` — SVG 200×200 generato da codice: aculei a stella (niente aculei sotto il mento), orecchie rosa, occhioni con gradiente radiale, due riflessi e scintilla, guance rosa, fiore che dondola.
 Animazioni: `breathe` 3.4 s, `blink` 5.5 s, `.jump` vittoria, `.oops` errore; i riflessi seguono il dito/puntatore.
 
+## Valutazione
+Le stelle sono sostituite da **fragoline**: rosse con semini e foglie menta quando guadagnate, sagome spente altrimenti
+(`STAR()` in `src/app.js`, token `--berry`, `--berry-2`, `--berry-seed`). Nella vittoria spuntano una alla volta, con la centrale più grande.
+
 ## Movimento
 Sfondo canvas: 5 bolle di colore che fluttuano, 10–46 petali, 8–40 stelline (densità in base allo schermo). In pausa quando la scheda è nascosta. `prefers-reduced-motion` → un solo fotogramma statico, nessuna animazione CSS.

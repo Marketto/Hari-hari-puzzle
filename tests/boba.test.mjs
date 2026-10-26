@@ -114,3 +114,20 @@ test('status: vicolo cieco con versate ancora possibili = bloccato', () => {
   assert.equal(B.solveOptimal(cups), false);
   assert.equal(B.status(cups, 20), 'stuck');
 });
+
+/* ---------- Valutazione a fragoline ---------- */
+test('fragoline: 3 col minimo, 2 entro il 70% delle mosse in più, 1 oltre', () => {
+  load('src/games/boba-ui.js');
+  const rate = HH.games.find((g) => g.id === 'boba').rate;
+  const st = (par, max, moves) => rate({ par, max, moves });
+  // margine 2 (minimo 10 → 12 mosse): 70% di 2 = 1
+  assert.equal(st(10, 12, 10), 3);
+  assert.equal(st(10, 12, 11), 2);
+  assert.equal(st(10, 12, 12), 1);
+  // margine 6 (minimo 40 → 46 mosse): 70% di 6 = 4
+  assert.equal(st(40, 46, 44), 2);
+  assert.equal(st(40, 46, 45), 1);
+  // margine 4 (minimo 25 → 29): 70% di 4 = 2
+  assert.equal(st(25, 29, 27), 2);
+  assert.equal(st(25, 29, 28), 1);
+});

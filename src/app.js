@@ -28,7 +28,13 @@
     heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15.5 2 12 2 8.2 2 5.3 4.3 3 7.2 3c1.9 0 3.6 1 4.8 2.6C13.2 4 14.9 3 16.8 3 19.7 3 22 5.3 22 8.2 22 12 19 15.5 12 21z"/></svg>',
     music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="6.5" cy="17.5" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="17.5" cy="15" rx="3" ry="2.5" fill="currentColor"/><path class="mute" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   };
-  const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.9l-5.6 2.9 1.1-6.2L3 9.2l6.2-.9z" stroke-linejoin="round"/></svg>`;
+  // valutazione a fragoline: lo spuntino preferito di Hari (accesa = guadagnata)
+  const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true">
+    <path class="b" d="M12 22c-4.8-2-7.6-6.2-7-10.3.3-2.1 2-3.5 3.8-3.5 1 0 2 .3 3.2.3s2.2-.3 3.2-.3c1.8 0 3.5 1.4 3.8 3.5.6 4.1-2.2 8.3-7 10.3z"/>
+    <path class="hl" d="M7.6 11.6c-.3 1.8.2 3.6 1.2 5"/>
+    <g class="sd"><ellipse cx="9.4" cy="12.6" rx=".55" ry=".85"/><ellipse cx="14.6" cy="12.6" rx=".55" ry=".85"/><ellipse cx="12" cy="15.4" rx=".55" ry=".85"/><ellipse cx="9.8" cy="17.4" rx=".5" ry=".8"/><ellipse cx="14.2" cy="17.4" rx=".5" ry=".8"/><ellipse cx="12" cy="11" rx=".5" ry=".8"/></g>
+    <path class="l" d="M12 9.2C10.4 9.3 8 8.7 7 7.2c1.7-.5 3.4-.1 4.6.8-.2-1.8.5-3.5 1.8-4.6.6 1.6.3 3.3-.6 4.6 1.3-.8 3.1-1.1 4.7-.5-1 1.5-3.4 1.9-5.5 1.7z"/>
+  </svg>`;
   const stars = (n) => [0, 1, 2].map((i) => STAR(i < n)).join('');
   const fmt = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; };
   const nf = (n) => { try { return new Intl.NumberFormat(HH.i18n.code).format(n || 0); } catch (e) { return String(n || 0); } };

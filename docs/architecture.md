@@ -14,7 +14,7 @@
 
 ## Punteggio
 `100 + 25 × livello + 60 × stelle + bonus tempo` dove bonus = 2 × secondi risparmiati rispetto a `parTime`.
-Stelle da `rate(snapshot)`: Hedgedoku 3★ senza errori, 2★ con uno, 1★ con due; Boba 3★ col minimo esatto, 2★ entro metà del margine; Lantern ≤ tocchi di generazione = 3★, ≤ 2× = 2★.
+Fragoline (1–3, al posto delle stelle) da `rate(snapshot)`: Hedgedoku 3 senza errori, 2 con uno, 1 con due; Boba 3 col minimo esatto, 2 entro il 70% delle mosse in più, 1 oltre; Lantern ≤ tocchi di generazione = 3★, ≤ 2× = 2★.
 
 ## Ordine di caricamento
 ```
