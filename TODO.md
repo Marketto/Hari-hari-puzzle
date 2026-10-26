@@ -6,6 +6,9 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 
 ## Prossimo
+- [ ] Hedgedoku: tap = ✕ (metti/togli), doppio tap = riccio; ricci animati che si guardano intorno e reagiscono
+- [ ] Tutorial brevi alla prima partita di ogni gioco
+- [ ] Altri giochi (Pixel Mochi, Mochi Binary, Yarn Link…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
@@ -19,6 +22,8 @@
 - [x] Fix-It House: 5 ambienti a rotazione (casetta, cucina, cameretta, bagno, giardino con serra), ognuno col suo catalogo di guasti; 15 attrezzi nuovi; salvataggi vecchi validi
 - [x] Nuovo gioco **Hari Parade** (Snake): sfilata di ricci, frutti, stella e orologio, ostacoli, 3 cuori, croce direzionale, parte al primo tocco; brano `parade`
 - [x] Proposte grafiche pubblicate in `design/proposte-anime.html`
+- [x] Messaggi di Hari più lenti (≥ 4,5 s, uno ogni 9 s al massimo); versione accanto al titolo (`HH.VERSION`, testata con package.json e sw.js)
+- [x] 87 nuove stringhe × 43 lingue (183 chiavi totali)
 
 ## Fatto (v0.6.2)
 - [x] Proposta d'installazione su Android: finestra di Hari (prompt nativo su Chrome, istruzioni dal menu sugli altri browser), "Più tardi" = 3 giorni, mai durante una partita
@@ -76,6 +81,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-26 v0.7.0 · `npm test` 94/94 · 6 giochi × it/ja/ar × chiaro/scuro × 360/390 px: nessun errore, nessuno scorrimento, nessuna chiave non tradotta · Fix-It: livelli 2–5 e 7 risolti fino in fondo (cucina, cameretta, bagno, giardino) · Hari Parade: parte al primo tocco
 - 2026-10-26 v0.6.2 · `npm test` 77/77 · server locale con 2 aggiornamenti simulati: in partita barra → Aggiorna → stessa partita (mosse e griglia), nella home aggiornamento automatico, cache vecchie rimosse, offline ok · Android simulato: prompt nativo (it chiaro, ar scuro), istruzioni senza prompt, "Più tardi" non ripropone, desktop nessuna proposta
 - 2026-10-26 v0.6.1 · `npm test` 73/73 · Sushi Bar e Fix-It House a 360/390 px chiaro/scuro: nessuno scorrimento laterale, livello di Fix-It risolto fino all'arcobaleno, ordine servibile evidenziato
 - 2026-10-26 v0.6 · `npm test` 73/73 · Fix-It House in app a 360/390 px chiaro/scuro: nessuno scorrimento laterale, ordine sbagliato → cuore perso + frecce verso i prerequisiti; etichette tradotte (it, ja, ar) · Sushi Bar: cliente servito, tagliere/nastro ok

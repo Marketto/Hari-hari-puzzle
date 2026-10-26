@@ -63,7 +63,7 @@
   let sayTimer = 0, lastSay = 0;
   function say(kind, force, text) {
     const now = Date.now();
-    if (!force && now - lastSay < 4500) return;
+    if (!force && now - lastSay < 9000) return;
     lastSay = now;
     const box = $('#hariSay');
     box.querySelector('p').textContent = text || pick(kind);
@@ -77,10 +77,12 @@
     box.classList.add('in');
     sfx.blip();
     clearTimeout(sayTimer);
+    // tempo di lettura: almeno 4,5 s, di più per le frasi lunghe
+    const ms = Math.max(4500, 2000 + box.querySelector('p').textContent.length * 75);
     sayTimer = setTimeout(() => {
       box.classList.add('out');
       sayTimer = setTimeout(() => { box.hidden = true; }, 320);
-    }, 3000);
+    }, ms);
   }
   function hideSay() { clearTimeout(sayTimer); $('#hariSay').hidden = true; }
 
@@ -94,7 +96,7 @@
     if (p >= 1) return;
     if (p >= 0.85 && !S.ms.almost) { S.ms.almost = S.ms.half = true; say('almost', true); sfx.milestone(); }
     else if (p >= 0.5 && !S.ms.half) { S.ms.half = true; say('half', true); sfx.milestone(); }
-    else if (p > S.best + 0.12 && Math.random() < 0.5) say('good');
+    else if (p > S.best + 0.2 && Math.random() < 0.4) say('good');
     S.best = Math.max(S.best, p);
   }
   function livesHTML(left, max, lost = -1) {
@@ -210,7 +212,7 @@
         </div>
         <div class="hero-copy">
           <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span></h1>
+          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></h1>
           <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
         </div>
       </section>

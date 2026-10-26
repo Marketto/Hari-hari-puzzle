@@ -10,8 +10,10 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const SHELL = JSON.parse(sw.match(/const SHELL = (\[[\s\S]*?\]);/)[1].replace(/'/g, '"').replace(/,\s*\]/, ']'));
 
-test('VERSION del service worker = versione di package.json', () => {
+test('VERSION del service worker = versione di package.json = HH.VERSION mostrata in home', () => {
   assert.equal(sw.match(/const VERSION = '([^']+)'/)[1], `hh-v${pkg.version}`);
+  const core = fs.readFileSync(path.join(root, 'src/core/core.js'), 'utf8');
+  assert.equal(core.match(/HH\.VERSION = '([^']+)'/)[1], pkg.version);
 });
 
 test('la shell offline contiene ogni file usato da index.html e i file esistono', () => {
