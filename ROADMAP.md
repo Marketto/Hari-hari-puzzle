@@ -12,17 +12,23 @@ Hedgedoku con verifica immediata e 3 cuori, riccio d'aiuto, musica dinamica, eff
 ## v0.4 — Boba Sort con mosse contate ✅ (ottobre 2026)
 Minimo esatto con A*, limite di mosse, sconfitta per mosse finite o vicolo cieco; repo pubblico e GitHub Pages attivi.
 
-## v0.5 — Rifiniture PWA (novembre 2026)
+## v0.5 — Sushi Bar e mosse contate ovunque ✅ (ottobre 2026)
+Nuovo gioco di cucina Sushi Bar; Lantern Glow con minimo esatto e limite di mosse.
+
+## v0.6 — Fix-It House (ottobre 2026)
+Casa del riccio danneggiata dal vento: guasti da riparare nell'ordine giusto con l'attrezzo giusto.
+
+## v0.7 — Rifiniture PWA (novembre 2026)
 - Font locali (offline totale al primo avvio)
 - Impostazioni (tema, suono, vibrazione, reset), schermata "Come si gioca" animata per ogni gioco
 - Suggerimenti in Hedgedoku e Lantern Glow, impostazioni
 
-## v0.6 — Più giochi (dicembre 2026)
+## v0.8 — Più giochi (dicembre 2026)
 - Pixel Mochi (Nonogram) con 60 disegni kawaii
-- Sushi Binary (Takuzu)
+- Mochi Binary (Takuzu)
 - Puzzle del giorno (seme dalla data, uguale per tutti, senza server)
 
-## v0.7 — Collezione (gennaio 2027)
+## v0.9 — Collezione (gennaio 2027)
 - "Album" di adesivi di Hari sbloccabili
 - Vestiti e accessori per la mascotte (cappellini, sciarpe stagionali)
 - Yarn Link (Flow)

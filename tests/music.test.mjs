@@ -6,8 +6,8 @@ import { load } from './_load.mjs';
 const HH = load('src/core/audio.js');
 const { TRACKS, deg } = HH.music;
 
-test('4 brani: menu + uno per gioco', () => {
-  assert.deepEqual(Object.keys(TRACKS).sort(), ['boba', 'hedgedoku', 'lantern', 'menu']);
+test('brani: menu + uno per gioco', () => {
+  assert.deepEqual(Object.keys(TRACKS).sort(), ['boba', 'hedgedoku', 'lantern', 'menu', 'sushi']);
 });
 
 for (const [name, tr] of Object.entries(TRACKS)) {

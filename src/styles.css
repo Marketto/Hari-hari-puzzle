@@ -17,7 +17,7 @@
   --cloud: rgba(255, 255, 255, .82); --night: 0; --moon: #fff4cf; --moon-face: #6b4a2c; --mochi: #fffaf2;
   --dots: rgba(255, 255, 255, .6);
   --hill-1: #ffc9da; --hill-2: #c4eedc;
-  --tint-hedgedoku: #ffd9e4; --tint-boba: #cff3e6; --tint-lantern: #ffe8c2;
+  --tint-hedgedoku: #ffd9e4; --tint-boba: #cff3e6; --tint-lantern: #ffe8c2; --tint-sushi: #d6ecff;
   --glass: rgba(255, 255, 255, .55); --glass-edge: rgba(75, 46, 40, .38); --boba: #3d2519;
   /* lanterne: carta fissa, uguale nei due temi (il piatto è sempre notturno) */
   --ln-on-1: #fff7d1; --ln-on-2: #ff9f7a; --ln-on-3: #e2486a; --ln-off-1: #d9d0ee; --ln-off-2: #9d8fc4; --ln-off-3: #6b5d96;
@@ -47,7 +47,7 @@
     --cloud: rgba(150, 130, 210, .13); --night: 1; --mochi: #f3e9ff;
     --dots: rgba(255, 255, 255, .045);
     --hill-1: #33264d; --hill-2: #281e3f;
-    --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f;
+    --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f; --tint-sushi: #263a52;
     --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 230, 240, .5);
     color-scheme: dark;
   }
@@ -64,7 +64,7 @@
   --cloud: rgba(150, 130, 210, .13); --night: 1; --mochi: #f3e9ff;
   --dots: rgba(255, 255, 255, .045);
   --hill-1: #33264d; --hill-2: #281e3f;
-  --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f;
+  --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f; --tint-sushi: #263a52;
   --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 230, 240, .5);
   color-scheme: dark;
 }
@@ -375,17 +375,20 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .bb-drop { position: absolute; z-index: 4; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; }
 
 /* mosse rimaste */
-.bb-meter {
+.mv-meter {
   display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: 2px 8px; width: min(100%, 360px); margin: 0 auto;
   padding: 10px 16px 12px; border-radius: 20px; background: var(--hair); font-variant-numeric: tabular-nums;
 }
-.bb-meter-label { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
-.bb-meter b { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; color: var(--mint-2); }
-.bb-meter-max { font-weight: 800; color: var(--ink-2); }
-.bb-meter-bar { align-self: center; height: 10px; border-radius: 999px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); overflow: hidden; }
-.bb-meter-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--mint), var(--sun)); transition: width .4s ease; }
-.bb-meter.warn b { color: var(--bad); animation: pulse 1s ease-in-out infinite; }
-.bb-meter.warn .bb-meter-bar i { background: var(--bad); }
+.mv-meter-label { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+.mv-meter b { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; color: var(--mint-2); }
+.mv-meter-max { font-weight: 800; color: var(--ink-2); }
+.mv-meter-bar { align-self: center; height: 10px; border-radius: 999px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); overflow: hidden; }
+.mv-meter-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--mint), var(--sun)); transition: width .4s ease; }
+.mv-meter.warn b { color: var(--bad); animation: pulse 1s ease-in-out infinite; }
+.mv-meter.warn .mv-meter-bar i { background: var(--bad); }
+.mv-meter.night { margin-bottom: 12px; background: var(--plate-night-dot); }
+.mv-meter.night .mv-meter-label, .mv-meter.night .mv-meter-max { color: var(--ln-off-1); }
+.mv-meter.night .mv-meter-bar { background: var(--plate-night-2); box-shadow: inset 0 0 0 2px var(--plate-night-dot); }
 .bb-hint { margin: 14px auto 0; max-width: 36ch; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
 .lose-moves { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0; padding: 6px 18px; border-radius: 999px; background: var(--hair); }
 .lose-moves svg { width: 26px; height: 26px; color: var(--bad); }

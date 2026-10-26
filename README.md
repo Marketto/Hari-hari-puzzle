@@ -8,8 +8,9 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 |---|---|
 | **Hedgedoku** | un riccio per riga, colonna e zona, senza toccarsi (stile Queens / Meowdoku) |
 | **Boba Sort** | travasa i gusti di bubble tea finché ogni bicchiere ne ha uno solo |
-| **Lantern Glow** | accendi tutte le lanterne (Lights Out) |
-| In arrivo | Pixel Mochi (Nonogram) · Sushi Binary (Takuzu) · Yarn Link (Flow) |
+| **Lantern Glow** | accendi tutte le lanterne (Lights Out) con mosse contate |
+| **Sushi Bar** | prendi gli ingredienti dal nastro e prepara gli ordini dei clienti prima che perdano la pazienza |
+| In arrivo | Pixel Mochi (Nonogram) · Mochi Binary (Takuzu) · Yarn Link (Flow) |
 
 ## Provalo
 - **Online / Android**: https://marketto.github.io/Hari-hari-puzzle/ → da Chrome su Android: ⋮ → *Installa app*

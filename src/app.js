@@ -46,7 +46,7 @@
       '0110110', '1111111', '1111111', '0111110', '0011100', '0001000'].map((row, r) => [...row].map((v, c) =>
       `<rect x="${25 + c * 10}" y="${14 + r * 10}" width="9" height="9" rx="2.5" fill="${v === '1' ? 'var(--accent)' : 'var(--hair)'}"/>`).join('')).join('')}</svg>` },
     { id: 'yarn', name: 'Yarn Link', art: `<svg viewBox="0 0 120 90" aria-hidden="true"><path d="M22 20h40v25h36" fill="none" stroke="var(--f1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 70h20V45" fill="none" stroke="var(--f4)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="20" r="8" fill="var(--f1)"/><circle cx="98" cy="45" r="8" fill="var(--f1)"/><circle cx="22" cy="70" r="8" fill="var(--f4)"/><circle cx="42" cy="45" r="8" fill="var(--f4)"/><circle cx="98" cy="72" r="8" fill="var(--f3)"/><circle cx="68" cy="72" r="8" fill="var(--f3)"/></svg>` },
-    { id: 'sushi', name: 'Sushi Binary', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[[1, 0, 0, 1], [0, 1, 1, 0], [1, 1, 0, 0]].map((row, r) => row.map((v, c) =>
+    { id: 'mochi', name: 'Mochi Binary', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[[1, 0, 0, 1], [0, 1, 1, 0], [1, 1, 0, 0]].map((row, r) => row.map((v, c) =>
       v ? `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><circle r="8.5" fill="var(--ink)"/><circle r="5.5" fill="var(--card-solid)"/><circle r="3" fill="var(--f6)"/></g>`
         : `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><rect x="-9" y="-6" width="18" height="12" rx="6" fill="var(--card-solid)" stroke="var(--ink)" stroke-width="1.6"/><rect x="-9" y="-6" width="18" height="6" rx="3" fill="var(--f6)"/></g>`).join('')).join('')}</svg>` },
   ];

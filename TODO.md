@@ -9,10 +9,18 @@
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
-- [ ] Lantern Glow: mosse minime con Gauss su GF(2) come par esatto
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
+
+## In lavorazione
+- [ ] Fix-It House: casa del riccio da riparare nell'ordine giusto (agente game-designer) → integrazione, traduzioni, musica
+
+## Fatto (v0.5.0)
+- [x] Lantern Glow: minimo esatto con Gauss su GF(2) (test contro forza bruta), mosse contate, sconfitta a mosse finite
+- [x] Regola condivisa `src/core/rules.js` (mosse extra e fragoline) usata da Boba e Lantern
+- [x] Nuovo gioco **Sushi Bar**: nastro kaiten, 9 ricette, 8 clienti animali, pazienza, 3 cuori, Hari cuoco; bot di test vince i livelli 1–15
+- [x] Brano musicale `sushi`; 3 nuove stringhe × 43 lingue; card "in arrivo" Sushi Binary → Mochi Binary (44 test)
 
 ## Fatto (v0.4.2)
 - [x] Boba Sort: bicchieri senza la riga sulla bocca (contorno aperto, bordo con retro tenue)

@@ -40,19 +40,35 @@
     const L = HH.lantern;
     let s, cells = [];
 
+    // livello con minimo esatto (Gauss su GF(2)) e mosse concesse = minimo + 15% (da +2 a +6)
     function fresh() {
       const n = sizeFor(ctx.level);
-      const g = L.generate(n, tapsFor(ctx.level), Math.random, true);
-      s = { n, start: g.grid, grid: g.grid.slice(), hist: [], moves: 0, par: g.taps.length };
+      const lv = L.generateLevel(n, tapsFor(ctx.level));
+      s = { n, start: lv.grid, grid: lv.grid.slice(), hist: [], moves: 0, par: lv.min, max: lv.max };
       build();
       ctx.changed({ reset: true });
     }
 
+    function meterHTML() {
+      const left = Math.max(0, s.max - s.moves);
+      return `<span class="mv-meter-label">${HH.i18n.t('movesLeft')}</span>
+        <b>${left}</b><span class="mv-meter-max">/ ${s.max}</span>
+        <span class="mv-meter-bar"><i style="width:${(left / s.max) * 100}%"></i></span>`;
+    }
+    function updateMeter() {
+      const m = el.querySelector('.mv-meter');
+      if (!m) return;
+      m.innerHTML = meterHTML();
+      m.classList.toggle('warn', s.max - s.moves <= 2);
+    }
+
     function build() {
-      el.innerHTML = `<div class="ln-grid" dir="ltr" style="--n:${s.n}">${s.grid.map((on, i) =>
+      el.innerHTML = `<div class="mv-meter night" aria-live="polite"></div>
+        <div class="ln-grid" dir="ltr" style="--n:${s.n}">${s.grid.map((on, i) =>
         `<button class="ln-cell" style="--sw:${(i * 0.37) % 1.6}s" data-i="${i}" aria-label="${((i / s.n) | 0) + 1},${(i % s.n) + 1}">${lantern()}</button>`).join('')}</div>`;
       cells = [...el.querySelectorAll('.ln-cell')];
       paint();
+      updateMeter();
     }
     function paint(flash = []) {
       cells.forEach((b, i) => {
@@ -64,7 +80,7 @@
 
     el.onclick = (e) => {
       const b = e.target.closest('.ln-cell');
-      if (!b) return;
+      if (!b || s.over || L.isSolved(s.grid)) return;
       const i = +b.dataset.i, n = s.n;
       s.hist.push(s.grid);
       if (s.hist.length > 80) s.hist.shift();
@@ -75,24 +91,37 @@
         .filter(([rr, cc]) => rr >= 0 && cc >= 0 && rr < n && cc < n).map(([rr, cc]) => rr * n + cc);
       if (s.grid[i]) ctx.sfx.lightOn(s.grid.filter(Boolean).length); else ctx.sfx.lightOff();
       paint(flash);
+      updateMeter();
       ctx.changed();
       if (L.isSolved(s.grid)) setTimeout(ctx.win, 500);
+      else if (s.moves >= s.max) { s.over = 'moves'; ctx.changed(); ctx.outOfMoves('moves'); }
     };
 
     const ok = saved && saved.n && Array.isArray(saved.grid) && saved.grid.length === saved.n * saved.n;
-    if (ok) { s = Object.assign({ hist: [], moves: 0, par: 6 }, saved); build(); } else fresh();
+    if (ok) {
+      s = Object.assign({ hist: [], moves: 0, par: 6 }, saved);
+      if (!s.max) {                                   // salvataggi precedenti al limite di mosse
+        const m = L.minPresses(s.n, s.start);
+        s.par = m ? m.min : s.par;
+        s.max = s.par + HH.rules.extraMoves(s.par);
+      }
+      if (s.over || (s.moves >= s.max && !L.isSolved(s.grid))) { s.grid = s.start.slice(); s.hist = []; s.moves = 0; delete s.over; }
+      build();
+    } else fresh();
 
     return {
       fresh,
-      restart() { s.grid = s.start.slice(); s.hist = []; s.moves = 0; paint(); ctx.changed({ reset: true }); },
-      undo() { if (!s.hist.length) return; s.grid = s.hist.pop(); s.moves = Math.max(0, s.moves - 1); paint(); ctx.sfx.tap(); ctx.changed(); },
+      restart() { s.grid = s.start.slice(); s.hist = []; s.moves = 0; delete s.over; paint(); updateMeter(); ctx.changed({ reset: true }); },
+      // annulla rimette le lanterne com'erano ma il tocco resta speso (come in Boba Sort)
+      undo() { if (s.over || !s.hist.length) return; s.grid = s.hist.pop(); paint(); updateMeter(); ctx.sfx.tap(); ctx.changed(); },
       snapshot: () => s,
     };
   }
 
   HH.games.push({
     id: 'lantern', name: 'Lantern Glow', rules: 'r3', art, create, plate: 'night',
-    rate: (s) => (s.moves <= s.par ? 3 : s.moves <= s.par * 2 ? 2 : 1),
+    // fragoline: 3 col minimo esatto, 2 entro il 70% delle mosse in più, 1 oltre
+    rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => s.n * s.n * 3,
     // lanterne accese in più rispetto all'inizio
     progress: (s) => {

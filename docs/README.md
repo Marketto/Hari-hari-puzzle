@@ -11,4 +11,5 @@
 | [games/hedgedoku.md](games/hedgedoku.md) | Regole e generatore Hedgedoku |
 | [games/boba-sort.md](games/boba-sort.md) | Regole e generatore Boba Sort |
 | [games/lantern-glow.md](games/lantern-glow.md) | Regole e generatore Lantern Glow |
+| [games/sushi-bar.md](games/sushi-bar.md) | Sushi Bar: ricette, clienti, difficoltà, bot di test |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

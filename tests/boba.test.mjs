@@ -117,7 +117,7 @@ test('status: vicolo cieco con versate ancora possibili = bloccato', () => {
 
 /* ---------- Valutazione a fragoline ---------- */
 test('fragoline: 3 col minimo, 2 entro il 70% delle mosse in più, 1 oltre', () => {
-  load('src/games/boba-ui.js');
+  load('src/core/rules.js', 'src/games/boba-ui.js');
   const rate = HH.games.find((g) => g.id === 'boba').rate;
   const st = (par, max, moves) => rate({ par, max, moves });
   // margine 2 (minimo 10 → 12 mosse): 70% di 2 = 1

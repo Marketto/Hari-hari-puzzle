@@ -198,10 +198,10 @@
 
     function meter() {
       const left = Math.max(0, s.max - s.moves);
-      return `<div class="bb-meter${left <= 2 ? ' warn' : ''}" aria-live="polite">
-        <span class="bb-meter-label">${HH.i18n.t('movesLeft')}</span>
-        <b>${left}</b><span class="bb-meter-max">/ ${s.max}</span>
-        <span class="bb-meter-bar"><i style="width:${(left / s.max) * 100}%"></i></span>
+      return `<div class="mv-meter${left <= 2 ? ' warn' : ''}" aria-live="polite">
+        <span class="mv-meter-label">${HH.i18n.t('movesLeft')}</span>
+        <b>${left}</b><span class="mv-meter-max">/ ${s.max}</span>
+        <span class="mv-meter-bar"><i style="width:${(left / s.max) * 100}%"></i></span>
       </div>`;
     }
     // dopo ogni travaso: vittoria, mosse finite, oppure bloccato (nessuna versata o vicolo cieco)
@@ -408,10 +408,7 @@
   HH.games.push({
     id: 'boba', name: 'Boba Sort', rules: 'r2', art, create,
     // fragoline: 3 col minimo esatto, 2 se usi al massimo il 70% delle mosse in più concesse, 1 oltre
-    rate: (s) => {
-      const extra = (s.max || s.par + 2) - s.par, used = s.moves - s.par;
-      return used <= 0 ? 3 : used <= Math.floor(extra * 0.7) ? 2 : 1;
-    },
+    rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => (s.start.length - 2) * 22,
     // somma degli strati "giusti" alla base di ogni bicchiere: 0 all'inizio, 1 a soluzione
     progress: (s) => {

@@ -156,7 +156,7 @@
   }
 
   // mosse concesse: minimo + 15% (almeno 2, al massimo 6 in più)
-  const extraMoves = (min) => Math.max(2, Math.min(6, Math.ceil(min * 0.15)));
+  const extraMoves = (min) => (HH.rules ? HH.rules.extraMoves(min) : Math.max(2, Math.min(6, Math.ceil(min * 0.15))));
 
   function generate(colors, empties = 2, rnd = Math.random, tries = 60) {
     for (let t = 0; t < tries; t++) {
