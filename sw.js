@@ -6,7 +6,7 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.7.0';
+const VERSION = 'hh-v0.7.1';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
@@ -22,10 +22,23 @@ self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
     await c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })));
-    // prima installazione: si attiva subito; un aggiornamento invece aspetta il via dalla pagina
-    if (!self.registration.active) await self.skipWaiting();
+    // prima installazione: si attiva subito. Aggiornamento: aspetta il via dalla pagina SOLO se la pagina aperta
+    // sa gestirlo (risponde "can-update"); con pagine di versioni vecchie, o ad app chiusa, si attiva subito
+    // (altrimenti resterebbe in attesa finché l'app non viene chiusa del tutto).
+    if (!self.registration.active || !(await pagesCanUpdate())) await self.skipWaiting();
   })());
 });
+
+async function pagesCanUpdate() {
+  const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  if (!list.length) return false;
+  return new Promise((resolve) => {
+    const t = setTimeout(() => { self.removeEventListener('message', on); resolve(false); }, 1500);
+    function on(e) { if (e.data && e.data.type === 'can-update') { clearTimeout(t); self.removeEventListener('message', on); resolve(true); } }
+    self.addEventListener('message', on);
+    list.forEach((c) => c.postMessage({ type: 'ask-update' }));
+  });
+}
 
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'skip') self.skipWaiting();
