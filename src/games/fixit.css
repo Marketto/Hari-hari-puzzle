@@ -1,27 +1,27 @@
 /* Fix-It House — stili (prefisso fi-). Colori solo tramite token: chiaro qui sotto, scuro nei due blocchi successivi. */
 :root {
   --tint-fixit: #ffe1d1;
-  --fi-ink: #5a372d;
-  --fi-sky: #c9e8ff; --fi-sky-2: #fff0f4; --fi-cloud: #ffffff; --fi-sun: #ffd166; --fi-hill: #c4ecd0;
-  --fi-grass: #a5df94; --fi-grass-2: #74c06b;
-  --fi-wall: #fff1dc; --fi-wall-2: #efd2b0; --fi-plaster: #fbe6ca; --fi-fresh: #ffe9f0; --fi-peel: #f0bf9c;
-  --fi-paper: #ffe2ea; --fi-paper-dot: #ffc9d8; --fi-floor: #dba679; --fi-floor-2: #b98055;
-  --fi-roof: #ff94a8; --fi-roof-2: #e46a84; --fi-roof-new: #ffc2cf;
-  --fi-brick: #ea8c6e; --fi-brick-2: #c76a52; --fi-stone: #ddd2c8; --fi-stone-2: #b4a79b;
-  --fi-wood: #cf9160; --fi-wood-2: #9f653c;
+  --fi-ink: #6b2f5f;
+  --fi-sky: #d6c2ff; --fi-sky-2: #ffd6ea; --fi-cloud: #ffffff; --fi-sun: #fff0a8; --fi-hill: #e9d8ff;
+  --fi-grass: #bdf0c8; --fi-grass-2: #8fd6a6;
+  --fi-wall: #fff6fb; --fi-wall-2: #f0d6ec; --fi-plaster: #fbe4f2; --fi-fresh: #ffe9f5; --fi-peel: #f2bfd2;
+  --fi-paper: #ffe4f1; --fi-paper-dot: #ffc4dd; --fi-floor: #e6b3a3; --fi-floor-2: #c4867a;
+  --fi-roof: #c79bff; --fi-roof-2: #9f74e0; --fi-roof-new: #e6d3ff;
+  --fi-brick: #ff9fb8; --fi-brick-2: #e07a9a; --fi-stone: #ddd2c8; --fi-stone-2: #b4a79b;
+  --fi-wood: #e0a68e; --fi-wood-2: #b77565;
   --fi-glass: #bfe5ff; --fi-glass-2: #ffffff; --fi-hole: #4c3340; --fi-soot: #55495a; --fi-bristle: #55495a;
-  --fi-leaf: #84d08d; --fi-leaf-2: #5cb46c;
+  --fi-leaf: #a6e3bf; --fi-leaf-2: #79c79e;
   --fi-autumn: #ffb35c; --fi-autumn-2: #f2834f; --fi-autumn-3: #f0c94e;
   --fi-water: #85cbff; --fi-water-2: #3f9fe2;
   --fi-metal: #cfd6e2; --fi-metal-2: #8e9bb0; --fi-valve: #ff6f86; --fi-wire: #6b7ee0;
   --fi-spark: #ffd23d; --fi-fire: #ffb03b; --fi-fire-2: #ff6a3d; --fi-fire-3: #fff2a8;
   --fi-glow: rgba(255, 214, 110, .42); --fi-smoke: rgba(255, 255, 255, .9);
-  --fi-curtain: #c1a8ff; --fi-curtain-2: #9e82f0; --fi-soil: #a8714b;
+  --fi-curtain: #ffb8d9; --fi-curtain-2: #ee8fc0; --fi-soil: #a8714b;
   --fi-flower-1: #ff7fa3; --fi-flower-2: #ffd45e; --fi-flower-3: #b48cff;
-  --fi-sun-2: #f5b43c; --fi-cloud-2: #e3ebfb; --fi-hi: #ffffff; --fi-shade: rgba(90, 55, 45, .13);
-  --fi-storm: #6f6b93; --fi-storm-2: #9a97bb; --fi-rain: rgba(235, 244, 255, .85);
-  --fi-mtn-2: #b8d9f2; --fi-grass-3: #93d385; --fi-fence: #fff7ec; --fi-fence-2: #e8d2b6; --fi-wainscot: #f6c6d4;
-  --fi-daisy: #ffffff; --fi-mail: #8cc4ff; --fi-helmet: #ffcf3d; --fi-helmet-2: #eda81c; --fi-box: #ff7f96; --fi-box-2: #e05a74;
+  --fi-sun-2: #ffd36b; --fi-cloud-2: #f1defa; --fi-hi: #ffffff; --fi-shade: rgba(107, 47, 95, .13); --fi-tile: #fffaf6; --fi-lace: #ffffff; --fi-tone: rgba(255, 255, 255, .5);
+  --fi-storm: #8a76b3; --fi-storm-2: #b8a6da; --fi-rain: rgba(255, 255, 255, .85);
+  --fi-mtn-2: #cdb9f6; --fi-grass-3: #a6e5ba; --fi-fence: #ffffff; --fi-fence-2: #f0cfe6; --fi-wainscot: #f8c4e0;
+  --fi-daisy: #ffffff; --fi-mail: #8cc4ff; --fi-helmet: #ffcf3d; --fi-helmet-2: #eda81c; --fi-box: #ff9fc9; --fi-box-2: #e56aa3;
   --fi-ring: var(--bad); --fi-chain: #9a6d5e; --fi-chain-bg: #fffaf6; --fi-sel-halo: rgba(255, 111, 156, .3);
 }
 @media (prefers-color-scheme: dark) {
@@ -38,7 +38,9 @@
     --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
     --fi-sun-2: #f0dca0; --fi-cloud-2: rgba(170, 150, 230, .3); --fi-shade: rgba(20, 10, 30, .22);
     --fi-storm: #1d1633; --fi-storm-2: #3b3160; --fi-rain: rgba(200, 190, 255, .6);
-    --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
+    --fi-ink: #3a1636; --fi-roof: #a982e6; --fi-roof-2: #7d5bc4; --fi-curtain: #e48fbd; --fi-curtain-2: #c46fa0; --fi-brick: #d97a98; --fi-brick-2: #b0587a; --fi-box: #e47fb0; --fi-box-2: #b9558a; --fi-lace: #f6e6ff; --fi-tile: #f6e8f3; --fi-tone: rgba(255, 230, 255, .22); --fi-wall: #f1e2f0; --fi-paper: #dcb6d0;
+    --fi-ink: #3a1636; --fi-roof: #a982e6; --fi-roof-2: #7d5bc4; --fi-curtain: #e48fbd; --fi-curtain-2: #c46fa0; --fi-brick: #d97a98; --fi-brick-2: #b0587a; --fi-box: #e47fb0; --fi-box-2: #b9558a; --fi-lace: #f6e6ff; --fi-tile: #f6e8f3; --fi-tone: rgba(255, 230, 255, .22); --fi-wall: #f1e2f0; --fi-paper: #dcb6d0;
+  --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
   }
 }
 :root[data-theme="dark"] {
@@ -54,6 +56,7 @@
   --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
   --fi-sun-2: #f0dca0; --fi-cloud-2: rgba(170, 150, 230, .3); --fi-shade: rgba(20, 10, 30, .22);
   --fi-storm: #1d1633; --fi-storm-2: #3b3160; --fi-rain: rgba(200, 190, 255, .6);
+  --fi-ink: #3a1636; --fi-roof: #a982e6; --fi-roof-2: #7d5bc4; --fi-curtain: #e48fbd; --fi-curtain-2: #c46fa0; --fi-brick: #d97a98; --fi-brick-2: #b0587a; --fi-box: #e47fb0; --fi-box-2: #b9558a; --fi-lace: #f6e6ff; --fi-tile: #f6e8f3; --fi-tone: rgba(255, 230, 255, .22); --fi-wall: #f1e2f0; --fi-paper: #dcb6d0;
   --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
 }
 
@@ -90,7 +93,7 @@
 /* cassetta degli attrezzi */
 .fi-tools {
   position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100%; margin-top: 12px; padding: 12px 10px 10px; border-radius: 18px;
-  background: linear-gradient(180deg, var(--fi-box) 0 10px, var(--fi-box-2) 10px 14px, color-mix(in srgb, var(--fi-box) 22%, var(--card-solid)) 14px);
+  background: linear-gradient(180deg, var(--fi-box) 0 10px, var(--fi-box-2) 10px 14px, color-mix(in srgb, var(--fi-box) 30%, var(--card-solid)) 14px);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fi-box-2) 55%, transparent), 0 4px 0 color-mix(in srgb, var(--fi-box-2) 45%, transparent), var(--shadow-s);
 }
 .fi-tools::before {                                 /* maniglia della cassetta */
@@ -99,7 +102,7 @@
 }
 .fi-tool {
   display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 16px;
-  position: relative; border: 2px solid var(--line); background: linear-gradient(180deg, var(--card-solid) 55%, color-mix(in srgb, var(--card-solid) 88%, var(--fi-ink))); box-shadow: 0 4px 0 var(--line-2), var(--shadow-s);
+  position: relative; border: 2px solid var(--line); background: linear-gradient(180deg, var(--fi-tile) 55%, color-mix(in srgb, var(--fi-tile) 88%, var(--fi-ink))); box-shadow: 0 4px 0 var(--line-2), var(--shadow-s);
   transition: transform .12s, box-shadow .12s, border-color .12s; touch-action: manipulation;
 }
 .fi-tool svg { width: 36px; height: 36px; filter: drop-shadow(0 2px 0 var(--fi-shade)); }
@@ -119,8 +122,42 @@
 .fi-chain circle { fill: var(--fi-chain-bg); stroke: var(--fi-chain); stroke-width: 2; }
 .fi-chain rect { fill: none; stroke: var(--fi-chain); stroke-width: 1.8; }
 
+/* shoujo: cornice di pizzo, bolle, stelline, cartellone dell'episodio */
+.fi-scene::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 5px var(--fi-lace);
+  background:
+    radial-gradient(circle at 50% 0, var(--fi-lace) 5px, transparent 5.6px) top / 14px 11px repeat-x,
+    radial-gradient(circle at 50% 100%, var(--fi-lace) 5px, transparent 5.6px) bottom / 14px 11px repeat-x;
+}
+.fi-deco { z-index: 1; pointer-events: none; }
+.fi-bub { animation: fi-bub 9s linear infinite; }
+.fi-twk { transform-box: fill-box; transform-origin: center; animation: fi-twk 2.6s ease-in-out infinite; }
+.fi-tag {
+  position: absolute; z-index: 5; top: 12px; left: 12px; padding: 3px 10px; border-radius: 999px; pointer-events: none;
+  background: var(--fi-ink); color: var(--fi-lace); font: 400 12px/1.4 var(--font-display); letter-spacing: .04em; box-shadow: 0 2px 0 var(--fi-shade);
+}
+.fi-ep {
+  position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--fi-sky-2) 92%, transparent) 0 38%, color-mix(in srgb, var(--fi-sky) 85%, transparent) 75%),
+    repeating-conic-gradient(from 0deg at 50% 50%, var(--fi-tone) 0 4deg, transparent 4deg 12deg);
+}
+.fi-ep[hidden] { display: none; }
+.fi-ep.in { animation: fi-ep-in .5s cubic-bezier(.3, 1.5, .5, 1) both; }
+.fi-ep.out { animation: fi-fade-out .45s ease-in both; }
+.fi-ep-card { position: relative; display: grid; justify-items: center; gap: 4px; padding: 18px 26px 20px; text-align: center; }
+.fi-ep-card small { font: 400 clamp(16px, 5vw, 22px)/1.1 var(--font-display); color: var(--fi-lace); -webkit-text-stroke: 0; text-shadow: 0 0 0 transparent, 2px 2px 0 var(--fi-ink), -2px 2px 0 var(--fi-ink), 2px -2px 0 var(--fi-ink), -2px -2px 0 var(--fi-ink); letter-spacing: .06em; }
+.fi-ep-card b {
+  font: 400 clamp(28px, 9vw, 44px)/1.05 var(--font-display); color: var(--fi-roof); text-wrap: balance;
+  text-shadow: 3px 3px 0 var(--fi-lace), -3px 3px 0 var(--fi-lace), 3px -3px 0 var(--fi-lace), -3px -3px 0 var(--fi-lace), 0 6px 0 var(--fi-ink);
+  animation: fi-ep-b .8s cubic-bezier(.3, 1.6, .5, 1) .15s both;
+}
+.fi-ep-sp { position: absolute; font-size: 26px; color: var(--fi-lace); text-shadow: 0 0 8px var(--fi-sun); animation: fi-twk 1.4s ease-in-out infinite; }
+.fi-ep-sp.a { top: -6px; left: 0; } .fi-ep-sp.b { bottom: -4px; right: 2px; animation-delay: .4s; } .fi-ep-sp.c { top: 4px; right: -6px; color: var(--fi-flower-1); animation-delay: .8s; }
+
 /* meteo: la tempesta si dirada man mano che ripari (--storm = frazione di guasti rimasti) */
 .fi-storm { opacity: calc(var(--storm, 1) * .9); transition: opacity 1.4s ease; }
+.fi-gloom { opacity: calc(var(--storm, 1) * .22); transition: opacity 1.4s ease; pointer-events: none; }
 .fi-weather { opacity: clamp(0, calc((var(--storm, 1) - .3) * 1.6), 1); transition: opacity 1.4s ease; animation: fi-rain .5s linear infinite; }
 .fi-cloud, .fi-sun { transition: opacity 1.4s; }
 .fi-bolt { animation: fi-bolt 5s steps(1, end) infinite; opacity: 0; }
@@ -157,6 +194,11 @@ g.fi-shake { transform-origin: center; animation: fi-shake .45s; }
 .fi-burst > g { animation: fi-burst .8s ease-out both; }
 .solved .fi-sun { animation: fi-pop .8s cubic-bezier(.3, 1.6, .5, 1), fi-breathe 4s ease-in-out .8s infinite; }
 
+@keyframes fi-bub { from { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } to { transform: translateY(-420px); opacity: 0; } }
+@keyframes fi-twk { 0%, 100% { transform: scale(.6) rotate(0deg); opacity: .5; } 50% { transform: scale(1.15) rotate(20deg); opacity: 1; } }
+@keyframes fi-ep-in { from { opacity: 0; transform: scale(1.15); } to { opacity: 1; transform: scale(1); } }
+@keyframes fi-ep-b { from { transform: scale(.3) rotate(-8deg); opacity: 0; } to { transform: scale(1) rotate(-3deg); opacity: 1; } }
+@keyframes fi-fade-out { to { opacity: 0; transform: scale(.96); } }
 @keyframes fi-rain { from { transform: translate(0, 0); } to { transform: translate(-4px, 10px); } }
 @keyframes fi-bolt { 0%, 86%, 92%, 100% { opacity: 0; } 88%, 95% { opacity: 1; } }
 @keyframes fi-hari { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
@@ -195,6 +237,6 @@ g.fi-shake { transform-origin: center; animation: fi-shake .45s; }
 @media (prefers-reduced-motion: reduce) {
   .fi-wrap *, .fi-wrap *::before, .fi-wrap *::after { animation: none !important; transition: none !important; }
   .fi-smoke circle, .fi-blow { opacity: 1; }
-  .fi-weather { display: none; }
+  .fi-weather, .fi-bub { display: none; }
   .fi-blow { display: none; }
 }

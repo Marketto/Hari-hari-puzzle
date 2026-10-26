@@ -6,34 +6,103 @@
  * tutti i suoi prerequisiti) di sizeFor(level) guasti, con vincoli di forma che crescono col livello
  * (gruppi, niente guasti isolati, guasti con due prerequisiti). Sempre risolvibile: è un DAG.
  *
- * Esporta HH.fixit = { CATALOG, TOOLS, sizeFor, shapeFor, generate, newState, validate,
+ * Esporta HH.fixit = { CATALOG, SCENES, SCENE_ORDER, sceneFor, sceneOf, catalogOf, TOOLS, sizeFor, shapeFor, generate, newState, validate,
  *                      canFix, blockersOf, apply, undo, isSolved, solve, closure, stats, rate, progress }.
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
 
-  // Ordine topologico: ogni guasto viene dopo i suoi prerequisiti.
-  const CATALOG = [
-    { id: 'ladder', tool: 'hammer', deps: [] },                  // scala rotta → martello
-    { id: 'roof', tool: 'tile', deps: ['ladder'] },              // tegole volate → tegola
-    { id: 'chimney', tool: 'brush', deps: ['ladder'] },          // camino pieno di fuliggine → scovolo
-    { id: 'branch', tool: 'saw', deps: [] },                     // ramo caduto sulla finestra → sega
-    { id: 'fire', tool: 'matches', deps: ['chimney', 'branch'] },// camino pulito + legna dal ramo → fiammiferi
-    { id: 'glass', tool: 'pane', deps: ['branch'] },             // vetro rotto → lastra
-    { id: 'curtains', tool: 'curtain', deps: ['glass'] },        // tende cadute → tenda
-    { id: 'crack', tool: 'trowel', deps: [] },                   // crepa nel muro → cazzuola
-    { id: 'paint', tool: 'roller', deps: ['crack'] },            // vernice scrostata → rullo
-    { id: 'valve', tool: 'valve', deps: [] },                    // acqua aperta → chiudi la valvola
-    { id: 'pipe', tool: 'wrench', deps: ['valve'] },             // tubo che perde → chiave inglese
-    { id: 'puddle', tool: 'mop', deps: ['pipe'] },               // pozzanghera → mocio
-    { id: 'fuse', tool: 'fuse', deps: [] },                      // corrente accesa → stacca il quadro
-    { id: 'wires', tool: 'screwdriver', deps: ['fuse'] },        // fili penzolanti → cacciavite
-    { id: 'lamp', tool: 'bulb', deps: ['wires', 'puddle'] },     // lampada: fili a posto e pavimento asciutto
-    { id: 'leaves', tool: 'rake', deps: [] },                    // mucchio di foglie → rastrello
-    { id: 'flowers', tool: 'seeds', deps: ['leaves'] },          // aiuola vuota → fiori
-  ];
-  const BY = Object.fromEntries(CATALOG.map((p) => [p.id, p]));
-  const TOOLS = CATALOG.map((p) => p.tool);
+  // Scenari: ogni livello si svolge in un ambiente diverso, con il suo catalogo di guasti.
+  // In ogni catalogo: ordine topologico (ogni guasto dopo i suoi prerequisiti) e un attrezzo diverso per guasto.
+  const P = (id, tool, deps = []) => ({ id, tool, deps });
+  const SCENES = {
+    house: [                                   // la casetta vista da fuori (+ interno in sezione)
+      P('ladder', 'hammer'),                   // scala rotta → martello
+      P('roof', 'tile', ['ladder']),           // tegole volate → tegola
+      P('chimney', 'brush', ['ladder']),       // camino pieno di fuliggine → scovolo
+      P('branch', 'saw'),                      // ramo caduto sulla finestra → sega
+      P('fire', 'matches', ['chimney', 'branch']), // camino pulito + legna dal ramo → fiammiferi
+      P('glass', 'pane', ['branch']),          // vetro rotto → lastra
+      P('curtains', 'curtain', ['glass']),     // tende cadute → tenda
+      P('crack', 'trowel'),                    // crepa nel muro → cazzuola
+      P('paint', 'roller', ['crack']),         // vernice scrostata → rullo
+      P('valve', 'valve'),                     // acqua aperta → chiudi la valvola
+      P('pipe', 'wrench', ['valve']),          // tubo che perde → chiave inglese
+      P('puddle', 'mop', ['pipe']),            // pozzanghera → mocio
+      P('fuse', 'fuse'),                       // corrente accesa → stacca il quadro
+      P('wires', 'screwdriver', ['fuse']),     // fili penzolanti → cacciavite
+      P('lamp', 'bulb', ['wires', 'puddle']),  // lampada: fili a posto e pavimento asciutto
+      P('leaves', 'rake'),                     // mucchio di foglie → rastrello
+      P('flowers', 'seeds', ['leaves']),       // aiuola vuota → fiori
+    ],
+    kitchen: [
+      P('breaker', 'fuse'),                    // corrente da staccare prima di lavorare
+      P('socket', 'screwdriver', ['breaker']), // presa staccata dal muro
+      P('lamp', 'bulb', ['socket']),           // lampadario spento
+      P('valve', 'valve'),                     // acqua aperta sotto il lavello
+      P('faucet', 'wrench', ['valve']),        // rubinetto che spruzza
+      P('flood', 'mop', ['faucet']),           // pavimento allagato
+      P('fridge', 'plug', ['socket', 'flood']),// frigo spento: presa sistemata e pavimento asciutto
+      P('shards', 'broom'),                    // cocci per terra
+      P('shelf', 'hammer', ['shards']),        // mensola caduta (prima si spazzano i cocci)
+      P('jars', 'jar', ['shelf']),             // barattoli da rimettere sulla mensola
+      P('window', 'pane'),                     // vetro rotto
+      P('curtain', 'curtain', ['window']),     // tendina strappata
+      P('cake', 'mitt'),                       // torta che brucia nel forno
+      P('dishes', 'sponge', ['faucet', 'cake']), // piatti sporchi: acqua sistemata, forno spento
+    ],
+    bedroom: [
+      P('window', 'pane'),                     // vetro rotto, entra la pioggia
+      P('curtain', 'curtain', ['window']),
+      P('carpet', 'mop', ['window']),          // tappeto bagnato dalla pioggia
+      P('shelf', 'screwdriver'),               // mensola staccata
+      P('books', 'books', ['shelf']),          // libri da rimettere a posto
+      P('lamp', 'bulb', ['shelf']),            // lampada caduta dalla mensola
+      P('plant', 'pot', ['carpet', 'shelf']),  // pianta rovesciata: vaso nuovo sulla mensola, tappeto asciutto
+      P('bed', 'hammer'),                      // gamba del letto rotta
+      P('pillows', 'pillow', ['bed']),         // cuscini sparsi
+      P('blanket', 'blanket', ['pillows']),    // coperta da rimboccare
+      P('crack', 'trowel'),                    // crepa nel muro
+      P('paint', 'roller', ['crack']),         // muro da ridipingere
+      P('clock', 'battery'),                   // sveglia ferma
+    ],
+    bathroom: [
+      P('valve', 'valve'),                     // acqua aperta
+      P('pipe', 'wrench', ['valve']),          // tubo che perde
+      P('tub', 'stopper', ['valve']),          // vasca che trabocca: manca il tappo
+      P('flood', 'mop', ['pipe', 'tub']),      // pavimento allagato
+      P('tiles', 'trowel', ['flood']),         // piastrelle staccate (sul pavimento asciutto)
+      P('mirror', 'pane'),                     // specchio incrinato
+      P('fuse', 'fuse'),                       // corrente da staccare
+      P('lamp', 'bulb', ['fuse']),             // luce dello specchio
+      P('fan', 'screwdriver', ['fuse']),       // ventola staccata
+      P('rack', 'hammer'),                     // portasciugamani caduto
+      P('towels', 'towel', ['rack']),          // asciugamani per terra
+      P('duck', 'duck', ['tub']),              // paperella dispersa: torna nella vasca
+    ],
+    garden: [
+      P('trunk', 'saw'),                       // tronco caduto sul vialetto
+      P('gate', 'hammer', ['trunk']),          // cancelletto rotto
+      P('swing', 'rope', ['trunk']),           // altalena con la corda spezzata
+      P('glass', 'pane'),                      // vetro della serra rotto
+      P('pots', 'pot', ['glass']),             // vasi rovesciati nella serra
+      P('seedlings', 'seeds', ['pots']),       // piantine da ripiantare
+      P('tap', 'valve'),                       // rubinetto del giardino aperto
+      P('hose', 'wrench', ['tap']),            // tubo da giardino bucato
+      P('water', 'can', ['hose', 'seedlings']),// annaffiare le piantine
+      P('leaves', 'rake'),                     // foglie dappertutto
+      P('birdhouse', 'screwdriver', ['leaves']), // casetta degli uccellini caduta tra le foglie
+      P('lantern', 'bulb'),                    // lanterna del giardino spenta
+    ],
+  };
+  const SCENE_ORDER = ['house', 'kitchen', 'bedroom', 'bathroom', 'garden'];
+  const CATALOG = SCENES.house;                // compatibilità: il catalogo "storico"
+  const TOOLS = [...new Set(SCENE_ORDER.flatMap((k) => SCENES[k].map((p) => p.tool)))];
+  const sceneOf = (x) => (x && SCENES[x] ? x : 'house');
+  const catalogOf = (scene) => SCENES[sceneOf(scene)];
+  const byOf = (scene) => Object.fromEntries(catalogOf(scene).map((p) => [p.id, p]));
+  // livello → scenario: si gira tra gli ambienti, così ogni episodio ha un posto nuovo
+  const sceneFor = (level) => SCENE_ORDER[(lv(level) - 1) % SCENE_ORDER.length];
 
   // Curva: 3 guasti al livello 1, poi cresce fino a 10 (livello 14+).
   const CURVE = [3, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10];
@@ -61,11 +130,11 @@
     return a;
   }
 
-  // id + tutti i suoi prerequisiti (transitivi)
-  function closure(id, out = new Set()) {
+  // id + tutti i suoi prerequisiti (transitivi) nello scenario dato
+  function closure(id, out = new Set(), scene = 'house') {
     if (out.has(id)) return out;
     out.add(id);
-    BY[id].deps.forEach((d) => closure(d, out));
+    byOf(scene)[id].deps.forEach((d) => closure(d, out, scene));
     return out;
   }
 
@@ -113,13 +182,13 @@
       Math.max(0, st.singles - sh.singles) + (sh.multi && !st.multi ? 1 : 0) + Math.max(0, sh.depth - st.depth);
   }
 
-  function pickSet(k, rnd) {
+  function pickSet(k, rnd, scene) {
     const S = new Set();
     while (S.size < k) {
       const opts = [];
-      for (const p of CATALOG) {
+      for (const p of catalogOf(scene)) {
         if (S.has(p.id)) continue;
-        const add = [...closure(p.id)].filter((i) => !S.has(i));
+        const add = [...closure(p.id, new Set(), scene)].filter((i) => !S.has(i));
         if (add.length <= k - S.size) opts.push({ add, w: add.length * (0.2 + rnd()) });
       }
       if (!opts.length) break;
@@ -130,29 +199,34 @@
     return S;
   }
 
-  /* generate(level, rnd) → { level, problems:[{id, tool, deps}], tools:[...] }
-   * problems in ordine di catalogo; tools = attrezzi dei guasti + "decoys" casuali, mescolati. */
-  function generate(level, rnd = Math.random) {
+  /* generate(level, rnd, scene?) → { level, scene, problems:[{id, tool, deps}], tools:[...] }
+   * scenario: quello del livello (sceneFor) se non indicato. problems in ordine di catalogo;
+   * tools = attrezzi dei guasti + "esche" (prima dallo stesso scenario, poi dagli altri), mescolati. */
+  function generate(level, rnd = Math.random, scene = sceneFor(level)) {
+    scene = sceneOf(scene);
+    const cat = catalogOf(scene);
     const sh = shapeFor(level);
     let best = null, bestMiss = Infinity;
     for (let tries = 0; tries < 400; tries++) {
-      const S = pickSet(sh.size, rnd);
-      const problems = CATALOG.filter((p) => S.has(p.id)).map((p) => ({ id: p.id, tool: p.tool, deps: p.deps.slice() }));
+      const S = pickSet(sh.size, rnd, scene);
+      const problems = cat.filter((p) => S.has(p.id)).map((p) => ({ id: p.id, tool: p.tool, deps: p.deps.slice() }));
       const st = stats(problems);
       if (fits(st, sh)) { best = problems; break; }
       const m = miss(st, sh);
       if (m < bestMiss) { bestMiss = m; best = problems; }
     }
     const own = best.map((p) => p.tool);
-    const others = shuffle(TOOLS.filter((t) => !own.includes(t)), rnd).slice(0, sh.decoys);
-    return { level: lv(level), problems: best, tools: shuffle(own.concat(others), rnd) };
+    const near = shuffle(cat.map((p) => p.tool).filter((t) => !own.includes(t)), rnd);
+    const far = shuffle(TOOLS.filter((t) => !own.includes(t) && !near.includes(t)), rnd);
+    const others = near.concat(far).slice(0, sh.decoys);
+    return { level: lv(level), scene, problems: best, tools: shuffle(own.concat(others), rnd) };
   }
 
   /* ---------- stato di gioco ---------- */
   // fixed: guasti riparati in ordine (serve anche per "Annulla"); found: dipendenze scoperte [da, a]
   function newState(puzzle) {
     return {
-      v: 1, level: puzzle.level, problems: puzzle.problems.map((p) => ({ id: p.id, tool: p.tool, deps: p.deps.slice() })),
+      v: 1, level: puzzle.level, scene: sceneOf(puzzle.scene), problems: puzzle.problems.map((p) => ({ id: p.id, tool: p.tool, deps: p.deps.slice() })),
       tools: puzzle.tools.slice(), fixed: [], found: [], mistakes: 0, slips: 0, moves: 0,
     };
   }
@@ -160,6 +234,8 @@
   // controlla un puzzle/stato salvato: guasti del catalogo, attrezzo giusto, prerequisiti inclusi
   function validate(s) {
     if (!s || !Array.isArray(s.problems) || !s.problems.length || !Array.isArray(s.tools)) return false;
+    if (s.scene !== undefined && !SCENES[s.scene]) return false;
+    const BY = byOf(s.scene);                 // salvataggi vecchi senza scenario = casetta
     const ids = new Set();
     for (const p of s.problems) {
       const c = p && BY[p.id];
@@ -226,5 +302,5 @@
   const rate = (s) => ((s.mistakes || 0) === 0 && (s.slips || 0) === 0 ? 3 : (s.mistakes || 0) + (s.slips || 0) <= 2 ? 2 : 1);
   const progress = (s) => (s && s.problems && s.problems.length ? Math.max(0, Math.min(1, (s.fixed || []).length / s.problems.length)) : 0);
 
-  HH.fixit = { CATALOG, TOOLS, sizeFor, shapeFor, generate, newState, validate, canFix, blockersOf, apply, undo, isSolved, solve, closure, stats, rate, progress };
+  HH.fixit = { CATALOG, SCENES, SCENE_ORDER, sceneFor, sceneOf, catalogOf, TOOLS, sizeFor, shapeFor, generate, newState, validate, canFix, blockersOf, apply, undo, isSolved, solve, closure, stats, rate, progress };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

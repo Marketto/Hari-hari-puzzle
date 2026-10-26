@@ -13,7 +13,7 @@ const SHELL = [
   'src/games/hedgedoku-logic.js', 'src/games/hedgedoku-ui.js', 'src/games/boba-logic.js', 'src/games/boba-ui.js',
   'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
   'src/games/sushi-logic.js', 'src/games/sushi-ui.js', 'src/games/sushi.css',
-  'src/games/fixit-logic.js', 'src/games/fixit-ui.js', 'src/games/fixit.css',
+  'src/games/fixit-logic.js', 'src/games/fixit-kit.js', 'src/games/fixit-scene-house.js', 'src/games/fixit-scene-kitchen.js', 'src/games/fixit-scene-kitchen.css', 'src/games/fixit-scene-bedroom.js', 'src/games/fixit-scene-bedroom.css', 'src/games/fixit-scene-bathroom.js', 'src/games/fixit-scene-bathroom.css', 'src/games/fixit-scene-garden.js', 'src/games/fixit-scene-garden.css', 'src/games/fixit-ui.js', 'src/games/fixit.css',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 

@@ -75,3 +75,20 @@ Deterministico dato `rnd`; ~0,1 ms per livello.
 Scena a strati con ombre "cel" e riflessi. Il meteo segue il progresso: `--storm` (frazione di guasti rimasti) regola l'opacità di nuvoloni,
 lampo e pioggia, che si diradano a ogni riparazione fino all'arcobaleno. Hari col caschetto dietro la cassetta degli attrezzi salta a ogni
 riparazione (`.yay`) e trema all'errore (`.oops`). Colori solo tramite token `--fi-*`.
+
+## Scenari ed episodi (v0.7)
+Ogni livello è un **episodio** in un ambiente diverso (`HH.fixit.sceneFor(level)`, a rotazione):
+1 casetta · 2 cucina · 3 cameretta · 4 bagno · 5 giardino con serra · 6 di nuovo la casetta…
+Ogni scenario ha il suo catalogo di guasti (DAG con un attrezzo diverso per guasto) in `SCENES` di `fixit-logic.js`;
+lo stato salvato ha `scene` (i salvataggi vecchi senza scenario valgono come casetta).
+
+File: `fixit-kit.js` (helper di disegno, icone attrezzi, `addTool`), `fixit-scene-<id>.js` + `.css` (uno per scenario, contratto
+nel commento di `fixit-scene-house.js`), `fixit-ui.js` (interfaccia comune).
+
+A inizio livello compare il **cartellone dell'episodio** ("Episodio N" + nome dello scenario, `episode` / `fis_<id>`); in alto a sinistra
+resta l'etichetta "Ep. N" (`epTag`).
+
+## Stile shoujo anni '90 (v0.7)
+Scelto tra le proposte in `design/proposte-anime.html` (n. 1): contorni prugna, palette rosa/lilla/menta, retino a puntini nel cielo,
+bolle e stelline che fluttuano (`.fi-deco`), cornice di pizzo (`.fi-scene::after`), scintille e cuoricini a ogni riparazione.
+Negli interni il temporale è fuori dalla finestra e una penombra (`.fi-gloom`) si schiarisce col progresso.

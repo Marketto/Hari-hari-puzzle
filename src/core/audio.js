@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | 'hedgedoku' | 'boba' | 'lantern'
+ * HH.music.play(track, p)      'menu' | 'hedgedoku' | 'boba' | 'lantern' | 'sushi' | 'fixit' | 'parade'
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -174,6 +174,13 @@
       chords: [1, 4, 1, 5, 1, 4, 5, 1], bass: 'R . F R . F O .',
       mel: ['1 . 3 5 5 . 3 .', '4 . 6 4 3 . 2 .', '1 . 3 5 8 . 6 5', '4 3 2 3 1 - - .',
         '5 . 5 6 5 . 3 1', '6 . 6 8 6 . 5 .', '4 . 5 6 5 3 2 .', '1 . 5 . 1 - - .'],
+    },
+    // sfilata nel giardino: marcetta saltellante (pluck + marimba), basso a passo di marcia
+    parade: {
+      bpm: 126, root: 65, lead: 'pluck', arp: 'marimba', swing: 0.18, perc: 'pop',
+      chords: [1, 5, 6, 4, 1, 5, 4, 1], bass: 'R . F . R . F .',
+      mel: ['1 . 3 5 8 . 5 .', '7 . 5 7 9 . 7 .', '6 . 8 6 5 . 3 .', '4 6 8 6 4 - - .',
+        '3 . 5 8 10 . 8 .', '9 . 7 5 7 . 5 .', '6 8 6 4 2 . 4 .', '3 . 2 . 1 - - .'],
     },
     lantern: {
       bpm: 76, root: 62, lead: 'koto', arp: 'koto', swing: 0, perc: 'night',

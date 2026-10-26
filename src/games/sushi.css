@@ -1,49 +1,56 @@
-/* Sushi Bar — stile.
- * Locale giapponese in stile anime: tende noren, lanterne, finestra tonda con sakura, bancone di hinoki,
+/* Sushi Bar — stile "film d'animazione anni '90": fondale dipinto con grana della carta, personaggi cel con linee sottili,
+ * luce calda delle lanterne. Locale giapponese: tende noren, lanterne, finestra tonda con vista serale, bancone di hinoki,
  * nastro kaiten in acciaio con piattini colorati, tagliere e secchio di legno.
  * Cibo e animali hanno colori fissi (uguali nei due temi); locale, legno e nastro cambiano col tema.
  */
 :root {
-  --su-ink: #4a2c22; --su-eye: #2a160e; --su-iris: #9a5a34; --su-hi: #ffffff; --su-sweat: #a8dcff; --su-blush-line: #f07a9a;
-  --su-rice: #fffdf7; --su-rice-2: #ece3d2; --su-grain: #ddd2bd;
-  --su-nori: #2f4a3a; --su-nori-2: #22382b; --su-nori-3: #4f7360;
-  --su-salmon: #ff9a6b; --su-salmon-2: #ef7a4c; --su-salmon-fat: #ffe0cc;
-  --su-tuna: #e2475f; --su-tuna-2: #b8304a; --su-tuna-hi: #f27b8e;
-  --su-cuke: #6cc26a; --su-cuke-2: #3d8f45; --su-cuke-in: #d8f3c8; --su-cuke-seed: #a7d98f;
-  --su-egg: #ffd44d; --su-egg-2: #f0b92c; --su-egg-3: #d99a1f; --su-egg-hi: #ffe78f;
-  --su-shrimp: #ff8f73; --su-shrimp-2: #ee6a4f; --su-shrimp-tail: #e2483a;
-  --su-avo: #a9d45f; --su-avo-2: #5d8f32; --su-avo-in: #edf7c2; --su-pit: #8b5a3c; --su-pit-2: #6a3f27;
-  --su-roe: #ff7a45; --su-crab: #ffb3a1;
-  --su-beak: #ffb43d; --su-hat: #ffffff; --su-band: #ff6f86;
-  --su-a1: #ffffff; --su-a2: #ffc27a; --su-a4: #9edc7a; --su-a4-2: #6bb256; --su-a5: #ff9e57; --su-a6: #c99068; --su-a6-in: #ecc49f; --su-a7: #ffe066; --su-a8: #3e4a66;
-  --su-k1: #ffb3c7; --su-k2: #9fd3ff; --su-k3: #c9b5ff; --su-k4: #ffd59a;
-  --su-wood: #f2c896; --su-wood-2: #d9a26a; --su-wood-3: #b67c45; --su-copper: #d9844a;
-  --su-belt: #f7b6c6; --su-belt-2: #e894aa; --su-steel: #e6e9f1; --su-steel-2: #a9b2c6; --su-steel-3: #8c95ab;
-  --su-dishplate: #ffffff; --su-plate-sh: #e3dceb; --su-plate-1: #ff8fab; --su-plate-2: #6fb8ff; --su-plate-3: #ffc23d;
-  --su-board: #f6dcb4; --su-board-2: #ebc795;
-  --su-wall: #fff2df; --su-wall-2: #f6dcc0; --su-beam: #b9875e; --su-beam-2: #92643f; --su-tag: #f8e5c6;
-  --su-window: #d8efff; --su-branch: #8a5a44; --su-sakura: #ffc2d4; --su-sakura-in: #ff7fa3;
-  --su-noren: #5a6fc9; --su-noren-2: #ff8fab;
-  --su-lantern: #ff7186; --su-lantern-2: #c23f57; --su-lantern-cap: #3d2a2a; --su-glow: rgba(255, 196, 120, .28);
-  --su-shade: rgba(74, 44, 34, .16);
+  /* linee e cibo (uguali nei due temi) */
+  --su-ink: #4a3326; --su-eye: #2b1d16; --su-hi: #fffdf2; --su-sweat: #a8d0ee; --su-blush: #f2a38f; --su-collar: #f6eedc;
+  --su-rice: #fbf7ec; --su-rice-2: #e3d8c2; --su-grain: #d6c9ae;
+  --su-nori: #2c3a2c; --su-nori-2: #1f2a20; --su-nori-3: #4a5f4a;
+  --su-salmon: #f39465; --su-salmon-2: #d7703f; --su-salmon-fat: #ffe1cc;
+  --su-tuna: #d0404e; --su-tuna-2: #9e2a3a; --su-tuna-hi: #ea7480;
+  --su-cuke: #6cae5a; --su-cuke-2: #3f7f3e; --su-cuke-in: #d6edc0; --su-cuke-seed: #a3cf88;
+  --su-egg: #f7cf4f; --su-egg-2: #e2ab2d; --su-egg-3: #c98e1d; --su-egg-hi: #fbe18a;
+  --su-shrimp: #f58f70; --su-shrimp-2: #dc6a4d; --su-shrimp-tail: #c9452f;
+  --su-avo: #a3c95e; --su-avo-2: #5a8a32; --su-avo-in: #e9f2bd; --su-pit: #8b5a3c; --su-pit-2: #6a3f27;
+  --su-roe: #f07a45; --su-crab: #f6b3a0;
+  --su-beak: #f0a83a; --su-hat: #fbf6ea; --su-band: #c95b4b;
+  /* clienti: toni da cel cinematografico */
+  --su-a1: #faf4ea; --su-a2: #f0c08a; --su-a4: #a3cc80; --su-a4-2: #6e9e56; --su-a5: #e8955a; --su-a6: #b98a62; --su-a6-in: #e3c09c; --su-a7: #f5d66a; --su-a8: #3e4a66;
+  --su-k1: #c95b4b; --su-k2: #4f7aa8; --su-k3: #6f8f4f; --su-k4: #d9a83f;
+  /* locale: pomeriggio caldo */
+  --su-wood: #b9844f; --su-wood-2: #94643a; --su-wood-3: #6e4728; --su-copper: #c97a3e;
+  --su-belt: #c2b8a8; --su-belt-2: #a39886; --su-steel: #d6d6d4; --su-steel-2: #9a9a98; --su-steel-3: #74746f;
+  --su-dishplate: #f7f2e7; --su-plate-sh: #d8cfbf; --su-plate-1: #c95b4b; --su-plate-2: #4f7aa8; --su-plate-3: #d9a83f;
+  --su-board: #e8c38c; --su-board-2: #d2a668;
+  --su-wall: #eccb98; --su-wall-2: #c99a66; --su-wall-3: #f6dcae; --su-beam: #7a4e2b; --su-beam-2: #5a3820; --su-tag: #f2e0bd;
+  --su-sky-1: #f4a77e; --su-sky-2: #f6cf9a; --su-sky-3: #9fbfd8; --su-moon: #fff3cf; --su-roofs: #6b7391; --su-roofs-2: #4e5674; --su-lit: #ffd27a;
+  --su-branch: #6b4a3a; --su-sakura: #f6c2cc; --su-sakura-in: #e0798d;
+  --su-noren: #2f4f7a; --su-noren-2: #9b3b3b; --su-noren-ink: #f4ead2;
+  --su-lantern: #e9543f; --su-lantern-2: #a8322a; --su-lantern-hot: #ffc48a; --su-lantern-cap: #3a2a22;
+  --su-glow: rgba(255, 190, 110, .38); --su-steam: rgba(255, 255, 255, .55); --su-warm: rgba(255, 170, 80, .1);
+  --su-shade: rgba(74, 51, 38, .2); --su-bubble: #fbf6ea; --su-bubble-line: rgba(74, 51, 38, .28);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #8d5a78; --su-belt-2: #74465f;
-    --su-steel: #6d7590; --su-steel-2: #4a516a; --su-steel-3: #3a4056; --su-dishplate: #f3eef8; --su-plate-sh: #cfc6dc;
-    --su-board: #a77d58; --su-board-2: #8f6847;
-    --su-wall: #4c3a5c; --su-wall-2: #3e2f4e; --su-beam: #6a4a3a; --su-beam-2: #4f3529; --su-tag: #7a6070;
-    --su-window: #2b2550; --su-branch: #c79a86; --su-noren: #4152a3; --su-noren-2: #c45f80;
-    --su-glow: rgba(255, 170, 90, .42); --su-shade: rgba(0, 0, 0, .3);
+    --su-wood: #7a5236; --su-wood-2: #5e3e28; --su-wood-3: #452c1c; --su-belt: #6f6a63; --su-belt-2: #58534d;
+    --su-steel: #8a8a8a; --su-steel-2: #5c5c5c; --su-steel-3: #444; --su-dishplate: #efe8da; --su-plate-sh: #c9bfae;
+    --su-board: #a98058; --su-board-2: #8c6643;
+    --su-wall: #6b4a3c; --su-wall-2: #4f362c; --su-wall-3: #7d5a48; --su-beam: #3d281e; --su-beam-2: #2a1b14; --su-tag: #a08368;
+    --su-sky-1: #1f2350; --su-sky-2: #343a75; --su-sky-3: #5b5f95; --su-roofs: #161937; --su-roofs-2: #0f1128;
+    --su-branch: #3f2d26; --su-noren: #23406b; --su-noren-2: #7a2e2e;
+    --su-glow: rgba(255, 160, 80, .55); --su-steam: rgba(255, 240, 220, .4); --su-warm: rgba(255, 140, 60, .14); --su-shade: rgba(0, 0, 0, .3);
   }
 }
 :root[data-theme="dark"] {
-  --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #8d5a78; --su-belt-2: #74465f;
-  --su-steel: #6d7590; --su-steel-2: #4a516a; --su-steel-3: #3a4056; --su-dishplate: #f3eef8; --su-plate-sh: #cfc6dc;
-  --su-board: #a77d58; --su-board-2: #8f6847;
-  --su-wall: #4c3a5c; --su-wall-2: #3e2f4e; --su-beam: #6a4a3a; --su-beam-2: #4f3529; --su-tag: #7a6070;
-  --su-window: #2b2550; --su-branch: #c79a86; --su-noren: #4152a3; --su-noren-2: #c45f80;
-  --su-glow: rgba(255, 170, 90, .42); --su-shade: rgba(0, 0, 0, .3);
+  --su-wood: #7a5236; --su-wood-2: #5e3e28; --su-wood-3: #452c1c; --su-belt: #6f6a63; --su-belt-2: #58534d;
+  --su-steel: #8a8a8a; --su-steel-2: #5c5c5c; --su-steel-3: #444; --su-dishplate: #efe8da; --su-plate-sh: #c9bfae;
+  --su-board: #a98058; --su-board-2: #8c6643;
+  --su-wall: #6b4a3c; --su-wall-2: #4f362c; --su-wall-3: #7d5a48; --su-beam: #3d281e; --su-beam-2: #2a1b14; --su-tag: #a08368;
+  --su-sky-1: #1f2350; --su-sky-2: #343a75; --su-sky-3: #5b5f95; --su-roofs: #161937; --su-roofs-2: #0f1128;
+  --su-branch: #3f2d26; --su-noren: #23406b; --su-noren-2: #7a2e2e;
+  --su-glow: rgba(255, 160, 80, .55); --su-steam: rgba(255, 240, 220, .4); --su-warm: rgba(255, 140, 60, .14); --su-shade: rgba(0, 0, 0, .3);
 }
 
 .su-wrap { position: relative; display: flex; flex-direction: column; gap: 10px; width: min(calc(100vw - 76px), 560px); user-select: none; -webkit-user-select: none; }
@@ -57,6 +64,8 @@
   background: linear-gradient(transparent calc(100% - 26px), var(--su-wood) calc(100% - 26px), var(--su-wood) calc(100% - 8px), var(--su-wood-3) calc(100% - 8px));
 }
 .su-counter::after { content: ""; position: absolute; left: 0; right: 0; bottom: 21px; height: 3px; background: var(--su-hi); opacity: .45; }
+.su-grain { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; opacity: .55; mix-blend-mode: multiply; }
+.su-shop::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: linear-gradient(180deg, var(--su-warm), transparent 70%); }
 .su-backdrop { position: absolute; left: 0; right: 0; top: 0; bottom: 26px; width: 100%; height: calc(100% - 26px); pointer-events: none; }
 .su-lantern { transform-box: fill-box; transform-origin: 50% 0; animation: su-sway 3.6s ease-in-out infinite; }
 .su-lantern > circle { animation: su-glow 2.8s ease-in-out infinite; }
@@ -75,6 +84,7 @@
 .su-frown, .su-brows, .su-sweat { display: none; }
 .su-seat.grumpy .su-smile { display: none; }
 .su-seat.grumpy .su-frown, .su-seat.grumpy .su-brows, .su-seat.grumpy .su-sweat { display: inline; }
+.su-seat.grumpy .su-calm, .su-seat.leaving.angry .su-calm { display: none; }
 .su-seat.grumpy .su-animal { animation: shake 1.4s ease 0s infinite; }
 .su-seat.ready .su-blush ellipse { opacity: 1; }
 .su-seat.empty { justify-content: flex-end; }
@@ -90,11 +100,11 @@
 /* fumetto dell'ordine */
 .su-order {
   position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 4px; padding: 6px 8px 5px; border-radius: 18px;
-  background: var(--card-solid); border: 2px solid var(--line-2); box-shadow: 0 3px 0 var(--su-shade), var(--shadow-s); animation: float 3s ease-in-out infinite;
+  background: var(--su-bubble); border: 2px solid var(--su-bubble-line); box-shadow: 0 3px 0 var(--su-shade), var(--shadow-s); animation: float 3s ease-in-out infinite;
 }
-.su-order::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 12px; height: 12px; margin-left: -6px; background: var(--card-solid); border-right: 2px solid var(--line-2); border-bottom: 2px solid var(--line-2); transform: rotate(45deg); }
+.su-order::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 12px; height: 12px; margin-left: -6px; background: var(--su-bubble); border-right: 2px solid var(--su-bubble-line); border-bottom: 2px solid var(--su-bubble-line); transform: rotate(45deg); }
 .su-dish { width: 50px; height: 42px; filter: drop-shadow(0 2px 0 var(--su-shade)); }
-.su-recipe { display: flex; gap: 1px; padding: 2px 4px; border-radius: 10px; background: var(--hair); }
+.su-recipe { display: flex; gap: 1px; padding: 2px 4px; border-radius: 10px; background: var(--su-shade); }
 .su-ing.mini { width: 20px; height: 20px; }
 .su-seat.ready .su-order { border-color: var(--mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 35%, transparent), var(--shadow-s); animation: ready-bob .6s ease-in-out infinite; }
 .su-seat.ready .su-order::before { content: "✦"; position: absolute; top: -10px; right: -6px; color: var(--sun); font-size: 16px; animation: su-twinkle 1s ease-in-out infinite; }
@@ -137,6 +147,9 @@
 .su-chef .mini-hari { animation: su-bob 2.4s ease-in-out infinite; }
 .su-hachi { overflow: visible; animation: su-bob 2.4s ease-in-out infinite; }
 .su-tails { transform-box: fill-box; transform-origin: 0 50%; animation: su-tails 1.2s ease-in-out infinite; }
+.su-boardwrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.su-steam { position: absolute; left: 50%; bottom: calc(100% - 12px); width: 56px; height: 42px; opacity: .75; margin-left: -35px; pointer-events: none; overflow: visible; z-index: 2; }
+.su-wisp { animation: su-wisp 3.2s ease-in-out infinite; opacity: 0; }
 .su-board {
   flex: 1; position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 0; padding: 8px 10px; border-radius: 14px;
   background:
@@ -179,6 +192,7 @@
 @keyframes su-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
 @keyframes su-flap { 0%, 100% { transform: skewX(0deg); } 50% { transform: skewX(-2.5deg); } }
 @keyframes su-glow { 50% { opacity: .55; } }
+@keyframes su-wisp { 0% { transform: translateY(8px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-16px); opacity: 0; } }
 @keyframes su-tails { 50% { transform: rotate(-10deg); } }
 @keyframes su-twinkle { 50% { transform: scale(1.4) rotate(20deg); opacity: .6; } }
 
@@ -195,5 +209,5 @@
   .su-item .su-ing { width: 34px; height: 34px; left: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .su-wrap .su-bob, .su-wrap .su-eye, .su-wrap .su-lantern, .su-wrap .su-flap, .su-wrap .su-tails, .su-wrap .mini-hari, .su-wrap .su-hachi, .su-belt-track { animation: none !important; }
+  .su-wrap .su-bob, .su-wrap .su-eye, .su-wrap .su-lantern, .su-wrap .su-flap, .su-wrap .su-tails, .su-wrap .mini-hari, .su-wrap .su-hachi, .su-belt-track, .su-wisp { animation: none !important; }
 }

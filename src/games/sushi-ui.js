@@ -7,8 +7,9 @@
   const HH = (G.HH = G.HH || {});
   HH.games = HH.games || [];
 
-  /* ---------- disegni in stile anime: contorno morbido, ombra "cel" piatta, riflessi bianchi ---------- */
-  const o = (w = 2) => `stroke="var(--su-ink)" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+  /* ---------- disegni in stile film d'animazione anni '90: personaggi "cel" (contorno sottile, una sola ombra netta)
+   *            su fondali dipinti ad acquerello (bordi morbidi, grana della carta, luce calda) ---------- */
+  const o = (w = 2) => `stroke="var(--su-ink)" stroke-width="${(w * 0.72).toFixed(2)}" stroke-linejoin="round" stroke-linecap="round"`;   // linee sottili da film
   const hi = (d, w = 2.2, op = 0.9) => `<path d="${d}" fill="none" stroke="var(--su-hi)" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
   const grains = (pts, c = 'var(--su-grain)') => pts.map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="2.1" ry="1.3" transform="rotate(${r} ${x} ${y})" fill="none" stroke="${c}" stroke-width="1.1"/>`).join('');
   const block = (top, front, side, lines) => `<path d="M8 16l6-5h19l-5 5z" fill="${top}"/><path d="M8 16h20v13H8z" fill="${front}"/><path d="M28 16l5-5v13l-5 5z" fill="${side}"/>${lines}<path d="M8 16l6-5h19v13l-5 5H8zM8 16h20l5-5M28 16v13" fill="none" ${o(1.9)}/>`;
@@ -91,9 +92,9 @@
     frog: '<path d="M18 49q14 6 28 0" fill="none" stroke="var(--su-a4-2)" stroke-width="2" stroke-linecap="round"/>',
     bear: '<ellipse cx="32" cy="45.5" rx="7.5" ry="5.5" fill="var(--su-a6-in)"/>',
   };
-  const eye = (cx) => `<g class="su-eye"><ellipse cx="${cx}" cy="38" rx="4.3" ry="5.4" fill="var(--su-eye)"/>
-    <ellipse cx="${cx}" cy="40.3" rx="3.2" ry="2.5" fill="var(--su-iris)"/>
-    <circle cx="${cx + 1.4}" cy="35.8" r="1.8" fill="var(--su-hi)"/><circle cx="${cx - 1.5}" cy="40.6" r=".85" fill="var(--su-hi)"/></g>`;
+  const eye = (cx) => `<g class="su-eye"><ellipse cx="${cx}" cy="39" rx="2.7" ry="3.5" fill="var(--su-eye)"/>
+    <circle cx="${cx + 0.9}" cy="37.7" r=".95" fill="var(--su-hi)"/></g>`;
+  const brow = (cx, f) => `<path d="M${cx - 3.4} ${31.6 + f}q3.4 -2.2 6.8 0" fill="none" stroke="var(--su-ink)" stroke-width=".9" stroke-linecap="round" opacity=".75"/>`;
   function animalSVG(a) {
     const beak = a === 'chick' || a === 'penguin' ? '<path d="M28.5 45.5l3.5 4 3.5-4q-3.5-1.6-7 0z" fill="var(--su-beak)" stroke="var(--su-ink)" stroke-width="1.5" stroke-linejoin="round"/>'
       : '<path d="M30.2 45.2q1.8-1 3.6 0-1.8 2-3.6 0z" fill="var(--su-ink)"/>';
@@ -101,20 +102,18 @@
     return `<svg class="su-animal" viewBox="0 0 64 80" aria-hidden="true"><g class="su-bob">
       <path d="M8 80c0-14 9-22 24-22s24 8 24 22z" fill="${k}" ${o(2.2)}/>
       <path d="M8.6 74c2-8 7-12 13-14-3 4-4 9-4 20H8z" fill="var(--su-ink)" opacity=".1"/>
-      <path d="M23 58.5L32 72l9-13.5" fill="none" stroke="var(--su-hi)" stroke-width="4" stroke-linejoin="round"/><path d="M21.5 58.6L32 74l10.5-15.4" fill="none" ${o(1.6)}/>
-      <path d="M45 66l3 3M47.5 63l3 3" stroke="var(--su-hi)" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+      <path d="M23 58.5L32 72l9-13.5" fill="none" stroke="var(--su-collar)" stroke-width="4" stroke-linejoin="round"/><path d="M21.5 58.6L32 74l10.5-15.4" fill="none" ${o(1.6)}/>
+      <path d="M8.5 80c1-8 4-12 8-15" fill="none" stroke="var(--su-ink)" stroke-width=".9" opacity=".35"/><path d="M46 63c4 3 7 8 8 17" fill="none" stroke="var(--su-ink)" stroke-width=".9" opacity=".3"/>
       ${EARS[a]}
       <circle cx="32" cy="38" r="21" fill="${FACE[a]}" ${o(2.3)}/>
-      <path d="M53 38A21 21 0 0 1 25 57.8 25 25 0 0 0 53 38z" fill="var(--su-ink)" opacity=".09"/>
+      <path d="M53 38A21 21 0 0 1 25 57.8 25 25 0 0 0 53 38z" fill="var(--su-ink)" opacity=".16"/>
       ${EXTRA[a] || ''}
-      ${hi('M17 29a17 17 0 0 1 8-9', 2.2, 0.75)}
-      <g class="su-eyes">${eye(23.5)}${eye(40.5)}</g>
-      <g class="su-blush"><ellipse cx="16.5" cy="45" rx="4" ry="2.4" fill="var(--petal)" opacity=".85"/><ellipse cx="47.5" cy="45" rx="4" ry="2.4" fill="var(--petal)" opacity=".85"/>
-      <path d="M14.5 45.6l1.4-2M17.5 45.6l1.4-2M45.5 45.6l1.4-2M48.5 45.6l1.4-2" stroke="var(--su-blush-line)" stroke-width="1" stroke-linecap="round"/></g>
+      <g class="su-eyes">${eye(24)}${eye(40)}</g><g class="su-calm">${brow(24, 0)}${brow(40, 0)}</g>
+      <g class="su-blush"><ellipse cx="17" cy="45.5" rx="3.6" ry="1.9" fill="var(--su-blush)" opacity=".6"/><ellipse cx="47" cy="45.5" rx="3.6" ry="1.9" fill="var(--su-blush)" opacity=".6"/></g>
       ${beak}
       <path class="su-smile" d="M28 48.5q2 2.2 4 0q2 2.2 4 0" fill="none" stroke="var(--su-ink)" stroke-width="1.7" stroke-linecap="round"/>
       <path class="su-frown" d="M28.5 51q3.5-3 7 0" fill="none" stroke="var(--su-ink)" stroke-width="1.8" stroke-linecap="round"/>
-      <path class="su-brows" d="M18 30.5l7 2.2M46 30.5l-7 2.2" stroke="var(--su-ink)" stroke-width="2" stroke-linecap="round"/>
+      <path class="su-brows" d="M20 30.8l7 2M44 30.8l-7 2" stroke="var(--su-ink)" stroke-width="1.5" stroke-linecap="round"/>
       <path class="su-sweat" d="M52 26c2 3 3 5 1 6.5s-3.5-1.5-1-6.5z" fill="var(--su-sweat)" stroke="var(--su-ink)" stroke-width="1.2"/>
       <ellipse cx="19" cy="76" rx="6" ry="4" fill="${FACE[a]}" ${o(1.8)}/><ellipse cx="45" cy="76" rx="6" ry="4" fill="${FACE[a]}" ${o(1.8)}/>
     </g></svg>`;
@@ -137,40 +136,62 @@
     <path d="M7.6 18h24.8M9.3 30h21.4" stroke="var(--su-copper)" stroke-width="3"/><ellipse cx="20" cy="13" rx="13" ry="3.5" fill="var(--su-wood-2)" ${o(2)}/>
     <path d="M30 18l-2 15" stroke="var(--su-ink)" stroke-width="1" opacity=".15"/>${hi('M11 20l1 9', 1.6, 0.6)}</svg>`;
 
-  /* sfondo del locale (viewBox 400×200, ancorato in basso) */
-  const lantern = (x, d) => `<g class="su-lantern" style="animation-delay:${d}s"><path d="M${x} 10v14" stroke="var(--su-ink)" stroke-width="1.6"/>
-    <circle cx="${x}" cy="46" r="26" fill="var(--su-glow)"/>
-    <rect x="${x - 9}" y="22" width="18" height="6" rx="2" fill="var(--su-lantern-cap)" ${o(1.6)}/>
-    <ellipse cx="${x}" cy="46" rx="16" ry="19" fill="var(--su-lantern)" ${o(2)}/>
-    <path d="M${x - 15} 40h30M${x - 15.6} 46h31.2M${x - 15} 52h30" stroke="var(--su-lantern-2)" stroke-width="1.4" opacity=".75"/>
-    <path d="M${x} 27.5v37" stroke="var(--su-lantern-2)" stroke-width="1.2" opacity=".5"/>
-    <path d="M${x + 15.5} 46a16 19 0 0 1-12 18.2 20 19 0 0 0 12-18.2z" fill="var(--su-ink)" opacity=".12"/>
-    <rect x="${x - 9}" y="63" width="18" height="6" rx="2" fill="var(--su-lantern-cap)" ${o(1.6)}/><path d="M${x} 69v7" stroke="var(--su-lantern-cap)" stroke-width="2.4" stroke-linecap="round"/>
-    ${hi(`M${x - 10} 38q1-6 5-9`, 2, 0.7)}</g>`;
-  const blossom = (x, y, r = 4) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="${-r}" rx="${r * 0.62}" ry="${r * 0.85}" transform="rotate(${a})" fill="var(--su-sakura)"/>`).join('')}<circle r="${r * 0.38}" fill="var(--su-sakura-in)"/></g>`;
+  /* sfondo del locale (viewBox 400×200, ancorato in basso): fondale "dipinto" senza contorni.
+   * Gli elementi fermi passano dal filtro suPaint (bordi irregolari da acquerello); quelli animati (lanterne) restano fuori
+   * dal filtro, così il filtro si calcola una volta sola. La grana della carta è un velo statico (.su-grain). */
+  const blossom = (x, y, r = 4, c = 'var(--su-sakura)') => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="${-r}" rx="${r * 0.62}" ry="${r * 0.85}" transform="rotate(${a})" fill="${c}"/>`).join('')}<circle r="${r * 0.38}" fill="var(--su-sakura-in)"/></g>`;
+  const lantern = (x, d) => `<g class="su-lantern" style="animation-delay:${d}s"><path d="M${x} 10v14" stroke="var(--su-ink)" stroke-width="1.1"/>
+    <rect x="${x - 9}" y="22" width="18" height="6" rx="2" fill="var(--su-lantern-cap)"/>
+    <ellipse cx="${x}" cy="46" rx="16" ry="19" fill="var(--su-lantern)" ${o(1.4)}/>
+    <path d="M${x - 15} 40h30M${x - 15.6} 46h31.2M${x - 15} 52h30" stroke="var(--su-lantern-2)" stroke-width="1.1" opacity=".7"/>
+    <path d="M${x + 15.5} 46a16 19 0 0 1-12 18.2 20 19 0 0 0 12-18.2z" fill="var(--su-lantern-2)" opacity=".55"/>
+    <ellipse cx="${x - 6}" cy="40" rx="4" ry="8" fill="var(--su-lantern-hot)" opacity=".7"/>
+    <rect x="${x - 9}" y="63" width="18" height="6" rx="2" fill="var(--su-lantern-cap)"/><path d="M${x} 69v7" stroke="var(--su-lantern-cap)" stroke-width="2" stroke-linecap="round"/></g>`;
   const BACKDROP = `<svg class="su-backdrop" viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <rect width="400" height="200" fill="var(--su-wall)"/>
-    <rect y="150" width="400" height="50" fill="var(--su-wall-2)"/><path d="${Array.from({ length: 20 }, (_, i) => `M${10 + i * 20} 152V200`).join('')}" stroke="var(--su-beam)" stroke-width="1.5" opacity=".35"/>
-    <rect y="146" width="400" height="6" fill="var(--su-beam)"/>
-    <g class="su-window"><circle cx="200" cy="80" r="44" fill="var(--su-window)"/>
-      <path d="M200 36V124M156 80H244M170 46v68M230 46v68M160 58h80M160 102h80" stroke="var(--su-beam-2)" stroke-width="2" opacity=".55"/>
-      <path d="M150 52c30 6 50 22 70 26s30 2 34 -2" fill="none" stroke="var(--su-branch)" stroke-width="3.4" stroke-linecap="round"/>
+    <defs>
+      <filter id="suPaint" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="3" seed="11"/><feDisplacementMap in="SourceGraphic" scale="6"/></filter>
+      <linearGradient id="suSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--su-sky-1)"/><stop offset=".65" stop-color="var(--su-sky-2)"/><stop offset="1" stop-color="var(--su-sky-3)"/></linearGradient>
+      <radialGradient id="suPool"><stop offset="0" stop-color="var(--su-glow)"/><stop offset="1" stop-color="var(--su-glow)" stop-opacity="0"/></radialGradient>
+      <clipPath id="suWin"><circle cx="200" cy="80" r="44"/></clipPath>
+    </defs>
+    <g filter="url(#suPaint)">
+      <rect x="-10" y="-10" width="420" height="220" fill="var(--su-wall)"/>
+      <path d="M-10 60Q100 40 200 64T410 56V150H-10Z" fill="var(--su-wall-3)" opacity=".5"/>
+      <rect x="-10" y="150" width="420" height="60" fill="var(--su-wall-2)"/>
+      ${Array.from({ length: 21 }, (_, i) => `<rect x="${-6 + i * 20}" y="152" width="3" height="50" fill="var(--su-beam)" opacity=".35"/>`).join('')}
+      <rect x="-10" y="145" width="420" height="7" fill="var(--su-beam)"/>
+      <g clip-path="url(#suWin)">
+        <rect x="150" y="30" width="100" height="100" fill="url(#suSky)"/>
+        <circle cx="226" cy="62" r="7" fill="var(--su-moon)"/>
+        <path d="M150 104l14-10 10 6 12-14 12 10 10-6 14 12 12-8 16 10V130H150Z" fill="var(--su-roofs)"/>
+        <path d="M150 116h100V130H150Z" fill="var(--su-roofs-2)"/>
+        ${[[166, 108], [186, 112], [214, 110], [238, 112]].map(([x, y]) => `<rect x="${x}" y="${y}" width="4" height="4" fill="var(--su-lit)"/>`).join('')}
+        <path d="M200 36V124M156 80H244M170 40v80M230 40v80M156 58h88M156 102h88" stroke="var(--su-beam-2)" stroke-width="1.8" opacity=".5"/>
+      </g>
+      <circle cx="200" cy="80" r="45" fill="none" stroke="var(--su-beam)" stroke-width="8"/>
+      <path d="M146 50c30 6 52 24 72 28s32 2 38 -4" fill="none" stroke="var(--su-branch)" stroke-width="3.6" stroke-linecap="round"/>
       <path d="M188 66c4-8 10-12 18-12" fill="none" stroke="var(--su-branch)" stroke-width="2.4" stroke-linecap="round"/>
-      ${blossom(172, 58, 5)}${blossom(206, 54, 4.5)}${blossom(222, 79, 5.5)}${blossom(194, 72, 4)}${blossom(247, 75, 4)}
-      <circle cx="200" cy="80" r="44" fill="none" stroke="var(--su-beam)" stroke-width="7"/><circle cx="200" cy="80" r="47.5" fill="none" ${o(1.6)}/></g>
-    ${[[108, 'var(--su-plate-1)'], [128, 'var(--su-plate-2)'], [272, 'var(--su-plate-3)'], [292, 'var(--su-plate-1)']].map(([x, c]) => `<g><rect x="${x - 8}" y="22" width="16" height="40" rx="2" fill="var(--su-tag)" ${o(1.4)}/><circle cx="${x}" cy="31" r="3.4" fill="${c}"/><path d="M${x - 3} 40h6M${x - 3} 46h6M${x - 3} 52h4" stroke="var(--su-ink)" stroke-width="1.6" stroke-linecap="round" opacity=".45"/></g>`).join('')}
-    <rect y="0" width="400" height="12" fill="var(--su-beam)"/><rect y="11" width="400" height="2" fill="var(--su-beam-2)"/>
-    <rect x="0" y="0" width="10" height="200" fill="var(--su-beam)"/><rect x="390" y="0" width="10" height="200" fill="var(--su-beam)"/>
+      ${blossom(170, 56, 5)}${blossom(206, 52, 4.5)}${blossom(224, 78, 5.5)}${blossom(192, 70, 4)}${blossom(250, 72, 4)}${blossom(150, 50, 3.6)}
+      ${[[104, 'var(--su-plate-1)'], [126, 'var(--su-plate-2)'], [274, 'var(--su-plate-3)'], [296, 'var(--su-plate-1)']].map(([x, c]) => `<g><rect x="${x - 8}" y="22" width="16" height="40" rx="1.5" fill="var(--su-tag)"/><circle cx="${x}" cy="31" r="3.2" fill="${c}"/><path d="M${x - 3} 40h6M${x - 3} 46h6M${x - 3} 52h4" stroke="var(--su-ink)" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></g>`).join('')}
+      <rect x="-10" y="-10" width="420" height="22" fill="var(--su-beam)"/><rect x="-10" y="11" width="420" height="3" fill="var(--su-beam-2)"/>
+      <rect x="-10" y="-10" width="20" height="220" fill="var(--su-beam)"/><rect x="390" y="-10" width="20" height="220" fill="var(--su-beam)"/>
+      <rect x="10" y="-10" width="4" height="220" fill="var(--su-beam-2)" opacity=".6"/><rect x="386" y="-10" width="4" height="220" fill="var(--su-beam-2)" opacity=".6"/>
+    </g>
+    <ellipse cx="46" cy="60" rx="70" ry="62" fill="url(#suPool)"/><ellipse cx="354" cy="60" rx="70" ry="62" fill="url(#suPool)"/>
     ${lantern(46, 0)}${lantern(354, 1.1)}
-    ${blossom(320, 128, 3)}${blossom(84, 120, 2.6)}
   </svg>`;
+  // grana della carta + velo di luce calda sopra tutto il locale (statico)
+  const GRAIN = `<svg class="su-grain" aria-hidden="true"><filter id="suGrainF"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .24  0 0 0 0 .15  0 0 0 .2 0"/></filter><rect width="100%" height="100%" filter="url(#suGrainF)"/></svg>`;
   const NOREN = `<svg class="su-noren" viewBox="0 0 400 44" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
     ${[0, 1, 2, 3].map((i) => { const x = 4 + i * 98.5, c = i % 2 ? 'var(--su-noren-2)' : 'var(--su-noren)';
-      return `<g class="su-flap" style="animation-delay:${(i * 0.35).toFixed(2)}s"><path d="M${x} 4h94v34q-47 6-94 0z" fill="${c}" ${o(1.8)}/>
-      <path d="M${x + 6} 31q8-5 16 0t16 0t16 0t16 0t16 0" fill="none" stroke="var(--su-hi)" stroke-width="1.8" opacity=".55"/>
-      ${blossom(x + 47, 19, 6.5)}<path d="M${x + 3} 8v26" stroke="var(--su-hi)" stroke-width="1.6" opacity=".35" stroke-linecap="round"/></g>`; }).join('')}
-    <rect x="0" y="0" width="400" height="7" rx="3.5" fill="var(--su-beam)" ${o(1.6)}/>
+      return `<g class="su-flap" style="animation-delay:${(i * 0.35).toFixed(2)}s"><path d="M${x} 4h94v35q-47 5-94 0z" fill="${c}" ${o(1.4)}/>
+      <path d="M${x + 60} 6h34v32q-17 2-34 1z" fill="var(--su-ink)" opacity=".12"/>
+      <circle cx="${x + 47}" cy="20" r="8" fill="none" stroke="var(--su-noren-ink)" stroke-width="2"/><path d="M${x + 41} 21q6 -6 12 0" fill="none" stroke="var(--su-noren-ink)" stroke-width="2" stroke-linecap="round"/></g>`; }).join('')}
+    <rect x="0" y="0" width="400" height="7" rx="3.5" fill="var(--su-beam)" ${o(1.4)}/>
   </svg>`;
+  // vapore che sale dal tagliere (riso caldo)
+  const STEAM = `<svg class="su-steam" viewBox="0 0 60 50" aria-hidden="true">${[[14, 0], [30, 0.9], [46, 1.7]].map(([x, d]) =>
+    `<path class="su-wisp" style="animation-delay:${d}s" d="M${x} 48c-7 -8 7 -13 0 -22c-5 -7 5 -11 1 -20" fill="none" stroke="var(--su-steam)" stroke-width="3.4" stroke-linecap="round"/>`).join('')}</svg>`;
 
   const art = () => `<svg viewBox="0 0 120 90" aria-hidden="true">
     <rect x="4" y="2" width="112" height="10" rx="4" fill="var(--su-noren)"/><rect x="40" y="2" width="38" height="10" fill="var(--su-noren-2)"/>
@@ -203,13 +224,13 @@
     function build() {
       el.innerHTML = `<div class="su-wrap">
         <div class="su-shop">
-          ${NOREN}
+          ${NOREN}${GRAIN}
           <div class="su-counter">${BACKDROP}${s.seats.map((_, i) => `<button class="su-seat" data-seat="${i}"></button>`).join('')}</div>
         </div>
         <div class="su-belt" style="--dur:${(1 / s.cfg.speed / 3).toFixed(2)}s"><div class="su-belt-track"></div></div>
         <div class="su-kitchen">
           <div class="su-chef">${HH.mascot.mini()}${HACHIMAKI}</div>
-          <div class="su-board" aria-live="polite"></div>
+          <div class="su-boardwrap">${STEAM}<div class="su-board" aria-live="polite"></div></div>
           <button class="su-trash" aria-label="${t('trash')}">${BUCKET}</button>
         </div>
         <div class="su-served"></div>

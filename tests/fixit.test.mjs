@@ -53,14 +53,36 @@ function orderOk(problems, order) {
 }
 const edges = (ps) => ps.reduce((s, p) => s + p.deps.length, 0);
 
-/* ---------- Catalogo ---------- */
-test('catalogo: DAG, attrezzo unico per guasto, prerequisiti esistenti', () => {
-  assert.equal(hasCycle(F.CATALOG), false);
-  const ids = new Set(F.CATALOG.map((p) => p.id));
-  assert.equal(ids.size, F.CATALOG.length);
-  F.CATALOG.forEach((p) => p.deps.forEach((d) => assert.ok(ids.has(d), `${p.id} → ${d}`)));
-  assert.equal(new Set(F.TOOLS).size, F.TOOLS.length, 'un attrezzo diverso per ogni guasto');
-  assert.ok(F.CATALOG.some((p) => p.deps.length >= 2), 'almeno un guasto con due prerequisiti');
+/* ---------- Cataloghi degli scenari ---------- */
+for (const scene of F.SCENE_ORDER) {
+  test(`scenario ${scene}: DAG, attrezzo unico per guasto, prerequisiti esistenti, abbastanza guasti`, () => {
+    const cat = F.SCENES[scene];
+    assert.equal(hasCycle(cat), false);
+    const ids = new Set(cat.map((p) => p.id));
+    assert.equal(ids.size, cat.length);
+    cat.forEach((p, i) => p.deps.forEach((d) => {
+      assert.ok(ids.has(d), `${scene}: ${p.id} → ${d}`);
+      assert.ok(cat.findIndex((q) => q.id === d) < i, `${scene}: ${d} deve venire prima di ${p.id}`);
+    }));
+    const tools = cat.map((p) => p.tool);
+    assert.equal(new Set(tools).size, tools.length, `${scene}: un attrezzo diverso per ogni guasto`);
+    assert.ok(cat.some((p) => p.deps.length >= 2), `${scene}: almeno un guasto con due prerequisiti`);
+    assert.ok(cat.length >= 12, `${scene}: servono almeno 12 guasti per i livelli alti`);
+    assert.ok(oracleSolvable(cat.slice(0, 20)) || cat.length > 20);
+  });
+}
+test('gli scenari ruotano coi livelli e tutti compaiono nei primi 5', () => {
+  assert.deepEqual([1, 2, 3, 4, 5].map(F.sceneFor), F.SCENE_ORDER);
+  assert.equal(F.sceneFor(6), F.sceneFor(1));
+  assert.equal(F.CATALOG, F.SCENES.house);
+});
+test('salvataggi vecchi senza scenario restano validi (casetta)', () => {
+  const pz = F.generate(4, HH.rng(3), 'house');
+  const st = F.newState(pz);
+  delete st.scene;
+  assert.ok(F.validate(st));
+  assert.equal(F.newState(st).scene, 'house');
+  assert.equal(F.validate({ ...F.newState(pz), scene: 'luna' }), false);
 });
 
 /* ---------- Livelli generati ---------- */
@@ -70,12 +92,14 @@ for (let level = 1; level <= 20; level++) {
     for (let seed = 1; seed <= SEEDS; seed++) {
       const tag = `L${level} seed=${seed}`;
       const pz = F.generate(level, HH.rng(seed * 7919 + level));
+      const CAT = F.SCENES[pz.scene];
+      assert.equal(pz.scene, F.sceneFor(level), `${tag}: scenario`);
       const ids = pz.problems.map((p) => p.id);
       assert.equal(pz.problems.length, F.sizeFor(level), `${tag}: taglia`);
       assert.equal(new Set(ids).size, ids.length, `${tag}: guasti ripetuti`);
       // ogni guasto è del catalogo e ha gli stessi prerequisiti; tutti i prerequisiti sono nel livello
       for (const p of pz.problems) {
-        const c = F.CATALOG.find((q) => q.id === p.id);
+        const c = CAT.find((q) => q.id === p.id);
         assert.ok(c, `${tag}: ${p.id} fuori catalogo`);
         assert.equal(p.tool, c.tool, `${tag}: attrezzo di ${p.id}`);
         assert.deepEqual(p.deps, c.deps, `${tag}: prerequisiti di ${p.id}`);

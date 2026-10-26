@@ -54,3 +54,11 @@ Locale giapponese disegnato in SVG (`BACKDROP`, `NOREN` in `sushi-ui.js`): tende
 con ramo di sakura, targhette del menu. Clienti 64×80 con spalle in kimono, ombra "cel" piatta sulla testa, occhioni con due riflessi che
 sbattono, guanciotte con trattini; da arrabbiati compaiono sopracciglia, broncio e goccia di sudore. Cibo con ombra piatta e riflessi
 bianchi; piattini del nastro con bordo colorato (rosa, azzurro, oro). Tutti i colori sono token `--su-*` (tema chiaro e scuro).
+
+## Stile "film d'animazione anni '90" (v0.7)
+Scelto tra le proposte in `design/proposte-anime.html` (n. 2). Due strati come nei veri rodovetri:
+- **Fondale dipinto** (`BACKDROP`): niente contorni, bordi irregolari da acquerello col filtro SVG `suPaint` (turbolenza + spostamento),
+  applicato solo agli elementi fermi; finestra tonda con vista serale (tetti, finestre accese, luna), pozze di luce delle lanterne.
+  Sopra tutto il locale un velo statico di grana della carta (`.su-grain`) e una luce calda (`.su-shop::after`).
+- **Personaggi cel**: contorni sottili (`o()` × 0,72), una sola ombra netta sulla testa, occhi piccoli con un riflesso, sopracciglia sottili.
+- Vapore che sale dal tagliere, fumetti color carta. Tema scuro = sera con le lanterne più calde.
