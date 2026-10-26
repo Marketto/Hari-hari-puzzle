@@ -10,7 +10,7 @@ const VERSION = 'hh-v0.7.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
-  'src/games/hedgedoku-logic.js', 'src/games/hedgedoku-ui.js', 'src/games/boba-logic.js', 'src/games/boba-ui.js',
+  'src/games/hedgedoku-logic.js', 'src/games/hedgedoku.css', 'src/games/hedgedoku-ui.js', 'src/games/boba-logic.js', 'src/games/boba-ui.js',
   'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
   'src/games/sushi-logic.js', 'src/games/sushi-ui.js', 'src/games/sushi.css',
   'src/games/fixit-logic.js', 'src/games/fixit-kit.js', 'src/games/fixit-scene-house.js', 'src/games/fixit-scene-kitchen.js', 'src/games/fixit-scene-kitchen.css', 'src/games/fixit-scene-bedroom.js', 'src/games/fixit-scene-bedroom.css', 'src/games/fixit-scene-bathroom.js', 'src/games/fixit-scene-bathroom.css', 'src/games/fixit-scene-garden.js', 'src/games/fixit-scene-garden.css', 'src/games/fixit-ui.js', 'src/games/fixit.css',

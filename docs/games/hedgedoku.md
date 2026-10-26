@@ -13,12 +13,31 @@ Griglia N×N divisa in N zone colorate. Metti N ricci: uno per riga, uno per col
 - Stelle: 3 senza errori, 2 con un errore, 1 con due.
 - Dal livello 6 (7×7 e 8×8) un **riccio d'aiuto** già piazzato, con bollino dorato, non rimovibile.
 
-## Controlli (v0.2)
-- Selettore **Riccio / Segna** sopra la griglia (ricordato tra le sessioni).
-- Riccio: tocco = metti/togli riccio.
-- Segna: tocco = metti/togli ✕ · trascinamento = tante ✕ (se parti da una ✕, le cancella) · pressione lunga = riccio.
-- Si aggiorna solo la cella cambiata: niente animazioni ripetute sugli altri ricci. I ricci in conflitto mostrano strisce rosse.
-- 8 tinte di zona ben distinte (rosa, giallo, verde, azzurro, lilla, arancio, acqua, grigio) + bordi spessi tra zone.
+## Controlli (v0.4: tap / doppio tap, niente modalità)
+- **Tap**: cella vuota ↔ ✕. Su un riccio lo toglie e la cella resta **vuota** (non diventa ✕: chi toglie un riccio di solito vuole ripensarci, non escludere la casella). Il riccio d'aiuto non si toglie (trema).
+- **Doppio tap** (stessa cella, secondo tocco entro **300 ms** dal rilascio del primo, `HH.hedgedoku.isDoubleTap`): mette il riccio, o lo toglie se c'è.
+  Il primo tap viene applicato **subito** (la ✕ compare senza ritardo); al secondo tap la ✕ viene ritirata (si toglie la sua voce dalla cronologia e la mossa)
+  e al suo posto si giudica il riccio. Risultato: **una sola mossa**, una sola voce di "Annulla", nessun cuore perso per la ✕ intermedia (le ✕ non costano mai cuori).
+  Se il primo tap aveva tolto un riccio, il secondo non fa nulla (il riccio resta tolto). Un tap su un'altra cella o dopo 300 ms è un nuovo tap singolo.
+- **Trascina**: tante ✕ in fila (se parti da una ✕, le cancella); i ricci non vengono toccati. Un trascinamento non avvia mai un doppio tap.
+- **Tastiera**: frecce = sposta il focus (una sola cella nel tab order), **Invio** = ✕, **Spazio** = riccio. Lettori di schermo (click senza puntatore) = tap.
+  `aria-label` della cella: "riga,colonna" + "· Riccio" / "· crossed out".
+- Due pastiglie sopra la griglia ricordano i comandi ("Tap or drag" con ✕, "Double tap" con riccio). Rimossi il selettore Riccio/Segna e la pressione lunga.
+- Si aggiorna solo la cella cambiata. 8 tinte di zona ben distinte + bordi spessi tra zone.
+
+## Ricci vivi (v0.4)
+SVG proprio (`hogSvg()` in `hedgedoku-ui.js`, colori dai token `--hog-*` in `src/games/hedgedoku.css`, chiaro e scuro), gruppi annidati
+`g.hh-b` (respiro, salti) › `g.hh-h` (inclinazione `--tilt`) › `g.hh-look` (sguardo `--lx/--ly`); goccia e cuore stanno in un `<g>` interno a un `<g transform>`.
+- **Idle** (solo CSS): respiro e battito di ciglia con durata/ritardo casuali per riccio. Ogni 1,5 s un riccio a caso si guarda intorno (sinistra/destra/su, a volte inclinando la testa) per ~1–2 s.
+  Un solo `setInterval`, si ferma quando la griglia esce dal DOM, salta se la pagina è nascosta; disattivato con `prefers-reduced-motion` (che spegne anche tutte le animazioni CSS).
+- **✕ messa/tolta o riccio tolto**: i ricci entro 2 caselle guardano quella cella (`lookAt`, `nearHogs`).
+- **Riccio giusto**: saltello con occhi ^^ e orecchie che vibrano; tutti lo guardano, quelli entro 3 caselle sorridono con un cuoricino.
+- **Riccio sbagliato**: occhi stretti > <, bocca aperta, lacrime e singhiozzi; chi lo blocca ha sopracciglia preoccupate e goccia di sudore; gli altri lo guardano.
+- **Vittoria**: tutti con occhi ^^ saltellano a ola, colonna dopo colonna (`--c` × 90 ms), poi la schermata di vittoria (1,25 s).
+
+## Tutorial (prima partita)
+`tutorial` nella registrazione del gioco: 3 passi con SVG animati (classi `.hdt-*`): regola (4×4, banda che scorre sulle righe, ricci che spuntano),
+niente contatti (le 8 caselle intorno si accendono, riccio preoccupato), comandi (dito: 1× = ✕, 2× = riccio).
 
 ## Difficoltà
 | Livello | Griglia |
@@ -39,7 +58,7 @@ Griglia N×N divisa in N zone colorate. Metti N ricci: uno per riga, uno per col
 Misure (60 livelli per taglia): 100% logici; tempo medio 0,7 ms (5×5) → 3,8 ms (8×8).
 
 ## Test (`tests/hedgedoku.test.mjs`)
-Per 25 semi × taglie 5–8: tutte le celle assegnate, N zone connesse, soluzione valida, **unicità verificata da un solver a forza bruta indipendente** (tutte le N! permutazioni), risolvibilità logica. Più test di `check()` su riga, colonna, zona, diagonale e ✕, di `judge()` (solo le celle della soluzione sono giuste; chi blocca un riccio sbagliato) e del riccio d'aiuto.
+Per 25 semi × taglie 5–8: tutte le celle assegnate, N zone connesse, soluzione valida, **unicità verificata da un solver a forza bruta indipendente** (tutte le N! permutazioni), risolvibilità logica. Più test di `tapValue`, `isDoubleTap`, `lookAt`, `nearHogs` (comandi e reazioni), di `check()` su riga, colonna, zona, diagonale e ✕, di `judge()` (solo le celle della soluzione sono giuste; chi blocca un riccio sbagliato) e del riccio d'aiuto.
 
 ## Idee
 - Suggerimento: evidenzia una cella deducibile (riga/colonna/zona con una sola cella libera).

@@ -1,0 +1,139 @@
+/* Mochi Binary — stile.
+ * Vassoio di legno (di notte: lacca prugna) con piattini; mochi alla fragola (rosa, tondo, fragolina in cima)
+ * e al matcha (verde, più largo, fogliolina e spolverata). Le forme diverse aiutano chi distingue male i colori.
+ * Faccine: calma · felice (linea completa e giusta) · preoccupata (regola violata o linea completa sbagliata).
+ */
+:root {
+  --tint-binary: #e2f4d4;
+  --mb-ink: #4a2c22; --mb-eye: #2a160e; --mb-hi: #ffffff;
+  --mb-pink: #ffc6d8; --mb-pink-2: #f49bb9; --mb-pink-hi: #fff3f7;
+  --mb-green: #bfe6a0; --mb-green-2: #87c36a; --mb-green-hi: #f3ffe9;
+  --mb-berry: #ff5470; --mb-seed: #ffe9a8; --mb-leaf: #5fbf55; --mb-leaf-2: #2f8a3f; --mb-dust: #5e9440;
+  --mb-blush: rgba(255, 110, 145, .55); --mb-mouth: #e2506f; --mb-tongue: #ff9fb3; --mb-sweat: #9ad7ff;
+  --mb-shadow: rgba(90, 50, 40, .2);
+  --mb-tray: #f2d6ae; --mb-tray-2: #e0b682; --mb-tray-line: #c9975e; --mb-tray-edge: #b5814b;
+  --mb-cup: #fffaf3; --mb-cup-2: #f3e3d0; --mb-given: #f0cfa6; --mb-given-2: #dfb27c;
+  --mb-pin: #ff7fa3; --mb-pin-stick: #d9a868;
+  --mb-bad: #ff4f6d; --mb-bad-soft: rgba(255, 79, 109, .25);
+  --mb-good: #ffd84a; --mb-good-soft: rgba(255, 216, 74, .45); --mb-spark: #ffc93d; --mb-focus: #ff6f9c;
+  --mb-text: #8b5a48; --mb-track: #fff3e6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-binary: #2b4232;
+    --mb-shadow: rgba(0, 0, 0, .38);
+    --mb-tray: #4c3863; --mb-tray-2: #35274a; --mb-tray-line: #6a5288; --mb-tray-edge: #261b38;
+    --mb-cup: #3b2d55; --mb-cup-2: #2d2244; --mb-given: #5a4478; --mb-given-2: #46345f;
+    --mb-pin-stick: #e8c48f;
+    --mb-bad: #ff6f86; --mb-bad-soft: rgba(255, 111, 134, .3);
+    --mb-good: #ffe07a; --mb-good-soft: rgba(255, 224, 122, .3); --mb-focus: #ff8fb3;
+    --mb-text: #ffd6e6; --mb-track: #2a1f3d;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-binary: #2b4232;
+  --mb-shadow: rgba(0, 0, 0, .38);
+  --mb-tray: #4c3863; --mb-tray-2: #35274a; --mb-tray-line: #6a5288; --mb-tray-edge: #261b38;
+  --mb-cup: #3b2d55; --mb-cup-2: #2d2244; --mb-given: #5a4478; --mb-given-2: #46345f;
+  --mb-pin-stick: #e8c48f;
+  --mb-bad: #ff6f86; --mb-bad-soft: rgba(255, 111, 134, .3);
+  --mb-good: #ffe07a; --mb-good-soft: rgba(255, 224, 122, .3); --mb-focus: #ff8fb3;
+  --mb-text: #ffd6e6; --mb-track: #2a1f3d;
+}
+
+.mb-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- barra: due mochi amici e piattini riempiti ---------- */
+.mb-bar { display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; }
+.mb-buddy { flex: none; width: 40px; height: 40px; }
+.mb-buddy .mb-mochi { width: 100%; height: 100%; overflow: visible; animation: mb-hop 1.8s ease-in-out infinite; }
+.mb-buddy.b2 .mb-mochi { animation-delay: -.9s; }
+.mb-track { position: relative; flex: 1; height: 14px; border-radius: 8px; background: var(--mb-track); box-shadow: inset 0 0 0 2px var(--mb-tray-line); overflow: hidden; }
+.mb-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 8px; background: linear-gradient(90deg, var(--mb-pink-2), var(--mb-pink) 45%, var(--mb-green) 55%, var(--mb-green-2)); transition: width .35s cubic-bezier(.3, 1.4, .5, 1); }
+
+/* ---------- vassoio e griglia ---------- */
+.mb-tray {
+  width: 100%; padding: 8px; border-radius: 22px;
+  background: linear-gradient(180deg, var(--mb-tray), var(--mb-tray-2));
+  box-shadow: inset 0 0 0 2px var(--mb-tray-line), inset 0 -5px 0 var(--mb-tray-edge), var(--shadow-s);
+}
+.mb-grid { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px; touch-action: none; }
+.mb-grid.n8 { gap: 4px; }
+.mb-grid.n10 { gap: 3px; }
+.mb-cell {
+  position: relative; aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: 28%;
+  background: radial-gradient(circle at 50% 42%, var(--mb-cup) 55%, var(--mb-cup-2) 100%);
+  box-shadow: inset 0 -3px 0 var(--mb-cup-2), 0 1px 0 var(--mb-tray-edge);
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: box-shadow .2s, background .2s;
+}
+.mb-cell.given { background: radial-gradient(circle at 50% 42%, var(--mb-given) 55%, var(--mb-given-2) 100%); box-shadow: inset 0 -3px 0 var(--mb-given-2), inset 0 0 0 2px var(--mb-given-2); cursor: default; }
+.mb-cell:focus-visible { outline: 3px solid var(--mb-focus); outline-offset: 1px; z-index: 2; }
+.mb-mochi { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.mb-cell .mb-mochi { position: absolute; inset: 4%; width: 92%; height: 92%; }
+.mb-body { transform-box: view-box; transform-origin: 50% 88%; }
+
+/* faccine */
+.mb-f-happy, .mb-f-worry { display: none; }
+.m-happy .mb-f-calm, .m-worry .mb-f-calm { display: none; }
+.m-happy .mb-f-happy, .m-worry .mb-f-worry { display: inline; }
+.mb-cell.m-happy .mb-body { animation: mb-bounce 1.6s ease-in-out infinite; animation-delay: calc(var(--c) * -.13s); }
+.mb-cell.m-worry .mb-body { animation: mb-tremble .5s ease-in-out infinite; }
+
+/* violazione di regola: anello rosso a strisce, nessuna penalità */
+.mb-cell.bad { background: repeating-linear-gradient(45deg, var(--mb-bad-soft) 0 5px, var(--mb-cup) 5px 10px); box-shadow: inset 0 0 0 2.5px var(--mb-bad); }
+.mb-cell.given.bad { background: repeating-linear-gradient(45deg, var(--mb-bad-soft) 0 5px, var(--mb-given) 5px 10px); }
+
+/* animazioni di mossa */
+.mb-cell.pop .mb-body { animation: mb-pop .42s cubic-bezier(.3, 1.8, .5, 1); }
+.mb-cell.locked { animation: mb-no .4s ease-in-out; }
+.mb-cell.glow { box-shadow: inset 0 0 0 3px var(--mb-good), 0 0 10px var(--mb-good-soft); }
+.mb-cell.oops { animation: mb-no .45s ease-in-out; box-shadow: inset 0 0 0 3px var(--mb-bad), 0 0 10px var(--mb-bad-soft); }
+.mb-spark { position: absolute; left: 50%; top: 50%; width: 70%; height: 70%; margin: -35% 0 0 -35%; pointer-events: none; z-index: 3;
+  background:
+    radial-gradient(circle, var(--mb-spark) 0 2px, transparent 2.5px) 0 0 / 50% 50%,
+    conic-gradient(from 45deg, transparent 0 10%, var(--mb-spark) 12% 13%, transparent 15% 35%, var(--mb-spark) 37% 38%, transparent 40% 60%, var(--mb-spark) 62% 63%, transparent 65% 85%, var(--mb-spark) 87% 88%, transparent 90%);
+  border-radius: 50%; opacity: 0; animation: mb-spark .8s ease-out both; animation-delay: calc(var(--j) * 45ms); }
+
+/* vittoria: la ola */
+.mb-grid.solved .mb-cell { box-shadow: inset 0 0 0 2px var(--mb-good), inset 0 -3px 0 var(--mb-cup-2); }
+.mb-grid.solved .mb-cell .mb-body { animation: mb-ola .9s cubic-bezier(.3, 1.4, .5, 1) 2 both; animation-delay: calc(var(--c) * 70ms + var(--r) * 30ms); }
+.mb-grid.solved .mb-f-calm, .mb-grid.solved .mb-f-worry { display: none; }
+.mb-grid.solved .mb-f-happy { display: inline; }
+
+.mb-hint { margin: 2px 0 0; text-align: center; font-weight: 800; font-size: 13px; line-height: 1.4; color: var(--mb-text); }
+.mb-hint small { font-weight: 700; opacity: .8; }
+
+@keyframes mb-pop { 0% { transform: scale(.2, .2); } 60% { transform: scale(1.12, .9); } 100% { transform: none; } }
+@keyframes mb-bounce { 0%, 100% { transform: none; } 45% { transform: scale(1.05, .95); } 60% { transform: translateY(-5%) scale(.97, 1.04); } }
+@keyframes mb-tremble { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3%) rotate(-3deg); } 75% { transform: translateX(3%) rotate(3deg); } }
+@keyframes mb-no { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes mb-spark { 0% { opacity: 0; transform: scale(.3) rotate(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5) rotate(90deg); } }
+@keyframes mb-ola { 0%, 100% { transform: none; } 30% { transform: translateY(-42%) scale(.92, 1.1); } 55% { transform: translateY(0) scale(1.15, .85); } 75% { transform: scale(.96, 1.04); } }
+@keyframes mb-hop { 0%, 100% { transform: none; } 40% { transform: scale(1.06, .94); } 60% { transform: translateY(-10%) scale(.96, 1.05); } }
+
+/* tutorial */
+.mb-tu .mb-tu-a { animation: mb-tu-show 2.4s steps(1) infinite; }
+.mb-tu .mb-tu-b { animation: mb-tu-hide 2.4s steps(1) infinite; }
+.mb-tu1 .mb-tu-a { animation: mb-tu-cycle-a 3.6s steps(1) infinite; }
+.mb-tu1 .mb-tu-b { animation: mb-tu-cycle-b 3.6s steps(1) infinite; }
+.mb-tu-finger { animation: mb-tu-tap 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.mb-tu-ring { animation: mb-tu-ring 1.2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.mb-tu-pin, .mb-tu-lock { animation: mb-no 1.6s ease-in-out infinite; }
+@keyframes mb-tu-show { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mb-tu-hide { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes mb-tu-cycle-a { 0% { opacity: 0; } 33% { opacity: 1; } 66% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mb-tu-cycle-b { 0% { opacity: 0; } 66% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes mb-tu-tap { 0%, 100% { transform: translate(0, 0); } 30% { transform: translate(-4px, -4px) scale(.9); } }
+@keyframes mb-tu-ring { 0% { opacity: .9; transform: scale(.5); } 100% { opacity: 0; transform: scale(1.3); } }
+
+@media (max-width: 400px) {
+  .mb-tray { padding: 6px; border-radius: 18px; }
+  .mb-grid { gap: 4px; }
+  .mb-grid.n8 { gap: 3px; }
+  .mb-grid.n10 { gap: 2px; }
+  .mb-hint { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mb-wrap *, .mb-tu * { animation: none !important; transition: none !important; }
+  .mb-tu .mb-tu-a { opacity: 0; }
+}

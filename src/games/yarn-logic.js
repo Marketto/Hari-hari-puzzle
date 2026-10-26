@@ -4,8 +4,8 @@
  *   i fili non si incrociano né si sovrappongono e alla fine coprono TUTTE le caselle.
  *
  * Generatore (soluzione-prima + riparazione dell'unicità):
- *   1. cammino hamiltoniano casuale (serpentina + mosse "backbite"), che riempie tutta la griglia
- *   2. tagliato in k fili di lunghezza ≥ 3: degli estremi restano solo i gomitoli
+ *   1-2. copertura casuale della griglia con k fili "puliti" (un filo non tocca mai sé stesso), lunghezza ≥ 3;
+ *        degli estremi restano solo i gomitoli
  *   3. il risolutore (DFS a due teste con potature) conta le soluzioni fino a 2;
  *      se ne trova un'altra, un filo della soluzione viene spezzato in due dove le due soluzioni differiscono
  *      (i due nuovi gomitoli devono avere grado 1, quindi la soluzione alternativa diventa impossibile)
@@ -47,54 +47,93 @@
     return (ra === rb && Math.abs(a - b) === 1) || (a % n === b % n && Math.abs(ra - rb) === 1);
   };
 
-  /* ---------- cammino hamiltoniano casuale ---------- */
-  function hamPath(n, rnd, steps) {
+  /* ---------- copertura con fili "puliti" ----------
+   * Si parte da 81 (n²) fili di una casella e si uniscono a caso gli estremi vicini, preferendo i fili corti.
+   * Un'unione è ammessa solo se il nuovo filo non tocca sé stesso (due sue caselle vicine sono sempre consecutive):
+   * i fili che "rientrano" su sé stessi lasciano quasi sempre una seconda soluzione.
+   * Se non ci sono più unioni possibili ma restano fili di una casella (o troppi fili), un estremo "ruba"
+   * un pezzo del filo vicino (che si spezza in due) e si riprova. Ritorna l'elenco dei fili (array di celle). */
+  function grow(n, k, rnd, iters = 6 * n * n) {
     const N = n * n, NB = nbrs(n);
+    const id = new Int32Array(N);
     const P = [];
-    const tr = rnd() < 0.5;
-    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
-      const cc = r % 2 ? n - 1 - c : c;
-      P.push(tr ? cc * n + r : r * n + cc);
-    }
-    const pos = new Int32Array(N);
-    P.forEach((v, i) => { pos[v] = i; });
-    const rev = (a, b) => {
-      for (; a < b; a++, b--) { const t = P[a]; P[a] = P[b]; P[b] = t; pos[P[a]] = a; pos[P[b]] = b; }
+    for (let i = 0; i < N; i++) { id[i] = i; P.push([i]); }
+    let count = N;
+    const isEnd = (x) => { const p = P[id[x]]; return p[0] === x || p[p.length - 1] === x; };
+    // nessuna casella di A tocca il filo bid, tranne la coppia (a, b) che li unisce
+    const clean = (A, a, bid, b) => {
+      for (const c of A) for (const y of NB[c]) if (id[y] === bid && !(c === a && y === b)) return false;
+      return true;
     };
-    for (let s = 0; s < steps; s++) {
-      if (rnd() < 0.5) {
-        const nb = NB[P[0]], i = pos[nb[(rnd() * nb.length) | 0]];
-        if (i > 1) rev(0, i - 1);
-      } else {
-        const nb = NB[P[N - 1]], i = pos[nb[(rnd() * nb.length) | 0]];
-        if (i < N - 2) rev(i + 1, N - 1);
+    const join = (aid, a, bid, b) => {
+      let A = P[aid], B = P[bid];
+      if (A[0] === a && A.length > 1) A = A.slice().reverse();
+      if (B[0] !== b) B = B.slice().reverse();
+      P[aid] = A.concat(B); P[bid] = null;
+      for (const c of B) id[c] = aid;
+      count--;
+    };
+    const ms = [];
+    for (let it = 0; it < iters; it++) {
+      let singles = false;
+      for (const p of P) if (p && p.length === 1) { singles = true; break; }
+      if (count <= k && !singles) break;
+      ms.length = 0;
+      let minL = 1e9;
+      for (let aid = 0; aid < N; aid++) {
+        const A = P[aid];
+        if (!A) continue;
+        const ea = A.length === 1 ? 1 : 2;
+        for (let t = 0; t < ea; t++) {
+          const a = t ? A[A.length - 1] : A[0];
+          for (const b of NB[a]) {
+            const bid = id[b];
+            if (bid <= aid || !isEnd(b)) continue;
+            const B = P[bid], L = A.length + B.length;
+            if (!(A.length <= B.length ? clean(A, a, bid, b) : clean(B, b, aid, a))) continue;
+            ms.push(aid, a, bid, b, L);
+            if (L < minL) minL = L;
+          }
+        }
       }
+      if (ms.length) {
+        const m = ms.length / 5, sel = [];
+        const tight = rnd() < 0.75;
+        for (let q = 0; q < m; q++) if (!tight || ms[q * 5 + 4] <= minL + 2) sel.push(q * 5);
+        const q = sel[(rnd() * sel.length) | 0];
+        join(ms[q], ms[q + 1], ms[q + 2], ms[q + 3]);
+        continue;
+      }
+      // nessuna unione: un estremo (di preferenza un filo di una casella) ruba un pezzo del filo vicino
+      const ids = [], sing = [];
+      P.forEach((p, i) => { if (p) { ids.push(i); if (p.length === 1) sing.push(i); } });
+      const aid = sing.length ? sing[(rnd() * sing.length) | 0] : ids[(rnd() * ids.length) | 0];
+      const A = P[aid], a = rnd() < 0.5 ? A[0] : A[A.length - 1];
+      const opts = NB[a].filter((y) => id[y] !== aid && !isEnd(y));
+      if (!opts.length) continue;
+      const y = opts[(rnd() * opts.length) | 0], bid = id[y], B = P[bid], j = B.indexOf(y);
+      let keep, rest;
+      if (rnd() < 0.5) { keep = B.slice(0, j + 1); rest = B.slice(j + 1); } else { keep = B.slice(j).reverse(); rest = B.slice(0, j); }
+      const inKeep = new Set(keep);
+      let ok = true;
+      for (const c of A) { for (const z of NB[c]) if (inKeep.has(z) && !(c === a && z === y)) { ok = false; break; } if (!ok) break; }
+      if (!ok) continue;
+      const nid = P.indexOf(null);
+      P[bid] = keep; P[nid] = rest;
+      for (const c of rest) id[c] = nid;
+      count++;
+      join(bid, y, aid, a);
     }
-    return P;
-  }
-
-  // taglia il cammino in k pezzi di lunghezza ≥ minLen con lunghezze un po' diverse tra loro
-  function cut(P, k, rnd, minLen = 3) {
-    const N = P.length;
-    const len = new Array(k).fill(minLen);
-    const w = len.map(() => 0.35 + rnd());
-    const tot = w.reduce((a, b) => a + b, 0);
-    for (let left = N - minLen * k; left > 0; left--) {
-      let x = rnd() * tot, i = 0;
-      while (i < k - 1 && (x -= w[i]) > 0) i++;
-      len[i]++;
-    }
-    const out = [];
-    let at = 0;
-    for (const L of len) { out.push(P.slice(at, at + L)); at += L; }
-    return out;
+    return P.filter(Boolean);
   }
 
   /* ---------- risolutore: DFS a due teste ----------
    * Ogni colore cresce da entrambi i gomitoli; si ramifica sulla testa con meno mosse possibili.
    * Potature: testa senza mosse; casella vuota con meno di 2 vicini utilizzabili;
    * le due teste di un colore devono toccare la stessa zona vuota (o toccarsi);
-   * ogni zona vuota deve essere toccata da entrambe le teste di almeno un colore.
+   * ogni zona vuota deve essere toccata da entrambe le teste di almeno un colore;
+   * casella vuota con esattamente 2 vicini utilizzabili: se uno è una testa, quella testa è obbligata ad entrarci
+   * (se sono due teste di colori diversi lo stato è impossibile).
    * Ritorna { count (≤ limit), solutions (fino a limit, come paths), nodes, aborted }. */
   function solve(n, ends, opts = {}) {
     const limit = opts.limit || 2, nodeLimit = opts.nodeLimit || 200000;
@@ -107,13 +146,15 @@
     const comp = new Int32Array(N);
     const stack = new Int32Array(N);
     const served = new Uint8Array(N);
-    let nodes = 0, aborted = false, left = K, empty = N - 2 * K;
+    let nodes = 0, aborted = false, left = K, empty = N - 2 * K, forced = -1;
     const solutions = [];
     const isHead = (j) => { const k = col[j]; return k >= 0 && !done[k] && (hd[2 * k] === j || hd[2 * k + 1] === j); };
 
     // ritorna -1 se lo stato è impossibile, altrimenti l'indice della testa (2k+s) con meno mosse
+    const headIdx = (j) => (hd[2 * col[j]] === j ? 2 * col[j] : 2 * col[j] + 1);
     function check() {
       let best = -1, bestM = 99;
+      forced = -1;
       for (let k = 0; k < K; k++) {
         if (done[k]) continue;
         for (let s = 0; s < 2; s++) {
@@ -129,9 +170,16 @@
       let nc = 0;
       for (let i = 0; i < N; i++) {
         if (col[i] >= 0) continue;
-        let u = 0;
-        for (const j of NB[i]) if (col[j] < 0 || isHead(j)) u++;
+        let u = 0, h1 = -1, h2 = -1;
+        for (const j of NB[i]) {
+          if (col[j] < 0) u++;
+          else if (isHead(j)) { u++; if (h1 < 0) h1 = j; else h2 = j; }
+        }
         if (u < 2) return -1;
+        if (u === 2 && h1 >= 0 && forced < 0) {
+          if (h2 >= 0 && col[h1] !== col[h2]) return -1;
+          forced = i; best = headIdx(h1);
+        }
         if (comp[i] >= 0) continue;
         let sp = 0;
         stack[sp++] = i; comp[i] = nc;
@@ -168,7 +216,9 @@
       const b = check();
       if (b < 0) return;
       const k = b >> 1, s = b & 1, h = hd[b], o = hd[b ^ 1];
+      const f = forced;
       for (const j of NB[h]) {
+        if (f >= 0 && j !== f) continue;
         if (j === o) {
           done[k] = 1; left--;
           rec();
@@ -225,24 +275,24 @@
     return { n, ends: sol.map((p) => [p[0], p[p.length - 1]]), solution: sol, nodes };
   }
 
-  /* generate(level | {n, colors}, rnd) → { n, ends:[[a,b]…], solution:[[celle]…], nodes } */
+  /* generate(level | {n, colors}, rnd) → { n, ends:[[a,b]…], solution:[[celle]…], nodes }
+   * nodes = nodi del risolutore per dimostrare l'unicità (misura di difficoltà). */
   function generate(arg, rnd = Math.random) {
     const cfg = typeof arg === 'number' ? { n: sizeFor(arg), colors: colorsFor(arg) } : arg;
-    const n = cfg.n, N = n * n;
-    const maxColors = Math.min(MAX_COLORS, cfg.maxColors || cfg.colors + 3);
-    for (let t = 0; t < 400; t++) {
-      const P = hamPath(n, rnd, N * 3);
-      let paths = cut(P, cfg.colors, rnd);
-      for (let rep = 0; rep < 6 && paths && paths.length <= maxColors; rep++) {
-        const r = solve(n, paths.map((p) => [p[0], p[p.length - 1]]), { limit: 2, nodeLimit: 20000 });
+    const n = cfg.n;
+    const maxColors = Math.min(MAX_COLORS, cfg.maxColors || cfg.colors + 2);
+    const nodeLimit = cfg.nodeLimit || 6000;
+    for (let t = 0; t < 300; t++) {
+      let paths = grow(n, cfg.colors, rnd);
+      if (paths.length > maxColors || paths.some((p) => p.length < 3)) continue;
+      for (let rep = 0; rep < 2 && paths && paths.length <= maxColors; rep++) {
+        const r = solve(n, paths.map((p) => [p[0], p[p.length - 1]]), { limit: 2, nodeLimit });
         if (r.aborted) break;
-        if (r.count === 1) return pack(n, r.solutions[0], r.nodes, rnd);
-        const alt = r.solutions.find((s) => !samePaths(s, paths));
-        paths = splitWhereDiffer(n, paths, alt, rnd);
+        if (r.count === 1) return pack(n, paths, r.nodes, rnd);
+        paths = splitWhereDiffer(n, paths, r.solutions.find((x) => !samePaths(x, paths)), rnd);
       }
     }
-    const rows = rowsPuzzle(n);
-    return pack(n, rows, 0, rnd);
+    return pack(n, rowsPuzzle(n), 0, rnd);
   }
 
   /* ---------- regole del disegno (usate dalla UI, testate in Node) ---------- */
@@ -363,8 +413,25 @@ return { k: e, drawn: [i] };
     return true;
   }
 
+  /* fragoline: un "ripensamento" è ogni azione che toglie lana già stesa (filo accorciato, cancellato,
+   * tagliato da un altro filo, ripartito da capo) e ogni Annulla.
+   *   3 con al massimo 1 ripensamento (2 dalle griglie con 8+ colori), 2 fino a un ripensamento per colore, 1 oltre. */
+  function rate(rethinks, colors) {
+    const r = rethinks || 0;
+    return r <= (colors >= 8 ? 2 : 1) ? 3 : r <= colors ? 2 : 1;
+  }
+  // avanzamento 0..1: 60% caselle coperte (oltre ai gomitoli), 40% coppie collegate; 1 solo a puzzle risolto
+  function progress(n, ends, paths) {
+    const st = status(n, ends, paths);
+    if (st.solved) return 1;
+    const free = st.total - 2 * st.colors;
+    const f = free > 0 ? (st.filled - 2 * st.colors) / free : 1;
+    return Math.max(0, Math.min(0.99, 0.6 * f + 0.4 * (st.connected / st.colors)));
+  }
+
   HH.yarn = {
-    MAX_COLORS, sizeFor, colorsFor, nbrs, adjacent, hamPath, cut, solve, generate, samePaths,
+    rate, progress, rowsPuzzle,
+    MAX_COLORS, sizeFor, colorsFor, nbrs, adjacent, grow, solve, generate, samePaths,
     endpointOwner, owner, isComplete, beginStroke, extend, applyStroke, lostCells, status, isSolved, validLevel, validPath,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
