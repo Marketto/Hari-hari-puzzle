@@ -13,6 +13,14 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.8.0)
+- [x] Nuovi giochi: **Pixel Mochi** (nonogram, 43 disegni), **Mochi Binary** (takuzu), **Yarn Link** (flow) con brani musicali propri
+- [x] Hedgedoku: tocco = ✕, doppio tocco = riccio (una sola mossa), trascinamento; ricci animati che respirano, si guardano intorno e reagiscono
+- [x] Tutorial della prima partita per tutti i 9 giochi (pulsante "?" per rivederlo; giochi a tempo in pausa)
+- [x] Schermo sempre acceso durante la partita (Screen Wake Lock)
+- [x] "In arrivo" si svuota da solo quando il gioco esiste
+- [x] 94 nuove stringhe × 43 lingue
+
 ## Fatto (v0.7.1)
 - [x] Aggiornamento robusto: il service worker nuovo si attiva subito se la pagina aperta è di una versione vecchia (o l'app è chiusa); controllo aggiornamenti anche all'avvio
 
