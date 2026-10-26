@@ -183,22 +183,37 @@
     const B = HH.boba;
     let s, sel = -1, busy = false;
 
+    // livello con minimo esatto (A*) e mosse concesse = minimo + 15% (da +2 a +6)
     function fresh() {
-      const start = B.generate(colorsFor(ctx.level)) || B.generate(3);
-      const sol = B.solve(start);
-      s = { start, cups: start.map((c) => c.slice()), hist: [], moves: 0, par: sol ? sol.length : start.length * 3 };
+      const L = B.generateLevel(colorsFor(ctx.level)) || B.generateLevel(3);
+      s = { start: L.cups, cups: L.cups.map((c) => c.slice()), hist: [], moves: 0, par: L.min, max: L.max };
       sel = -1; busy = false;
       render();
       ctx.changed({ reset: true });
     }
 
+    function meter() {
+      const left = Math.max(0, s.max - s.moves);
+      return `<div class="bb-meter${left <= 2 ? ' warn' : ''}" aria-live="polite">
+        <span class="bb-meter-label">${HH.i18n.t('movesLeft')}</span>
+        <b>${left}</b><span class="bb-meter-max">/ ${s.max}</span>
+        <span class="bb-meter-bar"><i style="width:${(left / s.max) * 100}%"></i></span>
+      </div>`;
+    }
+    // dopo ogni travaso: vittoria, mosse finite, oppure bloccato (nessuna versata o vicolo cieco)
+    function after() {
+      const st = B.status(s.cups, s.max - s.moves);
+      if (st === 'solved') ctx.win();
+      else if (st === 'moves' || st === 'stuck') { s.over = st; ctx.changed(); ctx.outOfMoves(st); }
+    }
+
     function render(o = {}) {
-      el.innerHTML = `<div class="bb-wrap" dir="ltr">${s.cups.map((c, i) => {
+      el.innerHTML = `${meter()}<div class="bb-wrap" dir="ltr">${s.cups.map((c, i) => {
         const co = { done: isDone(c), justDone: i === o.justDone, lidDelay: o.lidDelay };
         if (i === o.fillTo) Object.assign(co, { fillFrom: c.length - o.amount, fillDelay: o.fillDelay, fillDur: o.fillDur });
         const label = `${i + 1}: ${c.map((f) => FLAVORS[f]).join(', ') || '—'}`;
         return `<button class="bb-cup${i === sel ? ' sel' : ''}${co.done ? ' done' : ''}${i === o.away ? ' away' : ''}" data-i="${i}" aria-label="${label}">${cupSVG(c, i, co)}</button>`;
-      }).join('')}</div>`;
+      }).join('')}</div><p class="bb-hint">${HH.i18n.t('movesHint')}</p>`;
     }
     function updateSel() {
       el.querySelectorAll('.bb-cup').forEach((b, i) => b.classList.toggle('sel', i === sel));
@@ -219,7 +234,7 @@
         render({ justDone });
         ctx.sfx.pour(300);
         if (justDone >= 0) ctx.sfx.cupDone();
-        if (B.isSolved(s.cups)) setTimeout(ctx.win, 300);
+        setTimeout(after, 300);
         return;
       }
 
@@ -345,12 +360,12 @@
         cv.remove(); stream.remove(); drops.forEach((d) => d.remove());
         srcBtn.classList.remove('away');
         busy = false;
-        if (B.isSolved(s.cups)) ctx.win();
+        after();
       }, total);
     }
 
     el.onclick = (e) => {
-      if (busy) return;
+      if (busy || s.over || s.moves >= s.max) return;
       const b = e.target.closest('.bb-cup');
       if (!b) return;
       const i = +b.dataset.i;
@@ -358,7 +373,7 @@
         if (s.cups[i].length) { sel = i; ctx.sfx.pick(); updateSel(); }
         return;
       }
-      if (sel === i) { sel = -1; updateSel(); return; }
+      if (sel === i) { sel = -1; updateSel(); ctx.sfx.set(); return; }
       if (B.canPour(s.cups, sel, i)) { pour(sel, i); return; }
       ctx.sfx.bad();
       b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
@@ -366,19 +381,30 @@
     };
 
     const ok = saved && Array.isArray(saved.cups) && Array.isArray(saved.start) && saved.cups.length === saved.start.length;
-    if (ok) { s = Object.assign({ hist: [], moves: 0, par: 20 }, saved); render(); } else fresh();
+    if (ok) {
+      s = Object.assign({ hist: [], moves: 0, par: 20 }, saved);
+      if (!s.max) {                                   // salvataggi precedenti al limite di mosse
+        const opt = B.solveOptimal(s.start);
+        s.par = opt ? opt.moves : s.par;
+        s.max = s.par + B.extraMoves(s.par);
+      }
+      if (s.over || (s.moves >= s.max && !B.isSolved(s.cups))) { s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; delete s.over; }
+      render();
+    } else fresh();
 
     return {
       fresh,
-      restart() { if (busy) return; s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; sel = -1; render(); ctx.changed({ reset: true }); },
-      undo() { if (busy || !s.hist.length) return; s.cups = s.hist.pop(); s.moves = Math.max(0, s.moves - 1); sel = -1; render(); ctx.sfx.pick(); ctx.changed(); },
+      restart() { if (busy) return; s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; delete s.over; sel = -1; render(); ctx.changed({ reset: true }); },
+      // annulla rimette i bicchieri com'erano ma la mossa resta spesa: il limite non si aggira
+      undo() { if (busy || s.over || !s.hist.length || s.moves >= s.max) return; s.cups = s.hist.pop(); sel = -1; render(); ctx.sfx.set(); ctx.changed(); },
       snapshot: () => s,
     };
   }
 
   HH.games.push({
     id: 'boba', name: 'Boba Sort', rules: 'r2', art, create,
-    rate: (s) => (s.moves <= s.par ? 3 : s.moves <= Math.ceil(s.par * 1.35) ? 2 : 1),
+    // 3★ col minimo esatto, 2★ entro metà del margine, 1★ entro il limite
+    rate: (s) => (s.moves <= s.par ? 3 : s.moves <= s.par + Math.ceil(((s.max || s.par + 2) - s.par) / 2) ? 2 : 1),
     parTime: (s) => (s.start.length - 2) * 22,
     // somma degli strati "giusti" alla base di ogni bicchiere: 0 all'inizio, 1 a soluzione
     progress: (s) => {

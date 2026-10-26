@@ -262,8 +262,13 @@
         sfx.bad();
         setTimeout(() => sfx.heart(), 250);
         react('oops');
-        if (left <= 0) setTimeout(lose, 1000);
+        if (left <= 0) setTimeout(() => lose('lives'), 1000);
         else setTimeout(() => { const l = $('#hLives'); if (l) l.innerHTML = livesHTML(left, g.lives); }, 900);
+      },
+      // mosse finite senza aver risolto (Boba Sort)
+      outOfMoves(kind = 'moves') {
+        react('oops');
+        setTimeout(() => lose(kind), 450);
       },
     };
     S.inst = g.create($('#board'), ctx, saved && saved.state);
@@ -276,7 +281,7 @@
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
     $('#gUndo').onclick = () => S.inst.undo();
     $('#gRestart').onclick = () => S.inst.restart();
-    $('#gNew').onclick = () => { S.inst.fresh(); sfx.pick(); };
+    $('#gNew').onclick = () => { S.inst.fresh(); sfx.blip(); };
     if (push) {
       try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
       G.scrollTo(0, 0);
@@ -361,7 +366,7 @@
   }
 
   /* ---------- Cuori finiti ---------- */
-  function lose() {
+  function lose(kind = 'lives') {
     if (!S.game || S.won) return;
     hideSay();
     HH.music.duck(true);
@@ -369,15 +374,15 @@
     $('#loseDlg').hidden = false;
     $('#loseBox').innerHTML = `
       <div class="lose-hari">${HH.mascot.svg({ cls: 'hari oops sad' })}</div>
-      <h2>${t('nolives')}</h2>
-      <div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>
+      <h2>${t({ moves: 'nomoves', stuck: 'stuck' }[kind] || 'nolives')}</h2>
+      ${kind !== 'lives' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>`}
       <p>${pick('oops')}</p>
       <div class="win-actions">
         <button class="tool round" id="loseHome" aria-label="Home">${ICON.home}</button>
         <button class="candy big" id="loseRetry">${ICON.restart}<span>${t('retry')}</span></button>
       </div>`;
     $('#loseRetry').focus();
-    $('#loseRetry').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); sfx.pick(); setTimeout(() => say('start', true), 400); };
+    $('#loseRetry').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); sfx.blip(); setTimeout(() => say('start', true), 400); };
     $('#loseHome').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); if (S.pushed) history.back(); else goHome(); };
   }
 

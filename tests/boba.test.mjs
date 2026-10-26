@@ -35,3 +35,82 @@ test('versare: solo su vuoto o stesso gusto, mai oltre la capienza', () => {
   assert.deepEqual(B.pour(cups, 0, 3).cups[3], [1, 1]);
   assert.deepEqual(cups[0], [0, 1, 1], 'stato originale immutato');
 });
+
+/* ---------- Minimo esatto e mosse concesse ---------- */
+// Oracolo indipendente: ricerca in ampiezza pura, nessuna euristica e nessuna potatura.
+function bfsMin(start) {
+  const k = (cs) => cs.map((c) => c.join(',')).sort().join('|');
+  let frontier = [start];
+  const seen = new Set([k(start)]);
+  for (let d = 0; d < 60; d++) {
+    const next = [];
+    for (const cs of frontier) {
+      if (B.isSolved(cs)) return d;
+      for (let i = 0; i < cs.length; i++) for (let j = 0; j < cs.length; j++) {
+        const r = B.pour(cs, i, j);
+        if (!r) continue;
+        const kk = k(r.cups);
+        if (!seen.has(kk)) { seen.add(kk); next.push(r.cups); }
+      }
+    }
+    frontier = next;
+  }
+  return -1;
+}
+
+test('A* trova esattamente il minimo di mosse (confronto con ricerca in ampiezza)', () => {
+  const cases = [[3, 8], [4, 6], [5, 2]];
+  for (const [colors, seeds] of cases) {
+    for (let s = 1; s <= seeds; s++) {
+      const cups = B.generate(colors, 2, HH.rng(s * 97 + colors));
+      const opt = B.solveOptimal(cups);
+      assert.ok(opt, `colors=${colors} seed=${s}`);
+      assert.equal(opt.moves, bfsMin(cups), `colors=${colors} seed=${s}`);
+      // il percorso restituito risolve davvero in quel numero di mosse
+      let st = cups;
+      opt.path.forEach(([a, b]) => { st = B.pour(st, a, b).cups; });
+      assert.ok(B.isSolved(st));
+      assert.equal(opt.path.length, opt.moves);
+    }
+  }
+});
+
+test('mosse concesse = minimo + 15%, con almeno 2 e al massimo 6 in più', () => {
+  assert.equal(B.extraMoves(5), 2);
+  assert.equal(B.extraMoves(13), 2);
+  assert.equal(B.extraMoves(14), 3);
+  assert.equal(B.extraMoves(27), 5);
+  assert.equal(B.extraMoves(40), 6);
+  assert.equal(B.extraMoves(200), 6);
+  for (let colors = 3; colors <= 9; colors += 2) {
+    const L = B.generateLevel(colors, 2, HH.rng(colors * 7));
+    assert.ok(L && L.max - L.min >= 2 && L.max - L.min <= 6, `colors=${colors}`);
+    let st = L.cups;
+    L.path.forEach(([a, b]) => { st = B.pour(st, a, b).cups; });
+    assert.ok(B.isSolved(st) && L.path.length === L.min);
+  }
+});
+
+/* ---------- Sconfitta: mosse finite, bloccato, vicolo cieco ---------- */
+test('status: livello dello screenshot (nessuna versata possibile) = bloccato', () => {
+  // dal fondo alla cima: 0 blu, 1 verde, 2 giallo, 3 lilla, 4 rosa
+  const cups = [[0, 1, 2, 2], [3, 0], [4, 3, 0, 1], [0, 4, 3, 1], [2, 4, 1, 2], [4], [3]];
+  assert.equal(B.hasMove(cups), false);
+  assert.equal(B.status(cups, 10), 'stuck');
+});
+
+test('status: risolto, mosse finite, in corso', () => {
+  const done = [[0, 0, 0, 0], [1, 1, 1, 1], [], []];
+  assert.equal(B.status(done, 0), 'solved');
+  const L = B.generateLevel(4, 2, HH.rng(3));
+  assert.equal(B.status(L.cups, 0), 'moves');
+  assert.equal(B.status(L.cups, L.max), 'ok');
+});
+
+test('status: vicolo cieco con versate ancora possibili = bloccato', () => {
+  // si può ancora versare (1 → 1 o 0 → 0) ma nessuna sequenza porta alla soluzione
+  const cups = [[1, 2, 2, 2], [0, 0, 1], [0, 1, 0], [1, 2]];
+  assert.equal(B.hasMove(cups), true);
+  assert.equal(B.solveOptimal(cups), false);
+  assert.equal(B.status(cups, 20), 'stuck');
+});

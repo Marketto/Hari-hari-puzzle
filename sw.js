@@ -3,7 +3,7 @@
  * - font Google in cache al primo avvio online (stale-while-revalidate)
  * Incrementa VERSION a ogni release (lo fa `npm run release`).
  */
-const VERSION = 'hh-v0.3.0';
+const VERSION = 'hh-v0.4.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',

@@ -8,7 +8,7 @@
  *                                 .62+ arpeggio e melodia all'ottava
  *                                 .86+ campanelle e tempo +6% (manca pochissimo!)
  * HH.music.duck(on) · setOn(on) · isOn()
- * HH.audio.sfx.*               effetti intonati sulla scala del brano in corso
+ * HH.audio.sfx.*               effetti intonati sulla scala del brano in corso (pick/set = vetro sollevato/appoggiato)
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -284,7 +284,21 @@
     }),
     heart: S((t) => { [76, 72, 67].forEach((m, i) => V.bell(sfxBus, mtof(m), t + i * 0.12, 0.1, 0.07)); }),
     lose: S((t) => { [67, 65, 64, 60].forEach((m, i) => V.marimba(sfxBus, mtof(m), t + i * 0.22, 0.2, 0.14)); }),
-    pick: S((t) => V.bell(sfxBus, mtof(91), t, 0.1, 0.05)),
+    // bicchiere sollevato: fruscio d'aria che sale + leggero "tink" di vetro (niente campanella)
+    pick: S((t) => {
+      const s0 = ac.createBufferSource(); s0.buffer = noise;
+      const b = ac.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 1.4;
+      b.frequency.setValueAtTime(700, t); b.frequency.exponentialRampToValueAtTime(2600, t + 0.16);
+      s0.connect(b); b.connect(env(sfxBus, t, 0.03, 0.05, t + 0.18)); s0.start(t); s0.stop(t + 0.2);
+      osc(env(sfxBus, t + 0.01, 0.002, 0.03, t + 0.09), 'sine', 2350, t + 0.01, t + 0.09);
+      osc(env(sfxBus, t + 0.01, 0.001, 0.012, t + 0.04), 'sine', 5900, t + 0.01, t + 0.04);
+    }),
+    // bicchiere riappoggiato: "tok" morbido sul tavolo + vetro appena accennato
+    set: S((t) => {
+      osc(env(sfxBus, t, 0.002, 0.09, t + 0.08), 'sine', 210, t, t + 0.08, 0, 140, 0.06);
+      noiseHit(sfxBus, t, 0.03, 0.03, 'lowpass', 900);
+      osc(env(sfxBus, t + 0.005, 0.001, 0.015, t + 0.05), 'sine', 2100, t + 0.005, t + 0.05);
+    }),
     pour: S((t, ms = 500) => {
       const n = Math.max(4, Math.round(ms / 80));
       for (let i = 0; i < n; i++) V.bubble(sfxBus, t + (i * ms) / n / 1000, 0.08);
