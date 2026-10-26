@@ -1,0 +1,19 @@
+{
+  "name": "Hari Hari Puzzle",
+  "short_name": "Hari Hari",
+  "description": "Kawaii offline logic puzzles with Hari the hedgehog",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff3ec",
+  "theme_color": "#ffb3c8",
+  "categories": ["games", "puzzle", "kids"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

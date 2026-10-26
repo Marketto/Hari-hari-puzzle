@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hari Hari Puzzle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Kawaii offline logic puzzles with Hari the hedgehog">
+<meta name="theme-color" content="#ffb3c8">
+<!--build:remove-->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<!--/build:remove-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Mochiy+Pop+One&display=swap">
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+<canvas id="bgCanvas" class="bg" aria-hidden="true"></canvas>
+<div class="app">
+  <header class="topbar">
+    <div class="brand" id="brand"><span class="brand-name">Hari Hari</span></div>
+    <div class="actions">
+      <button id="installBtn" class="pill" hidden></button>
+      <button id="soundBtn" class="icon-btn" aria-label="Sound"></button>
+      <button id="langBtn" class="pill" aria-haspopup="dialog"></button>
+    </div>
+  </header>
+  <main id="home"></main>
+  <main id="game" hidden></main>
+</div>
+<div id="langDlg" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="langTitle">
+  <div class="sheet">
+    <div class="sheet-head"><h2 id="langTitle">Language</h2><button id="langClose" class="icon-btn" aria-label="Close">✕</button></div>
+    <div id="langList" class="lang-list"></div>
+  </div>
+</div>
+<div id="winDlg" class="overlay" hidden role="dialog" aria-modal="true"><div id="winBox" class="win-box"></div></div>
+<canvas id="fxCanvas" class="fx" aria-hidden="true"></canvas>
+
+<script src="src/i18n/locales.js"></script>
+<script src="src/core/core.js"></script>
+<script src="src/core/mascot.js"></script>
+<script src="src/core/fx.js"></script>
+<script src="src/games/hedgedoku-logic.js"></script>
+<script src="src/games/hedgedoku-ui.js"></script>
+<script src="src/games/boba-logic.js"></script>
+<script src="src/games/boba-ui.js"></script>
+<script src="src/games/lantern-logic.js"></script>
+<script src="src/games/lantern-ui.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

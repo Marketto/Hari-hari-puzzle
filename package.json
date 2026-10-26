@@ -1,0 +1,13 @@
+{
+  "name": "hari-hari-puzzle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kawaii offline logic puzzles with Hari the hedgehog — installable PWA for Android",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node tools/serve.mjs",
+    "test": "node tools/selftest.mjs && node tools/i18n-check.mjs",
+    "build": "node tools/build-inline.mjs",
+    "icons": "node tools/gen-icons.mjs"
+  }
+}
