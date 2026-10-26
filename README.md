@@ -12,6 +12,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | In arrivo | Pixel Mochi (Nonogram) · Sushi Binary (Takuzu) · Yarn Link (Flow) |
 
 ## Provalo
+- **Online / Android**: https://marketto.github.io/Hari-hari-puzzle/ → da Chrome su Android: ⋮ → *Installa app*
 - Apri `index.html` nel browser, oppure `npm run dev` → http://localhost:5173
 - File unico: `npm run build` → `dist/hari-hari-puzzle.html`
 - Android: pubblica su GitHub Pages e da Chrome scegli **Installa app** (vedi [docs/android.md](docs/android.md))

@@ -1,7 +1,8 @@
 # TODO
 
 ## In corso
-- [ ] Collegare il repo pubblico GitHub e attivare Pages (Settings → Pages → GitHub Actions)
+- [x] Repo pubblico collegato: https://github.com/Marketto/Hari-hari-puzzle (autori commit anonimizzati con noreply GitHub)
+- [ ] Attivare Pages: Settings → Pages → Source: **GitHub Actions**, poi Actions → "Deploy PWA to GitHub Pages" → Re-run
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 
 ## Prossimo
