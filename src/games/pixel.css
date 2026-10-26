@@ -162,6 +162,7 @@
 
 /* ---------- illustrazioni (card e tutorial) ---------- */
 .pm-svgnum { font-family: var(--font-display); font-size: 10px; fill: var(--pm-num); text-anchor: middle; }
+.pm-svgnum[x="36"] { text-anchor: end; }
 .pm-svgnum.big { font-size: 14px; }
 .pm-art-spark { transform-box: fill-box; transform-origin: center; animation: pm-twinkle 1.8s ease-in-out infinite; }
 .pm-tut-fill { transform-box: fill-box; transform-origin: center; animation: pm-tutfill 3s ease-in-out infinite; animation-delay: var(--d); }

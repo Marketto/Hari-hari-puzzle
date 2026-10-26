@@ -1,0 +1,138 @@
+/* Yarn Link — stile.
+ * Coperta a maglia in una cornice color caramello (di notte: prugna), gomitoli-gattino e fili di lana ritorta.
+ * Colori solo da token --yl-* (chiaro e scuro); i gomitoli hanno anche un simbolo per chi distingue poco i colori.
+ */
+:root {
+  --tint-yarn: #ffe1d2;
+  --yl-c0: #ff7fa8; --yl-c1: #45c9a6; --yl-c2: #ffc23d; --yl-c3: #5fa8ff; --yl-c4: #b38cff; --yl-c5: #ff9445;
+  --yl-c6: #ec4f5f; --yl-c7: #7fcc4f; --yl-c8: #b07a55; --yl-c9: #22b3c4; --yl-c10: #e862c6; --yl-c11: #5b6ad8;
+  --yl-ink: #4b2e28; --yl-ear-in: #ffb7c9; --yl-wrap: rgba(70, 25, 30, .24); --yl-gloss: rgba(255, 255, 255, .6);
+  --yl-twist: rgba(70, 20, 35, .17); --yl-hi: rgba(255, 255, 255, .55); --yl-shadow: rgba(120, 55, 50, .22);
+  --yl-blush: rgba(255, 105, 145, .6); --yl-mouth: #e0557a; --yl-shine: #ffffff;
+  --yl-sym: rgba(255, 255, 255, .94); --yl-sym-line: rgba(70, 25, 30, .4);
+  --yl-frame: #f2c39f; --yl-frame-2: #e2a37a; --yl-knit: #fff5ec; --yl-cell-a: #fde5d6; --yl-cell-b: #fbd9c6;
+  --yl-stitch: rgba(180, 100, 80, .2); --yl-seam: rgba(190, 110, 80, .5); --yl-tint-op: .2; --yl-gap: rgba(255, 111, 156, .28);
+  --yl-spark: #ffd84a; --yl-meow: #ffffff; --yl-meow-line: #4b2e28; --yl-pill: #fffaf6; --yl-bar: rgba(90, 55, 45, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-yarn: #46304c;
+    --yl-c0: #ff8fb6; --yl-c1: #55dcb8; --yl-c2: #ffcf5a; --yl-c3: #74b6ff; --yl-c4: #c3a2ff; --yl-c5: #ffa45c;
+    --yl-c6: #ff6b78; --yl-c7: #8fdc5f; --yl-c8: #c99470; --yl-c9: #3cc8d8; --yl-c10: #f27ad6; --yl-c11: #7d8bf0;
+    --yl-ink: #2a1626; --yl-shadow: rgba(0, 0, 0, .34); --yl-hi: rgba(255, 255, 255, .45);
+    --yl-frame: #5b416f; --yl-frame-2: #47325a; --yl-knit: #3a2b51; --yl-cell-a: #45355f; --yl-cell-b: #3e2f57;
+    --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .28; --yl-gap: rgba(255, 143, 179, .3);
+    --yl-meow-line: #2a1626; --yl-pill: #2e2242; --yl-bar: rgba(255, 230, 240, .14);
+  }
+}
+:root[data-theme="dark"] {
+  --tint-yarn: #46304c;
+  --yl-c0: #ff8fb6; --yl-c1: #55dcb8; --yl-c2: #ffcf5a; --yl-c3: #74b6ff; --yl-c4: #c3a2ff; --yl-c5: #ffa45c;
+  --yl-c6: #ff6b78; --yl-c7: #8fdc5f; --yl-c8: #c99470; --yl-c9: #3cc8d8; --yl-c10: #f27ad6; --yl-c11: #7d8bf0;
+  --yl-ink: #2a1626; --yl-shadow: rgba(0, 0, 0, .34); --yl-hi: rgba(255, 255, 255, .45);
+  --yl-frame: #5b416f; --yl-frame-2: #47325a; --yl-knit: #3a2b51; --yl-cell-a: #45355f; --yl-cell-b: #3e2f57;
+  --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .28; --yl-gap: rgba(255, 143, 179, .3);
+  --yl-meow-line: #2a1626; --yl-pill: #2e2242; --yl-bar: rgba(255, 230, 240, .14);
+}
+
+.yl-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.yl-board { display: block; width: 100%; height: auto; touch-action: none; border-radius: 26px; outline: none; filter: drop-shadow(0 8px 10px var(--yl-shadow)); }
+.yl-board:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+
+/* coperta */
+.yl-frame { fill: var(--yl-frame); stroke: var(--yl-frame-2); stroke-width: 4; }
+.yl-knit { fill: var(--yl-knit); }
+.yl-seam { fill: none; stroke: var(--yl-seam); stroke-width: 3; stroke-dasharray: 10 9; stroke-linecap: round; }
+.yl-cell { fill: var(--yl-cell-a); }
+.yl-cell.b { fill: var(--yl-cell-b); }
+.yl-stitch { fill: none; stroke: var(--yl-stitch); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.yl-tint { fill: transparent; transition: fill .25s, opacity .25s; }
+.yl-tint.on { fill: var(--c); opacity: var(--yl-tint-op); }
+.needfill .yl-tint:not(.on) { fill: var(--yl-gap); animation: yl-gap 1.1s ease-in-out infinite; }
+.yl-cursor { fill: none; stroke: var(--accent); stroke-width: 6; stroke-dasharray: 14 10; pointer-events: none; }
+.yl-cursor.hold { stroke: var(--mint-2); stroke-dasharray: none; }
+
+/* filo di lana */
+.yl-strand polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.yl-s-sh { stroke: var(--yl-shadow); stroke-width: 36; transform: translate(0, 5px); }
+.yl-s-fz { stroke: var(--c); stroke-width: 39; stroke-dasharray: 0 12; opacity: .6; }
+.yl-s-body { stroke: var(--c); stroke-width: 33; }
+.yl-s-tw { stroke-width: 33; }
+.yl-twist { fill: var(--yl-twist); }
+.yl-s-hi { stroke: var(--yl-hi); stroke-width: 6; transform: translate(-3px, -7px); stroke-dasharray: 18 9; }
+.yl-strand.ghost { opacity: .4; }
+.yl-new polyline { stroke-dasharray: 1 1; animation: yl-unroll .16s ease-out both; }
+.yl-new .yl-s-fz { display: none; }
+.win .yl-s-hi { animation: yl-shimmer 1s linear infinite; }
+
+/* gomitolo-gattino */
+.yl-bshadow { fill: var(--yl-shadow); }
+.yl-bscale { transform: scale(var(--sz, 1)); transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.yl-bjump { animation: yl-breathe 3.2s ease-in-out infinite; animation-delay: calc(var(--d) * -1); }
+.yl-body { fill: var(--c); stroke: var(--yl-ink); stroke-width: 3; }
+.yl-ear { fill: var(--c); stroke: var(--yl-ink); stroke-width: 3; stroke-linejoin: round; }
+.yl-ear-in { fill: var(--yl-ear-in); }
+.yl-tail { fill: none; stroke: var(--c); stroke-width: 6; stroke-linecap: round; transition: opacity .2s; }
+.yl-wind { fill: none; stroke: var(--yl-wrap); stroke-width: 3; stroke-linecap: round; }
+.yl-gloss { fill: var(--yl-gloss); }
+.yl-eyes { fill: var(--yl-ink); animation: yl-blink 4.6s infinite; animation-delay: var(--d); transform-origin: 0 -1px; }
+.yl-shine { fill: var(--yl-shine); }
+.yl-happy { fill: none; stroke: var(--yl-ink); stroke-width: 3.6; stroke-linecap: round; display: none; }
+.yl-blush { fill: var(--yl-blush); }
+.yl-mouth { fill: none; stroke: var(--yl-ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.yl-mouth-o { fill: var(--yl-mouth); stroke: var(--yl-ink); stroke-width: 2.2; stroke-linejoin: round; display: none; }
+.yl-whisk { fill: none; stroke: var(--yl-ink); stroke-width: 2; stroke-linecap: round; opacity: .45; }
+.yl-sym { fill: var(--yl-sym); stroke: var(--yl-sym-line); stroke-width: 1.3; stroke-linejoin: round; }
+.yl-ball.on .yl-eyes, .yl-ball.on .yl-mouth { display: none; }
+.yl-ball.on .yl-happy, .yl-ball.on .yl-mouth-o { display: inline; }
+.yl-ball.on .yl-tail { opacity: 0; }
+.yl-ball.pull .yl-bjump { animation: yl-pull .5s ease-in-out infinite alternate; }
+.yl-ball.yay .yl-bjump { animation: yl-yay .7s cubic-bezier(.3, 1.6, .5, 1) 2; }
+.win .yl-ball .yl-bjump { animation: yl-yay .7s cubic-bezier(.3, 1.6, .5, 1) infinite; animation-delay: calc(var(--d) * .12); }
+
+/* festa */
+.yl-spark { fill: var(--c); stroke: var(--yl-ink); stroke-width: 1.5; animation: yl-spark .9s ease-out forwards; }
+.yl-meow { font: 400 30px var(--font-display); fill: var(--yl-meow); stroke: var(--yl-meow-line); stroke-width: 6; paint-order: stroke fill; animation: yl-meow 1s ease-out forwards; }
+
+/* sotto la coperta */
+.yl-foot { display: flex; gap: 8px; width: 100%; }
+.yl-pill { display: flex; align-items: center; gap: 8px; min-width: 0; height: 40px; padding: 0 14px 0 8px; border-radius: 20px; background: var(--yl-pill); border: 2px solid var(--line); box-shadow: var(--shadow-s); font-weight: 800; font-variant-numeric: tabular-nums; }
+.yl-count svg { width: 30px; height: 30px; flex: none; }
+.yl-count b { font: 400 18px var(--font-display); }
+.yl-fillbar { flex: 1; padding-left: 14px; }
+.yl-lab { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34%; }
+.yl-bar { position: relative; flex: 1; min-width: 30px; height: 12px; border-radius: 7px; background: var(--yl-bar); overflow: hidden; }
+.yl-bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 7px; background: linear-gradient(90deg, var(--yl-c1), var(--yl-c2), var(--yl-c0)); transition: width .3s; }
+.yl-fillbar b { min-width: 3.2em; text-align: end; font-size: 15px; }
+.yl-hint { margin: 0; min-height: 1.4em; font-weight: 800; color: var(--accent-2); text-align: center; }
+.gaps .yl-hint { animation: yl-pop .4s cubic-bezier(.3, 1.8, .5, 1); }
+.yl-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* tutorial */
+.yl-tu-draw polyline { stroke-dasharray: 1 1; animation: yl-tu-draw 2.6s ease-in-out infinite; }
+.yl-tu-draw .yl-s-fz { display: none; }
+.yl-tu-pull .yl-bjump { animation: yl-pull .5s ease-in-out infinite alternate; }
+.yl-tu-join .yl-bjump { animation: yl-tu-join 2.6s ease-in-out infinite; }
+.yl-tu-erase { animation: yl-tu-erase 1.8s ease-in-out infinite; }
+
+@keyframes yl-unroll { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes yl-shimmer { to { stroke-dashoffset: -27; } }
+@keyframes yl-breathe { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-1.5px) scale(1.02, .98); } }
+@keyframes yl-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes yl-pull { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes yl-yay { 0%, 100% { transform: translateY(0) scale(1); } 30% { transform: translateY(-14px) scale(1.08, .94); } 60% { transform: translateY(0) scale(.96, 1.05); } }
+@keyframes yl-spark { from { transform: translate(0, 0) scale(.3) rotate(0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1) rotate(90deg); opacity: 0; } }
+@keyframes yl-meow { 0% { transform: translateY(10px) scale(.6); opacity: 0; } 20% { transform: translateY(0) scale(1.1); opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(-26px) scale(1); opacity: 0; } }
+@keyframes yl-gap { 50% { opacity: .35; } }
+@keyframes yl-pop { from { transform: scale(.7); } to { transform: scale(1); } }
+@keyframes yl-tu-draw { 0%, 15% { stroke-dashoffset: 1; } 55%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+@keyframes yl-tu-join { 0%, 50%, 100% { transform: translateY(0); } 60% { transform: translateY(-14px); } 70% { transform: translateY(0); } }
+@keyframes yl-tu-erase { 0%, 45% { opacity: 1; } 60%, 85% { opacity: 0; } 100% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .yl-bjump, .yl-eyes, .yl-ball .yl-bjump, .win .yl-ball .yl-bjump, .win .yl-s-hi, .needfill .yl-tint:not(.on),
+  .yl-tu-draw polyline, .yl-tu-erase, .gaps .yl-hint { animation: none !important; }
+  .yl-new polyline { animation: none; stroke-dasharray: none; }
+  .yl-spark, .yl-meow { animation-duration: .01s; }
+  .yl-bscale, .yl-tint { transition: none; }
+}

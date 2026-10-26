@@ -28,18 +28,20 @@
     const pic = ['.ggg.', 'rrgrr', 'ryrrr', '.rry.', '..r..'];
     let cells = '';
     pic.forEach((row, r) => [...row].forEach((ch, c) => {
-      const x = 44 + c * 14, y = 18 + r * 14;
+      const x = 44 + c * 14, y = 19 + r * 14;
       const lit = r + c >= 4;
       cells += ch === '.'
         ? `<rect x="${x}" y="${y}" width="12.5" height="12.5" rx="3" fill="var(--pm-tile)"/>${r + c < 3 ? '' : `<path d="M${x + 4} ${y + 4}l4.5 4.5M${x + 8.5} ${y + 4}l-4.5 4.5" stroke="var(--pm-x)" stroke-width="1.6" stroke-linecap="round"/>`}`
         : `<rect x="${x}" y="${y}" width="12.5" height="12.5" rx="3" fill="${lit ? `var(--pm-c-${ch})` : 'var(--pm-fill)'}"/><rect x="${x + 2}" y="${y + 1.6}" width="5" height="2.4" rx="1.2" fill="var(--pm-gloss)"/>`;
     }));
     const num = (x, y, t) => `<text x="${x}" y="${y}" class="pm-svgnum">${t}</text>`;
+    const bits = pic.map((row) => [...row].map((ch) => (ch === '.' ? 0 : 1)));
+    const rowsT = bits.map((b, r) => num(36, 28 + r * 14, HH.pixel.runs(b).join(' '))).join('');
+    const colsT = [0, 1, 2, 3, 4].map((c) => num(50 + c * 14, 14, HH.pixel.runs(bits.map((b) => b[c])).join(' '))).join('');
     return `<svg viewBox="0 0 120 90" aria-hidden="true">
       <rect x="6" y="3" width="108" height="86" rx="14" fill="var(--pm-paper)"/>
-      <rect x="40" y="14" width="74" height="74" rx="8" fill="var(--pm-paper-2)"/>
-      ${num(30, 29, 3)}${num(22, 43, '2 2')}${num(30, 57, '1 3')}${num(30, 71, 2)}${num(30, 85, 1)}
-      ${num(49, 11, 2)}${num(63, 11, 4)}${num(77, 11, 4)}${num(91, 11, 4)}${num(105, 11, 1)}
+      <rect x="40" y="16" width="74" height="72" rx="8" fill="var(--pm-paper-2)"/>
+      ${rowsT}${colsT}
       ${cells}
       <g class="pm-art-spark"><path d="M107 20l1.6 3.4 3.4 1.6-3.4 1.6-1.6 3.4-1.6-3.4-3.4-1.6 3.4-1.6z" fill="var(--pm-spark)"/></g>
     </svg>`;
