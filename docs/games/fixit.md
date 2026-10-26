@@ -70,3 +70,8 @@ Deterministico dato `rnd`; ~0,1 ms per livello.
 - Difficoltà crescente (taglia monotona con ≥ 4 gradini, archi medi crescenti, più catene ai livelli alti).
 - `apply`: `order` con i blocchi diretti esatti e dipendenze scoperte senza duplicati; `tool` senza cuori; `fixed` / `already`.
 - `undo`, `rate`, `progress`, `validate` (salvataggi manomessi rifiutati). Generazione < 10 ms medi.
+
+## Grafica (v0.6.1)
+Scena a strati con ombre "cel" e riflessi. Il meteo segue il progresso: `--storm` (frazione di guasti rimasti) regola l'opacità di nuvoloni,
+lampo e pioggia, che si diradano a ogni riparazione fino all'arcobaleno. Hari col caschetto dietro la cassetta degli attrezzi salta a ogni
+riparazione (`.yay`) e trema all'errore (`.oops`). Colori solo tramite token `--fi-*`.

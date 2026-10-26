@@ -48,3 +48,9 @@ senza perdere clienti. Con 1,2 s per tocco vince ancora i livelli fino al 15 nel
 
 ## Musica
 Brano `sushi`: koto e marimba a 118 bpm, festa di paese giapponese; gli strati entrano con i clienti serviti.
+
+## Grafica (v0.6.1)
+Locale giapponese disegnato in SVG (`BACKDROP`, `NOREN` in `sushi-ui.js`): tende noren che ondeggiano, lanterne con alone, finestra tonda
+con ramo di sakura, targhette del menu. Clienti 64×80 con spalle in kimono, ombra "cel" piatta sulla testa, occhioni con due riflessi che
+sbattono, guanciotte con trattini; da arrabbiati compaiono sopracciglia, broncio e goccia di sudore. Cibo con ombra piatta e riflessi
+bianchi; piattini del nastro con bordo colorato (rosa, azzurro, oro). Tutti i colori sono token `--su-*` (tema chiaro e scuro).

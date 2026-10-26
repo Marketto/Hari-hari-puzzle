@@ -18,6 +18,10 @@
   --fi-glow: rgba(255, 214, 110, .42); --fi-smoke: rgba(255, 255, 255, .9);
   --fi-curtain: #c1a8ff; --fi-curtain-2: #9e82f0; --fi-soil: #a8714b;
   --fi-flower-1: #ff7fa3; --fi-flower-2: #ffd45e; --fi-flower-3: #b48cff;
+  --fi-sun-2: #f5b43c; --fi-cloud-2: #e3ebfb; --fi-hi: #ffffff; --fi-shade: rgba(90, 55, 45, .13);
+  --fi-storm: #6f6b93; --fi-storm-2: #9a97bb; --fi-rain: rgba(235, 244, 255, .85);
+  --fi-mtn-2: #b8d9f2; --fi-grass-3: #93d385; --fi-fence: #fff7ec; --fi-fence-2: #e8d2b6; --fi-wainscot: #f6c6d4;
+  --fi-daisy: #ffffff; --fi-mail: #8cc4ff; --fi-helmet: #ffcf3d; --fi-helmet-2: #eda81c; --fi-box: #ff7f96; --fi-box-2: #e05a74;
   --fi-ring: var(--bad); --fi-chain: #9a6d5e; --fi-chain-bg: #fffaf6; --fi-sel-halo: rgba(255, 111, 156, .3);
 }
 @media (prefers-color-scheme: dark) {
@@ -32,6 +36,9 @@
     --fi-glass: #8fb6ec; --fi-hole: #23161f; --fi-soot: #3a3140; --fi-bristle: #a596b8;
     --fi-glow: rgba(255, 214, 110, .55); --fi-smoke: rgba(235, 225, 255, .55);
     --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
+    --fi-sun-2: #f0dca0; --fi-cloud-2: rgba(170, 150, 230, .3); --fi-shade: rgba(20, 10, 30, .22);
+    --fi-storm: #1d1633; --fi-storm-2: #3b3160; --fi-rain: rgba(200, 190, 255, .6);
+    --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
   }
 }
 :root[data-theme="dark"] {
@@ -45,6 +52,9 @@
   --fi-glass: #8fb6ec; --fi-hole: #23161f; --fi-soot: #3a3140; --fi-bristle: #a596b8;
   --fi-glow: rgba(255, 214, 110, .55); --fi-smoke: rgba(235, 225, 255, .55);
   --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
+  --fi-sun-2: #f0dca0; --fi-cloud-2: rgba(170, 150, 230, .3); --fi-shade: rgba(20, 10, 30, .22);
+  --fi-storm: #1d1633; --fi-storm-2: #3b3160; --fi-rain: rgba(200, 190, 255, .6);
+  --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
 }
 
 .fi-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(calc(100vw - 64px), 460px); }
@@ -78,13 +88,22 @@
 .fi-spot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* cassetta degli attrezzi */
-.fi-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100%; }
+.fi-tools {
+  position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100%; margin-top: 12px; padding: 12px 10px 10px; border-radius: 18px;
+  background: linear-gradient(180deg, var(--fi-box) 0 10px, var(--fi-box-2) 10px 14px, color-mix(in srgb, var(--fi-box) 22%, var(--card-solid)) 14px);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fi-box-2) 55%, transparent), 0 4px 0 color-mix(in srgb, var(--fi-box-2) 45%, transparent), var(--shadow-s);
+}
+.fi-tools::before {                                 /* maniglia della cassetta */
+  content: ""; position: absolute; top: -12px; left: 50%; width: 64px; height: 16px; margin-left: -32px; border-radius: 10px 10px 0 0;
+  border: 4px solid var(--fi-box-2); border-bottom: 0;
+}
 .fi-tool {
   display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 16px;
-  border: 2px solid var(--line); background: var(--card-solid); box-shadow: 0 4px 0 var(--line-2), var(--shadow-s);
+  position: relative; border: 2px solid var(--line); background: linear-gradient(180deg, var(--card-solid) 55%, color-mix(in srgb, var(--card-solid) 88%, var(--fi-ink))); box-shadow: 0 4px 0 var(--line-2), var(--shadow-s);
   transition: transform .12s, box-shadow .12s, border-color .12s; touch-action: manipulation;
 }
-.fi-tool svg { width: 36px; height: 36px; }
+.fi-tool svg { width: 36px; height: 36px; filter: drop-shadow(0 2px 0 var(--fi-shade)); }
+.fi-tool::after { content: ""; position: absolute; top: 4px; left: 8px; width: 14px; height: 6px; border-radius: 6px; background: var(--fi-hi); opacity: .55; transform: rotate(-12deg); pointer-events: none; }
 .fi-tool:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line-2); }
 .fi-tool.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--card-solid)); box-shadow: 0 4px 0 var(--accent-2); transform: translateY(-2px); }
 .fi-tools.ready .fi-tool { animation: fi-invite 1.6s ease-in-out infinite; }
@@ -99,6 +118,17 @@
 .fi-ring { fill: none; stroke: var(--fi-ring); stroke-width: 4; transform-box: fill-box; transform-origin: center; animation: fi-ring .5s ease-in-out infinite alternate; }
 .fi-chain circle { fill: var(--fi-chain-bg); stroke: var(--fi-chain); stroke-width: 2; }
 .fi-chain rect { fill: none; stroke: var(--fi-chain); stroke-width: 1.8; }
+
+/* meteo: la tempesta si dirada man mano che ripari (--storm = frazione di guasti rimasti) */
+.fi-storm { opacity: calc(var(--storm, 1) * .9); transition: opacity 1.4s ease; }
+.fi-weather { opacity: clamp(0, calc((var(--storm, 1) - .3) * 1.6), 1); transition: opacity 1.4s ease; animation: fi-rain .5s linear infinite; }
+.fi-cloud, .fi-sun { transition: opacity 1.4s; }
+.fi-bolt { animation: fi-bolt 5s steps(1, end) infinite; opacity: 0; }
+.fi-rays { transform-box: fill-box; transform-origin: center; animation: fi-spin 30s linear infinite; }
+.fi-hari { transform-box: fill-box; transform-origin: 50% 100%; animation: fi-hari 2.4s ease-in-out infinite; }
+.fi-hari.yay { animation: fi-yay .6s cubic-bezier(.3, 1.6, .5, 1), fi-hari 2.4s ease-in-out .6s infinite; }
+.fi-hari.oops { animation: fi-shake .45s, fi-hari 2.4s ease-in-out .45s infinite; }
+.solved .fi-hari { animation: fi-yay .7s cubic-bezier(.3, 1.6, .5, 1) 3; }
 
 /* animazioni della scena */
 .fi-g, .fi-spin, .fi-flame, .fi-sway, .fi-dangle, .fi-wobble, .fi-puff { transform-box: fill-box; }
@@ -127,6 +157,10 @@ g.fi-shake { transform-origin: center; animation: fi-shake .45s; }
 .fi-burst > g { animation: fi-burst .8s ease-out both; }
 .solved .fi-sun { animation: fi-pop .8s cubic-bezier(.3, 1.6, .5, 1), fi-breathe 4s ease-in-out .8s infinite; }
 
+@keyframes fi-rain { from { transform: translate(0, 0); } to { transform: translate(-4px, 10px); } }
+@keyframes fi-bolt { 0%, 86%, 92%, 100% { opacity: 0; } 88%, 95% { opacity: 1; } }
+@keyframes fi-hari { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+@keyframes fi-yay { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px); } }
 @keyframes fi-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
 @keyframes fi-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-3deg); } 40% { transform: translateX(6px) rotate(3deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 @keyframes fi-sel { 50% { box-shadow: 0 0 0 3px var(--accent), 0 0 0 11px var(--fi-sel-halo); } }
@@ -161,5 +195,6 @@ g.fi-shake { transform-origin: center; animation: fi-shake .45s; }
 @media (prefers-reduced-motion: reduce) {
   .fi-wrap *, .fi-wrap *::before, .fi-wrap *::after { animation: none !important; transition: none !important; }
   .fi-smoke circle, .fi-blow { opacity: 1; }
+  .fi-weather { display: none; }
   .fi-blow { display: none; }
 }

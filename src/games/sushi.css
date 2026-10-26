@@ -1,120 +1,199 @@
 /* Sushi Bar — stile.
- * Bancone di legno chiaro, nastro trasportatore con piattini, tagliere di Hari cuoco.
- * Colori del cibo e degli animali: fissi (uguali nei due temi), legno e nastro cambiano col tema.
+ * Locale giapponese in stile anime: tende noren, lanterne, finestra tonda con sakura, bancone di hinoki,
+ * nastro kaiten in acciaio con piattini colorati, tagliere e secchio di legno.
+ * Cibo e animali hanno colori fissi (uguali nei due temi); locale, legno e nastro cambiano col tema.
  */
 :root {
-  --su-ink: #4a2c22; --su-eye: #2a160e;
-  --su-rice: #fffdf7; --su-grain: #e2d8c4; --su-nori: #2f4a3a; --su-salmon: #ff9a6b; --su-tuna: #e2475f;
-  --su-cuke: #6cc26a; --su-cuke-in: #d8f3c8; --su-egg: #ffd44d; --su-egg-2: #f0b92c; --su-shrimp: #ff8f73;
-  --su-avo: #8cc152; --su-avo-in: #e7f5b8; --su-pit: #8b5a3c; --su-beak: #ffb43d; --su-hat: #ffffff;
-  --su-a1: #ffffff; --su-a2: #ffc27a; --su-a4: #9edc7a; --su-a5: #ff9e57; --su-a6: #c99068; --su-a7: #ffe066; --su-a8: #3e4a66;
-  --su-wood: #f2c896; --su-wood-2: #d9a26a; --su-wood-3: #b67c45;
-  --su-belt: #8f99b8; --su-belt-2: #7b84a3; --su-dishplate: #ffffff; --su-board: #f6dcb4;
+  --su-ink: #4a2c22; --su-eye: #2a160e; --su-iris: #9a5a34; --su-hi: #ffffff; --su-sweat: #a8dcff; --su-blush-line: #f07a9a;
+  --su-rice: #fffdf7; --su-rice-2: #ece3d2; --su-grain: #ddd2bd;
+  --su-nori: #2f4a3a; --su-nori-2: #22382b; --su-nori-3: #4f7360;
+  --su-salmon: #ff9a6b; --su-salmon-2: #ef7a4c; --su-salmon-fat: #ffe0cc;
+  --su-tuna: #e2475f; --su-tuna-2: #b8304a; --su-tuna-hi: #f27b8e;
+  --su-cuke: #6cc26a; --su-cuke-2: #3d8f45; --su-cuke-in: #d8f3c8; --su-cuke-seed: #a7d98f;
+  --su-egg: #ffd44d; --su-egg-2: #f0b92c; --su-egg-3: #d99a1f; --su-egg-hi: #ffe78f;
+  --su-shrimp: #ff8f73; --su-shrimp-2: #ee6a4f; --su-shrimp-tail: #e2483a;
+  --su-avo: #a9d45f; --su-avo-2: #5d8f32; --su-avo-in: #edf7c2; --su-pit: #8b5a3c; --su-pit-2: #6a3f27;
+  --su-roe: #ff7a45; --su-crab: #ffb3a1;
+  --su-beak: #ffb43d; --su-hat: #ffffff; --su-band: #ff6f86;
+  --su-a1: #ffffff; --su-a2: #ffc27a; --su-a4: #9edc7a; --su-a4-2: #6bb256; --su-a5: #ff9e57; --su-a6: #c99068; --su-a6-in: #ecc49f; --su-a7: #ffe066; --su-a8: #3e4a66;
+  --su-k1: #ffb3c7; --su-k2: #9fd3ff; --su-k3: #c9b5ff; --su-k4: #ffd59a;
+  --su-wood: #f2c896; --su-wood-2: #d9a26a; --su-wood-3: #b67c45; --su-copper: #d9844a;
+  --su-belt: #f7b6c6; --su-belt-2: #e894aa; --su-steel: #e6e9f1; --su-steel-2: #a9b2c6; --su-steel-3: #8c95ab;
+  --su-dishplate: #ffffff; --su-plate-sh: #e3dceb; --su-plate-1: #ff8fab; --su-plate-2: #6fb8ff; --su-plate-3: #ffc23d;
+  --su-board: #f6dcb4; --su-board-2: #ebc795;
+  --su-wall: #fff2df; --su-wall-2: #f6dcc0; --su-beam: #b9875e; --su-beam-2: #92643f; --su-tag: #f8e5c6;
+  --su-window: #d8efff; --su-branch: #8a5a44; --su-sakura: #ffc2d4; --su-sakura-in: #ff7fa3;
+  --su-noren: #5a6fc9; --su-noren-2: #ff8fab;
+  --su-lantern: #ff7186; --su-lantern-2: #c23f57; --su-lantern-cap: #3d2a2a; --su-glow: rgba(255, 196, 120, .28);
+  --su-shade: rgba(74, 44, 34, .16);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #4d5574; --su-belt-2: #3e4562; --su-dishplate: #f3eef8; --su-board: #a77d58; }
+  :root:not([data-theme="light"]) {
+    --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #8d5a78; --su-belt-2: #74465f;
+    --su-steel: #6d7590; --su-steel-2: #4a516a; --su-steel-3: #3a4056; --su-dishplate: #f3eef8; --su-plate-sh: #cfc6dc;
+    --su-board: #a77d58; --su-board-2: #8f6847;
+    --su-wall: #4c3a5c; --su-wall-2: #3e2f4e; --su-beam: #6a4a3a; --su-beam-2: #4f3529; --su-tag: #7a6070;
+    --su-window: #2b2550; --su-branch: #c79a86; --su-noren: #4152a3; --su-noren-2: #c45f80;
+    --su-glow: rgba(255, 170, 90, .42); --su-shade: rgba(0, 0, 0, .3);
+  }
 }
-:root[data-theme="dark"] { --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #4d5574; --su-belt-2: #3e4562; --su-dishplate: #f3eef8; --su-board: #a77d58; }
+:root[data-theme="dark"] {
+  --su-wood: #8a6448; --su-wood-2: #6e4e38; --su-wood-3: #57392a; --su-belt: #8d5a78; --su-belt-2: #74465f;
+  --su-steel: #6d7590; --su-steel-2: #4a516a; --su-steel-3: #3a4056; --su-dishplate: #f3eef8; --su-plate-sh: #cfc6dc;
+  --su-board: #a77d58; --su-board-2: #8f6847;
+  --su-wall: #4c3a5c; --su-wall-2: #3e2f4e; --su-beam: #6a4a3a; --su-beam-2: #4f3529; --su-tag: #7a6070;
+  --su-window: #2b2550; --su-branch: #c79a86; --su-noren: #4152a3; --su-noren-2: #c45f80;
+  --su-glow: rgba(255, 170, 90, .42); --su-shade: rgba(0, 0, 0, .3);
+}
 
-.su-wrap { position: relative; display: flex; flex-direction: column; gap: 12px; width: min(calc(100vw - 76px), 560px); user-select: none; -webkit-user-select: none; }
+.su-wrap { position: relative; display: flex; flex-direction: column; gap: 10px; width: min(calc(100vw - 76px), 560px); user-select: none; -webkit-user-select: none; }
 
-/* bancone e clienti */
+/* locale: noren + parete + bancone */
+.su-shop { position: relative; border-radius: 20px 20px 14px 14px; overflow: hidden; box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); }
+.su-noren { position: relative; z-index: 3; display: block; width: 100%; height: 40px; margin-bottom: -10px; pointer-events: none; }
+.su-flap { transform-box: fill-box; transform-origin: 50% 0; animation: su-flap 4.5s ease-in-out infinite; }
 .su-counter {
-  position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; padding: 0 6px 14px;
-  background: linear-gradient(transparent calc(100% - 22px), var(--su-wood) calc(100% - 22px), var(--su-wood-2) 100%);
-  border-radius: 0 0 14px 14px;
+  position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px; padding: 8px 6px 0;
+  background: linear-gradient(transparent calc(100% - 26px), var(--su-wood) calc(100% - 26px), var(--su-wood) calc(100% - 8px), var(--su-wood-3) calc(100% - 8px));
 }
-.su-counter::after { content: ""; position: absolute; left: 0; right: 0; bottom: 18px; height: 4px; background: var(--su-wood-3); border-radius: 4px; opacity: .5; }
+.su-counter::after { content: ""; position: absolute; left: 0; right: 0; bottom: 21px; height: 3px; background: var(--su-hi); opacity: .45; }
+.su-backdrop { position: absolute; left: 0; right: 0; top: 0; bottom: 26px; width: 100%; height: calc(100% - 26px); pointer-events: none; }
+.su-lantern { transform-box: fill-box; transform-origin: 50% 0; animation: su-sway 3.6s ease-in-out infinite; }
+.su-lantern > circle { animation: su-glow 2.8s ease-in-out infinite; }
+
 .su-seat {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; min-height: 150px; padding: 0; border: 0;
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; min-height: 186px; padding: 0 0 4px; border: 0;
   background: none; border-radius: 16px; transition: transform .2s;
 }
-.su-seat .su-animal { width: min(84px, 100%); height: auto; position: relative; z-index: 1; margin-bottom: -8px; }
-.su-seat .su-frown, .su-seat .su-brows { display: none; }
+.su-seat .su-animal { width: min(80px, 100%); height: auto; position: relative; z-index: 1; margin-bottom: -2px; overflow: visible; }
+.su-bob { animation: su-bob 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.su-seat:nth-child(3) .su-bob { animation-delay: -.9s; }
+.su-seat:nth-child(4) .su-bob { animation-delay: -1.7s; }
+.su-eye { transform-box: fill-box; transform-origin: center; animation: su-blink 4.2s infinite; }
+.su-seat:nth-child(3) .su-eye { animation-delay: -1.3s; }
+.su-seat:nth-child(4) .su-eye { animation-delay: -2.6s; }
+.su-frown, .su-brows, .su-sweat { display: none; }
 .su-seat.grumpy .su-smile { display: none; }
-.su-seat.grumpy .su-frown, .su-seat.grumpy .su-brows { display: inline; }
-.su-seat.grumpy .su-animal { animation: shake .5s ease 0s infinite; animation-duration: 1.4s; }
+.su-seat.grumpy .su-frown, .su-seat.grumpy .su-brows, .su-seat.grumpy .su-sweat { display: inline; }
+.su-seat.grumpy .su-animal { animation: shake 1.4s ease 0s infinite; }
+.su-seat.ready .su-blush ellipse { opacity: 1; }
 .su-seat.empty { justify-content: flex-end; }
-.su-stool { width: 44px; height: 14px; margin-bottom: 4px; border-radius: 8px 8px 3px 3px; background: var(--su-wood-3); opacity: .6; }
-.su-order {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px 5px; border-radius: 16px;
-  background: var(--card-solid); border: 2px solid var(--line-2); box-shadow: var(--shadow-s); animation: float 3s ease-in-out infinite;
+.su-stool { width: 46px; height: 12px; margin-bottom: 6px; border-radius: 8px 8px 3px 3px; background: var(--su-wood-3); opacity: .5; }
+.su-patience {
+  position: absolute; left: 50%; bottom: 7px; z-index: 2; width: 62%; height: 9px; transform: translateX(-50%); border-radius: 6px;
+  background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--su-wood-3); overflow: hidden;
 }
-.su-order::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 12px; height: 12px; margin-left: -6px; background: var(--card-solid); border-right: 2px solid var(--line-2); border-bottom: 2px solid var(--line-2); transform: rotate(45deg); }
-.su-dish { width: 46px; height: 38px; }
-.su-recipe { display: flex; gap: 1px; }
-.su-ing.mini { width: 20px; height: 20px; }
-.su-patience { position: relative; z-index: 2; width: 70%; height: 8px; border-radius: 6px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); overflow: hidden; }
-.su-patience i { display: block; height: 100%; border-radius: 6px; background: var(--mint); transition: background .3s; }
+.su-patience i { display: block; height: 100%; border-radius: 6px; background: var(--mint); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45); transition: background .3s; }
 .su-patience i[data-level="mid"] { background: var(--sun); }
 .su-patience i[data-level="low"] { background: var(--bad); }
+
+/* fumetto dell'ordine */
+.su-order {
+  position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 4px; padding: 6px 8px 5px; border-radius: 18px;
+  background: var(--card-solid); border: 2px solid var(--line-2); box-shadow: 0 3px 0 var(--su-shade), var(--shadow-s); animation: float 3s ease-in-out infinite;
+}
+.su-order::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 12px; height: 12px; margin-left: -6px; background: var(--card-solid); border-right: 2px solid var(--line-2); border-bottom: 2px solid var(--line-2); transform: rotate(45deg); }
+.su-dish { width: 50px; height: 42px; filter: drop-shadow(0 2px 0 var(--su-shade)); }
+.su-recipe { display: flex; gap: 1px; padding: 2px 4px; border-radius: 10px; background: var(--hair); }
+.su-ing.mini { width: 20px; height: 20px; }
 .su-seat.ready .su-order { border-color: var(--mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 35%, transparent), var(--shadow-s); animation: ready-bob .6s ease-in-out infinite; }
+.su-seat.ready .su-order::before { content: "✦"; position: absolute; top: -10px; right: -6px; color: var(--sun); font-size: 16px; animation: su-twinkle 1s ease-in-out infinite; }
 .su-seat.arrive .su-animal, .su-seat.arrive .su-order { animation: seat-in .5s cubic-bezier(.3, 1.6, .5, 1) backwards; }
 .su-seat.nope .su-order { animation: shake .4s; }
 .su-seat.leaving .su-animal { animation: leave-happy .9s ease-in forwards; }
 .su-seat.leaving.angry .su-animal { animation: leave-angry .9s ease-in forwards; }
 .su-seat.leaving.angry .su-frown, .su-seat.leaving.angry .su-brows { display: inline; }
 .su-seat.leaving.angry .su-smile { display: none; }
-.su-storm { position: absolute; top: 18px; left: 50%; width: 34px; height: 20px; margin-left: -17px; border-radius: 12px; background: var(--su-belt); box-shadow: -10px 4px 0 -2px var(--su-belt), 10px 4px 0 -2px var(--su-belt); animation: fade .3s; }
-.su-hearts { position: absolute; top: 30px; left: 50%; }
+.su-storm { position: absolute; top: 40px; left: 50%; z-index: 2; width: 34px; height: 20px; margin-left: -17px; border-radius: 12px; background: var(--su-steel-2); box-shadow: -10px 4px 0 -2px var(--su-steel-2), 10px 4px 0 -2px var(--su-steel-2); animation: fade .3s; }
+.su-hearts { position: absolute; top: 60px; left: 50%; z-index: 2; }
 .su-hearts i { position: absolute; width: 12px; height: 12px; background: var(--accent); clip-path: path('M6 11C1 7.5 0 5 0 3.3 0 1.4 1.4 0 3.2 0 4.4 0 5.4.7 6 1.6 6.6.7 7.6 0 8.8 0 10.6 0 12 1.4 12 3.3 12 5 11 7.5 6 11z'); animation: heart-up 1s ease-out both; }
 .su-hearts i:nth-child(2) { --x: 18px; --r: 15deg; animation-delay: .1s; }
 .su-hearts i:nth-child(3) { --x: -18px; --r: -15deg; animation-delay: .2s; }
 
-/* nastro trasportatore */
-.su-belt { position: relative; height: 68px; padding: 6px 0; border-radius: 34px; background: var(--su-belt-2); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .12), var(--shadow-s); overflow: hidden; }
+/* nastro kaiten: telaio d'acciaio + catena di piastre */
+.su-belt {
+  position: relative; height: 70px; padding: 7px 0; border-radius: 35px;
+  background: linear-gradient(180deg, var(--su-steel) 0%, var(--su-steel) 30%, var(--su-steel-2) 100%);
+  box-shadow: inset 0 2px 0 var(--su-hi), inset 0 -3px 0 var(--su-steel-3), 0 0 0 2px var(--line-2), var(--shadow-s); overflow: hidden;
+}
 .su-belt-track {
-  position: relative; height: 100%; margin: 0 10px; border-radius: 28px;
-  background: repeating-linear-gradient(90deg, var(--su-belt) 0 22px, var(--su-belt-2) 22px 26px);
-  background-size: 52px 100%; animation: belt var(--dur, 6s) linear infinite;
+  position: relative; height: 100%; margin: 0 12px; border-radius: 28px;
+  background:
+    radial-gradient(ellipse 14px 30px at 0 50%, var(--su-belt-2) 0 60%, transparent 62%),
+    linear-gradient(180deg, var(--su-belt) 0 50%, var(--su-belt-2) 100%);
+  background-size: 26px 100%, 100% 100%;
+  box-shadow: inset 0 3px 5px var(--su-shade), inset 0 -2px 0 var(--su-hi);
+  animation: belt var(--dur, 6s) linear infinite;
 }
 .su-item { position: absolute; left: 0; top: 2px; width: 52px; height: 52px; padding: 0; border: 0; background: none; will-change: transform; }
-.su-item .su-dishplate { position: absolute; left: 3px; right: 3px; bottom: 2px; height: 16px; border-radius: 50%; background: var(--su-dishplate); box-shadow: inset 0 -3px 0 var(--line-2), 0 2px 0 rgba(0, 0, 0, .12); }
-.su-item .su-ing { position: absolute; left: 7px; top: 0; width: 38px; height: 38px; transition: transform .15s; }
+.su-item .su-plate { position: absolute; left: 1px; right: 1px; bottom: 0; width: 50px; height: 20px; }
+.su-item .su-ing { position: absolute; left: 7px; top: -2px; width: 38px; height: 38px; transition: transform .15s; filter: drop-shadow(0 2px 0 var(--su-shade)); }
 .su-item:active .su-ing { transform: scale(1.15); }
 
-/* cucina: Hari cuoco, tagliere, cestino */
+/* cucina: Hari cuoco, tagliere di hinoki, secchio */
 .su-kitchen { display: flex; align-items: center; gap: 8px; }
-.su-chef { position: relative; flex: none; width: 58px; height: 58px; }
-.su-chef .mini-hari { width: 58px; height: 58px; }
-.su-hat { position: absolute; left: 12px; top: -18px; width: 34px; height: 24px; transform: rotate(-8deg); }
+.su-chef { position: relative; flex: none; width: 62px; height: 62px; }
+.su-chef .mini-hari, .su-chef .su-hachi { position: absolute; inset: 0; width: 62px; height: 62px; }
+.su-chef .mini-hari { animation: su-bob 2.4s ease-in-out infinite; }
+.su-hachi { overflow: visible; animation: su-bob 2.4s ease-in-out infinite; }
+.su-tails { transform-box: fill-box; transform-origin: 0 50%; animation: su-tails 1.2s ease-in-out infinite; }
 .su-board {
-  flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 0; padding: 8px; border-radius: 16px;
-  background: repeating-linear-gradient(90deg, var(--su-board) 0 18px, color-mix(in srgb, var(--su-board) 88%, var(--su-ink)) 18px 20px);
-  box-shadow: inset 0 0 0 2px var(--line-2), 0 4px 0 var(--su-wood-3);
+  flex: 1; position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 0; padding: 8px 10px; border-radius: 14px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, var(--su-board-2) 70%, transparent) 22px 23px, transparent 23px 37px, color-mix(in srgb, var(--su-board-2) 50%, transparent) 37px 38px),
+    linear-gradient(180deg, var(--su-board) 0%, var(--su-board-2) 100%);
+  box-shadow: inset 0 2px 0 var(--su-hi), inset 0 0 0 2px var(--su-wood-3), 0 5px 0 var(--su-wood-3), var(--shadow-s);
 }
-.su-slot { display: grid; place-items: center; aspect-ratio: 1; border-radius: 12px; border: 2px dashed color-mix(in srgb, var(--su-ink) 25%, transparent); }
-.su-slot.full { border-style: solid; border-color: transparent; background: rgba(255, 255, 255, .45); }
-.su-slot .su-ing { width: 80%; height: 80%; }
+.su-slot { display: grid; place-items: center; aspect-ratio: 1; border-radius: 50%; border: 2px dashed color-mix(in srgb, var(--su-ink) 22%, transparent); }
+.su-slot.full { border: 2px solid var(--su-plate-sh); background: var(--su-dishplate); box-shadow: inset 0 -3px 0 var(--su-plate-sh), 0 2px 0 var(--su-shade); }
+.su-slot .su-ing { width: 82%; height: 82%; }
 .su-slot.pop .su-ing { animation: pop .35s cubic-bezier(.3, 1.8, .5, 1); }
 .su-board.shake { animation: shake .35s; }
-.su-trash { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--line); background: var(--card-solid); color: var(--ink-2); box-shadow: 0 3px 0 var(--line-2); }
-.su-trash svg { width: 24px; height: 24px; }
+.su-trash { flex: none; display: grid; place-items: center; width: 50px; height: 50px; padding: 0; border-radius: 50%; border: 2px solid var(--line); background: var(--card-solid); box-shadow: 0 3px 0 var(--line-2); }
+.su-trash svg { width: 36px; height: 36px; }
 .su-trash:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
 
-.su-served { display: grid; grid-template-columns: auto auto auto 1fr; align-items: baseline; gap: 6px; padding: 8px 14px; border-radius: 16px; background: var(--hair); font-weight: 800; font-variant-numeric: tabular-nums; }
-.su-served span:first-child { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
-.su-served b { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: var(--accent); }
-.su-served span { color: var(--ink-2); }
-.su-progress { align-self: center; height: 10px; border-radius: 6px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); overflow: hidden; }
-.su-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--sun)); transition: width .4s; }
+/* targa dei serviti */
+.su-served {
+  display: grid; grid-template-columns: auto auto auto auto 1fr; align-items: center; gap: 6px; padding: 6px 14px 6px 8px; border-radius: 16px;
+  background: linear-gradient(180deg, var(--su-tag), color-mix(in srgb, var(--su-tag) 80%, var(--su-wood-2)));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--su-wood-3) 60%, transparent), 0 3px 0 var(--su-shade);
+  font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.su-served-ic { display: grid; width: 34px; height: 28px; }
+.su-served-ic .su-dish { width: 34px; height: 28px; }
+.su-served span:nth-of-type(1) { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
+.su-served b { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: var(--accent-2); }
+.su-progress { align-self: center; height: 12px; border-radius: 7px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--su-wood-3); overflow: hidden; }
+.su-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--su-salmon), var(--accent)); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35); transition: width .4s; }
 .su-fly { position: absolute; z-index: 6; width: 56px; height: 46px; pointer-events: none; }
 .su-fly .su-dish { width: 100%; height: 100%; }
 
-@keyframes belt { to { background-position: 52px 0; } }
+@keyframes belt { to { background-position: 26px 0, 0 0; } }
 @keyframes seat-in { from { transform: translateY(30px) scale(.6); opacity: 0; } }
 @keyframes leave-happy { 30% { transform: translateY(-14px); } 100% { transform: translateY(60px) scale(.7); opacity: 0; } }
 @keyframes leave-angry { 0%, 30% { transform: rotate(-8deg); } 15% { transform: rotate(8deg); } 100% { transform: translateX(60px) scale(.7); opacity: 0; } }
 @keyframes ready-bob { 50% { transform: translateY(-4px); } }
+@keyframes su-bob { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-1.5px) scaleY(1.015); } }
+@keyframes su-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes su-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes su-flap { 0%, 100% { transform: skewX(0deg); } 50% { transform: skewX(-2.5deg); } }
+@keyframes su-glow { 50% { opacity: .55; } }
+@keyframes su-tails { 50% { transform: rotate(-10deg); } }
+@keyframes su-twinkle { 50% { transform: scale(1.4) rotate(20deg); opacity: .6; } }
 
 @media (max-width: 560px) {
-  .su-wrap { width: min(calc(100vw - 64px), 560px); gap: 10px; }
-  .su-seat { min-height: 132px; }
-  .su-dish { width: 38px; height: 32px; }
+  .su-wrap { width: min(calc(100vw - 64px), 560px); gap: 9px; }
+  .su-seat { min-height: 172px; }
+  .su-dish { width: 42px; height: 35px; }
   .su-ing.mini { width: 17px; height: 17px; }
   .su-seat .su-animal { width: min(72px, 100%); }
   .su-order { padding: 5px 6px 4px; }
-  .su-belt { height: 62px; }
+  .su-belt { height: 64px; padding: 6px 0; }
   .su-item { width: 48px; height: 48px; }
+  .su-item .su-plate { width: 46px; height: 18px; }
   .su-item .su-ing { width: 34px; height: 34px; left: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .su-wrap .su-bob, .su-wrap .su-eye, .su-wrap .su-lantern, .su-wrap .su-flap, .su-wrap .su-tails, .su-wrap .mini-hari, .su-wrap .su-hachi, .su-belt-track { animation: none !important; }
 }
