@@ -374,7 +374,6 @@
         }
         n.style.transform = `translate3d(${(x * cell).toFixed(1)}px,${(y * cell).toFixed(1)}px,0)`;
         n.firstChild.nextSibling.style.transform = `translate3d(0,${(-hop * cell).toFixed(1)}px,0) scale(${(1 + sq * 0.07).toFixed(3)},${(1 - sq * 0.07).toFixed(3)})`;
-        n.firstChild.style.opacity = (1 - hop * 0.9).toFixed(2);
         const z = 10 + Math.round(y * 3) + (i ? 0 : 1);
         if (n._z !== z) { n._z = z; n.style.zIndex = z; }
         // dove guarda: la testa segue la direzione, i riccetti guardano chi hanno davanti

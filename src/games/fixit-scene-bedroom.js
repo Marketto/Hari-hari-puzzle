@@ -32,7 +32,7 @@
 
   /* ---------- zone toccabili (scena 400×400) ---------- */
   const SPOT = {
-    window: [172, 54, 56, 64], curtain: [104, 62, 46, 76], crack: [34, 124, 52, 48], paint: [300, 166, 62, 52],
+    window: [180, 70, 56, 62], curtain: [104, 62, 46, 76], crack: [34, 124, 52, 48], paint: [300, 166, 62, 52],
     shelf: [298, 104, 66, 46], clock: [170, 194, 52, 46], blanket: [30, 226, 62, 46], pillows: [76, 298, 46, 40],
     bed: [124, 280, 46, 46], books: [266, 288, 54, 44], lamp: [328, 288, 56, 44], carpet: [176, 340, 80, 40], plant: [264, 340, 56, 42],
   };
@@ -70,9 +70,9 @@
     crack(st) {
       if (st === 'idle') return '';
       if (st === 'fixed') {
-        return `<path d="M44 130Q60 122 78 130Q84 148 78 166Q60 172 44 166Q38 148 44 130Z" fill="var(--fi-plaster)" ${o(1.6)}/>` +
-          `<path d="M48 142q12 -4 26 0M48 156q12 -4 26 0" fill="none" stroke="${V('wall-2')}" stroke-width="1.6" stroke-linecap="round"/>` +
-          heart(61, 149, 3.4, 'var(--fi-flower-1)') + sparkle(80, 128, 4, 'var(--fi-hi)');
+        return `<path d="M50 132Q58 124 70 130Q80 128 80 140Q86 150 78 160Q76 172 62 168Q50 172 46 160Q38 148 46 142Q42 134 50 132Z" fill="var(--fi-plaster)"/>` +
+          `<path d="M50 140q10 -5 22 -2M48 152q12 -4 26 0M54 162q8 -3 16 0" fill="none" stroke="var(--fi-hi)" stroke-width="2" stroke-linecap="round" opacity=".8"/>` +
+          heart(70, 158, 2.4, 'var(--fi-flower-1)') + sparkle(82, 130, 4, 'var(--fi-hi)') + sparkle(44, 164, 2.6, 'var(--fi-sun)');
       }
       return `<path d="M62 126l-6 10l7 6l-8 10l6 8l-5 10M57 142l-9 3M60 158l9 4M63 136l7 -3" fill="none" ${o(2.4)}/>` +
         `<path d="M58 134l5 7l-2 1ZM54 152l6 7l-2 1Z" fill="var(--fi-hole)" opacity=".5"/>` +
@@ -83,14 +83,14 @@
       const blob = 'M304 172Q322 164 344 170Q362 172 360 192Q362 212 344 216Q320 220 306 214Q298 194 304 172Z';
       if (st === 'idle') return '';
       if (st === 'fixed') {
-        return `<path d="${blob}" fill="${V('wall')}"/><path d="${blob}" fill="url(#fiBrPaper)"/>` + hl('M310 178q10 -6 24 -6', 2.4, 0.7) +
+        return `<path d="${blob}" fill="url(#fiBrWallG)"/><path d="${blob}" fill="url(#fiBrPaper)"/>` + hl('M310 178q10 -6 24 -6', 2.4, 0.7) +
           sparkle(352, 178, 5, 'var(--fi-hi)') + sparkle(310, 208, 3.4, 'var(--fi-sun)');
       }
       return `<path d="${blob}" fill="${V('faded')}" ${o(1.8)}/>` +
         `<path d="M312 186q8 6 18 0q6 -4 14 2M314 204q10 -6 22 2" fill="none" stroke="var(--fi-stone-2)" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>` +
         `<ellipse cx="344" cy="200" rx="7" ry="5" fill="var(--fi-stone-2)" opacity=".45"/><ellipse cx="320" cy="180" rx="5" ry="3.5" fill="var(--fi-stone-2)" opacity=".4"/>` +
-        `<g class="fi-flutter"><path d="M344 170q12 -4 14 8q-6 -4 -14 -2Z" fill="${V('wall')}" ${o(1.4)}/></g>` +
-        `<path d="M304 210q-6 4 -2 10q2 -6 8 -6Z" fill="${V('wall')}" ${o(1.3)}/>`;
+        `<g class="fi-flutter"><path d="M344 170q12 -4 14 8q-6 -4 -14 -2Z" fill="${V('wall-2')}" ${o(1.4)}/></g>` +
+        `<path d="M304 210q-6 4 -2 10q2 -6 8 -6Z" fill="${V('wall-2')}" ${o(1.3)}/>`;
     },
     window(st) {
       const mull = `<rect x="198" y="40" width="4" height="94" fill="${V('trim')}" ${o(1.4)}/><rect x="156" y="85" width="88" height="4" fill="${V('trim')}" ${o(1.4)}/>` +
@@ -100,12 +100,12 @@
           `<path d="M162 70L180 50M166 80L190 56M206 74L224 54M208 128L232 104M164 126L176 114" stroke="var(--fi-glass-2)" stroke-width="2.6" stroke-linecap="round" opacity=".8"/>` +
           mull + (st === 'fixed' ? sparkle(236, 50, 5, 'var(--fi-hi)') + sparkle(166, 120, 3.4, 'var(--fi-hi)') : '');
       }
-      const hole = 'M214 50L222 45L227 52L236 50L234 62L238 70L226 74L220 68L211 70L213 60Z';
-      return `<path d="M156 40H244V134H156Z${hole}" fill="var(--fi-glass)" opacity=".3" fill-rule="evenodd"/>` +
-        `<path d="${hole}" fill="none" ${o(1.8)}/>` +
-        `<path d="M222 45L218 40M236 50L244 46M238 70L244 80M226 74L230 85M211 70L202 80M213 60L202 56M220 68L210 84" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>` +
+      const hole = 'M214 98L222 93L227 100L236 98L234 110L238 118L226 122L220 116L211 118L213 108Z';
+      return `<path d="M156 40H244V134H156Z${hole}" fill="var(--fi-glass)" opacity=".42" fill-rule="evenodd"/>` +
+        `<path d="${hole}" fill="var(--fi-hole)" opacity=".35"/><path d="${hole}" fill="none" stroke="var(--fi-glass-2)" stroke-width="3.4" stroke-linejoin="round"/><path d="${hole}" fill="none" ${o(1.6)}/>` +
+        `<path d="M222 93L218 88M236 98L244 94M238 118L244 128M226 122L230 133M211 118L202 128M213 108L202 104M220 116L210 132" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>` +
         `<path d="M166 80L186 58M164 126L176 114" stroke="var(--fi-glass-2)" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>` + mull +
-        `<g class="fi-bedroom-gust"><path d="M222 62l-10 14M230 64l-9 13M216 70l-8 11" stroke="var(--fi-water)" stroke-width="2" stroke-linecap="round"/></g>` +
+        `<g class="fi-bedroom-gust"><path d="M222 110l-10 14M230 112l-9 13M216 118l-8 11M226 124l-8 12M214 132l-7 10" stroke="var(--fi-water-2)" stroke-width="2.2" stroke-linecap="round"/></g>` +
         `<path d="M168 142l5 -6l3 6ZM226 143l6 -5l2 5ZM240 142l3 -4l3 4Z" fill="var(--fi-glass)" ${o(1.3)}/>`;
     },
     curtain(st, S) {
@@ -145,8 +145,9 @@
       if (st === 'fixed') s += sparkle(196, 346, 4.4, 'var(--fi-hi)') + sparkle(246, 368, 3.4, 'var(--fi-hi)');
       if (st !== 'broken') return s;
       s += `<path d="M150 354Q168 340 198 346Q228 338 252 350Q262 362 238 370Q208 378 176 372Q148 368 150 354Z" fill="${V('wet')}"/>` +
-        `<path d="M236 286Q236 312 228 342" fill="none" stroke="var(--fi-water)" stroke-width="3" stroke-linecap="round" opacity=".7"/>` +
-        `<path d="M236 152Q239 210 236 282" fill="none" stroke="var(--fi-water)" stroke-width="5" stroke-linecap="round" opacity=".35"/>` +
+        `<path d="M232 288Q246 292 242 312Q238 330 226 344L214 342Q228 326 230 310Q232 298 226 290Z" fill="${V('wet')}"/>` +
+        `<path d="M230 150Q226 180 232 204Q236 230 230 256Q228 272 234 282H244Q240 262 244 240Q248 210 242 184Q240 166 244 150Z" fill="${V('wet')}"/>` +
+        `<path d="M238 160q-3 30 2 60" fill="none" stroke="var(--fi-hi)" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>` +
         `<ellipse cx="212" cy="358" rx="14" ry="3.4" fill="none" stroke="var(--fi-glass-2)" stroke-width="1.6" class="fi-ripple"/>` +
         `<ellipse cx="182" cy="362" rx="8" ry="2.4" fill="none" stroke="var(--fi-glass-2)" stroke-width="1.4" class="fi-ripple" style="animation-delay:.9s"/>`;
       if (S.winBroken) {
@@ -204,8 +205,8 @@
           `<g class="fi-bedroom-tick"><path d="M192 218V209.5" stroke="var(--fi-valve)" stroke-width="1.2" stroke-linecap="round"/></g><circle cx="192" cy="218" r="1.6" fill="${INK}"/>` +
           (st === 'fixed' ? `<g class="fi-bedroom-blink"><path d="M172 200q-3 -4 0 -8M212 200q3 -4 0 -8" fill="none" ${o(1.6)}/></g>` + sparkle(214, 212, 3.6, 'var(--fi-sun)') : '');
       }
-      return body + `<path d="M192 218l-1 7M192 218l-4 6" ${o(1.8)}/><circle cx="192" cy="218" r="1.6" fill="${INK}"/>` +
-        `<g class="fi-spray"><rect x="207" y="196" width="11" height="7" rx="1.6" fill="var(--fi-metal)" ${o(1.3)}/><rect x="218" y="198" width="2" height="3" fill="${INK}"/><rect x="208.5" y="197.5" width="2.6" height="4" fill="var(--fi-valve)"/></g>` +
+      return `<g transform="rotate(-12 192 238)">${body}<path d="M192 218l-1 7M192 218l-4 6" ${o(1.8)}/><circle cx="192" cy="218" r="1.6" fill="${INK}"/></g>` +
+        `<g class="fi-spray"><rect x="205" y="190" width="14" height="9" rx="2" fill="var(--fi-metal)" ${o(1.4)}/><rect x="219" y="192.5" width="2.4" height="4" fill="${INK}"/><rect x="207" y="192" width="3" height="5" rx=".8" fill="var(--fi-valve)"/></g>` +
         `<path d="M176 214q-3 -1 -4 2" fill="none" ${o(1.2)} opacity=".6"/>`;
     },
     bed(st) {
@@ -283,7 +284,7 @@
     return `<defs>
       <linearGradient id="fiBrSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--fi-sky)"/><stop offset="1" stop-color="var(--fi-sky-2)"/></linearGradient>
       <linearGradient id="fiBrStormG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--fi-storm)"/><stop offset="1" stop-color="var(--fi-storm-2)"/></linearGradient>
-      <linearGradient id="fiBrWallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${V('wall')}"/><stop offset="1" stop-color="${V('wall-2')}"/></linearGradient>
+      <linearGradient id="fiBrWallG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="286"><stop offset="0" stop-color="${V('wall')}"/><stop offset="1" stop-color="${V('wall-2')}"/></linearGradient>
       <linearGradient id="fiBrFloorG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${V('floor-2')}"/><stop offset=".25" stop-color="${V('floor')}"/></linearGradient>
       <pattern id="fiBrPaper" width="40" height="40" patternUnits="userSpaceOnUse">${heart(10, 12, 3.2, V('motif'))}${star(30, 31, 4, V('star'))}<circle cx="30" cy="10" r="1.4" fill="${V('motif')}"/><circle cx="10" cy="32" r="1.4" fill="${V('star')}"/></pattern>
       <pattern id="fiBrDots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2" fill="${V('blanket-dot')}"/><circle cx="9" cy="9" r="2" fill="${V('blanket-dot')}"/></pattern>
@@ -294,7 +295,7 @@
       <rect x="-2" y="231" width="404" height="6" rx="2" fill="${V('trim')}" ${o(1.8)}/>
       <rect y="284" width="400" height="116" fill="url(#fiBrFloorG)"/>
       <path d="${planks}${seams}" stroke="${V('floor-2')}" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M60 300L40 330M250 300l10 26" stroke="var(--fi-hi)" stroke-width="2.6" stroke-linecap="round" opacity=".3"/>
+      
       <rect x="-2" y="278" width="404" height="10" fill="${V('trim')}" ${o(2)}/><rect x="0" y="286" width="400" height="5" fill="var(--fi-shade)"/>
       <g clip-path="url(#fiBrWin)"><rect x="156" y="40" width="88" height="94" fill="url(#fiBrSky)"/>
         <g class="fi-sun"><circle cx="226" cy="60" r="10" fill="var(--fi-sun)" ${o(1.8)}/><path d="M222 59q1.5 -2 3 0M228 59q1.5 -2 3 0M223.5 64q2.5 2 5 0" fill="none" ${o(1.3)}/></g>
