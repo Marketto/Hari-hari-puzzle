@@ -12,7 +12,9 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Sushi Bar** | prendi gli ingredienti dal nastro e prepara gli ordini dei clienti prima che perdano la pazienza |
 | **Fix-It House** | ripara i danni del temporale nell'ordine giusto e con l'attrezzo giusto, un episodio per ambiente (casetta, cucina, cameretta, bagno, giardino) |
 | **Hari Parade** | guida la sfilata di ricci: ogni frutto allunga la fila, non urtare niente (stile Snake) |
-| In arrivo | Pixel Mochi (Nonogram) · Mochi Binary (Takuzu) · Yarn Link (Flow) |
+| **Pixel Mochi** | nonogram: risolvi gli indizi e appare un disegno kawaii (43 disegni) |
+| **Mochi Binary** | takuzu: mochi alla fragola e al matcha, mai tre uguali in fila |
+| **Yarn Link** | collega i gomitoli dello stesso colore riempiendo tutta la griglia (stile Flow) |
 
 ## Provalo
 - **Online / Android**: https://marketto.github.io/Hari-hari-puzzle/ → da Chrome su Android: ⋮ → *Installa app*

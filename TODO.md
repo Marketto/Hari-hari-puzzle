@@ -6,15 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 
 ## Prossimo
-- [ ] Hedgedoku: tap = ✕ (metti/togli), doppio tap = riccio; ricci animati che si guardano intorno e reagiscono
-- [ ] Tutorial brevi alla prima partita di ogni gioco
-- [ ] Altri giochi (Pixel Mochi, Mochi Binary, Yarn Link…)
+- [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
-- [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
 ## Fatto (v0.7.0)
 - [x] Sushi Bar in stile "film anni '90" (proposta 2): fondale dipinto con filtro acquerello e grana della carta, personaggi cel, vista serale, vapore

@@ -22,20 +22,20 @@ Casa del riccio danneggiata dal vento: guasti da riparare nell'ordine giusto con
 Sushi Bar in stile film anni '90 con fondali dipinti; Fix-It House in stile shoujo con 5 ambienti a episodi;
 nuovo gioco Hari Parade (Snake); installazione Android proposta e aggiornamenti automatici (v0.6.2).
 
-## v0.8 — Rifiniture PWA (novembre 2026)
+## v0.8 — Più giochi, tutorial, Hedgedoku vivo ✅ (ottobre 2026)
+Pixel Mochi, Mochi Binary, Yarn Link; tutorial alla prima partita; schermo sempre acceso; Hedgedoku tocco/doppio tocco con ricci animati.
+
+## v0.9 — Rifiniture PWA (novembre 2026)
 - Font locali (offline totale al primo avvio)
 - Impostazioni (tema, suono, vibrazione, reset), schermata "Come si gioca" animata per ogni gioco
 - Suggerimenti in Hedgedoku e Lantern Glow, impostazioni
 
-## v0.9 — Più giochi (dicembre 2026)
-- Pixel Mochi (Nonogram) con 60 disegni kawaii
-- Mochi Binary (Takuzu)
+## v0.9.2 — Puzzle del giorno (dicembre 2026)
 - Puzzle del giorno (seme dalla data, uguale per tutti, senza server)
 
 ## v0.9.5 — Collezione (gennaio 2027)
 - "Album" di adesivi di Hari sbloccabili
 - Vestiti e accessori per la mascotte (cappellini, sciarpe stagionali)
-- Yarn Link (Flow)
 
 ## v1.0 — Store (febbraio 2027)
 - APK/AAB con Bubblewrap (TWA) o Capacitor, pubblicazione Play Store (PEGI 3)
