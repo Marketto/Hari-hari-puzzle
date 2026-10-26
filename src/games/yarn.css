@@ -36,8 +36,8 @@
 }
 
 .yl-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.yl-board { display: block; width: 100%; height: auto; touch-action: none; border-radius: 26px; outline: none; filter: drop-shadow(0 8px 10px var(--yl-shadow)); }
-.yl-board:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+.yl-board { display: block; width: 100%; height: auto; touch-action: none; overflow: visible; border-radius: 22px; outline: none; box-shadow: 0 8px 16px -8px var(--yl-shadow); }
+.yl-board:focus-visible { box-shadow: 0 0 0 3px var(--accent), 0 8px 16px -8px var(--yl-shadow); }
 
 /* coperta */
 .yl-frame { fill: var(--yl-frame); stroke: var(--yl-frame-2); stroke-width: 4; }

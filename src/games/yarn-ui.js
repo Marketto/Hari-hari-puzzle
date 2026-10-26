@@ -238,7 +238,7 @@
           const a = (t / 6) * Math.PI * 2 + q;
           out.push(`<g transform="translate(${x} ${y})"><path class="yl-spark" style="--dx:${(Math.cos(a) * 58).toFixed(1)}px;--dy:${(Math.sin(a) * 58).toFixed(1)}px;--c:${t % 2 ? 'var(--yl-spark)' : C(k)}" d="M0-9l2.6 6.4 6.4 2.6-6.4 2.6L0 9l-2.6-6.4L-9 0l6.4-2.6z"/></g>`);
         }
-        if (q === 0) out.push(`<g transform="translate(${x} ${Math.max(30, y - 46)})"><text class="yl-meow" text-anchor="middle">${L('yl_meow')}</text></g>`);
+        if (q === 0) out.push(`<g transform="translate(${Math.min(n * 100 - 60, Math.max(60, x))} ${Math.max(30, y - 46)})"><text class="yl-meow" text-anchor="middle">${L('yl_meow')}</text></g>`);
       });
       const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       tmp.innerHTML = out.join('');

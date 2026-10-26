@@ -290,7 +290,7 @@
     const cfg = typeof arg === 'number' ? { n: sizeFor(arg), colors: colorsFor(arg) } : arg;
     const n = cfg.n;
     const maxColors = Math.min(MAX_COLORS, cfg.maxColors || cfg.colors + 2);
-    const nodeLimit = cfg.nodeLimit || 6000;
+    const nodeLimit = cfg.nodeLimit || 4000;
     for (let t = 0; t < 300; t++) {
       let paths = grow(n, cfg.colors, rnd);
       if (paths.length > maxColors || paths.some((p) => p.length < 3)) continue;
