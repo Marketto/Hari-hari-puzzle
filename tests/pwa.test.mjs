@@ -25,7 +25,7 @@ test('la shell offline contiene ogni file usato da index.html e i file esistono'
 test('il service worker non tocca i dati di gioco e aspetta il via per aggiornarsi', () => {
   assert.ok(!/localStorage|indexedDB|storage\.clear/.test(sw.replace(/\/\*[\s\S]*?\*\//g, '')));
   assert.match(sw, /type === 'skip'/);
-  assert.match(sw, /if \(!self\.registration\.active\) await self\.skipWaiting\(\)/);
+  assert.match(sw, /if \(!self\.registration\.active \|\| !\(await pagesCanUpdate\(\)\)\) await self\.skipWaiting\(\)/);
   assert.match(sw, /cache: 'reload'/);
 });
 

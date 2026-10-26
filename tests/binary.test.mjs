@@ -32,30 +32,32 @@ function obeysRules(n, grid) {               // grid: array di n stringhe
   }
   return new Set(grid).size === n && new Set(cols).size === n;
 }
-// conta le soluzioni compatibili con gli indizi (fino a limit), riga per riga
+// conta le soluzioni compatibili con gli indizi (fino a limit), riga per riga,
+// con potatura sulle colonne parziali (niente tris, non più di n/2 per colore)
 function oracleCount(n, clues, limit = 2) {
   const rows = oracleRows(n);
   const want = [...Array(n)].map((_, r) => clues.slice(r * n, r * n + n).map(toCh).join(''));
-  const fits = want.map((w) => rows.filter((s) => [...w].every((x, i) => x === '.' || x === s[i])));
-  const grid = [];
+  const fits = want.map((w) => rows.filter((s) => [...w].every((x, i) => x === '.' || x === s[i])).map((s) => ({ s, a: [...s].map((x) => x === 'a') })));
+  const grid = [], A = new Array(n).fill(0), B2 = new Array(n).fill(0);
   let count = 0;
   const found = [];
   (function rec(r) {
     if (count >= limit) return;
-    if (r === n) { if (obeysRules(n, grid)) { count++; found.push(grid.join('')); } return; }
-    for (const s of fits[r]) {
-      if (grid.includes(s)) continue;
-      grid.push(s);
-      // potatura sulle colonne parziali: niente tris, non più di n/2 per colore
+    if (r === n) { const g = grid.map((x) => x.s); if (obeysRules(n, g)) { count++; found.push(g.join('')); } return; }
+    for (const row of fits[r]) {
+      if (grid.some((x) => x.s === row.s)) continue;
       let ok = true;
       for (let c = 0; c < n && ok; c++) {
-        const col = grid.map((g) => g[c]).join('');
-        if (col.endsWith('aaa') || col.endsWith('bbb')) ok = false;
-        const a = [...col].filter((x) => x === 'a').length;
-        if (a > n / 2 || col.length - a > n / 2) ok = false;
+        const isA = row.a[c];
+        if (isA ? A[c] + 1 > n / 2 : B2[c] + 1 > n / 2) ok = false;
+        else if (r >= 2 && grid[r - 1].a[c] === isA && grid[r - 2].a[c] === isA) ok = false;
       }
-      if (ok) rec(r + 1);
+      if (!ok) continue;
+      for (let c = 0; c < n; c++) row.a[c] ? A[c]++ : B2[c]++;
+      grid.push(row);
+      rec(r + 1);
       grid.pop();
+      for (let c = 0; c < n; c++) row.a[c] ? A[c]-- : B2[c]--;
     }
   })(0);
   return { count, found };

@@ -129,17 +129,17 @@
     }
     // 3: tap = ✕ (a sinistra), doppio tap = riccio (a destra)
     const cell = (x, z) => `<rect x="${x}" y="30" width="34" height="34" rx="8" fill="var(--wall)"/><rect x="${x + 2}" y="32" width="30" height="30" rx="6" fill="var(--r${z})"/>`;
-    const finger = (x, cls) => `<g class="hdt-finger ${cls}"><g transform="translate(${x} 47)">
+    const finger = (x, cls) => `<g class="hdt-finger ${cls}"><g transform="translate(${x + 3} 63)">
         <path d="M-4 0v-14a4 4 0 0 1 8 0v10l9 1.6a4.5 4.5 0 0 1 3.6 5.2l-2 10.6h-17l-6.6 -9.4a3.4 3.4 0 0 1 5 -4.4z" fill="var(--hd-finger)" stroke="var(--hd-finger-line)" stroke-width="1.8" stroke-linejoin="round"/>
       </g></g>`;
-    const ripple = (cx, cls) => `<circle class="hdt-ripple ${cls}" cx="${cx}" cy="36" r="6"/>`;
+    const ripple = (cx, cls) => `<circle class="hdt-ripple ${cls}" cx="${cx}" cy="47" r="6"/>`;
     return `<svg class="hdt hdt-3" viewBox="0 0 120 90" aria-hidden="true">
       ${cell(9, 1)}${cell(77, 0)}
       <g class="hdt-x1">${xMark(26, 47, 5)}</g>
       <g class="hdt-h2">${hogAt(80, 33, 28)}</g>
       ${ripple(26, 'a')}${ripple(94, 'b')}${ripple(94, 'c')}
       ${finger(26, 'one')}${finger(94, 'two')}
-      <text x="26" y="84" class="hdt-n">1×</text><text x="94" y="84" class="hdt-n">2×</text>
+      <text x="26" y="21" class="hdt-n">1×</text><text x="94" y="21" class="hdt-n">2×</text>
     </svg>`;
   }
 

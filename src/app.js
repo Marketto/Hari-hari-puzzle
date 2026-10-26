@@ -601,12 +601,15 @@
       persist();
       location.reload();
     });
+    // il service worker nuovo chiede se questa pagina sa aggiornarsi da sola: rispondiamo di sì (al mittente)
+    sw.addEventListener('message', (e) => { if (e.data && e.data.type === 'ask-update' && e.source) e.source.postMessage({ type: 'can-update' }); });
     sw.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
       const watch = (w) => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && sw.controller) updateReady(w); });
       if (reg.waiting && sw.controller) updateReady(reg.waiting);
       watch(reg.installing);
       reg.addEventListener('updatefound', () => watch(reg.installing));
       const check = () => { if (G.navigator.onLine !== false) reg.update().catch(() => {}); };
+      check();
       setInterval(check, 30 * 60 * 1000);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') check();
