@@ -18,17 +18,21 @@ Nuovo gioco di cucina Sushi Bar; Lantern Glow con minimo esatto e limite di moss
 ## v0.6 — Fix-It House ✅ (ottobre 2026)
 Casa del riccio danneggiata dal vento: guasti da riparare nell'ordine giusto con l'attrezzo giusto.
 
-## v0.7 — Rifiniture PWA (novembre 2026)
+## v0.7 — Stili anime, episodi e Hari Parade ✅ (ottobre 2026)
+Sushi Bar in stile film anni '90 con fondali dipinti; Fix-It House in stile shoujo con 5 ambienti a episodi;
+nuovo gioco Hari Parade (Snake); installazione Android proposta e aggiornamenti automatici (v0.6.2).
+
+## v0.8 — Rifiniture PWA (novembre 2026)
 - Font locali (offline totale al primo avvio)
 - Impostazioni (tema, suono, vibrazione, reset), schermata "Come si gioca" animata per ogni gioco
 - Suggerimenti in Hedgedoku e Lantern Glow, impostazioni
 
-## v0.8 — Più giochi (dicembre 2026)
+## v0.9 — Più giochi (dicembre 2026)
 - Pixel Mochi (Nonogram) con 60 disegni kawaii
 - Mochi Binary (Takuzu)
 - Puzzle del giorno (seme dalla data, uguale per tutti, senza server)
 
-## v0.9 — Collezione (gennaio 2027)
+## v0.9.5 — Collezione (gennaio 2027)
 - "Album" di adesivi di Hari sbloccabili
 - Vestiti e accessori per la mascotte (cappellini, sciarpe stagionali)
 - Yarn Link (Flow)

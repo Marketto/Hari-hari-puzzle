@@ -320,3 +320,18 @@ test('difficoltà crescente e generazione veloce', () => {
   const ms = (performance.now() - t0) / 200;
   assert.ok(ms < 10, `newLevel medio ${ms.toFixed(2)} ms`);
 });
+
+test('modalità attesa: dopo "Via!" la sfilata resta ferma finché non arriva una direzione valida', () => {
+  const s = P.newLevel(1, HH.rng(7));
+  s.waitMode = true; s.wait = true;
+  const head0 = JSON.stringify(s.body[0]);
+  P.advance(s, P.READY + 0.05);
+  for (let i = 0; i < 20; i++) P.advance(s, 0.1);
+  assert.equal(JSON.stringify(s.body[0]), head0, 'non deve muoversi da sola');
+  assert.equal(P.turn(s, (s.dir + 2) % 4), false, 'indietro non fa partire');
+  assert.equal(s.wait, true);
+  assert.equal(P.turn(s, s.dir), true, 'la direzione attuale fa partire');
+  assert.equal(s.wait, false);
+  for (let i = 0; i < 10; i++) P.advance(s, 0.1);
+  assert.notEqual(JSON.stringify(s.body[0]), head0, 'dopo il via si muove');
+});

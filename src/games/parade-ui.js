@@ -14,7 +14,7 @@
 
   const label = (k, en) => { const v = HH.i18n && HH.i18n.t ? HH.i18n.t(k) : k; return v && v !== k ? v : en; };
   const EN = {
-    pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_fruits: 'Fruits',
+    pa_ready: 'Ready?', pa_go: 'Go!', pa_start: 'Swipe or press an arrow to start!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_fruits: 'Fruits',
     pa_combo: 'Combo', pa_slow: 'Slow-mo!', pa_star: 'Star bonus!', pa_ouch: 'Ouch!', pa_pause: 'Pause',
     pa_up: 'Up', pa_down: 'Down', pa_left: 'Left', pa_right: 'Right',
   };
@@ -358,7 +358,7 @@
       blink(now);          // scontro: la scena resta ferma un attimo
       syncBabies();
       const f = noLerp ? 1 : P.frac(s), body = s.body, len = body.length, still = reduce();
-      const moving = !paused && s.ready <= 0 && !P.isOver(s);
+      const moving = !paused && s.ready <= 0 && !s.wait && !P.isOver(s);
       const tSec = now / 1000;
       for (let i = 0; i < len; i++) {
         const c = body[i], pv = noLerp ? c : i < len - 1 ? body[i + 1] : prevTail || c;
@@ -451,6 +451,7 @@
         }, 850);
       } else if (e.type === 'go') {
         say(L('pa_go'), 'go', 650); ctx.sfx.milestone();
+        if (s.wait) later(() => { if (s.wait && !paused) say(L('pa_start'), 'hint', 2400); }, 700);
       } else if (e.type === 'win') {
         party = performance.now();
         headEl.classList.add('yum');
@@ -506,6 +507,7 @@
       field.classList.remove('paused');
       // un attimo per rimettere il dito sul prato
       if (s.ready <= 0) s.ready = P.READY * 0.7;
+      s.wait = true;
       ready();
       ctx.sfx.set();
       start();
@@ -515,7 +517,9 @@
     function input(d) {
       if (P.isOver(s)) return;
       if (paused) { resume(); }
+      const waiting = s.wait;
       P.turn(s, d);
+      if (waiting && !s.wait && msg.querySelector('.hint')) msg.classList.remove('show');
     }
 
     /* ---------- controlli ---------- */
@@ -579,6 +583,7 @@
     function begin(state, startPaused) {
       stop();
       s = state;
+      s.waitMode = true; s.wait = true;   // parte al primo swipe/freccia, mai da sola
       paused = false;
       build();
       if (startPaused && !P.isOver(s)) { paused = true; pauseEl.hidden = false; pauseBtn.innerHTML = PLAY; field.classList.add('paused'); return; }

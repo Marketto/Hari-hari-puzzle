@@ -13,4 +13,5 @@
 | [games/lantern-glow.md](games/lantern-glow.md) | Regole e generatore Lantern Glow |
 | [games/sushi-bar.md](games/sushi-bar.md) | Sushi Bar: ricette, clienti, difficoltà, bot di test |
 | [games/fixit.md](games/fixit.md) | Fix-It House: guasti, dipendenze, attrezzi, livelli |
+| [games/parade.md](games/parade.md) | Hari Parade: sfilata tipo Snake, prato, garanzie del generatore, controlli, animazioni |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

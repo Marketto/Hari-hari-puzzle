@@ -194,6 +194,12 @@
   function turn(s, dir) {
     const d = norm(dir);
     if (!(d >= 0 && d <= 3) || isOver(s)) return false;
+    // in attesa della prima mossa: qualsiasi direzione tranne "indietro" fa partire la sfilata
+    if (s.wait) {
+      if (d === (s.dir + 2) % 4) return false;
+      s.wait = false;
+      if (d === s.dir) return true;
+    }
     const last = s.queue.length ? s.queue[s.queue.length - 1] : s.dir;
     if (d === last || d === (last + 2) % 4 || s.queue.length >= QUEUE_MAX) return false;
     s.queue.push(d);
@@ -264,6 +270,7 @@
     s.grow = Math.max(0, len - START_LEN);
     s.dir = 1;
     s.ready = READY;
+    if (s.waitMode) s.wait = true;
     const onStart = (c) => c && c.y === startRow(s.rows) && c.x <= START_LEN + 1;
     if (onStart(s.fruit)) spawnFruit(s);
     if (onStart(s.item)) s.item = null;
@@ -281,6 +288,7 @@
       if (s.ready > 0) return ev;
       dt = -s.ready; s.ready = 0; ev.push({ type: 'go' });
     }
+    if (s.wait) return ev;            // la sfilata aspetta il primo tocco/freccia (modalità attivata dall'interfaccia)
     s.acc += Math.min(dt, 0.25);
     for (let guard = 0; guard < 4; guard++) {
       const iv = 1 / speedNow(s);
@@ -292,7 +300,7 @@
     }
     return ev;
   }
-  const frac = (s) => (s.ready > 0 ? 0 : Math.max(0, Math.min(1, s.acc * speedNow(s))));
+  const frac = (s) => (s.ready > 0 || s.wait ? 0 : Math.max(0, Math.min(1, s.acc * speedNow(s))));
 
   const isWon = (s) => s.eaten >= s.goal;
   const isLost = (s) => s.crashes >= LIVES;

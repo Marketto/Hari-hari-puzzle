@@ -6,7 +6,7 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.6.2';
+const VERSION = 'hh-v0.7.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
@@ -14,6 +14,7 @@ const SHELL = [
   'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
   'src/games/sushi-logic.js', 'src/games/sushi-ui.js', 'src/games/sushi.css',
   'src/games/fixit-logic.js', 'src/games/fixit-kit.js', 'src/games/fixit-scene-house.js', 'src/games/fixit-scene-kitchen.js', 'src/games/fixit-scene-kitchen.css', 'src/games/fixit-scene-bedroom.js', 'src/games/fixit-scene-bedroom.css', 'src/games/fixit-scene-bathroom.js', 'src/games/fixit-scene-bathroom.css', 'src/games/fixit-scene-garden.js', 'src/games/fixit-scene-garden.css', 'src/games/fixit-ui.js', 'src/games/fixit.css',
+  'src/games/parade-logic.js', 'src/games/parade-ui.js', 'src/games/parade.css',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 

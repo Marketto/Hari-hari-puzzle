@@ -192,6 +192,8 @@
 .pa-msg b.ready { color: var(--pa-bow-3); }
 .pa-msg.show b.ready { animation: pa-msg .5s cubic-bezier(.3, 1.6, .5, 1) both, pa-breathe .8s ease-in-out .5s infinite; }
 .pa-msg b.go { color: var(--pa-bow-1); }
+.pa-msg b.hint { max-width: 86%; font-size: clamp(17px, 5vw, 22px); line-height: 1.25; text-align: center; text-wrap: balance; }
+.pa-msg.show b.hint { opacity: 1; -webkit-text-stroke-width: 5px; animation: pa-hint 1.6s ease-in-out infinite; }
 .pa-msg.show b.go { animation: pa-go .65s cubic-bezier(.3, 1.6, .5, 1) both; }
 .pa-msg b.gold { color: var(--pa-gold); font-size: clamp(22px, 7vw, 30px); }
 .pa-msg b.mint { color: var(--pa-mint); font-size: clamp(22px, 7vw, 30px); }
@@ -249,6 +251,7 @@
 @keyframes pa-heart { 0% { transform: translate(0, 0) scale(.3); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(calc(var(--dx) * .5), calc(var(--dy) * .5 - 40px)) scale(1.3) rotate(calc(var(--r) * .1)); opacity: 0; } }
 @keyframes pa-float { 0% { transform: translate(-50%, -30%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -60%) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, -190%) scale(1); opacity: 0; } }
 @keyframes pa-msg { 0% { transform: scale(.3) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes pa-hint { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes pa-go { 0% { transform: scale(.3); opacity: 0; } 35% { transform: scale(1.25); opacity: 1; } 75% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
 @keyframes pa-shake { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-7px, 2px) rotate(-1deg); } 30% { transform: translate(6px, -2px) rotate(1deg); } 45% { transform: translate(-5px, 1px); } 60% { transform: translate(4px, 0); } 80% { transform: translate(-2px, 0); } }
 @keyframes pa-dizzy { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg) scale(1.05, .92); } 60% { transform: rotate(10deg); } }

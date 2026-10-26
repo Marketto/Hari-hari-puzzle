@@ -197,7 +197,7 @@
 @keyframes su-twinkle { 50% { transform: scale(1.4) rotate(20deg); opacity: .6; } }
 
 @media (max-width: 560px) {
-  .su-wrap { width: min(calc(100vw - 64px), 560px); gap: 9px; }
+  .su-wrap { width: min(calc(100vw - 76px), 560px); gap: 9px; }
   .su-seat { min-height: 172px; }
   .su-dish { width: 42px; height: 35px; }
   .su-ing.mini { width: 17px; height: 17px; }
