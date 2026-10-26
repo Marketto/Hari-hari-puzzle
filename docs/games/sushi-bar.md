@@ -32,11 +32,11 @@ Clienti: coniglietto, gatto, panda, rana, volpe, orsetto, pulcino, pinguino (mai
 |---|---|---|---|
 | Clienti da servire | 5 | 14 | 14 |
 | Posti al bancone | 2 | 3 | 3 |
-| Ricette | 2 | 9 | 9 |
-| Pazienza | 44 s | 24 s | 18 s |
+| Ricette | 4 | 8 | 9 |
+| Pazienza | 52 s | 32 s | 26 s |
 | Velocità nastro | lenta | media | veloce |
 
-Il nastro privilegia (70%) gli ingredienti che servono davvero ai clienti seduti.
+Il nastro privilegia (90%) gli ingredienti che servono davvero ai clienti seduti.
 
 ## Fragoline
 3 senza clienti persi, piatti sbagliati o tagliere buttato; 2 con al massimo un cliente perso e 2 sbavature; 1 oltre.
