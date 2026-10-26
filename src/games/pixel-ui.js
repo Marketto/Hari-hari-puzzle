@@ -84,7 +84,7 @@
       const recent = HH.store.get('pm:recent', []);
       pz = P.generate(ctx.level, Math.random, { avoid: recent });
       HH.store.set('pm:recent', [pz.id].concat(recent.filter((x) => x !== pz.id)).slice(0, 6));
-      s = { id: pz.id, mirror: pz.mirror, total: pz.sol.reduce((a, v) => a + v, 0), board: new Array(pz.w * pz.h).fill(0), hist: [], moves: 0, mistakes: 0 };
+      s = P.newGame(pz);
       build();
       ctx.changed({ reset: true });
     }
@@ -96,7 +96,18 @@
       const { w, h, rows, cols, paint: pix } = pz;
       const lc = Math.max(...rows.map((c) => Math.max(1, c.length)));
       const tc = Math.max(...cols.map((c) => Math.max(1, c.length)));
-      const nums = (c) => (c.length ? c : [0]).map((v) => `<i>${v}</i>`).join('');
+      // gli occhi stanno sul colore più frequente intorno
+      const eyeBg = (r, c) => {
+        const cnt = {};
+        for (const [dr, dc] of [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+          const rr = r + dr, cc = c + dc;
+          if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
+          const x = pix[rr * w + cc];
+          if (x !== '.' && x !== '@') cnt[x] = (cnt[x] || 0) + (dr && dc ? 1 : 2);
+        }
+        return Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || 'w';
+      };
+      const nums = (c) => (c.length ? c : [0]).map((v) => `<i${v > 9 ? ' class="dd"' : ''}>${v}</i>`).join('');
       const html = [`<div class="pm-corner" aria-hidden="true"><div class="pm-thumb" style="--w:${w};--h:${h}">${'<b></b>'.repeat(w * h)}</div></div>`];
       for (let c = 0; c < w; c++) html.push(`<div class="pm-clue pm-col${c % 5 === 4 && c < w - 1 ? ' g5' : ''}" data-k="${c}">${nums(cols[c])}</div>`);
       for (let r = 0; r < h; r++) {
@@ -104,7 +115,7 @@
         for (let c = 0; c < w; c++) {
           const i = r * w + c, ch = pix[i];
           const blk = ((Math.floor(r / 5) + Math.floor(c / 5)) % 2) ? ' alt' : '';
-          const col = ch !== '.' && ch !== '@' ? `--c:var(--pm-c-${ch});` : '';
+          const col = ch === '@' ? `--c:var(--pm-c-${eyeBg(r, c)});` : ch !== '.' ? `--c:var(--pm-c-${ch});` : '';
           html.push(`<button type="button" class="pm-cell${blk}${ch === '@' ? ' eye' : ''}" style="${col}--d:${(r + c) * 34}ms" data-i="${i}" data-v="0" tabindex="${i === 0 ? 0 : -1}" aria-label="${r + 1}, ${c + 1}">${ch === '@' ? '<span class="pm-eye"></span>' : ''}</button>`);
         }
       }
@@ -165,58 +176,33 @@
       countEl.textContent = filled;
     }
 
-    /* ---------- mosse ---------- */
-    // segna ✕ in automatico le celle ignote delle linee completate
-    function autoCross(pops) {
-      const { w, h } = pz;
-      for (let r = 0; r < h; r++) if (P.lineDone(pz, s.board, 'r', r)) for (let c = 0; c < w; c++) if (!s.board[r * w + c]) { s.board[r * w + c] = 2; pops.set(r * w + c, 'auto'); }
-      for (let c = 0; c < w; c++) if (P.lineDone(pz, s.board, 'c', c)) for (let r = 0; r < h; r++) if (!s.board[r * w + c]) { s.board[r * w + c] = 2; pops.set(r * w + c, 'auto'); }
-    }
-    const doneSet = () => {
-      const out = new Set();
-      for (let r = 0; r < pz.h; r++) if (P.lineDone(pz, s.board, 'r', r)) out.add('r' + r);
-      for (let c = 0; c < pz.w; c++) if (P.lineDone(pz, s.board, 'c', c)) out.add('c' + c);
-      return out;
-    };
-
-    /* applica un'azione a una cella; ritorna false se è stato un errore (il tratto si ferma).
-     * act: 'fill' | 'cross' | 'clear' */
+    /* ---------- mosse (regole in HH.pixel: applyCell / commit) ---------- */
+    // azione su una cella dentro un tocco o un tratto; ritorna false se è stato un errore (il tratto si ferma)
     function apply(i, act, pops) {
-      const v = s.board[i];
-      if (act === 'clear') { if (v !== 2) return true; s.board[i] = 0; pops.set(i, 'pop'); return true; }
-      if (v !== 0) return true;
-      const val = act === 'fill' ? 1 : 2;
-      if (P.judge(pz, i, val)) { s.board[i] = val; pops.set(i, 'pop'); return true; }
-      // errore: la cella mostra la verità
-      s.mistakes++;
-      s.board[i] = val === 1 ? 2 : 1;
-      pops.set(i, 'pop');
+      const r = P.applyCell(s, pz, i, act);
+      if (r.changed) pops.set(i, 'pop');
+      if (r.ok) return true;
       const b = cells[i];
-      b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad', act === 'fill' ? 'bad-fill' : 'bad-cross');
+      b.classList.remove('bad', 'bad-fill', 'bad-cross'); void b.offsetWidth; b.classList.add('bad', act === 'fill' ? 'bad-fill' : 'bad-cross');
       later(() => b.classList.remove('bad', 'bad-fill', 'bad-cross'), 900);
       ctx.mistake(LIVES - s.mistakes);
       if (s.mistakes >= LIVES) busy = true;              // l'app mostra "cuori finiti" e fa ricominciare
       return false;
     }
 
-    // dopo un gruppo di modifiche: ✕ automatiche, suoni, salvataggio, vittoria
+    // fine di un tocco/tratto: ✕ automatiche, indizi spenti, suoni, salvataggio, vittoria
     function commit(before, pops, act, ok) {
-      if (!before.some((v, i) => v !== s.board[i])) return;
-      const was = doneSet();
-      autoCross(pops);
-      s.hist.push({ board: before });
-      if (s.hist.length > 80) s.hist.shift();
-      s.moves++;
+      const res = P.commit(s, pz, before);
+      if (!res) { paint(); return; }
+      res.autos.forEach((i) => pops.set(i, 'auto'));
       paint(pops);
-      const now = doneSet();
-      let newly = 0;
-      now.forEach((k) => { if (!was.has(k)) { newly++; const el2 = (k[0] === 'r' ? rowClues : colClues)[+k.slice(1)]; el2.classList.remove('ding'); void el2.offsetWidth; el2.classList.add('ding'); } });
+      res.newly.forEach((k) => { const e = (k[0] === 'r' ? rowClues : colClues)[+k.slice(1)]; e.classList.remove('ding'); void e.offsetWidth; e.classList.add('ding'); });
       if (ok) {
-        if (newly && ctx.sfx.cupDone) ctx.sfx.cupDone();
+        if (res.newly.length && ctx.sfx.cupDone) ctx.sfx.cupDone();
         else if (act === 'fill') ctx.sfx.place(); else ctx.sfx.mark();
       }
       ctx.changed();
-      if (P.isSolved(pz, s.board)) reveal();
+      if (res.solved) reveal();
     }
 
     /* ---------- vittoria: il disegno si colora e prende vita ---------- */
@@ -376,23 +362,14 @@
       ctx.changed({ reset: true });
     }
 
-    if (saved && P.validate(saved)) {
-      pz = P.build(saved.id, saved.mirror);
-      s = Object.assign({ hist: [], moves: 0, mistakes: 0 }, saved, { total: pz.sol.reduce((a, v) => a + v, 0) });
-      // tavola coerente con la soluzione (salvataggi vecchi o manomessi): via le celle sbagliate
-      s.board = s.board.map((v, i) => (v === 1 && !pz.sol[i]) || (v === 2 && pz.sol[i]) ? 0 : v);
-      s.hist = s.hist.filter((x) => x && Array.isArray(x.board) && x.board.length === s.board.length);
-      if (s.mistakes >= LIVES) { s.mistakes = 0; s.board.fill(0); s.hist = []; }
-      build();
-    } else fresh();
+    const back = saved && P.restore(saved);
+    if (back) { s = back; pz = P.puzzleOf(s); build(); } else fresh();
 
     return {
       fresh,
       restart,
       undo() {
-        if (busy || !s.hist.length) return;
-        s.board = s.hist.pop().board;
-        s.moves = Math.max(0, s.moves - 1);
+        if (busy || !P.undo(s)) return;
         paint(); ctx.sfx.mark(); ctx.changed();
       },
       snapshot: () => s,
@@ -403,12 +380,9 @@
     id: 'pixel', name: 'Pixel Mochi', rules: 'r7', art, create, lives: LIVES,
     tutorial: TUT,
     // fragoline: 3 senza errori, 2 con uno, 1 con due
-    rate: (s) => Math.max(1, 3 - (s.mistakes || 0)),
+    rate: (s) => HH.pixel.rate(s),
     // circa 1,6 s per cella: 5×5 = 40 s, 10×10 = 160 s
     parTime: (s) => Math.round((s.board ? s.board.length : 25) * 1.6),
-    progress: (s) => {
-      const total = s.total || 1;
-      return Math.max(0, Math.min(1, s.board.filter((v) => v === 1).length / total));
-    },
+    progress: (s) => HH.pixel.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

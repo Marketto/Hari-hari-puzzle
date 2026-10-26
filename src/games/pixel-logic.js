@@ -92,13 +92,13 @@
 
     /* ---------- 7×7 ---------- */
     ['teacup', 'Cup of tea', [
-      '..e.e..',
       '.e.e...',
+      '..e.e..',
       'bbbbbbb',
-      'bbbbb.b',
-      'bbbbbbb',
+      'b@b@b.b',
+      'bpbpbbb',
       '.bbb...',
-      'wwwww..']],
+      'eeeee..']],
     ['bunny', 'Bunny', [
       '.w...w.',
       '.p...p.',
@@ -112,17 +112,17 @@
       'g@ggg@g',
       'ggggggg',
       'gpgggpg',
-      'gkkkkkg',
+      'gGGGGGg',
       '.ggggg.',
       'gg...gg']],
     ['icecream', 'Ice cream', [
-      '..ppp..',
+      '...r...',
       '.ppppp.',
-      'ppppppp',
+      'p@ppp@p',
+      'pPpppPp',
       'ooooooo',
       '.ooooo.',
-      '..ooo..',
-      '...o...']],
+      '..ooo..']],
     ['chick', 'Chick', [
       '..yyy..',
       '.yyyyy.',
@@ -201,14 +201,14 @@
       'wwkkkkww',
       '.wkkkkw.']],
     ['moon', 'Moon', [
-      '..yyy...',
-      '.yy.....',
-      'yy....y.',
-      'yy......',
-      'yy..y...',
-      'yyy...yy',
-      '.yyyyyy.',
-      '..yyyy..']],
+      '..yyyy..',
+      '.yyyy...',
+      'yyyy....',
+      'yy@y..Y.',
+      'yyyp....',
+      'yyyy..Y.',
+      '.yyyyy..',
+      '..yyyyy.']],
     ['boba', 'Bubble tea', [
       '.....k..',
       '....k...',
@@ -254,34 +254,34 @@
       'nnppnnww',
       'nnnnnn..',
       '.nnnn...']],
-    ['clover', 'Clover', [
-      '.gg..gg.',
-      'gggggggg',
-      'gggggggg',
-      '.gggggg.',
-      '.gggggg.',
-      'gggggggg',
-      'ggg..ggg',
-      '...gg...']],
+    ['cloud', 'Cloud', [
+      '..www...',
+      '.wwwwww.',
+      'wwwwwwww',
+      'w@wwww@w',
+      'wwwppwww',
+      '.wwwwww.',
+      '..b..b..',
+      '.b..b..b']],
 
     /* ---------- 10×10 ---------- */
     ['hari', 'Hari', [
-      '.n.n.n....',
-      'nnnnnnn...',
-      'nnnnnnnn..',
-      'nnnnnnsss.',
+      '..n.n.n...',
+      '.nnnnnnn..',
+      'nnnnnnnns.',
+      '.nnnnnsss.',
       'nnnnns@sss',
-      'nnnnnssssk',
-      'nnnnnspss.',
-      '.nnnnssss.',
+      '.nnnnssssk',
+      'nnnnnsPss.',
+      '.nnnnsss..',
       '..ssssss..',
       '..ss..ss..']],
     ['kitten', 'Kitten', [
-      'e........e',
-      'ee......ee',
+      '.e......e.',
+      'eee....eee',
       'eeeeeeeeee',
       'eeeeeeeeee',
-      'e@@eeee@@e',
+      'ee@eeee@ee',
       'eeeeppeeee',
       'eppeeeeppe',
       'eeeepkeeee',
@@ -292,12 +292,12 @@
       '..wwwwww..',
       '.wwwwwwww.',
       '.pppppppp.',
-      '.pprpprpp.',
       '.pp@pp@pp.',
-      '.pppkkppp.',
+      '.pPpkkpPp.',
       '.pppppppp.',
-      '.pppppppp.',
-      '.pppppppp.']],
+      '.ppppprpp.',
+      '.pppprrrp.',
+      '.ppppprpp.']],
     ['dango', 'Dango', [
       '....nn....',
       '...pppp...',
@@ -323,14 +323,14 @@
     ['teapot', 'Teapot', [
       '....nn....',
       '...tttt...',
-      '..tttttt..',
+      '..tttttttt',
       't.tttttt.t',
-      'tttttttttt',
-      't.t@tt@t.t',
+      '.tt@tt@t.t',
+      '..tPttPttt',
       '..tttttt..',
-      '..tppttppt',
-      '...tttttt.',
-      '....tttt..']],
+      '..tttttt..',
+      '...tttt...',
+      '.wwwwwwww.']],
     ['rainbow', 'Rainbow', [
       '...rrrr...',
       '..roooor..',
@@ -583,5 +583,83 @@
     return !!pz && s.board.length === pz.w * pz.h && s.board.every((v) => v === 0 || v === 1 || v === 2);
   }
 
-  HH.pixel = { PICS, COLORS, SIZES, sizeFor, poolFor, generate, build, clues, runs, lineSolve, solveLine, judge, lineDone, isSolved, filledCount, validate };
+  /* ---------- partita (stato serializzabile) ----------
+   * state = { id, mirror, total, board, hist: [{ board }], moves, mistakes } — niente funzioni, va in JSON così com'è. */
+  const LIVES = 3;
+  const cache = new Map();
+  function puzzleOf(st) {
+    const key = st.id + (st.mirror ? '~' : '');
+    if (!cache.has(key)) cache.set(key, build(st.id, st.mirror));
+    return cache.get(key);
+  }
+  function newGame(pz) {
+    return { id: pz.id, mirror: pz.mirror, total: pz.sol.reduce((a, v) => a + v, 0), board: new Array(pz.w * pz.h).fill(0), hist: [], moves: 0, mistakes: 0 };
+  }
+  // azione su una cella, senza cronologia. act: 'fill' | 'cross' | 'clear'.
+  // ok=false → errore: la cella mostra la verità e si perde un cuore.
+  function applyCell(st, pz, i, act) {
+    const v = st.board[i];
+    if (act === 'clear') { if (v !== 2) return { ok: true, changed: false }; st.board[i] = 0; return { ok: true, changed: true }; }
+    if (v !== 0) return { ok: true, changed: false };
+    const val = act === 'fill' ? 1 : 2;
+    if (judge(pz, i, val)) { st.board[i] = val; return { ok: true, changed: true }; }
+    st.mistakes++;
+    st.board[i] = val === 1 ? 2 : 1;
+    return { ok: false, changed: true };
+  }
+  // ✕ automatiche nelle linee completate; ritorna le celle segnate
+  function autoCross(pz, board) {
+    const { w, h } = pz, out = [];
+    const mark = (i) => { if (!board[i]) { board[i] = 2; out.push(i); } };
+    for (let r = 0; r < h; r++) if (lineDone(pz, board, 'r', r)) for (let c = 0; c < w; c++) mark(r * w + c);
+    for (let c = 0; c < w; c++) if (lineDone(pz, board, 'c', c)) for (let r = 0; r < h; r++) mark(r * w + c);
+    return out;
+  }
+  const doneLines = (pz, board) => {
+    const out = [];
+    for (let r = 0; r < pz.h; r++) if (lineDone(pz, board, 'r', r)) out.push('r' + r);
+    for (let c = 0; c < pz.w; c++) if (lineDone(pz, board, 'c', c)) out.push('c' + c);
+    return out;
+  };
+  // chiude un gruppo di modifiche (tocco o trascinamento) partito da "before": ✕ automatiche, cronologia, mosse
+  function commit(st, pz, before) {
+    if (!before.some((v, i) => v !== st.board[i])) return null;
+    const was = new Set(doneLines(pz, before));
+    const autos = autoCross(pz, st.board);
+    st.hist.push({ board: before });
+    if (st.hist.length > 80) st.hist.shift();
+    st.moves++;
+    return { autos, newly: doneLines(pz, st.board).filter((k) => !was.has(k)), solved: isSolved(pz, st.board) };
+  }
+  // mossa completa su una cella (tocco)
+  function move(st, i, act) {
+    const pz = puzzleOf(st), before = st.board.slice();
+    const r = applyCell(st, pz, i, act);
+    const c = commit(st, pz, before);
+    return Object.assign({ ok: r.ok, changed: !!c, autos: [], newly: [], solved: isSolved(pz, st.board) }, c || {});
+  }
+  function undo(st) {
+    if (!st.hist.length) return false;
+    st.board = st.hist.pop().board;
+    st.moves = Math.max(0, st.moves - 1);
+    return true;
+  }
+  // ripresa da JSON: tiene solo le celle coerenti con la soluzione; partita persa = ricomincia
+  function restore(saved) {
+    if (!validate(saved)) return null;
+    const pz = puzzleOf(saved);
+    const st = Object.assign(newGame(pz), {
+      moves: Math.max(0, saved.moves | 0), mistakes: Math.max(0, saved.mistakes | 0),
+      board: saved.board.map((v, i) => ((v === 1 && !pz.sol[i]) || (v === 2 && pz.sol[i]) ? 0 : v)),
+      hist: (Array.isArray(saved.hist) ? saved.hist : []).filter((x) => x && Array.isArray(x.board) && x.board.length === saved.board.length).slice(-80),
+    });
+    if (st.mistakes >= LIVES) { st.mistakes = 0; st.board.fill(0); st.hist = []; st.moves = 0; }
+    return st;
+  }
+  const progress = (st) => Math.max(0, Math.min(1, st.board.filter((v) => v === 1).length / Math.max(1, st.total || 1)));
+  // fragoline: 3 senza errori, 2 con uno, 1 con due
+  const rate = (st) => Math.max(1, 3 - (st.mistakes || 0));
+
+  HH.pixel = { LIVES, puzzleOf, newGame, applyCell, autoCross, doneLines, commit, move, undo, restore, progress, rate,
+     PICS, COLORS, SIZES, sizeFor, poolFor, generate, build, clues, runs, lineSolve, solveLine, judge, lineDone, isSolved, filledCount, validate };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

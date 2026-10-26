@@ -55,6 +55,66 @@ for (const level of [1, 4, 8, 16]) {
   ok(good === 20 && ms / 20 < 10, `Parade livello ${level} ${c.cols}×${c.rows}, ${c.obstacles} ostacoli, ${c.goal} frutti: ${good}/20 validi, media ${(ms / 20).toFixed(2)} ms`);
 }
 
+// Yarn Link: 5×5 → 9×9, soluzione unica dimostrata dal risolutore, media < 10 ms per taglia
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/yarn-logic.js'), 'utf8'), { filename: 'yarn-logic.js' });
+  const { yarn } = globalThis.HH;
+  for (const level of [1, 3, 6, 10, 15, 20]) {
+    let ms = 0, good = 0, colors = 0, nodes = 0;
+    const T = 20;
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const p = yarn.generate(level, globalThis.HH.rng(level * 977 + k));
+      ms += performance.now() - t;
+      colors += p.ends.length; nodes += p.nodes;
+      const r = yarn.solve(p.n, p.ends, { limit: 2, nodeLimit: 1e6 });
+      if (r.count === 1 && yarn.isSolved(p.n, p.ends, p.solution)) good++;
+    }
+    const n = yarn.sizeFor(level);
+    ok(good === T && ms / T < 10, `Yarn Link livello ${level} ${n}×${n}, ${(colors / T).toFixed(1)} colori: ${good}/${T} unici, media ${(ms / T).toFixed(2)} ms, ${Math.round(nodes / T)} nodi`);
+  }
+}
+
+// Mochi Binary (Takuzu): 4×4 → 10×10, soluzione unica (conteggio con tentativi), media < 10 ms per taglia
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/binary-logic.js'), 'utf8'), { filename: 'binary-logic.js' });
+  const { binary } = globalThis.HH;
+  for (const level of [1, 2, 5, 10, 15, 20]) {
+    let ms = 0, good = 0, givens = 0, steps = 0;
+    const T = 20;
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const p = binary.generate(level, globalThis.HH.rng(level * 613 + k));
+      ms += performance.now() - t;
+      givens += p.givens.length; steps += p.steps;
+      if (binary.solveCount(p.n, p.clues, 2).count === 1 && binary.logicSolve(p.n, p.clues, p.tier).ok) good++;
+    }
+    const c = binary.config(level);
+    ok(good === T && ms / T < 10, `Mochi Binary livello ${level} ${c.n}×${c.n} tier ${c.tier}: ${(givens / T).toFixed(1)} indizi, ${good}/${T} unici, media ${(ms / T).toFixed(2)} ms, ${Math.round(steps / T)} deduzioni`);
+  }
+}
+
+// Pixel Mochi: 5×5 → 10×10, disegni risolti per sola logica riga/colonna (quindi unici), media < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/pixel-logic.js'), 'utf8'), { filename: 'pixel-logic.js' });
+  const { pixel } = globalThis.HH;
+  for (const level of [1, 3, 6, 10, 15, 20]) {
+    let ms = 0, good = 0, steps = 0;
+    const T = 20;
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const p = pixel.generate(level, globalThis.HH.rng(level * 613 + k));
+      ms += performance.now() - t;
+      const r = pixel.lineSolve(p.rows, p.cols, p.w, p.h);
+      steps += r.steps;
+      if (r.solved && r.grid.every((v, i) => v === p.sol[i])) good++;
+    }
+    const n = pixel.sizeFor(level);
+    ok(good === T && ms / T < 10, `Pixel Mochi livello ${level} ${n}×${n}: ${good}/${T} risolti per logica, media ${(ms / T).toFixed(2)} ms, ${(steps / T).toFixed(0)} deduzioni di linea`);
+  }
+  ok(pixel.PICS.length >= 40, `Pixel Mochi: ${pixel.PICS.length} disegni`);
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

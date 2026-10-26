@@ -76,7 +76,7 @@
     const ms = [];
     for (let it = 0; it < iters; it++) {
       let singles = false;
-      for (const p of P) if (p && p.length === 1) { singles = true; break; }
+      for (const p of P) if (p && p.length < 3) { singles = true; break; }
       if (count <= k && !singles) break;
       ms.length = 0;
       let minL = 1e9;
@@ -106,7 +106,7 @@
       }
       // nessuna unione: un estremo (di preferenza un filo di una casella) ruba un pezzo del filo vicino
       const ids = [], sing = [];
-      P.forEach((p, i) => { if (p) { ids.push(i); if (p.length === 1) sing.push(i); } });
+      P.forEach((p, i) => { if (p) { ids.push(i); if (p.length < 3) sing.push(i); } });
       const aid = sing.length ? sing[(rnd() * sing.length) | 0] : ids[(rnd() * ids.length) | 0];
       const A = P[aid], a = rnd() < 0.5 ? A[0] : A[A.length - 1];
       const opts = NB[a].filter((y) => id[y] !== aid && !isEnd(y));
@@ -138,20 +138,23 @@
   function solve(n, ends, opts = {}) {
     const limit = opts.limit || 2, nodeLimit = opts.nodeLimit || 200000;
     const N = n * n, K = ends.length, NB = nbrs(n);
+    // vicini in un array piatto: NF[4i..4i+deg-1]
+    const NF = new Int32Array(4 * N), DG = new Uint8Array(N);
+    NB.forEach((a, i) => { DG[i] = a.length; a.forEach((j, q) => { NF[4 * i + q] = j; }); });
     const col = new Int8Array(N).fill(-1);
+    const head = new Uint8Array(N);          // 1 se la casella è la testa di un colore non ancora chiuso
     const hd = new Int32Array(2 * K);
     const done = new Uint8Array(K);
     const seq = [];
-    ends.forEach(([a, b], k) => { col[a] = col[b] = k; hd[2 * k] = a; hd[2 * k + 1] = b; seq.push([[a], [b]]); });
-    const comp = new Int32Array(N);
+    ends.forEach(([a, b], k) => { col[a] = col[b] = k; hd[2 * k] = a; hd[2 * k + 1] = b; head[a] = head[b] = 1; seq.push([[a], [b]]); });
+    const comp = new Int32Array(N), stamp = new Int32Array(N);
     const stack = new Int32Array(N);
     const served = new Uint8Array(N);
-    let nodes = 0, aborted = false, left = K, empty = N - 2 * K, forced = -1;
+    let nodes = 0, aborted = false, left = K, empty = N - 2 * K, forced = -1, gen = 0;
     const solutions = [];
-    const isHead = (j) => { const k = col[j]; return k >= 0 && !done[k] && (hd[2 * k] === j || hd[2 * k + 1] === j); };
-
-    // ritorna -1 se lo stato è impossibile, altrimenti l'indice della testa (2k+s) con meno mosse
     const headIdx = (j) => (hd[2 * col[j]] === j ? 2 * col[j] : 2 * col[j] + 1);
+
+    // ritorna -1 se lo stato è impossibile, altrimenti l'indice della testa (2k+s) su cui ramificare
     function check() {
       let best = -1, bestM = 99;
       forced = -1;
@@ -160,32 +163,36 @@
         for (let s = 0; s < 2; s++) {
           const h = hd[2 * k + s], o = hd[2 * k + 1 - s];
           let m = 0;
-          for (const j of NB[h]) if (col[j] < 0 || j === o) m++;
+          for (let q = 4 * h, e = q + DG[h]; q < e; q++) { const j = NF[q]; if (col[j] < 0 || j === o) m++; }
           if (!m) return -1;
           if (m < bestM) { bestM = m; best = 2 * k + s; }
         }
       }
       // caselle vuote: servono due vicini utilizzabili; intanto etichetta le zone vuote
-      comp.fill(-1);
+      gen++;
       let nc = 0;
       for (let i = 0; i < N; i++) {
         if (col[i] >= 0) continue;
         let u = 0, h1 = -1, h2 = -1;
-        for (const j of NB[i]) {
+        for (let q = 4 * i, e = q + DG[i]; q < e; q++) {
+          const j = NF[q];
           if (col[j] < 0) u++;
-          else if (isHead(j)) { u++; if (h1 < 0) h1 = j; else h2 = j; }
+          else if (head[j]) { u++; if (h1 < 0) h1 = j; else h2 = j; }
         }
         if (u < 2) return -1;
         if (u === 2 && h1 >= 0 && forced < 0) {
           if (h2 >= 0 && col[h1] !== col[h2]) return -1;
           forced = i; best = headIdx(h1);
         }
-        if (comp[i] >= 0) continue;
+        if (stamp[i] === gen) continue;
         let sp = 0;
-        stack[sp++] = i; comp[i] = nc;
+        stack[sp++] = i; stamp[i] = gen; comp[i] = nc;
         while (sp) {
           const x = stack[--sp];
-          for (const j of NB[x]) if (col[j] < 0 && comp[j] < 0) { comp[j] = nc; stack[sp++] = j; }
+          for (let q = 4 * x, e = q + DG[x]; q < e; q++) {
+            const j = NF[q];
+            if (col[j] < 0 && stamp[j] !== gen) { stamp[j] = gen; comp[j] = nc; stack[sp++] = j; }
+          }
         }
         nc++;
       }
@@ -194,10 +201,11 @@
         if (done[k]) continue;
         const a = hd[2 * k], b = hd[2 * k + 1];
         let ok = adjacent(n, a, b);
-        for (const x of NB[a]) {
+        for (let q = 4 * a, e = q + DG[a]; q < e; q++) {
+          const x = NF[q];
           if (col[x] >= 0) continue;
           const c = comp[x];
-          for (const y of NB[b]) if (col[y] < 0 && comp[y] === c) { served[c] = 1; ok = true; break; }
+          for (let r = 4 * b, f = r + DG[b]; r < f; r++) { const y = NF[r]; if (col[y] < 0 && comp[y] === c) { served[c] = 1; ok = true; break; } }
         }
         if (!ok) return -1;
       }
@@ -217,16 +225,17 @@
       if (b < 0) return;
       const k = b >> 1, s = b & 1, h = hd[b], o = hd[b ^ 1];
       const f = forced;
-      for (const j of NB[h]) {
+      for (let q = 4 * h, e = q + DG[h]; q < e; q++) {
+        const j = NF[q];
         if (f >= 0 && j !== f) continue;
         if (j === o) {
-          done[k] = 1; left--;
+          done[k] = 1; left--; head[h] = head[o] = 0;
           rec();
-          done[k] = 0; left++;
+          done[k] = 0; left++; head[h] = head[o] = 1;
         } else if (col[j] < 0) {
-          col[j] = k; hd[b] = j; seq[k][s].push(j); empty--;
+          col[j] = k; hd[b] = j; seq[k][s].push(j); empty--; head[h] = 0; head[j] = 1;
           rec();
-          col[j] = -1; hd[b] = h; seq[k][s].pop(); empty++;
+          col[j] = -1; hd[b] = h; seq[k][s].pop(); empty++; head[j] = 0; head[h] = 1;
         }
         if (aborted || solutions.length >= limit) return;
       }
@@ -309,17 +318,20 @@
     ((p[0] === e[0] && p[p.length - 1] === e[1]) || (p[0] === e[1] && p[p.length - 1] === e[0]));
 
   /* Inizio di un trascinamento sulla casella i:
-   *   gomitolo di k   → il filo k riparte da lì (vuoto),
+   *   gomitolo di k   → il filo k riparte da lì; se c'era un filo incompleto partito dall'ALTRO gomitolo,
+   *                     resta visibile ("keep") e, se lo raggiungi, i due pezzi si uniscono;
    *   casella di un filo → il filo viene accorciato fino a lì e si continua da quel punto.
-   * Ritorna { k, drawn } oppure null (casella vuota). */
+   * Ritorna { k, drawn, keep } oppure null (casella vuota). */
   function beginStroke(n, ends, paths, i) {
     const e = endpointOwner(ends, i);
     if (e >= 0) {
-return { k: e, drawn: [i] };
+      const p = paths[e] || [];
+      const keep = p.length > 1 && p[0] !== i && !isComplete(p, ends[e]) ? p.slice() : null;
+      return { k: e, drawn: [i], keep };
     }
     const o = owner(paths, i);
     if (!o) return null;
-    return { k: o.k, drawn: paths[o.k].slice(0, o.idx + 1) };
+    return { k: o.k, drawn: paths[o.k].slice(0, o.idx + 1), keep: null };
   }
 
   /* Un passo del trascinamento verso la casella j (adiacente all'ultima). Ritorna il nuovo "drawn" o null se bloccato.
@@ -337,6 +349,22 @@ return { k: e, drawn: [i] };
     if (e >= 0 && e !== k) return null;
     if (e === k && j === drawn[0]) return null;
     return drawn.concat([j]);
+  }
+
+  // passo con eventuale pezzo "keep": una volta raggiunto, il filo è unito e si può solo tornare indietro
+  function strokeStep(n, ends, k, drawn, keep, j) {
+    const last = drawn[drawn.length - 1];
+    if (keep && keep.indexOf(last) >= 0) {
+      const at = drawn.indexOf(j);
+      return at >= 0 && adjacent(n, last, j) ? drawn.slice(0, at + 1) : null;
+    }
+    return extend(n, ends, k, drawn, j);
+  }
+  // fili risultanti durante/dopo un trascinamento (con l'unione al pezzo "keep" se raggiunto)
+  function strokePaths(before, k, drawn, keep) {
+    const at = keep ? keep.indexOf(drawn[drawn.length - 1]) : -1;
+    const path = at >= 0 ? keep.slice(0, at).concat(drawn.slice().reverse()) : drawn;
+    return applyStroke(before, k, path);
   }
 
   // applica il filo disegnato: gli altri fili che incrocia vengono tagliati prima del punto d'incrocio
@@ -432,6 +460,6 @@ return { k: e, drawn: [i] };
   HH.yarn = {
     rate, progress, rowsPuzzle,
     MAX_COLORS, sizeFor, colorsFor, nbrs, adjacent, grow, solve, generate, samePaths,
-    endpointOwner, owner, isComplete, beginStroke, extend, applyStroke, lostCells, status, isSolved, validLevel, validPath,
+    endpointOwner, owner, isComplete, beginStroke, extend, strokeStep, strokePaths, applyStroke, lostCells, status, isSolved, validLevel, validPath,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

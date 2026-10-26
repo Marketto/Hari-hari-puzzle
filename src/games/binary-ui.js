@@ -96,10 +96,11 @@
   const m = (v, x, y, s = 28, cls = '', given = false) => mochi(v, given).replace('<svg class="mb-mochi', `<svg x="${x}" y="${y}" width="${s}" height="${s}" class="mb-mochi ${cls}`);
   const cup = (x, y, s = 30, given = false) => `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="8" fill="var(${given ? '--mb-given' : '--mb-cup'})" stroke="var(--mb-tray-line)" stroke-width="1.5"/>`;
   const TUT = [
-    `<svg viewBox="0 0 120 90" class="mb-tu mb-tu1" aria-hidden="true"><rect x="2" y="14" width="116" height="62" rx="14" fill="var(--mb-tray)"/>
-      ${cup(45, 30)}<g class="mb-tu-a">${m(1, 46, 31)}</g><g class="mb-tu-b">${m(2, 46, 31)}</g>
-      <path d="M22 45h14M84 45h14" stroke="var(--mb-text)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6"/>
-      <g class="mb-tu-finger"><circle cx="72" cy="62" r="9" fill="var(--mb-hi)" stroke="var(--mb-ink)" stroke-width="2.4"/><circle cx="72" cy="62" r="14" fill="none" stroke="var(--mb-focus)" stroke-width="2.4" class="mb-tu-ring"/></g></svg>`,
+    `<svg viewBox="0 0 120 90" class="mb-tu mb-tu1" aria-hidden="true"><rect x="2" y="18" width="116" height="46" rx="14" fill="var(--mb-tray)"/>
+      <g class="mb-tu-s1">${cup(8, 26)}</g><g class="mb-tu-s2">${cup(45, 26)}${m(1, 46, 27)}</g><g class="mb-tu-s3">${cup(82, 26)}${m(2, 83, 27)}</g>
+      <path d="M39 41h4M76 41h4" stroke="var(--mb-text)" stroke-width="3" stroke-linecap="round"/><path d="M41 38l3 3-3 3M78 38l3 3-3 3" fill="none" stroke="var(--mb-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M97 66Q97 82 60 82Q23 82 23 66" fill="none" stroke="var(--mb-text)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="4 5"/><path d="M19 70l4-5 4 5" fill="none" stroke="var(--mb-text)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <g class="mb-tu-finger"><circle cx="66" cy="54" r="7" fill="var(--mb-hi)" stroke="var(--mb-ink)" stroke-width="2.2"/><circle cx="66" cy="54" r="12" fill="none" stroke="var(--mb-focus)" stroke-width="2.4" class="mb-tu-ring"/></g></svg>`,
     `<svg viewBox="0 0 120 90" class="mb-tu mb-tu2" aria-hidden="true"><rect x="2" y="24" width="116" height="42" rx="12" fill="var(--mb-tray)"/>
       ${cup(6, 30)}${cup(34, 30)}${cup(62, 30)}${cup(90, 30)}
       ${m(1, 7, 31)}${m(1, 35, 31)}<g class="mb-tu-a">${m(1, 63, 31, 28, 'mb-wobble')}<path d="M64 32l26 26M90 32l-26 26" stroke="var(--mb-bad)" stroke-width="4" stroke-linecap="round"/></g>
@@ -110,7 +111,7 @@
       <g class="mb-tu-pin">${m(1, 8, 12, 22, '', true)}</g>${m(2, 31, 12, 22)}${m(1, 54, 12, 22)}
       ${m(2, 8, 56, 22)}${m(1, 31, 56, 22)}${m(2, 54, 56, 22)}
       <text x="42" y="51" text-anchor="middle" font-size="18" font-weight="800" fill="var(--mb-bad)">≠</text>
-      <g class="mb-tu-lock"><circle cx="102" cy="34" r="13" fill="var(--mb-given)" stroke="var(--mb-ink)" stroke-width="2"/><path d="M102 25L102 41M102 25L110 28L102 31" stroke="var(--mb-ink)" stroke-width="2.4" fill="var(--mb-pin)" stroke-linejoin="round" stroke-linecap="round"/></g></svg>`,
+      <g class="mb-tu-lock">${cup(87, 26, 30, true)}${m(1, 88, 27, 28, '', true)}</g></svg>`,
   ];
   const tutorial = [
     { key: 'tu_binary_1', en: 'Tap a plate: strawberry mochi, then matcha, then empty again.', art: TUT[0] },

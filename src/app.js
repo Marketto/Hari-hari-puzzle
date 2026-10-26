@@ -199,7 +199,8 @@
         </span>
       </button>`;
     }).join('');
-    const soon = SOON.map((g) => `
+    // i giochi "in arrivo" spariscono da soli quando quello vero è registrato
+    const soon = SOON.filter((x) => !HH.games.some((g) => g.name === x.name)).map((g) => `
       <div class="card soon" aria-disabled="true">
         <span class="card-art">${g.art}</span>
         <span class="card-body"><span class="card-title">${g.name}</span><span class="chip ghost">${t('soon')}</span></span>
@@ -218,8 +219,8 @@
       </section>
       ${resume}
       <section class="grid-cards" aria-label="Games">${cards}</section>
-      <h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
-      <section class="grid-cards small">${soon}</section>`;
+      ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
+      <section class="grid-cards small">${soon}</section>` : ''}`;
   }
 
   /* ---------- Gioco ---------- */

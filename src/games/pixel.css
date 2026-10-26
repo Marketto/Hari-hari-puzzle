@@ -25,7 +25,7 @@
     --pm-tile: #2a2142; --pm-tile-alt: #31264d; --pm-tile-edge: rgba(0, 0, 0, .28); --pm-focus: #6fdcc3;
     --pm-fill: #ff9cc0; --pm-fill-2: #f27aa4; --pm-fill-edge: #c9568a; --pm-gloss: rgba(255, 255, 255, .6);
     --pm-x: #a78bb8; --pm-x-auto: #6c5a86; --pm-bad: #ff6f86; --pm-bad-glow: rgba(255, 111, 134, .35);
-    --pm-num: #ffe3ef; --pm-num-done: rgba(255, 227, 239, .28); --pm-clue: #33284f; --pm-clue-hot: #5a4385; --pm-clue-done: #2c3a44;
+    --pm-num: #ffe3ef; --pm-num-done: rgba(255, 227, 239, .28); --pm-clue: #33284f; --pm-clue-hot: #5a4385; --pm-clue-done: #2a2142;
     --pm-thumb-off: rgba(255, 255, 255, .09); --pm-outline: #fff3f8; --pm-eye: #2a1626; --pm-hi: #ffffff;
     --pm-spark: #ffe27a; --pm-spark-2: #ff9cc0; --pm-banner: #ff8fb3; --pm-banner-ink: #2a1626; --pm-banner-edge: #c95a85;
     --pm-c-w: #fdf6ff; --pm-c-k: #2a1d33; --pm-c-e: #c3bcd6; --pm-c-N: #5e3a2a;
@@ -37,7 +37,7 @@
   --pm-tile: #2a2142; --pm-tile-alt: #31264d; --pm-tile-edge: rgba(0, 0, 0, .28); --pm-focus: #6fdcc3;
   --pm-fill: #ff9cc0; --pm-fill-2: #f27aa4; --pm-fill-edge: #c9568a; --pm-gloss: rgba(255, 255, 255, .6);
   --pm-x: #a78bb8; --pm-x-auto: #6c5a86; --pm-bad: #ff6f86; --pm-bad-glow: rgba(255, 111, 134, .35);
-  --pm-num: #ffe3ef; --pm-num-done: rgba(255, 227, 239, .28); --pm-clue: #33284f; --pm-clue-hot: #5a4385; --pm-clue-done: #2c3a44;
+  --pm-num: #ffe3ef; --pm-num-done: rgba(255, 227, 239, .28); --pm-clue: #33284f; --pm-clue-hot: #5a4385; --pm-clue-done: #2a2142;
   --pm-thumb-off: rgba(255, 255, 255, .09); --pm-outline: #fff3f8; --pm-eye: #2a1626; --pm-hi: #ffffff;
   --pm-spark: #ffe27a; --pm-spark-2: #ff9cc0; --pm-banner: #ff8fb3; --pm-banner-ink: #2a1626; --pm-banner-edge: #c95a85;
   --pm-c-w: #fdf6ff; --pm-c-k: #2a1d33; --pm-c-e: #c3bcd6; --pm-c-N: #5e3a2a;
@@ -93,6 +93,7 @@
 
 .pm-clue { display: flex; font-family: var(--font-display); font-size: var(--fs); line-height: 1.02; color: var(--pm-num); background: var(--pm-clue); transition: background .2s, color .3s, opacity .4s; }
 .pm-clue i { font-style: normal; font-variant-numeric: tabular-nums; }
+.pm-clue i.dd { font-size: .8em; letter-spacing: -.06em; }
 .pm-col { flex-direction: column; justify-content: flex-end; align-items: center; gap: .14em; padding: 5px 0 4px; border-radius: 10px 10px 4px 4px; min-height: calc(var(--tc) * var(--fs) * 1.16 + 9px); }
 .pm-row { justify-content: flex-end; align-items: center; gap: .3em; padding: 0 6px 0 4px; border-radius: 10px 4px 4px 10px; }
 .pm-clue.hot { background: var(--pm-clue-hot); }
@@ -129,7 +130,7 @@
   filter: drop-shadow(1.5px 0 0 var(--pm-outline)) drop-shadow(-1.5px 0 0 var(--pm-outline)) drop-shadow(0 1.5px 0 var(--pm-outline)) drop-shadow(0 -1.5px 0 var(--pm-outline));
 }
 .pm-wrap.solved .pm-cell { --dd: var(--d); border-radius: 0; box-shadow: none; background: transparent; cursor: default; }
-.pm-wrap.solved .pm-cell[data-v="1"] { background: var(--c); box-shadow: 0 0 0 calc(var(--gap) / 2 + .4px) var(--c); }
+.pm-wrap.solved .pm-cell[data-v="1"], .pm-wrap.solved .pm-cell.eye { background: var(--c); box-shadow: 0 0 0 calc(var(--gap) / 2 + 1px) var(--c); }
 .pm-wrap.solved .pm-cell::before, .pm-wrap.solved .pm-cell::after { opacity: 0; }
 .pm-wrap.solved .pm-clue, .pm-wrap.solved .pm-corner { opacity: 0; }
 .pm-wrap.solved .pm-hint { opacity: 0; }
