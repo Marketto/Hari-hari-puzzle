@@ -182,6 +182,27 @@
       mel: ['1 . 3 5 8 . 5 .', '7 . 5 7 9 . 7 .', '6 . 8 6 5 . 3 .', '4 6 8 6 4 - - .',
         '3 . 5 8 10 . 8 .', '9 . 7 5 7 . 5 .', '6 8 6 4 2 . 4 .', '3 . 2 . 1 - - .'],
     },
+    // disegni che appaiono: carillon tranquillo e curioso
+    pixel: {
+      bpm: 96, root: 69, lead: 'musicbox', arp: 'marimba', swing: 0.1, perc: 'lullaby',
+      chords: [1, 4, 6, 5, 1, 4, 5, 1], bass: 'R . F . O . F .',
+      mel: ['3 . 5 . 6 5 3 .', '4 . 6 . 8 6 4 .', '6 5 3 1 2 . 3 .', '5 . . 4 3 - - .',
+        '8 . 6 . 5 6 8 .', '9 . 8 6 4 . 6 .', '5 6 5 3 2 3 2 .', '1 . 3 . 1 - - .'],
+    },
+    // mochi rosa e verdi: valzerino a coppie di note, alternato come i colori
+    binary: {
+      bpm: 110, root: 63, lead: 'marimba', arp: 'pluck', swing: 0.15, perc: 'bubbly',
+      chords: [1, 6, 2, 5, 1, 6, 4, 1], bass: 'R . O . R . O .',
+      mel: ['1 3 1 3 5 . 3 .', '6 8 6 8 5 . . .', '2 4 2 4 6 . 4 .', '5 7 5 7 9 - - .',
+        '8 6 8 6 5 . 6 .', '4 6 4 6 3 . 1 .', '2 3 4 5 6 5 4 .', '3 . 2 . 1 - - .'],
+    },
+    // gomitoli e gattini: melodia che "srotola" a scale morbide
+    yarn: {
+      bpm: 100, root: 67, lead: 'pluck', arp: 'musicbox', swing: 0.2, perc: 'pop',
+      chords: [1, 2, 4, 1, 6, 2, 5, 1], bass: 'R . . F . R . .',
+      mel: ['1 2 3 5 . 3 2 .', '2 3 4 6 . 4 3 .', '4 5 6 8 . 6 5 .', '5 - 3 . 2 - - .',
+        '6 5 4 3 . 5 6 .', '2 3 4 5 . 6 7 .', '8 7 6 5 4 3 2 .', '1 . 5 . 1 - - .'],
+    },
     lantern: {
       bpm: 76, root: 62, lead: 'koto', arp: 'koto', swing: 0, perc: 'night',
       chords: [6, 4, 6, 1, 1, 6, 5, 1], bass: 'R . . F . . R .',

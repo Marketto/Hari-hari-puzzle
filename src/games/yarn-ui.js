@@ -85,22 +85,22 @@
     const balls = endsK.map(([k, i, cls]) => `<g transform="translate(${(i % 3) * 100 + 50} ${((i / 3) | 0) * 100 + 50})">${ball(k, cls || '')}</g>`).join('');
     return `<defs>${twistDef(opts.tw || 'yl-tw-a')}</defs><rect class="yl-knit" x="-12" y="-12" width="324" height="324" rx="34"/>${cells.join('')}${yarn}${balls}`;
   }
-  const art = () => `<svg class="yl-art" viewBox="0 0 120 90" aria-hidden="true"><g transform="translate(19.5 4.5) scale(.27)">${mini(
+  const art = () => `<svg class="yl-art" viewBox="0 0 120 90" aria-hidden="true"><g transform="translate(22.5 7.5) scale(.25)">${mini(
     [[0, [0, 3, 6, 7, 8]], [1, [1, 2, 5, 4]]],
     [[0, 0, ' on'], [0, 8, ' on'], [1, 1, ' on'], [1, 4, ' on']])}</g></svg>`;
 
   const hand = (...a) => (HH.tutHand ? HH.tutHand(...a) : '');
   const TUT = [
     { key: 'tu_yarn_1', en: 'Drag from a yarn ball to its twin of the same colour.',
-      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(19.5 4.5) scale(.27)">${mini(
+      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(22.5 7.5) scale(.25)">${mini(
         [[0, [3, 4, 5], 'yl-tu-draw']], [[0, 3, ' yl-tu-pull'], [0, 5, ' yl-tu-join']], { tw: 'yl-tw-t1' })}</g>${hand(33, 46, 'tut-go', '--dx:54px;--dy:0px')}</svg>` },
     { key: 'tu_yarn_2', en: 'Threads never cross, and together they must fill every square!',
-      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(19.5 4.5) scale(.27)">${mini(
+      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(22.5 7.5) scale(.25)">${mini(
         [[2, [0, 1, 2, 5]], [3, [3, 4]], [4, [6, 7, 8]]],
         [[2, 0, ' on'], [2, 5, ' on'], [3, 3, ' on'], [3, 4, ' on'], [4, 6, ' on'], [4, 8, ' on']], { tw: 'yl-tw-t2' })}</g>
         <g class="tut-pulse"><path d="M104 8l2.4 5 5.6.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.6-.8z" fill="var(--sun)"/></g></svg>` },
     { key: 'tu_yarn_3', en: 'Tap a thread to erase it, or drag from it to change its path.',
-      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(19.5 4.5) scale(.27)">${mini(
+      art: `<svg class="yl-art" viewBox="0 0 120 90"><g transform="translate(22.5 7.5) scale(.25)">${mini(
         [[5, [0, 1, 4, 7, 8], 'yl-tu-erase']], [[5, 0], [5, 8]], { tw: 'yl-tw-t3' })}</g>${hand(57, 47, 'tut-tap')}</svg>` },
   ];
 

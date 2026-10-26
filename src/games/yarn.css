@@ -21,7 +21,7 @@
     --yl-c6: #ff6b78; --yl-c7: #8fdc5f; --yl-c8: #c99470; --yl-c9: #3cc8d8; --yl-c10: #f27ad6; --yl-c11: #7d8bf0;
     --yl-ink: #2a1626; --yl-shadow: rgba(0, 0, 0, .34); --yl-hi: rgba(255, 255, 255, .45);
     --yl-frame: #5b416f; --yl-frame-2: #47325a; --yl-knit: #3a2b51; --yl-cell-a: #45355f; --yl-cell-b: #3e2f57;
-    --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .28; --yl-gap: rgba(255, 143, 179, .3);
+    --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .22; --yl-gap: rgba(255, 143, 179, .3);
     --yl-meow-line: #2a1626; --yl-pill: #2e2242; --yl-bar: rgba(255, 230, 240, .14);
   }
 }
@@ -31,7 +31,7 @@
   --yl-c6: #ff6b78; --yl-c7: #8fdc5f; --yl-c8: #c99470; --yl-c9: #3cc8d8; --yl-c10: #f27ad6; --yl-c11: #7d8bf0;
   --yl-ink: #2a1626; --yl-shadow: rgba(0, 0, 0, .34); --yl-hi: rgba(255, 255, 255, .45);
   --yl-frame: #5b416f; --yl-frame-2: #47325a; --yl-knit: #3a2b51; --yl-cell-a: #45355f; --yl-cell-b: #3e2f57;
-  --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .28; --yl-gap: rgba(255, 143, 179, .3);
+  --yl-stitch: rgba(255, 220, 240, .12); --yl-seam: rgba(255, 210, 235, .3); --yl-tint-op: .22; --yl-gap: rgba(255, 143, 179, .3);
   --yl-meow-line: #2a1626; --yl-pill: #2e2242; --yl-bar: rgba(255, 230, 240, .14);
 }
 
@@ -59,7 +59,7 @@
 .yl-s-body { stroke: var(--c); stroke-width: 33; }
 .yl-s-tw { stroke-width: 33; }
 .yl-twist { fill: var(--yl-twist); }
-.yl-s-hi { stroke: var(--yl-hi); stroke-width: 6; transform: translate(-3px, -7px); stroke-dasharray: 18 9; }
+.yl-s-hi { stroke: var(--yl-hi); stroke-width: 5; transform: translate(-3px, -7px); stroke-dasharray: 7 7; }
 .yl-strand.ghost { opacity: .4; }
 .yl-new polyline { stroke-dasharray: 1 1; animation: yl-unroll .16s ease-out both; }
 .yl-new .yl-s-fz { display: none; }
@@ -73,7 +73,7 @@
 .yl-ear { fill: var(--c); stroke: var(--yl-ink); stroke-width: 3; stroke-linejoin: round; }
 .yl-ear-in { fill: var(--yl-ear-in); }
 .yl-tail { fill: none; stroke: var(--c); stroke-width: 6; stroke-linecap: round; transition: opacity .2s; }
-.yl-wind { fill: none; stroke: var(--yl-wrap); stroke-width: 3; stroke-linecap: round; }
+.yl-wind { fill: none; stroke: var(--yl-wrap); stroke-width: 3.4; stroke-linecap: round; }
 .yl-gloss { fill: var(--yl-gloss); }
 .yl-eyes { fill: var(--yl-ink); animation: yl-blink 4.6s infinite; animation-delay: var(--d); transform-origin: 0 -1px; }
 .yl-shine { fill: var(--yl-shine); }
@@ -104,6 +104,7 @@
 .yl-bar { position: relative; flex: 1; min-width: 30px; height: 12px; border-radius: 7px; background: var(--yl-bar); overflow: hidden; }
 .yl-bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 7px; background: linear-gradient(90deg, var(--yl-c1), var(--yl-c2), var(--yl-c0)); transition: width .3s; }
 .yl-fillbar b { min-width: 3.2em; text-align: end; font-size: 15px; }
+.yl-hint:empty { display: none; }
 .yl-hint { margin: 0; min-height: 1.4em; font-weight: 800; color: var(--accent-2); text-align: center; }
 .gaps .yl-hint { animation: yl-pop .4s cubic-bezier(.3, 1.8, .5, 1); }
 .yl-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -116,7 +117,7 @@
 .yl-tu-erase { animation: yl-tu-erase 1.8s ease-in-out infinite; }
 
 @keyframes yl-unroll { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-@keyframes yl-shimmer { to { stroke-dashoffset: -27; } }
+@keyframes yl-shimmer { to { stroke-dashoffset: -14; } }
 @keyframes yl-breathe { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-1.5px) scale(1.02, .98); } }
 @keyframes yl-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
 @keyframes yl-pull { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
