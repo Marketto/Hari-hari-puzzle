@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.7.1)
+- [x] Aggiornamento robusto: il service worker nuovo si attiva subito se la pagina aperta è di una versione vecchia (o l'app è chiusa); controllo aggiornamenti anche all'avvio
+
 ## Fatto (v0.7.0)
 - [x] Sushi Bar in stile "film anni '90" (proposta 2): fondale dipinto con filtro acquerello e grana della carta, personaggi cel, vista serale, vapore
 - [x] Fix-It House in stile shoujo (proposta 1): palette prugna/lilla, retini, bolle, stelline, pizzo; cartellone "Episodio N" + etichetta "Ep. N"
