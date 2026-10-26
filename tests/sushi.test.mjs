@@ -15,7 +15,11 @@ test('ricette: ingredienti validi, al massimo 4, sblocco progressivo', () => {
   assert.equal(new Set(S.RECIPES.map((r) => r.ing.slice().sort().join('+'))).size, S.RECIPES.length, 'due ricette uguali');
   let prev = 0;
   for (let L = 1; L <= 15; L++) { const c = S.config(L); assert.ok(c.recipes >= prev && c.recipes <= S.RECIPES.length); prev = c.recipes; }
-  assert.equal(S.config(1).recipes, 2);
+  assert.equal(S.config(1).recipes, 4);
+  // varietà fin dal primo livello: almeno 5 ingredienti diversi, ricette iniziali semplici (2 ingredienti)
+  const first = S.RECIPES.slice(0, S.config(1).recipes);
+  assert.ok(new Set(first.flatMap((r) => r.ing)).size >= 5);
+  assert.ok(first.every((r) => r.ing.length === 2));
 });
 
 test('matches: conta gli ingredienti, non l’ordine', () => {
@@ -23,6 +27,16 @@ test('matches: conta gli ingredienti, non l’ordine', () => {
   assert.ok(!S.matches(['rice', 'rice'], ['rice', 'nori']));
   assert.ok(!S.matches(['rice', 'nori', 'nori'], ['rice', 'nori']));
   assert.ok(S.matches(['cucumber', 'avocado', 'rice', 'nori'], ['nori', 'rice', 'avocado', 'cucumber']));
+});
+
+test('nastro: piattini ben distanziati (al massimo 5 per giro, mai sovrapposti)', () => {
+  assert.ok(S.BELT_SLOTS <= 5);
+  const s = S.newLevel(6, HH.rng(9));
+  for (let i = 0; i < 2000; i++) {
+    S.step(s, 0.05, HH.rng(i));
+    const xs = s.belt.map((it) => it.x).sort((a, b) => a - b);
+    for (let k = 1; k < xs.length; k++) assert.ok(xs[k] - xs[k - 1] >= 0.9 / S.BELT_SLOTS - 1e-9, `distanza ${xs[k] - xs[k - 1]}`);
+  }
 });
 
 test('take / trash / serve', () => {

@@ -240,6 +240,9 @@
       boardEl = el.querySelector('.su-board');
       servedEl = el.querySelector('.su-served');
       beltItems = new Map();
+      // il disegno del nastro (motivo di 26 px) scorre alla stessa velocità dei piattini
+      const beltPx = (beltEl.clientWidth + 52) * s.cfg.speed;
+      if (beltPx > 0) beltEl.parentElement.style.setProperty('--dur', `${(26 / beltPx).toFixed(3)}s`);
       s.belt.forEach(addItem);
       s.seats.forEach((c, i) => renderSeat(i));
       renderBoard();

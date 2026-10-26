@@ -24,17 +24,17 @@
   const RECIPES = [
     { id: 'onigiri', ing: ['rice', 'nori'] },
     { id: 'sake', ing: ['rice', 'salmon'] },
-    { id: 'kappa', ing: ['nori', 'rice', 'cucumber'] },
     { id: 'maguro', ing: ['rice', 'tuna'] },
-    { id: 'tamago', ing: ['rice', 'egg', 'nori'] },
     { id: 'ebi', ing: ['rice', 'shrimp'] },
+    { id: 'tamago', ing: ['rice', 'egg', 'nori'] },
+    { id: 'kappa', ing: ['nori', 'rice', 'cucumber'] },
     { id: 'sakemaki', ing: ['nori', 'rice', 'salmon'] },
     { id: 'california', ing: ['nori', 'rice', 'avocado', 'cucumber'] },
     { id: 'temaki', ing: ['nori', 'rice', 'tuna', 'avocado'] },
   ];
   const ANIMALS = ['bunny', 'cat', 'panda', 'frog', 'fox', 'bear', 'chick', 'penguin'];
   const PLATE_MAX = 4;
-  const BELT_SLOTS = 9;          // posti sul nastro (un piattino ogni 1/9 di giro)
+  const BELT_SLOTS = 4;          // posti sul nastro: un piattino ogni 1/4 di giro (~70 px su un telefono: spazio comodo per il dito)
   const LIVES = 3;
 
   function config(level) {
@@ -42,9 +42,9 @@
     return {
       goal: Math.min(14, 4 + L),                            // clienti da servire
       seats: L <= 2 ? 2 : 3,                                // posti al bancone
-      recipes: Math.min(RECIPES.length, 2 + Math.floor((L - 1) * 0.8)),
-      patience: Math.max(18, 46 - L * 2.2),                 // secondi
-      speed: Math.min(0.11, 0.055 + L * 0.004),             // giri di nastro al secondo
+      recipes: Math.min(RECIPES.length, 4 + Math.floor((L - 1) / 2)),   // liv. 1: 4 ricette a 2 ingredienti, poi una nuova ogni 2 livelli
+      patience: Math.max(26, 54 - L * 2.2),                 // secondi (più tempo: i piattini sono più distanziati)
+      speed: Math.min(0.3, 0.14 + L * 0.0075),             // giri di nastro al secondo: 4 posti per giro, un piattino ogni ~1,7 s
       gap: Math.max(2.5, 6 - L * 0.3),                      // secondi tra un cliente e l'altro
     };
   }
@@ -90,8 +90,8 @@
     if (s.belt.some((it) => Math.abs(it.x - x) < 0.9 / BELT_SLOTS)) return null;
     const need = needed(s);
     const pool = [...new Set(unlocked(s).flatMap((r) => r.ing))];
-    // 70% un ingrediente che serve davvero (se ce n'è), altrimenti uno qualsiasi delle ricette sbloccate
-    const ing = need.length && rnd() < 0.7 ? need[Math.floor(rnd() * need.length)] : pool[Math.floor(rnd() * pool.length)];
+    // 90% un ingrediente che serve davvero (se ce n'è), altrimenti uno qualsiasi delle ricette sbloccate
+    const ing = need.length && rnd() < 0.9 ? need[Math.floor(rnd() * need.length)] : pool[Math.floor(rnd() * pool.length)];
     const it = { id: s.seq++, ing, x };
     s.belt.push(it);
     return it;

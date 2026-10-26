@@ -62,3 +62,10 @@ Scelto tra le proposte in `design/proposte-anime.html` (n. 2). Due strati come n
   Sopra tutto il locale un velo statico di grana della carta (`.su-grain`) e una luce calda (`.su-shop::after`).
 - **Personaggi cel**: contorni sottili (`o()` × 0,72), una sola ombra netta sulla testa, occhi piccoli con un riflesso, sopracciglia sottili.
 - Vapore che sale dal tagliere, fumetti color carta. Tema scuro = sera con le lanterne più calde.
+
+## Nastro e varietà (v0.8.1)
+- 4 posti per giro (`BELT_SLOTS`): su un telefono da 360 px restano 25–40 px tra un piattino e l'altro, comodi per un dito adulto.
+- Per non far mancare ingredienti il nastro è più veloce (`0,14 + 0,0075·L` giri/s), il 90% dei piattini porta un ingrediente che serve
+  e i clienti sono più pazienti (`max(26, 54 − 2,2·L)` s).
+- Ricette: 4 al livello 1 (onigiri, sake, maguro, ebi: tutte da 2 ingredienti), poi una nuova ogni 2 livelli.
+- Verificato dal bot dei test: vince i livelli 1–15 senza perdere clienti.

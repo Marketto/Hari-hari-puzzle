@@ -13,6 +13,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.8.1)
+- [x] Sushi Bar: piattini più distanziati (4 per giro, 25–40 px liberi a 360 px), nastro un po' più veloce e clienti più pazienti per compensare
+- [x] Sushi Bar: più varietà subito (livello 1: onigiri, salmone, tonno, gambero), una ricetta nuova ogni 2 livelli; il disegno del nastro scorre alla velocità dei piattini
+
 ## Fatto (v0.8.0)
 - [x] Nuovi giochi: **Pixel Mochi** (nonogram, 43 disegni), **Mochi Binary** (takuzu), **Yarn Link** (flow) con brani musicali propri
 - [x] Hedgedoku: tocco = ✕, doppio tocco = riccio (una sola mossa), trascinamento; ricci animati che respirano, si guardano intorno e reagiscono
@@ -89,6 +93,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-26 v0.8.1 · `npm test` · Sushi Bar: bot vince livelli 1–15 senza perdere clienti; a 360/390 px spazio tra piattini 24–40 px; livello 1 mostra riso, alga, salmone, tonno, gambero
 - 2026-10-26 v0.8.0 · `npm test` 160/160 · 9 giochi × it/ja/ar/de × chiaro/scuro × 360/390 px: nessun errore, nessuno scorrimento, nessuna chiave non tradotta, tutorial presente in tutti · aggiornamento da v0.6.1 simulato: arriva da solo
 - 2026-10-26 v0.7.0 · `npm test` 94/94 · 6 giochi × it/ja/ar × chiaro/scuro × 360/390 px: nessun errore, nessuno scorrimento, nessuna chiave non tradotta · Fix-It: livelli 2–5 e 7 risolti fino in fondo (cucina, cameretta, bagno, giardino) · Hari Parade: parte al primo tocco
 - 2026-10-26 v0.6.2 · `npm test` 77/77 · server locale con 2 aggiornamenti simulati: in partita barra → Aggiorna → stessa partita (mosse e griglia), nella home aggiornamento automatico, cache vecchie rimosse, offline ok · Android simulato: prompt nativo (it chiaro, ar scuro), istruzioni senza prompt, "Più tardi" non ripropone, desktop nessuna proposta
