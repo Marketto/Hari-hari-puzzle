@@ -1,6 +1,10 @@
-/* Core: salvataggi locali e traduzioni.
- * HH.store.get/set (localStorage protetto da try/catch)
- * HH.i18n.t(key), .set(code), .code, .detect()
+/* Core: salvataggi locali, progressi, traduzioni.
+ * HH.store.get/set/del        localStorage protetto da try/catch (prefisso "harihari:")
+ * HH.progress                 progressi per gioco + partita in sospeso
+ *   get(id) -> { level, wins, best, total, stars, bestTime, last }
+ *   set(id, p) · totalScore()
+ *   loadGame(id) / saveGame(id, { level, elapsed, state }) / clearGame(id)
+ * HH.i18n.t(key), .set(code), .code, .detect(), .onChange(fn)
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -12,6 +16,23 @@
       catch (e) { return d; }
     },
     set(k, v) { try { G.localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch (e) { /* storage bloccato */ } },
+    del(k) { try { G.localStorage.removeItem(PREFIX + k); } catch (e) { /* storage bloccato */ } },
+  };
+
+  const SAVE_VERSION = 2;
+  HH.progress = {
+    get(id) {
+      const base = { level: HH.store.get('level:' + id, 1), wins: 0, best: 0, total: 0, stars: 0, bestTime: 0, last: 0 };
+      return Object.assign(base, HH.store.get('prog:' + id, {}));
+    },
+    set(id, p) { HH.store.set('prog:' + id, p); },
+    totalScore() { return (HH.games || []).reduce((s, g) => s + (HH.progress.get(g.id).total || 0), 0); },
+    loadGame(id) {
+      const s = HH.store.get('save:' + id, null);
+      return s && s.v === SAVE_VERSION && s.state ? s : null;
+    },
+    saveGame(id, data) { HH.store.set('save:' + id, Object.assign({ v: SAVE_VERSION, ts: Date.now() }, data)); },
+    clearGame(id) { HH.store.del('save:' + id); },
   };
 
   const listeners = [];

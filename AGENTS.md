@@ -6,17 +6,18 @@ Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico 
 ## Regole d'oro
 1. **Offline first**: nessuna chiamata di rete a runtime. Nuovi file vanno aggiunti a `SHELL` in `sw.js` e allo script-list di `index.html`.
 2. **Logica separata dalla UI**: `src/games/<id>-logic.js` è puro (niente DOM) e testabile da Node; `<id>-ui.js` disegna.
-3. **Ogni livello deve essere risolvibile** (e a soluzione unica dove il genere lo prevede). Verifica in `tools/selftest.mjs`.
+3. **Ogni livello deve essere risolvibile** (e a soluzione unica dove il genere lo prevede), con unit test in `tests/<gioco>.test.mjs` che usano un oracolo indipendente dal generatore.
 4. **i18n completo**: ogni stringa visibile passa da `HH.i18n.t(key)`. Una chiave nuova va in tutte le 43 righe di `src/i18n/locales.js`.
 5. **Token di design**: colori solo tramite variabili in `src/styles.css` (tema chiaro + scuro). Mai colori letterali nei componenti.
-6. Prima di chiudere un task: `npm test` (selftest + i18n-check) e `npm run build`.
+6. **Ogni gioco salva la partita**: `snapshot()` serializzabile + `create(el, ctx, saved)`; chiama `ctx.changed()` dopo ogni mossa.
+7. Prima di chiudere un task: `npm test` (unit test + i18n-check) e `npm run build`.
 
 ## Router — da richiesta a skill/agente
 
 | Se la richiesta parla di… | Skill da caricare | Agente | Tool |
 |---|---|---|---|
-| nuovo gioco, variante, regole | `add-game` + `puzzle-generator` | `game-designer` | `tools/selftest.mjs` |
-| difficoltà, livelli, generatori, solver | `puzzle-generator` | `game-designer` | `tools/selftest.mjs` |
+| nuovo gioco, variante, regole | `add-game` + `puzzle-generator` | `game-designer` | `npm test` |
+| difficoltà, livelli, generatori, solver | `puzzle-generator` | `game-designer` | `npm test`, `npm run bench` |
 | testi, traduzioni, nuova lingua, RTL | `i18n` | `i18n-translator` | `tools/i18n-check.mjs` |
 | grafica, animazioni, mascotte, tema | `kawaii-ui` | — | `tools/gen-icons.mjs`, `tools/rasterize-icons.py` |
 | APK, Play Store, PWA, icone, offline | `android-release` | `release-android` | `tools/build-inline.mjs` |

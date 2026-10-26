@@ -1,5 +1,5 @@
 /* Lantern Glow — logica "Lights Out" invertita: obiettivo accendere tutte le lanterne.
- * Il livello si genera dallo stato risolto con tocchi casuali, quindi è sempre risolvibile.
+ * Il livello si genera dallo stato risolto con tocchi casuali distinti: sempre risolvibile.
  * Esporta HH.lantern = { generate, toggle, isSolved }.
  */
 (function (G) {
@@ -17,15 +17,16 @@
 
   const isSolved = (grid) => grid.every(Boolean);
 
-  function generate(n, taps, rnd = Math.random) {
-    let g;
+  // full=true -> { grid, taps } (taps = tocchi usati, utile come "par")
+  function generate(n, taps, rnd = Math.random, full = false) {
+    let g, picked;
     do {
       g = new Array(n * n).fill(true);
-      const picked = new Set();
+      picked = new Set();
       while (picked.size < Math.min(taps, n * n)) picked.add(Math.floor(rnd() * n * n));
       picked.forEach((i) => { g = toggle(n, g, i); });
     } while (isSolved(g));
-    return g;
+    return full ? { grid: g, taps: [...picked] } : g;
   }
 
   HH.lantern = { generate, toggle, isSolved };

@@ -3,19 +3,22 @@
 ## v0.1 — Prototipo giocabile ✅ (ottobre 2026)
 Tre giochi, mascotte animata, 43 lingue, PWA offline, struttura agentica.
 
-## v0.2 — Pubblicazione PWA (novembre 2026)
+## v0.2 — Salvataggi, punteggi, grafica v2 ✅ (ottobre 2026)
+Ripresa partite, stelle e record, Hedgedoku con generatore logico e nuovi controlli, travaso animato, nuova mascotte.
+
+## v0.3 — Pubblicazione PWA (novembre 2026)
 - Repo pubblico + GitHub Pages + installazione Android da Chrome
 - Font locali (offline totale al primo avvio)
 - Impostazioni (tema, suono, vibrazione, reset), schermata "Come si gioca" animata per ogni gioco
-- Suggerimenti in Hedgedoku e Lantern Glow
+- Suggerimenti in Hedgedoku e Lantern Glow, impostazioni
 
-## v0.3 — Più giochi (dicembre 2026)
+## v0.4 — Più giochi (dicembre 2026)
 - Pixel Mochi (Nonogram) con 60 disegni kawaii
 - Sushi Binary (Takuzu)
 - Puzzle del giorno (seme dalla data, uguale per tutti, senza server)
 
-## v0.4 — Collezione e progressi (gennaio 2027)
-- Stelle per livello, "album" di adesivi di Hari sbloccabili
+## v0.5 — Collezione (gennaio 2027)
+- "Album" di adesivi di Hari sbloccabili
 - Vestiti e accessori per la mascotte (cappellini, sciarpe stagionali)
 - Yarn Link (Flow)
 

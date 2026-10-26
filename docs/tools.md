@@ -3,7 +3,8 @@
 ## Script (`tools/`)
 | Script | Cosa fa |
 |---|---|
-| `selftest.mjs` | Esegue i generatori in Node: unicità Hedgedoku 5–8, risolvibilità Boba 3–9 gusti, Lantern 4–5, conteggio lingue |
+| `../tests/*.test.mjs` | Unit test (`node --test`): livelli Hedgedoku validati da solver indipendente, Boba, Lantern, i18n. Lanciati da `npm test` |
+| `selftest.mjs` | Benchmark rapido dei generatori (`npm run bench`) |
 | `i18n-check.mjs` | Ogni lingua ha tutte le chiavi, nessun vuoto, lingue obbligatorie presenti |
 | `build-inline.mjs` | Fonde CSS e JS in `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html` |
 | `gen-icons.mjs` | Icone SVG (standard, maskable, mascotte) dal disegno di Hari |

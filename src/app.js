@@ -1,66 +1,142 @@
-/* Hari Hari Puzzle — shell dell'app: home, schermata di gioco, vittoria, lingue, PWA. */
+/* Hari Hari Puzzle — shell dell'app.
+ * Schermate: home (riprendi partita, card giochi), gioco (HUD con tempo/mosse/stelle), vittoria, progressi, lingue.
+ * Salvataggio: ogni mossa e ogni 5 s di gioco la partita viene salvata (HH.progress.saveGame);
+ * riaprendo l'app si torna dritti alla partita in sospeso.
+ */
 (function (G) {
   const HH = G.HH;
-  const { t } = HH.i18n;
+  const t = (k) => HH.i18n.t(k);
   const $ = (s, r = document) => r.querySelector(s);
   const sfx = HH.fx.sfx;
+  const P = HH.progress;
 
   const ICON = {
-    back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     sparkle: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7zM19 15c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z" fill="currentColor"/></svg>',
     globe: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     sound: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="mute" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     install: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0l-4.5-4.5M12 14l4.5-4.5M5 17v2.5h14V17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 9.5v4l2.6 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    paw: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5.2" ry="4.3" fill="currentColor"/><circle cx="5.8" cy="10.5" r="2.3" fill="currentColor"/><circle cx="9.5" cy="6.3" r="2.3" fill="currentColor"/><circle cx="14.5" cy="6.3" r="2.3" fill="currentColor"/><circle cx="18.2" cy="10.5" r="2.3" fill="currentColor"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8 20h8l-1-3H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>',
+    acorn: '<svg viewBox="0 0 24 24" aria-hidden="true" class="acorn"><path d="M6.5 11h11c0 5.5-2.8 9.3-5.5 10.3C9.3 20.3 6.5 16.5 6.5 11z" fill="var(--acorn)"/><path d="M4.5 11.2C4.5 7 7.8 4.5 12 4.5s7.5 2.5 7.5 6.7z" fill="var(--acorn-cap)"/><path d="M12 4.6V2.4" stroke="var(--acorn-cap)" stroke-width="2.2" stroke-linecap="round"/><path d="M7 8.5h10M8 6.4h8" stroke="#fff" stroke-opacity=".25" stroke-width="1.3"/><path d="M9.3 13.5c.2 2.6 1 4.3 2 5.4" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.8l-10-6.5A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>',
+    home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5l8-7 8 7V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15.5 2 12 2 8.2 2 5.3 4.3 3 7.2 3c1.9 0 3.6 1 4.8 2.6C13.2 4 14.9 3 16.8 3 19.7 3 22 5.3 22 8.2 22 12 19 15.5 12 21z"/></svg>',
   };
+  const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.9l-5.6 2.9 1.1-6.2L3 9.2l6.2-.9z" stroke-linejoin="round"/></svg>`;
+  const stars = (n) => [0, 1, 2].map((i) => STAR(i < n)).join('');
+  const fmt = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; };
+  const nf = (n) => { try { return new Intl.NumberFormat(HH.i18n.code).format(n || 0); } catch (e) { return String(n || 0); } };
+  const word = (w, cls) => `<span class="lw ${cls}">${[...w].map((ch, i) => `<span style="--k:${i}">${ch}</span>`).join('')}</span>`;
 
   // Giochi proposti (in arrivo): solo card
   const SOON = [
     { id: 'pixel', name: 'Pixel Mochi', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[
       '0110110', '1111111', '1111111', '0111110', '0011100', '0001000'].map((row, r) => [...row].map((v, c) =>
-      `<rect x="${25 + c * 10}" y="${12 + r * 10}" width="9" height="9" rx="2" fill="${v === '1' ? 'var(--accent)' : 'var(--hair)'}"/>`).join('')).join('')}</svg>` },
+      `<rect x="${25 + c * 10}" y="${14 + r * 10}" width="9" height="9" rx="2.5" fill="${v === '1' ? 'var(--accent)' : 'var(--hair)'}"/>`).join('')).join('')}</svg>` },
     { id: 'yarn', name: 'Yarn Link', art: `<svg viewBox="0 0 120 90" aria-hidden="true"><path d="M22 20h40v25h36" fill="none" stroke="var(--f1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 70h20V45" fill="none" stroke="var(--f4)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="20" r="8" fill="var(--f1)"/><circle cx="98" cy="45" r="8" fill="var(--f1)"/><circle cx="22" cy="70" r="8" fill="var(--f4)"/><circle cx="42" cy="45" r="8" fill="var(--f4)"/><circle cx="98" cy="72" r="8" fill="var(--f3)"/><circle cx="68" cy="72" r="8" fill="var(--f3)"/></svg>` },
     { id: 'sushi', name: 'Sushi Binary', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[[1, 0, 0, 1], [0, 1, 1, 0], [1, 1, 0, 0]].map((row, r) => row.map((v, c) =>
-      v ? `<g transform="translate(${30 + c * 20} ${18 + r * 20})"><circle r="8.5" fill="var(--ink)"/><circle r="5.5" fill="var(--card)"/><circle r="3" fill="var(--f6)"/></g>`
-        : `<g transform="translate(${30 + c * 20} ${18 + r * 20})"><rect x="-9" y="-6" width="18" height="12" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.6"/><rect x="-9" y="-6" width="18" height="6" rx="3" fill="var(--f6)"/></g>`).join('')).join('')}</svg>` },
+      v ? `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><circle r="8.5" fill="var(--ink)"/><circle r="5.5" fill="var(--card-solid)"/><circle r="3" fill="var(--f6)"/></g>`
+        : `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><rect x="-9" y="-6" width="18" height="12" rx="6" fill="var(--card-solid)" stroke="var(--ink)" stroke-width="1.6"/><rect x="-9" y="-6" width="18" height="6" rx="3" fill="var(--f6)"/></g>`).join('')).join('')}</svg>` },
   ];
 
-  const state = { game: null, inst: null, moves: 0 };
-  const levelOf = (id) => HH.store.get('level:' + id, 1);
+  /* ---------- stato ---------- */
+  const S = { game: null, inst: null, elapsed: 0, won: false, pushed: false };
+
+  function persist() {
+    if (!S.game || !S.inst || S.won) return;
+    P.saveGame(S.game.id, { level: P.get(S.game.id).level, elapsed: S.elapsed, state: S.inst.snapshot() });
+  }
+  function hud() {
+    if (!S.inst) return;
+    const snap = S.inst.snapshot();
+    const m = $('#hMoves'), tm = $('#hTime'), st = $('#hStars');
+    if (m) m.textContent = nf(snap.moves);
+    if (tm) tm.textContent = fmt(S.elapsed);
+    if (st) st.innerHTML = stars(S.game.rate(snap));
+  }
+  function updateScore() {
+    const el = $('#scoreChip b');
+    if (el) el.textContent = nf(P.totalScore());
+  }
+
+  // timer di gioco: avanza solo se la partita è visibile e non ancora vinta
+  setInterval(() => {
+    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden) return;
+    S.elapsed++;
+    const tm = $('#hTime');
+    if (tm) tm.textContent = fmt(S.elapsed);
+    if (S.elapsed % 5 === 0) persist();
+  }, 1000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
+  G.addEventListener('pagehide', persist);
 
   /* ---------- Mascotte ---------- */
-  function mountMascot(host) {
-    host.innerHTML = HH.mascot.svg({ cls: 'hari' });
-    return host.querySelector('svg');
-  }
   function react(mood) {
-    document.querySelectorAll('.hari').forEach((m) => {
-      m.classList.remove('jump', 'oops');
+    document.querySelectorAll('svg.hari').forEach((m) => {
+      if (m.closest('#winBox')) return;
+      m.classList.remove('jump', 'oops', 'happy');
       void m.getBoundingClientRect();
-      m.classList.add(mood === 'win' ? 'jump' : 'oops');
+      m.classList.add(...(mood === 'oops' ? ['oops'] : ['happy', 'jump']));
+      clearTimeout(m._t);
+      m._t = setTimeout(() => m.classList.remove('jump', 'oops', 'happy'), mood === 'oops' ? 900 : 1900);
     });
+  }
+  function hearts(host) {
+    for (let i = 0; i < 7; i++) {
+      const h = document.createElement('span');
+      h.className = 'heart';
+      h.style.setProperty('--x', `${Math.round(Math.random() * 120 - 60)}px`);
+      h.style.setProperty('--r', `${Math.round(Math.random() * 60 - 30)}deg`);
+      h.style.animationDelay = `${i * 70}ms`;
+      h.innerHTML = ICON.heart;
+      host.appendChild(h);
+      setTimeout(() => h.remove(), 1600);
+    }
   }
   G.addEventListener('pointermove', (e) => {
     document.querySelectorAll('.hari .hari-shine').forEach((s) => {
       const r = s.ownerSVGElement.getBoundingClientRect();
       const dx = (e.clientX - (r.left + r.width / 2)) / G.innerWidth;
       const dy = (e.clientY - (r.top + r.height / 2)) / G.innerHeight;
-      s.style.transform = `translate(${(dx * 10).toFixed(1)}px, ${(dy * 8).toFixed(1)}px)`;
+      s.style.transform = `translate(${(dx * 9).toFixed(1)}px, ${(dy * 7).toFixed(1)}px)`;
     });
   }, { passive: true });
 
   /* ---------- Home ---------- */
   function renderHome() {
-    const cards = HH.games.map((g) => `
-      <button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id})">
-        <span class="card-art">${g.art()}</span>
+    const saves = HH.games.map((g) => ({ g, s: P.loadGame(g.id) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
+    const r = saves[0];
+    const resume = r ? `
+      <button class="resume" data-game="${r.g.id}">
+        <span class="resume-art" style="--tint:var(--tint-${r.g.id})">${r.g.art()}</span>
+        <span class="resume-text">
+          <small><i class="dot"></i>${t('paused')}</small>
+          <b>${r.g.name}</b>
+          <span class="resume-meta"><span>${t('level')} ${r.s.level}</span><span>${ICON.clock}${fmt(r.s.elapsed)}</span><span>${ICON.paw}${nf(r.s.state.moves)}</span></span>
+        </span>
+        <span class="candy">${ICON.play}<span>${t('resume')}</span></span>
+      </button>` : '';
+    const cards = HH.games.map((g, idx) => {
+      const p = P.get(g.id), s = P.loadGame(g.id);
+      return `<button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id});--i:${idx}">
+        <span class="card-art">
+          <span class="ribbon-tag">${t('level')} ${p.level}</span>
+          ${s ? `<span class="pause-tag">${ICON.pause}${fmt(s.elapsed)}</span>` : ''}
+          ${g.art()}
+        </span>
         <span class="card-body">
           <span class="card-title">${g.name}</span>
           <span class="card-rule">${t(g.rules)}</span>
-          <span class="card-foot"><span class="chip">${t('level')} ${levelOf(g.id)}</span><span class="play">${t('play')}</span></span>
+          <span class="card-stats"><span class="stars" aria-hidden="true">${stars(p.last)}</span><span class="best" title="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span></span>
+          <span class="card-foot"><span class="wins">${t('wins')} <b>${nf(p.wins)}</b></span><span class="candy">${ICON.play}<span>${t(s ? 'resume' : 'play')}</span></span></span>
         </span>
-      </button>`).join('');
+      </button>`;
+    }).join('');
     const soon = SOON.map((g) => `
       <div class="card soon" aria-disabled="true">
         <span class="card-art">${g.art}</span>
@@ -68,82 +144,166 @@
       </div>`).join('');
     $('#home').innerHTML = `
       <section class="hero">
-        <div class="hero-mascot" id="heroMascot"></div>
+        <div class="hero-stage">
+          <span class="cloud-seat" aria-hidden="true"></span>
+          <button class="hero-mascot" id="heroMascot" aria-label="Hari">${HH.mascot.svg({ cls: 'hari' })}</button>
+        </div>
         <div class="hero-copy">
           <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle"><span>Hari</span><span>Hari</span><em>Puzzle</em></h1>
+          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span></h1>
           <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
         </div>
       </section>
+      ${resume}
       <section class="grid-cards" aria-label="Games">${cards}</section>
-      <h2 class="soon-title">${t('soon')}</h2>
+      <h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
       <section class="grid-cards small">${soon}</section>`;
-    mountMascot($('#heroMascot'));
   }
 
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
     const g = HH.games.find((x) => x.id === id);
     if (!g) return;
-    state.game = g;
+    persist();
+    S.game = g; S.inst = null; S.won = false;
+    const saved = P.loadGame(id);
+    S.elapsed = saved ? saved.elapsed || 0 : 0;
+    HH.store.set('screen', id);
+    const p = P.get(id);
     $('#home').hidden = true;
     const scr = $('#game');
     scr.hidden = false;
     scr.innerHTML = `
       <header class="g-head">
-        <button class="icon-btn" id="gBack" aria-label="Back">${ICON.back}</button>
-        <div class="g-title"><h2>${g.name}</h2><span class="chip" id="gLevel"></span></div>
-        <span class="chip moves"><span>${t('moves')}</span><b id="gMoves">0</b></span>
+        <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
+        <div class="g-title"><h2>${g.name}</h2><span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span></div>
       </header>
-      <div class="board" id="board"></div>
+      <div class="hud">
+        <span class="chip" aria-label="${t('time')}">${ICON.clock}<b id="hTime">${fmt(S.elapsed)}</b></span>
+        <span class="chip" aria-label="${t('moves')}">${ICON.paw}<b id="hMoves">0</b></span>
+        <span class="chip stars" id="hStars" aria-hidden="true"></span>
+        <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>
+      </div>
+      <div class="plate ${g.plate || ''}"><div class="board" id="board"></div></div>
       <div class="g-tools">
         <button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
-        <button class="tool main" id="gNew">${ICON.sparkle}<span>${t('newg')}</span></button>
+        <button class="candy" id="gNew">${ICON.sparkle}<span>${t('newg')}</span></button>
       </div>
-      <aside class="rules"><div class="rules-hari" id="rulesHari"></div><p>${t(g.rules)}</p></aside>`;
-    mountMascot($('#rulesHari'));
+      <aside class="rules"><div class="rules-hari">${HH.mascot.svg({ cls: 'hari' })}</div><p>${t(g.rules)}</p></aside>`;
     const ctx = {
-      get level() { return levelOf(g.id); },
-      moves(n) { state.moves = n; const m = $('#gMoves'); if (m) m.textContent = n; },
-      win, sfx, react,
+      get level() { return P.get(g.id).level; },
+      sfx, react, win,
+      changed(o) {
+        if (o && o.reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; }
+        if (!S.inst) return;
+        hud(); persist();
+      },
     };
-    state.inst = g.create($('#board'), ctx);
-    $('#gLevel').textContent = `${t('level')} ${levelOf(g.id)}`;
-    $('#gBack').onclick = () => (push ? history.back() : goHome());
-    $('#gUndo').onclick = () => state.inst.undo();
-    $('#gRestart').onclick = () => state.inst.restart();
-    $('#gNew').onclick = () => state.inst.fresh();
-    if (push) try { history.pushState({ game: id }, ''); } catch (e) { /* sandbox */ }
-    G.scrollTo(0, 0);
+    S.inst = g.create($('#board'), ctx, saved && saved.state);
+    hud(); persist();
+    $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
+    $('#gUndo').onclick = () => S.inst.undo();
+    $('#gRestart').onclick = () => S.inst.restart();
+    $('#gNew').onclick = () => { S.inst.fresh(); sfx.pick(); };
+    if (push) {
+      try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
+      G.scrollTo(0, 0);
+    }
   }
 
   function goHome() {
-    state.game = null; state.inst = null;
+    persist();
+    S.game = null; S.inst = null;
+    HH.store.set('screen', null);
     $('#game').hidden = true; $('#game').innerHTML = '';
     $('#home').hidden = false;
     renderHome();
   }
-  G.addEventListener('popstate', () => { if (state.game) goHome(); });
+  G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
   function win() {
-    const g = state.game;
-    if (!g || !$('#winDlg').hidden) return;
-    HH.store.set('level:' + g.id, levelOf(g.id) + 1);
-    sfx.win(); react('win');
+    const g = S.game;
+    if (!g || S.won) return;
+    S.won = true;
+    const snap = S.inst.snapshot();
+    const p = P.get(g.id);
+    const level = p.level;
+    const st = g.rate(snap);
+    const timeBonus = Math.max(0, Math.round((g.parTime(snap) - S.elapsed) * 2));
+    const score = 100 + level * 25 + st * 60 + timeBonus;
+    const rec = score > p.best;
+    Object.assign(p, {
+      level: level + 1, wins: p.wins + 1, total: p.total + score, stars: p.stars + st, last: st,
+      best: Math.max(p.best, score), bestTime: p.bestTime ? Math.min(p.bestTime, S.elapsed) : S.elapsed,
+    });
+    P.set(g.id, p);
+    P.clearGame(g.id);
+    updateScore();
+    react('win');
+    sfx.win();
     HH.fx.confetti($('#fxCanvas'));
     $('#winDlg').hidden = false;
     $('#winBox').innerHTML = `
-      <div class="win-hari">${HH.mascot.svg({ cls: 'hari jump' })}</div>
-      <h2>${t('win')}</h2>
-      <p class="win-stats"><span>${t('moves')} <b>${state.moves}</b></span><span>${t('level')} <b>${levelOf(g.id)}</b></span></p>
-      <button class="tool main" id="winNext">${ICON.sparkle}<span>${t('next')}</span></button>`;
+      <div class="win-rays" aria-hidden="true"></div>
+      <div class="win-hari">${HH.mascot.svg({ cls: 'hari happy jump' })}</div>
+      <h2 class="ribbon"><span>${t('win')}</span></h2>
+      <div class="win-stars">${[0, 1, 2].map((i) => `<span class="ws${i < st ? ' on' : ''}" style="--d:${0.35 + i * 0.3}s">${STAR(i < st)}</span>`).join('')}</div>
+      ${rec ? `<p class="newrec">${ICON.trophy}${t('newrec')}</p>` : ''}
+      <dl class="win-stats">
+        <div><dt>${ICON.clock}${t('time')}</dt><dd>${fmt(S.elapsed)}</dd></div>
+        <div><dt>${ICON.paw}${t('moves')}</dt><dd>${nf(snap.moves)}</dd></div>
+        <div class="hi"><dt>${ICON.acorn}${t('score')}</dt><dd id="winScore">0</dd></div>
+      </dl>
+      <div class="win-actions">
+        <button class="tool round" id="winHome" aria-label="Home">${ICON.home}</button>
+        <button class="candy big" id="winNext">${ICON.sparkle}<span>${t('next')}</span></button>
+      </div>`;
+    for (let i = 0; i < st; i++) setTimeout(sfx.star, 350 + i * 300);
+    const t0 = performance.now(), dur = 1100;
+    (function count(now) {
+      const k = Math.min(1, (now - t0) / dur);
+      const el = $('#winScore');
+      if (!el) return;
+      el.textContent = nf(Math.round(score * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) requestAnimationFrame(count);
+    })(t0);
     $('#winNext').focus();
     $('#winNext').onclick = () => {
       $('#winDlg').hidden = true;
-      $('#gLevel').textContent = `${t('level')} ${levelOf(g.id)}`;
-      state.inst.fresh();
+      $('#gLevel').textContent = `${t('level')} ${P.get(g.id).level}`;
+      S.inst.fresh();
     };
+    $('#winHome').onclick = () => {
+      $('#winDlg').hidden = true;
+      if (S.pushed) history.back(); else goHome();
+    };
+  }
+
+  /* ---------- Progressi ---------- */
+  function openStats() {
+    const rows = HH.games.map((g) => {
+      const p = P.get(g.id);
+      return `<div class="stat-row" style="--tint:var(--tint-${g.id})">
+        <span class="stat-art">${g.art()}</span>
+        <div class="stat-main">
+          <div class="stat-name"><b>${g.name}</b><span class="stars">${stars(p.last)}</span></div>
+          <dl class="stat-grid">
+            <div><dt>${t('level')}</dt><dd>${p.level}</dd></div>
+            <div><dt>${t('wins')}</dt><dd>${nf(p.wins)}</dd></div>
+            <div><dt>${t('best')}</dt><dd>${nf(p.best)}</dd></div>
+            <div><dt>${t('time')}</dt><dd>${p.bestTime ? fmt(p.bestTime) : '—'}</dd></div>
+            <div><dt>${STAR(true)}</dt><dd>${nf(p.stars)}</dd></div>
+          </dl>
+        </div>
+      </div>`;
+    }).join('');
+    $('#statsTitle').textContent = t('stats');
+    $('#statsBody').innerHTML = `
+      <div class="stat-total">${ICON.acorn}<div><small>${t('score')}</small><b>${nf(P.totalScore())}</b></div><div class="stat-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div></div>
+      ${rows}`;
+    $('#statsDlg').hidden = false;
+    $('#statsClose').focus();
   }
 
   /* ---------- Lingue ---------- */
@@ -155,8 +315,11 @@
 
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
+    $('#scoreChip').setAttribute('aria-label', t('stats'));
     $('#installBtn span').textContent = t('install');
-    if (state.game) openGame(state.game.id, false); else renderHome();
+    $('#langCode').textContent = HH.i18n.code.toUpperCase();
+    updateScore();
+    if (S.game) { persist(); openGame(S.game.id, false); } else renderHome();
   }
 
   /* ---------- Avvio ---------- */
@@ -167,22 +330,29 @@
     document.documentElement.classList.toggle('muted', sfx.isMuted());
 
     $('#brand').insertAdjacentHTML('afterbegin', HH.mascot.mini());
-    $('#langBtn').innerHTML = ICON.globe + `<span id="langCode">${HH.i18n.code.toUpperCase()}</span>`;
+    $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
     $('#soundBtn').innerHTML = ICON.sound;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
+    $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
     $('#home').addEventListener('click', (e) => {
+      const hm = e.target.closest('#heroMascot');
+      if (hm) { react('happy'); sfx.giggle(); hearts(hm.parentElement); return; }
       const c = e.target.closest('[data-game]');
       if (c) { sfx.tap(); openGame(c.dataset.game); }
     });
-    $('#langBtn').onclick = () => { renderLangSheet(); $('#langDlg').hidden = false; $('.lang.cur') && $('.lang.cur').focus(); };
-    $('#langClose').onclick = () => { $('#langDlg').hidden = true; };
-    $('#langDlg').addEventListener('click', (e) => {
-      if (e.target.id === 'langDlg') { $('#langDlg').hidden = true; return; }
+    $('#langBtn').onclick = () => { renderLangSheet(); $('#langDlg').hidden = false; const cur = $('.lang.cur'); if (cur) cur.focus(); };
+    $('#scoreChip').onclick = openStats;
+    const closeOverlay = (dlg) => { dlg.hidden = true; };
+    ['#langDlg', '#statsDlg'].forEach((sel) => {
+      $(sel).addEventListener('click', (e) => {
+        if (e.target === $(sel) || e.target.closest('.close')) closeOverlay($(sel));
+      });
+    });
+    $('#langList').addEventListener('click', (e) => {
       const b = e.target.closest('[data-lang]');
       if (!b) return;
       HH.i18n.set(b.dataset.lang);
-      $('#langCode').textContent = HH.i18n.code.toUpperCase();
       $('#langDlg').hidden = true;
       applyTexts();
     });
@@ -193,7 +363,7 @@
       sfx.tap();
     };
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { $('#langDlg').hidden = true; }
+      if (e.key === 'Escape') { $('#langDlg').hidden = true; $('#statsDlg').hidden = true; }
     });
 
     // PWA: installazione su Android
@@ -208,7 +378,11 @@
     if ('serviceWorker' in navigator && location.protocol === 'https:' && !HH.INLINE) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+
     applyTexts();
+    // riapertura dell'app: si torna alla partita in sospeso
+    const last = HH.store.get('screen');
+    if (last && P.loadGame(last)) openGame(last);
   }
 
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();
