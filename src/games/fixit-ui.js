@@ -282,8 +282,27 @@
     };
   }
 
+  /* tutorial della prima partita */
+  const tTool = (t, x, y, s = 30) => `<svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox="0 0 40 40">${K.TOOL_SVG[t]}</svg>`;
+  const tSpot = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="5 4"/><circle cx="${x + w}" cy="${y}" r="6" fill="var(--accent)"/><text x="${x + w}" y="${y + 3.6}" font-size="9" font-weight="800" text-anchor="middle" fill="var(--accent-ink)">!</text>`;
+  const TUT = [
+    { key: 'tu_fixit_1', en: 'Tap a problem, then the right tool from the toolbox.',
+      art: `<svg viewBox="0 0 120 90"><path d="M20 44L48 22L76 44Z" fill="var(--fi-roof)" stroke="var(--fi-ink)" stroke-width="2"/><rect x="26" y="44" width="44" height="30" fill="var(--fi-wall)" stroke="var(--fi-ink)" stroke-width="2"/>
+        <path d="M44 50l-4 6 5 3-4 6" fill="none" stroke="var(--fi-ink)" stroke-width="1.8"/>${tSpot(34, 47, 22, 22)}
+        <rect x="84" y="20" width="30" height="62" rx="8" fill="var(--fi-box)"/>${tTool('trowel', 86, 24, 26)}${tTool('hammer', 86, 52, 26)}${HH.tutHand(99, 38)}</svg>` },
+    { key: 'tu_fixit_2', en: 'Order matters: fix the ladder first, then the roof!',
+      art: `<svg viewBox="0 0 120 90"><path d="M14 50L50 22L86 50Z" fill="var(--fi-roof)" stroke="var(--fi-ink)" stroke-width="2"/><circle cx="56" cy="38" r="6" fill="var(--fi-hole)"/>
+        <path d="M94 84L100 22M110 84L114 22M96 72h15M97 58h15M98 44h15M99 32h14" stroke="var(--fi-wood)" stroke-width="3.4" stroke-linecap="round"/>
+        <text x="100" y="16" font-size="12" font-weight="800" fill="var(--accent-2)" text-anchor="middle">1</text><text x="56" y="20" font-size="12" font-weight="800" fill="var(--accent-2)" text-anchor="middle">2</text>
+        <path d="M94 50Q76 30 64 38" fill="none" stroke="var(--bad)" stroke-width="2.6" stroke-dasharray="3 5" stroke-linecap="round"/></svg>` },
+    { key: 'tu_fixit_3', en: 'Wrong order costs a heart, and an arrow shows what comes first.',
+      art: `<svg viewBox="0 0 120 90"><g class="tut-bad"><path d="M60 30c-9-7-14-12-14-17a7 7 0 0 1 14-2a7 7 0 0 1 14 2c0 5-5 10-14 17z" fill="var(--bad)"/></g>
+        <path d="M24 70Q60 40 96 66" fill="none" stroke="var(--bad)" stroke-width="3" stroke-dasharray="3 7" stroke-linecap="round"/><path d="M96 66l-8-1 3 7z" fill="var(--bad)"/>
+        ${tSpot(10, 60, 26, 22)}${tSpot(84, 56, 26, 22)}</svg>` },
+  ];
   HH.games.push({
     id: 'fixit', name: 'Fix-It House', rules: 'r5', art, create, lives: LIVES,
+    tutorial: TUT,
     rate: (s) => HH.fixit.rate(s),
     parTime: (s) => (s.problems ? s.problems.length : 5) * 15,
     progress: (s) => HH.fixit.progress(s),

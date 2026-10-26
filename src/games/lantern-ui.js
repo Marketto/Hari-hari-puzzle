@@ -118,8 +118,18 @@
     };
   }
 
+  /* tutorial della prima partita */
+  const tGrid = (on) => Array.from({ length: 9 }, (_, i) => { const x = 30 + (i % 3) * 30, y = 15 + Math.floor(i / 3) * 30;
+    return `<circle cx="${x}" cy="${y}" r="11" fill="url(#${on.includes(i) ? 'lnOn' : 'lnOff'})" stroke="var(--ink)" stroke-width="1.6"/>`; }).join('');
+  const TUT = [
+    { key: 'tu_lantern_1', en: 'Tap a lantern: it flips together with its four neighbours.',
+      art: `<svg viewBox="0 0 120 90"><g class="tut-swap-a">${tGrid([0, 2, 6, 8])}</g><g class="tut-swap-b">${tGrid([0, 1, 2, 3, 4, 5, 6, 7, 8])}</g>${HH.tutHand(60, 47)}</svg>` },
+    { key: 'tu_lantern_2', en: 'Light them all before you run out of moves!',
+      art: `<svg viewBox="0 0 120 90"><g class="tut-pulse">${tGrid([0, 1, 2, 3, 4, 5, 6, 7, 8])}</g></svg>` },
+  ];
   HH.games.push({
     id: 'lantern', name: 'Lantern Glow', rules: 'r3', art, create, plate: 'night',
+    tutorial: TUT,
     // fragoline: 3 col minimo esatto, 2 entro il 70% delle mosse in più, 1 oltre
     rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => s.n * s.n * 3,

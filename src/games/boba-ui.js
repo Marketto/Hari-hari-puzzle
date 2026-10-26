@@ -405,8 +405,24 @@
     };
   }
 
+  /* tutorial della prima partita */
+  const tCup = (x, layers, top = 0) => `<g transform="translate(${x} ${top})"><path d="M0 22h22l-2 50a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z" fill="var(--card-solid)" stroke="var(--ink)" stroke-width="2"/>
+    ${layers.map((c, i) => `<path d="M${2.6 + i * 0.1} ${62 - i * 13}h${16.8 - i * 0.2}l-.5 ${13}H${3.1}z" transform="translate(0 0)" fill="var(--${c})"/>`).join('')}
+    <path d="M0 22h22" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/></g>`;
+  const TUT = [
+    { key: 'tu_boba_1', en: 'Tap a cup, then another: the top flavour pours across.',
+      art: `<svg viewBox="0 0 120 90">${tCup(26, ['f4', 'f0', 'f0'], -4)}${tCup(72, ['f2', 'f0'], -4)}${HH.tutHand(37, 52, 'tut-go', '--dx:46px;--dy:0px')}</svg>` },
+    { key: 'tu_boba_2', en: 'You can only pour onto an empty cup or onto the same flavour.',
+      art: `<svg viewBox="0 0 120 90">${tCup(14, ['f1', 'f0'])}${tCup(49, ['f2', 'f0'])}${tCup(84, [])}
+        <path d="M52 8l14 0M59 2l0 12" stroke="var(--mint-2)" stroke-width="3.4" stroke-linecap="round" transform="rotate(45 59 8)"/>
+        <path d="M88 4l8 8m0-8l-8 8" stroke="var(--mint-2)" stroke-width="0" /><path d="M92 6l3 4 7-8" fill="none" stroke="var(--mint-2)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>` },
+    { key: 'tu_boba_3', en: 'One flavour per cup wins — watch the moves left!',
+      art: `<svg viewBox="0 0 120 90">${tCup(14, ['f0', 'f0', 'f0', 'f0'])}${tCup(49, ['f4', 'f4', 'f4', 'f4'])}${tCup(84, ['f2', 'f2', 'f2', 'f2'])}
+        <g class="tut-pulse"><path d="M60 4l2.4 5 5.6.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.6-.8z" fill="var(--sun)"/></g></svg>` },
+  ];
   HH.games.push({
     id: 'boba', name: 'Boba Sort', rules: 'r2', art, create,
+    tutorial: TUT,
     // fragoline: 3 col minimo esatto, 2 se usi al massimo il 70% delle mosse in più concesse, 1 oltre
     rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => (s.start.length - 2) * 22,

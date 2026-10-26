@@ -601,12 +601,29 @@
       restart() { begin(P.newLevel(s.level, Math.random)); ctx.changed({ reset: true }); },
       // in tempo reale non si torna indietro: "Annulla" mette in pausa / riprende
       undo() { toggle(); },
+      pause() { pause(); },          // usato dall'app quando si apre il tutorial
+      resume() { resume(); },
       snapshot: () => s,
     };
   }
 
+  /* tutorial della prima partita */
+  const tPic = (svg, x, y, s) => svg.replace(/<svg class="[^"]*" viewBox/, `<svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox`);
+  const TUT = [
+    { key: 'tu_parade_1', en: 'Swipe or use the arrows to steer Hari.',
+      art: `<svg viewBox="0 0 120 90"><rect x="4" y="6" width="112" height="78" rx="14" fill="var(--pa-grass-1)"/>${tPic(BABY, 20, 34, 22)}${tPic(HEAD, 40, 30, 30)}
+        ${HH.tutHand(74, 62, 'tut-go', '--dx:30px;--dy:-24px')}</svg>` },
+    { key: 'tu_parade_2', en: 'Every fruit adds a baby hedgehog to the parade.',
+      art: `<svg viewBox="0 0 120 90"><rect x="4" y="6" width="112" height="78" rx="14" fill="var(--pa-grass-1)"/>${tPic(BABY, 10, 36, 22)}${tPic(BABY, 30, 36, 22)}${tPic(HEAD, 50, 32, 30)}
+        <g class="tut-pulse"><svg x="84" y="34" width="26" height="26" viewBox="0 0 100 100">${FRUIT.strawberry}</svg></g></svg>` },
+    { key: 'tu_parade_3', en: "Don't bump into the hedge, the obstacles or your own line!",
+      art: `<svg viewBox="0 0 120 90"><rect x="4" y="6" width="112" height="78" rx="14" fill="var(--pa-grass-1)" stroke="var(--pa-hedge)" stroke-width="5"/>${tPic(BABY, 26, 36, 22)}${tPic(HEAD, 46, 32, 30)}
+        <svg x="82" y="34" width="26" height="26" viewBox="0 0 100 100">${OBST[Object.keys(OBST)[0]]}</svg>
+        <g class="tut-bad"><path d="M78 30l-5-7M84 28V20M90 30l5-7" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/></g></svg>` },
+  ];
   HH.games.push({
     id: 'parade', name: 'Hari Parade', rules: 'r6', art, create, lives: 3,
+    tutorial: TUT,
     rate: (s) => HH.parade.rate(s),
     // circa mezza diagonale del prato per frutto, alla velocità del livello, più le pause "Pronti?"
     parTime: (s) => Math.round((s.goal * (s.cols + s.rows) * 0.55) / s.speed + 6),

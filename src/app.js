@@ -124,7 +124,7 @@
 
   // timer di gioco: avanza solo se la partita è visibile e non ancora vinta
   setInterval(() => {
-    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden) return;
+    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden || !$('#tutDlg').hidden) return;
     S.elapsed++;
     const tm = $('#hTime');
     if (tm) tm.textContent = fmt(S.elapsed);
@@ -239,6 +239,7 @@
       <header class="g-head">
         <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
         <div class="g-title"><h2>${g.name}</h2><span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span></div>
+        ${g.tutorial ? `<button class="icon-btn help" id="gHelp" aria-label="${lab('help', 'How to play')}">?</button>` : ''}
       </header>
       <div class="hud">
         <span class="chip" aria-label="${t('time')}">${ICON.clock}<b id="hTime">${fmt(S.elapsed)}</b></span>
@@ -279,6 +280,17 @@
         setTimeout(() => lose(kind), 450);
       },
     };
+    $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
+    if (push) {
+      try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
+      G.scrollTo(0, 0);
+    }
+    keepAwake(true);
+    // prima volta in questo gioco: tutorial PRIMA di creare la partita (così i giochi a tempo non partono dietro la finestra)
+    if (g.tutorial && !HH.store.get('tut:' + g.id)) tutorial(g, () => { if (S.game === g) begin(); });
+    else begin();
+
+    function begin() {
     try {
       S.inst = g.create($('#board'), ctx, saved && saved.state);
     } catch (err) {
@@ -295,21 +307,70 @@
     HH.music.duck(false);
     sfx.open();
     if (push) setTimeout(() => say('start', true), 650);
-    $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
-    $('#gUndo').onclick = () => S.inst.undo();
-    $('#gRestart').onclick = () => S.inst.restart();
-    $('#gNew').onclick = () => { S.inst.fresh(); sfx.blip(); };
-    if (push) {
-      try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
-      G.scrollTo(0, 0);
+    $('#gUndo').onclick = () => S.inst && S.inst.undo();
+    $('#gRestart').onclick = () => S.inst && S.inst.restart();
+    $('#gNew').onclick = () => { if (S.inst) { S.inst.fresh(); sfx.blip(); } };
+    const help = $('#gHelp');
+    if (help) help.onclick = () => {
+      if (S.inst && S.inst.pause) S.inst.pause();
+      tutorial(g, () => { if (S.inst && S.inst.resume) S.inst.resume(); });
+    };
     }
   }
+
+  /* ---------- tutorial (prima partita di ogni gioco, poi dal pulsante "?") ----------
+   * Ogni gioco può dichiarare tutorial: [{ key, en, art }] (art = SVG 120×90 animato con CSS). */
+  const lab = (k, en) => { const v = t(k); return v && v !== k ? v : en; };
+  function tutorial(g, done) {
+    const steps = g.tutorial;
+    let i = 0;
+    const dlg = $('#tutDlg'), box = $('#tutBox');
+    const close = () => {
+      dlg.hidden = true;
+      HH.store.set('tut:' + g.id, 1);
+      document.removeEventListener('keydown', onKey);
+      sfx.blip();
+      done && done();
+    };
+    const draw = () => {
+      const st = steps[i], last = i === steps.length - 1;
+      box.innerHTML = `<div class="sheet-head"><h2 id="tutTitle">${lab('help', 'How to play')} · ${g.name}</h2>
+          <button class="icon-btn close" id="tutSkip" aria-label="${lab('tutSkip', 'Skip')}">✕</button></div>
+        <div class="tut-stage" style="--tint:var(--tint-${g.id}, var(--hair))">${st.art || g.art()}<div class="tut-hari">${HH.mascot.mini()}</div></div>
+        <p class="tut-text">${lab(st.key, st.en)}</p>
+        <div class="tut-foot"><span class="tut-dots" aria-hidden="true">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</span>
+          <button class="candy" id="tutNext">${last ? ICON.sparkle : ''}<span>${last ? t('play') : t('next')}</span></button></div>`;
+      $('#tutNext').onclick = () => { if (last) close(); else { i++; sfx.tap(); draw(); } };
+      $('#tutSkip').onclick = close;
+      $('#tutNext').focus({ preventScroll: true });
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    dlg.hidden = false;
+    draw();
+  }
+
+  /* ---------- schermo sempre acceso durante la partita (Screen Wake Lock) ---------- */
+  let wake = null, wantWake = false;
+  async function keepAwake(on) {
+    wantWake = on;
+    try {
+      if (on && !wake && 'wakeLock' in G.navigator && document.visibilityState === 'visible') {
+        wake = await G.navigator.wakeLock.request('screen');
+        wake.addEventListener('release', () => { wake = null; });
+      } else if (!on && wake) { const w = wake; wake = null; await w.release(); }
+    } catch (e) { wake = null; /* non supportato o negato: nessun problema */ }
+  }
+  // il blocco si perde quando l'app va in background: lo riprendiamo al ritorno se si sta ancora giocando
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
   function goHome() {
     persist();
     hideSay();
     $('#loseDlg').hidden = true;
     S.game = null; S.inst = null;
+    keepAwake(false);
+    $('#tutDlg').hidden = true;
     HH.store.set('screen', null);
     $('#game').hidden = true; $('#game').innerHTML = '';
     $('#home').hidden = false;

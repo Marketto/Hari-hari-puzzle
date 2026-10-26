@@ -402,12 +402,30 @@
       restart() { cancelAnimationFrame(raf); raf = 0; s = S.newLevel(s.level, Math.random); s.moves = 0; s.mistakes = 0; build(); ctx.changed({ reset: true }); start(); },
       // annulla: toglie l'ultimo ingrediente dal tagliere
       undo() { if (!s.plate.length || S.isOver(s)) return; s.plate.pop(); renderBoard(); ctx.sfx.set(); ctx.changed(); },
+      // il nastro e la pazienza si fermano mentre è aperto il tutorial
+      pause() { cancelAnimationFrame(raf); raf = 0; },
+      resume() { if (!S.isOver(s)) start(); },
       snapshot: () => s,
     };
   }
 
+  /* tutorial della prima partita */
+  const tIng = (k, x, y, s = 26) => `<svg x="${x}" y="${y}" width="${s}" height="${s}" viewBox="0 0 40 40">${ING[k]}</svg>`;
+  const tAnimal = (a, x, y, w = 40) => `<svg x="${x}" y="${y}" width="${w}" height="${w * 1.25}" viewBox="0 0 64 80">${animalSVG(a).replace(/<svg[^>]*>|<\/svg>$/g, '')}</svg>`;
+  const TUT = [
+    { key: 'tu_sushi_1', en: 'Tap ingredients on the belt to put them on the board.',
+      art: `<svg viewBox="0 0 120 90"><rect x="4" y="18" width="112" height="30" rx="15" fill="var(--su-belt)"/>${tIng('rice', 12, 20)}${tIng('salmon', 48, 20)}${tIng('nori', 84, 20)}
+        <rect x="20" y="62" width="80" height="22" rx="8" fill="var(--su-board)"/>${HH.tutHand(61, 34)}</svg>` },
+    { key: 'tu_sushi_2', en: 'When the dish matches the order, tap the customer to serve it.',
+      art: `<svg viewBox="0 0 120 90">${tAnimal('cat', 62, 22, 44)}<rect x="8" y="6" width="50" height="38" rx="14" fill="var(--su-bubble)" stroke="var(--su-bubble-line)" stroke-width="2"/>
+        <svg x="15" y="8" width="36" height="30" viewBox="0 0 48 40">${DISH.sake}</svg>${HH.tutHand(84, 56)}</svg>` },
+    { key: 'tu_sushi_3', en: "Wrong mix? Toss it in the bucket — and don't keep them waiting!",
+      art: `<svg viewBox="0 0 120 90"><svg x="14" y="18" width="50" height="50" viewBox="0 0 40 40">${BUCKET.replace(/<svg[^>]*>|<\/svg>$/g, '')}</svg>
+        <rect x="68" y="34" width="44" height="10" rx="5" fill="var(--card-solid)" stroke="var(--su-wood-3)" stroke-width="2"/><rect class="tut-pulse" x="70" y="36" width="12" height="6" rx="3" fill="var(--bad)"/>${HH.tutHand(40, 44)}</svg>` },
+  ];
   HH.games.push({
     id: 'sushi', name: 'Sushi Bar', rules: 'r4', art, create, lives: 3,
+    tutorial: TUT,
     rate: (s) => HH.sushi.rate(s),
     parTime: (s) => s.goal * 9,
     progress: (s) => Math.max(0, Math.min(1, s.served / s.goal)),
