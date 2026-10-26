@@ -1,1 +1,51 @@
-/* Fix-It House — stile dello scenario "kitchen" (token --fi-kitchen-*). */
+/* Fix-It House — stile dello scenario "kitchen" (token --fi-kitchen-*). Chiaro qui sotto, scuro nei due blocchi successivi. */
+:root {
+  --fi-kitchen-wall: #d8f4e8; --fi-kitchen-dot: #ffcfe2; --fi-kitchen-side: #bfe8d6; --fi-kitchen-ceil: #fff0f7;
+  --fi-kitchen-frame: #fffaf2; --fi-kitchen-tile: #fff8fc; --fi-kitchen-tile-2: #f6cfe3;
+  --fi-kitchen-floor-a: #fff4f9; --fi-kitchen-floor-b: #e4d3ff; --fi-kitchen-mat: #ffc2dc;
+  --fi-kitchen-cab: #fbc8de; --fi-kitchen-cab-2: #eaa2c4; --fi-kitchen-top: #fff3df; --fi-kitchen-top-2: #ecd2b2;
+  --fi-kitchen-oven: #d9c6ff; --fi-kitchen-oven-2: #b8a0ec; --fi-kitchen-inside: #5c4670;
+  --fi-kitchen-fridge: #c8efff; --fi-kitchen-fridge-2: #9fd6f0; --fi-kitchen-cold: #eefaff;
+  --fi-kitchen-lamp: #ffd1e6; --fi-kitchen-cake: #ffe0a6; --fi-kitchen-cream: #fff7fb; --fi-kitchen-burnt: #6b4a4a;
+  --fi-kitchen-heat: #ff9a62; --fi-kitchen-smoke: rgba(110, 96, 120, .75);
+  --fi-kitchen-plate: #ffffff; --fi-kitchen-grime: #b8915e;
+  --fi-kitchen-gloom: #3b2350; --fi-kitchen-sun: rgba(255, 240, 170, .7);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fi-kitchen-wall: #6f9d8f; --fi-kitchen-dot: #c48aa6; --fi-kitchen-side: #5b8578; --fi-kitchen-ceil: #b98fae;
+    --fi-kitchen-frame: #e9d9e4; --fi-kitchen-tile: #e6d3e2; --fi-kitchen-tile-2: #c497b4;
+    --fi-kitchen-floor-a: #b9a3c4; --fi-kitchen-floor-b: #7f69ad; --fi-kitchen-mat: #c97ea5;
+    --fi-kitchen-cab: #d38fb2; --fi-kitchen-cab-2: #b06d92; --fi-kitchen-top: #e8d6c3; --fi-kitchen-top-2: #bfa48a;
+    --fi-kitchen-oven: #9f86d6; --fi-kitchen-oven-2: #7d64b6; --fi-kitchen-inside: #2e2140;
+    --fi-kitchen-fridge: #8fc2dc; --fi-kitchen-fridge-2: #6d9fbd; --fi-kitchen-cold: #cfe8f6;
+    --fi-kitchen-lamp: #e4a3c4; --fi-kitchen-cake: #e8c27e; --fi-kitchen-cream: #f6e6ef; --fi-kitchen-burnt: #3e2a2e;
+    --fi-kitchen-heat: #e57a48; --fi-kitchen-smoke: rgba(70, 60, 85, .8);
+    --fi-kitchen-plate: #f1e6f0; --fi-kitchen-grime: #8d6a44;
+    --fi-kitchen-gloom: #120a20; --fi-kitchen-sun: rgba(255, 228, 150, .45);
+  }
+}
+:root[data-theme="dark"] {
+  --fi-kitchen-wall: #6f9d8f; --fi-kitchen-dot: #c48aa6; --fi-kitchen-side: #5b8578; --fi-kitchen-ceil: #b98fae;
+  --fi-kitchen-frame: #e9d9e4; --fi-kitchen-tile: #e6d3e2; --fi-kitchen-tile-2: #c497b4;
+  --fi-kitchen-floor-a: #b9a3c4; --fi-kitchen-floor-b: #7f69ad; --fi-kitchen-mat: #c97ea5;
+  --fi-kitchen-cab: #d38fb2; --fi-kitchen-cab-2: #b06d92; --fi-kitchen-top: #e8d6c3; --fi-kitchen-top-2: #bfa48a;
+  --fi-kitchen-oven: #9f86d6; --fi-kitchen-oven-2: #7d64b6; --fi-kitchen-inside: #2e2140;
+  --fi-kitchen-fridge: #8fc2dc; --fi-kitchen-fridge-2: #6d9fbd; --fi-kitchen-cold: #cfe8f6;
+  --fi-kitchen-lamp: #e4a3c4; --fi-kitchen-cake: #e8c27e; --fi-kitchen-cream: #f6e6ef; --fi-kitchen-burnt: #3e2a2e;
+  --fi-kitchen-heat: #e57a48; --fi-kitchen-smoke: rgba(70, 60, 85, .8);
+  --fi-kitchen-plate: #f1e6f0; --fi-kitchen-grime: #8d6a44;
+  --fi-kitchen-gloom: #120a20; --fi-kitchen-sun: rgba(255, 228, 150, .45);
+}
+
+.fi-sc-kitchen .fi-kitchen-swing { transform-box: fill-box; transform-origin: 0 0; animation: fi-kitchen-swing 2.6s ease-in-out infinite; }
+.fi-sc-kitchen .fi-kitchen-wind { animation-duration: 1.1s; }
+.fi-sc-kitchen .fi-kitchen-bob { transform-box: fill-box; transform-origin: center; animation: fi-kitchen-bob 2.2s ease-in-out infinite; }
+.fi-sc-kitchen .fi-kitchen-bub { animation: fi-kitchen-bub 3.2s ease-out infinite; opacity: 0; }
+.fi-sc-kitchen .fi-kitchen-hearts { animation: fi-kitchen-bob 2.4s ease-in-out infinite; }
+@keyframes fi-kitchen-swing { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(5deg); } }
+@keyframes fi-kitchen-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2.5px) rotate(3deg); } }
+@keyframes fi-kitchen-bub { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-22px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fi-sc-kitchen .fi-kitchen-bub { opacity: 1; }
+}

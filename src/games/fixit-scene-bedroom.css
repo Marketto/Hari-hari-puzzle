@@ -1,1 +1,55 @@
-/* Fix-It House — stile dello scenario "bedroom" (token --fi-bedroom-*). */
+/* Fix-It House — stile dello scenario "bedroom" (token --fi-bedroom-*). Chiaro qui sotto, scuro nei due blocchi successivi. */
+:root {
+  --fi-bedroom-wall: #f6ecff; --fi-bedroom-wall-2: #e9d9fb; --fi-bedroom-motif: #ffcde3; --fi-bedroom-star: #ffe08a;
+  --fi-bedroom-wains: #ffdcec; --fi-bedroom-trim: #ffffff; --fi-bedroom-trim-2: #f7bcd8; --fi-bedroom-faded: #d9cfd6;
+  --fi-bedroom-floor: #f4cfae; --fi-bedroom-floor-2: #dca582;
+  --fi-bedroom-bed: #fff3fa; --fi-bedroom-bed-2: #f6c2dc;
+  --fi-bedroom-sheet: #ffffff; --fi-bedroom-sheet-2: #e6dcf7;
+  --fi-bedroom-blanket: #a6e6d0; --fi-bedroom-blanket-2: #74c9ab; --fi-bedroom-blanket-dot: #ffffff;
+  --fi-bedroom-pillow: #ffd3e7; --fi-bedroom-pillow-2: #ff9fc8;
+  --fi-bedroom-carpet: #cdb6ff; --fi-bedroom-carpet-2: #9f84e6;
+  --fi-bedroom-stand: #ffeacb; --fi-bedroom-stand-2: #ecc897;
+  --fi-bedroom-clock: #9fd8ff; --fi-bedroom-clock-2: #ff9fc8;
+  --fi-bedroom-wet: rgba(63, 159, 226, .38); --fi-bedroom-poster: #fff7dc;
+  --fi-bedroom-teddy: #edbd96; --fi-bedroom-teddy-2: #fbe2cc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fi-bedroom-wall: #574479; --fi-bedroom-wall-2: #46366a; --fi-bedroom-motif: #75589c; --fi-bedroom-star: #c6ae5c;
+    --fi-bedroom-wains: #6b4a7e; --fi-bedroom-trim: #dccbea; --fi-bedroom-trim-2: #8f6aa6; --fi-bedroom-faded: #8b7f8f;
+    --fi-bedroom-floor: #8a6149; --fi-bedroom-floor-2: #694634;
+    --fi-bedroom-bed: #e6d5ec; --fi-bedroom-bed-2: #bf98cf;
+    --fi-bedroom-sheet: #eee5f6; --fi-bedroom-sheet-2: #bcaed6;
+    --fi-bedroom-blanket: #5fae95; --fi-bedroom-blanket-2: #3f8770; --fi-bedroom-blanket-dot: #dff5ec;
+    --fi-bedroom-pillow: #e9adcb; --fi-bedroom-pillow-2: #c97aa5;
+    --fi-bedroom-carpet: #8f75cf; --fi-bedroom-carpet-2: #6a54aa;
+    --fi-bedroom-stand: #d9bd93; --fi-bedroom-stand-2: #ad8d63;
+    --fi-bedroom-clock: #73a3dc; --fi-bedroom-clock-2: #d982ad;
+    --fi-bedroom-wet: rgba(120, 180, 255, .4); --fi-bedroom-poster: #eadfbf;
+    --fi-bedroom-teddy: #c99872; --fi-bedroom-teddy-2: #e5c7aa;
+  }
+}
+:root[data-theme="dark"] {
+  --fi-bedroom-wall: #574479; --fi-bedroom-wall-2: #46366a; --fi-bedroom-motif: #75589c; --fi-bedroom-star: #c6ae5c;
+  --fi-bedroom-wains: #6b4a7e; --fi-bedroom-trim: #dccbea; --fi-bedroom-trim-2: #8f6aa6; --fi-bedroom-faded: #8b7f8f;
+  --fi-bedroom-floor: #8a6149; --fi-bedroom-floor-2: #694634;
+  --fi-bedroom-bed: #e6d5ec; --fi-bedroom-bed-2: #bf98cf;
+  --fi-bedroom-sheet: #eee5f6; --fi-bedroom-sheet-2: #bcaed6;
+  --fi-bedroom-blanket: #5fae95; --fi-bedroom-blanket-2: #3f8770; --fi-bedroom-blanket-dot: #dff5ec;
+  --fi-bedroom-pillow: #e9adcb; --fi-bedroom-pillow-2: #c97aa5;
+  --fi-bedroom-carpet: #8f75cf; --fi-bedroom-carpet-2: #6a54aa;
+  --fi-bedroom-stand: #d9bd93; --fi-bedroom-stand-2: #ad8d63;
+  --fi-bedroom-clock: #73a3dc; --fi-bedroom-clock-2: #d982ad;
+  --fi-bedroom-wet: rgba(120, 180, 255, .4); --fi-bedroom-poster: #eadfbf;
+  --fi-bedroom-teddy: #c99872; --fi-bedroom-teddy-2: #e5c7aa;
+}
+
+/* animazioni proprie della cameretta */
+.fi-sc-bedroom .fi-bedroom-tick { transform-box: view-box; transform-origin: 192px 218px; animation: fi-spin 6s steps(30, end) infinite; }
+.fi-sc-bedroom .fi-bedroom-billow { transform-box: fill-box; transform-origin: 50% 0; animation: fi-bedroom-billow 1.7s ease-in-out infinite; }
+.fi-sc-bedroom .fi-bedroom-creak { transform-box: view-box; transform-origin: 284px 126px; animation: fi-bedroom-creak 2.4s ease-in-out infinite; }
+.fi-sc-bedroom .fi-bedroom-gust { animation: fi-bedroom-gust .7s linear infinite; }
+.fi-sc-bedroom .fi-bedroom-blink { animation: fi-blink 1.1s ease-in-out infinite; }
+@keyframes fi-bedroom-billow { 0%, 100% { transform: skewX(-3deg); } 50% { transform: skewX(4deg) scaleY(1.02); } }
+@keyframes fi-bedroom-creak { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(3deg); } }
+@keyframes fi-bedroom-gust { 0% { transform: translate(0, 0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(-10px, 16px); opacity: 0; } }

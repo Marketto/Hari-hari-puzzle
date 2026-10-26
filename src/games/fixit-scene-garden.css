@@ -1,1 +1,43 @@
-/* Fix-It House — stile dello scenario "garden" (token --fi-garden-*). */
+/* Fix-It House — stile dello scenario "garden" (token --fi-garden-*). Chiaro qui sotto, scuro nei due blocchi successivi. */
+:root {
+  --fi-garden-terra: #f4a582; --fi-garden-terra-2: #dc7c5f;
+  --fi-garden-rope: #f6dca8; --fi-garden-rope-2: #c79a62;
+  --fi-garden-can: #a8e6d6; --fi-garden-can-2: #62c2aa;
+  --fi-garden-hose: #9be3a9; --fi-garden-frame: #ffffff;
+  --fi-garden-in: #e4f8ee; --fi-garden-in-2: #c9efdc;
+  --fi-garden-path: #f8e6d8; --fi-garden-path-2: #e3c7b4;
+  --fi-garden-dry: #d8b48e; --fi-garden-wet: #7d4f34; --fi-garden-dry-leaf: #c2b07a;
+  --fi-garden-bird: #a6d4ff; --fi-garden-bird-2: #6faee9; --fi-garden-bh: #ffe9a8;
+  --fi-garden-blossom: #ffc4dc; --fi-garden-cut: #f6d9b6;
+  --fi-garden-pond: #a9ddff; --fi-garden-pad: #93dba2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fi-garden-terra: #d98466; --fi-garden-terra-2: #b4604a;
+    --fi-garden-rope: #e0c48e; --fi-garden-rope-2: #a77f4c;
+    --fi-garden-can: #79bfae; --fi-garden-can-2: #4f9c8a;
+    --fi-garden-hose: #6fbf80; --fi-garden-frame: #ecdff2;
+    --fi-garden-in: #3f5e60; --fi-garden-in-2: #33504f;
+    --fi-garden-path: #b89a8c; --fi-garden-path-2: #957a6e;
+    --fi-garden-dry: #a8865f; --fi-garden-wet: #5a3826; --fi-garden-dry-leaf: #978a5c;
+    --fi-garden-bird: #86b6ec; --fi-garden-bird-2: #5a8fd0; --fi-garden-bh: #e6cf8a;
+    --fi-garden-blossom: #e79cc0; --fi-garden-cut: #dcbf9c;
+    --fi-garden-pond: #5f86c4; --fi-garden-pad: #5e9e6e;
+  }
+}
+:root[data-theme="dark"] {
+  --fi-garden-terra: #d98466; --fi-garden-terra-2: #b4604a;
+  --fi-garden-rope: #e0c48e; --fi-garden-rope-2: #a77f4c;
+  --fi-garden-can: #79bfae; --fi-garden-can-2: #4f9c8a;
+  --fi-garden-hose: #6fbf80; --fi-garden-frame: #ecdff2;
+  --fi-garden-in: #3f5e60; --fi-garden-in-2: #33504f;
+  --fi-garden-path: #b89a8c; --fi-garden-path-2: #957a6e;
+  --fi-garden-dry: #a8865f; --fi-garden-wet: #5a3826; --fi-garden-dry-leaf: #978a5c;
+  --fi-garden-bird: #86b6ec; --fi-garden-bird-2: #5a8fd0; --fi-garden-bh: #e6cf8a;
+  --fi-garden-blossom: #e79cc0; --fi-garden-cut: #dcbf9c;
+  --fi-garden-pond: #5f86c4; --fi-garden-pad: #5e9e6e;
+}
+
+/* altalena riparata: dondola piano */
+.fi-sc-garden .fi-garden-swing { transform-box: fill-box; transform-origin: 50% 0; animation: fi-garden-swing 3.6s ease-in-out infinite; }
+@keyframes fi-garden-swing { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }

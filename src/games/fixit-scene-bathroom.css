@@ -1,1 +1,57 @@
 /* Fix-It House — stile dello scenario "bathroom" (token --fi-bathroom-*). */
+:root {
+  --fi-bathroom-wall: #eadfff; --fi-bathroom-wall-dot: #d6c4ff; --fi-bathroom-trim: #ffc2dc; --fi-bathroom-frame: #fffaf3;
+  --fi-bathroom-tile: #c6f0dd; --fi-bathroom-tile-2: #fff8f0; --fi-bathroom-grout: #a6d9c4;
+  --fi-bathroom-floor-a: #ffd3e5; --fi-bathroom-floor-b: #fff3f8; --fi-bathroom-floor-line: #efb2ca;
+  --fi-bathroom-tub: #ffc4dc; --fi-bathroom-tub-2: #f39dc1; --fi-bathroom-porcelain: #ffffff; --fi-bathroom-porcelain-2: #e3e9f6;
+  --fi-bathroom-gold: #ffd66e; --fi-bathroom-gold-2: #d9a03a; --fi-bathroom-foam: #ffffff;
+  --fi-bathroom-duck: #ffe266; --fi-bathroom-duck-2: #f0a830; --fi-bathroom-beak: #ff9a4a;
+  --fi-bathroom-towel-1: #ff9fc6; --fi-bathroom-towel-2: #9fe3c8; --fi-bathroom-towel-2b: #74c9a6; --fi-bathroom-towel-3: #c9b3ff;
+  --fi-bathroom-rug: #cbb6ff; --fi-bathroom-rug-2: #a48cee;
+  --fi-bathroom-mirror: #d9f1ff; --fi-bathroom-mirror-2: #b4dbf6;
+  --fi-bathroom-wicker: #f0cfa6; --fi-bathroom-wicker-2: #c99b6d;
+  --fi-bathroom-gloom: #2c1f4a; --fi-bathroom-ray: rgba(255, 238, 160, .4);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fi-bathroom-wall: #8c78c2; --fi-bathroom-wall-dot: #9d8bd0; --fi-bathroom-trim: #d987ae; --fi-bathroom-frame: #e6d8ea;
+    --fi-bathroom-tile: #74b4a0; --fi-bathroom-tile-2: #cdbedb; --fi-bathroom-grout: #5a8f80;
+    --fi-bathroom-floor-a: #b98aab; --fi-bathroom-floor-b: #d8c2d4; --fi-bathroom-floor-line: #94698a;
+    --fi-bathroom-tub: #e090b6; --fi-bathroom-tub-2: #b66a90; --fi-bathroom-porcelain: #ece2f3; --fi-bathroom-porcelain-2: #b7b2cc;
+    --fi-bathroom-gold: #e8c46c; --fi-bathroom-gold-2: #b58a38; --fi-bathroom-foam: #f1eaff;
+    --fi-bathroom-duck: #f0d058; --fi-bathroom-duck-2: #c98c28; --fi-bathroom-beak: #e88a3c;
+    --fi-bathroom-towel-1: #df84ad; --fi-bathroom-towel-2: #76bea2; --fi-bathroom-towel-2b: #579c80; --fi-bathroom-towel-3: #a891e0;
+    --fi-bathroom-rug: #8f7acb; --fi-bathroom-rug-2: #6d58a8;
+    --fi-bathroom-mirror: #a3c6e8; --fi-bathroom-mirror-2: #7fa6d0;
+    --fi-bathroom-wicker: #bc9670; --fi-bathroom-wicker-2: #8e6c4c;
+    --fi-bathroom-gloom: #0d0618; --fi-bathroom-ray: rgba(255, 228, 160, .3);
+  }
+}
+:root[data-theme="dark"] {
+  --fi-bathroom-wall: #8c78c2; --fi-bathroom-wall-dot: #9d8bd0; --fi-bathroom-trim: #d987ae; --fi-bathroom-frame: #e6d8ea;
+  --fi-bathroom-tile: #74b4a0; --fi-bathroom-tile-2: #cdbedb; --fi-bathroom-grout: #5a8f80;
+  --fi-bathroom-floor-a: #b98aab; --fi-bathroom-floor-b: #d8c2d4; --fi-bathroom-floor-line: #94698a;
+  --fi-bathroom-tub: #e090b6; --fi-bathroom-tub-2: #b66a90; --fi-bathroom-porcelain: #ece2f3; --fi-bathroom-porcelain-2: #b7b2cc;
+  --fi-bathroom-gold: #e8c46c; --fi-bathroom-gold-2: #b58a38; --fi-bathroom-foam: #f1eaff;
+  --fi-bathroom-duck: #f0d058; --fi-bathroom-duck-2: #c98c28; --fi-bathroom-beak: #e88a3c;
+  --fi-bathroom-towel-1: #df84ad; --fi-bathroom-towel-2: #76bea2; --fi-bathroom-towel-2b: #579c80; --fi-bathroom-towel-3: #a891e0;
+  --fi-bathroom-rug: #8f7acb; --fi-bathroom-rug-2: #6d58a8;
+  --fi-bathroom-mirror: #a3c6e8; --fi-bathroom-mirror-2: #7fa6d0;
+  --fi-bathroom-wicker: #bc9670; --fi-bathroom-wicker-2: #8e6c4c;
+  --fi-bathroom-gloom: #0d0618; --fi-bathroom-ray: rgba(255, 228, 160, .3);
+}
+
+/* paperella che dondola nell'acqua, vapore e bolle di sapone della vasca pronta, raggi di sole a fine livello */
+.fi-sc-bathroom .fi-bathroom-bob { transform-box: fill-box; transform-origin: center bottom; animation: fi-bathroom-bob 2.6s ease-in-out infinite; }
+.fi-sc-bathroom .fi-bathroom-steam path { animation: fi-bathroom-steam 3.2s ease-in-out infinite; opacity: 0; }
+.fi-sc-bathroom .fi-bathroom-steam path:nth-child(1) { animation-delay: .9s; }
+.fi-sc-bathroom .fi-bathroom-soap { animation: fi-bathroom-soap 5s ease-out infinite; opacity: 0; }
+.fi-sc-bathroom .fi-bathroom-rays { animation: fi-bathroom-rays 1.4s ease-out both; }
+@keyframes fi-bathroom-bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-2px) rotate(4deg); } }
+@keyframes fi-bathroom-steam { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: .8; } 100% { transform: translateY(-14px); opacity: 0; } }
+@keyframes fi-bathroom-soap { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 1; } 80% { opacity: .9; } 100% { transform: translate(-14px, -150px); opacity: 0; } }
+@keyframes fi-bathroom-rays { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .fi-sc-bathroom .fi-bathroom-steam path { opacity: .6; }
+  .fi-sc-bathroom .fi-bathroom-soap { display: none; }
+}
