@@ -24,6 +24,7 @@
   /* Geometria del bicchiere (unità SVG): bocca a y=22, fondo interno a y=144, 4 strati da 27 */
   const UNIT = 27, BASE = 144, VB_Y = -26, VB = `0 ${VB_Y} 60 186`;
   const CUP = 'M5 22L10.5 136Q12 146 21 146H39Q48 146 49.5 136L55 22Z';
+  const CUP_OPEN = 'M5 22L10.5 136Q12 146 21 146H39Q48 146 49.5 136L55 22'; // contorno senza il lato della bocca
   const PEARLS = [[18, 139], [26, 141], [34, 140], [42, 138], [22, 132], [31, 133], [39, 131]];
 
   // o: { done, justDone, lidDelay, fillFrom, fillDelay, fillDur, drain, drainDelay, drainDur, attrs }
@@ -61,8 +62,9 @@
         <rect x="9" y="28" width="5" height="104" rx="2.5" fill="#fff" opacity=".5"/>
         <rect x="16.5" y="30" width="2" height="88" rx="1" fill="#fff" opacity=".3"/>
       </g>
-      <path d="${CUP}" fill="none" stroke="var(--glass-edge)" stroke-width="3" stroke-linejoin="round"/>
-      <ellipse cx="30" cy="22" rx="25.5" ry="4" fill="none" stroke="var(--glass-edge)" stroke-width="2.5"/>
+      <path d="${CUP_OPEN}" fill="none" stroke="var(--glass-edge)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M4.5 22A25.5 4 0 0 1 55.5 22" fill="none" stroke="var(--glass-edge)" stroke-width="2" stroke-opacity=".35"/>
+      <path d="M4.5 22A25.5 4 0 0 0 55.5 22" fill="none" stroke="var(--glass-edge)" stroke-width="2.6" stroke-linecap="round"/>
       ${lid}
     </svg>`;
   }
@@ -173,8 +175,10 @@
     c.fillStyle = 'rgba(255,255,255,.5)'; c.fillRect(9, 28, 5, 104);
     c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(16.5, 30, 2, 88);
     c.restore();
-    path(CUP_PTS); c.lineWidth = 3; c.lineJoin = 'round'; c.strokeStyle = colors.edge; c.stroke();
-    c.beginPath(); c.ellipse(30, 22, 25.5, 4, 0, 0, Math.PI * 2); c.lineWidth = 2.5; c.stroke();
+    c.beginPath(); CUP_PTS.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])));   // aperto in alto
+    c.lineWidth = 3; c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = colors.edge; c.stroke();
+    c.globalAlpha = 0.35; c.beginPath(); c.ellipse(30, 22, 25.5, 4, 0, Math.PI, Math.PI * 2); c.lineWidth = 2; c.stroke();
+    c.globalAlpha = 1; c.beginPath(); c.ellipse(30, 22, 25.5, 4, 0, 0, Math.PI); c.lineWidth = 2.6; c.stroke();
     c.restore();
     c.restore();
   }

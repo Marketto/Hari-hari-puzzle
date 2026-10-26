@@ -14,6 +14,10 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
+## Fatto (v0.4.2)
+- [x] Boba Sort: bicchieri senza la riga sulla bocca (contorno aperto, bordo con retro tenue)
+- [x] Barra in alto: niente più sforamento su telefono (Installa solo icona, marchio nascosto quando serve spazio); verificato a 360 e 390 px
+
 ## Fatto (v0.4.1)
 - [x] Valutazione a fragoline al posto delle stelle (HUD, card, vittoria, progressi)
 - [x] Boba Sort: 3 fragoline col minimo, 2 entro il 70% delle mosse extra, 1 oltre (test)

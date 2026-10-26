@@ -144,7 +144,8 @@ button.candy:active, .card:active .candy, .resume:active .candy { transform: tra
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 6px 2px; }
 .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 18px; min-width: 0; }
 .brand .mini-hari { width: 40px; height: 40px; flex: none; animation: bob 3s ease-in-out infinite; }
-.actions { display: flex; gap: 8px; align-items: center; }
+.actions { display: flex; gap: 8px; align-items: center; min-width: 0; margin-inline-start: auto; }
+.topbar { max-width: 100%; }
 
 /* ---------- hero ---------- */
 .hero { display: grid; grid-template-columns: minmax(140px, 270px) 1fr; align-items: center; gap: 8px 28px; padding-block: 10px 22px; }
@@ -590,6 +591,10 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 @media (max-width: 560px) {
   body { font-size: 14px; }
   .brand-name { display: none; }
+  /* su telefono: "Installa" solo icona, e se c'è il pulsante la mascottina del marchio lascia spazio */
+  #installBtn span { display: none; }
+  .topbar:has(#installBtn:not([hidden])) .brand { display: none; }
+  #langBtn { padding: 0 8px; gap: 4px; }
   .hero { grid-template-columns: 128px 1fr; gap: 6px 12px; padding-block: 6px 18px; }
   .bubble { font-size: 13px; padding: 7px 12px; margin-bottom: 10px; }
   .logo { font-size: clamp(36px, 11.5vw, 56px); }
