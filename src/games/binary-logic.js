@@ -82,7 +82,7 @@
           for (let c = 0; c < n; c++) { let m = 0; for (let k = 0; k < n; k++) if (rows[k] >> c & 1) m |= 1 << k; cols.add(m); }
           return cols.size === n;
         }
-        if (++nodes > 4000) return false;
+        if (++nodes > 300) return false;
         for (const m of shuffle(lines.slice(), rnd)) {
           if (used.has(m)) continue;
           if (r >= 2) {
@@ -100,7 +100,7 @@
           if (rec(r + 1)) return true;
           rows.pop(); used.delete(m);
           for (let c = 0; c < n; c++) ones[c] -= m >> c & 1;
-          if (nodes > 4000) return false;
+          if (nodes > 300) return false;
         }
         return false;
       })(0);

@@ -176,3 +176,36 @@ test('il riccio d’aiuto appartiene sempre alla soluzione e il livello resta un
     assert.equal(bruteSolutions(7, p.regions).length, 1);
   }
 });
+
+/* ---------- Comandi (tap / doppio tap) e reazioni dei ricci ---------- */
+test('tapValue: vuoto ↔ ✕, un riccio tolto lascia la cella vuota', () => {
+  assert.equal(H.tapValue(0), 1);
+  assert.equal(H.tapValue(1), 0);
+  assert.equal(H.tapValue(2), 0);
+});
+
+test('isDoubleTap: stessa cella entro la finestra, mai su celle diverse o tocchi lenti', () => {
+  const last = { i: 7, t: 1000 };
+  assert.equal(H.isDoubleTap(last, 7, 1000 + H.DOUBLE_TAP_MS - 1), true);
+  assert.equal(H.isDoubleTap(last, 7, 1000 + H.DOUBLE_TAP_MS), false);
+  assert.equal(H.isDoubleTap(last, 8, 1100), false);
+  assert.equal(H.isDoubleTap(null, 7, 1100), false);
+  assert.equal(H.isDoubleTap(last, 7, 900), false);
+});
+
+test('lookAt: vettore unitario verso la cella e testa inclinata dal lato giusto', () => {
+  assert.deepEqual(H.lookAt(5, 12, 12), { x: 0, y: 0, tilt: 0 });
+  assert.deepEqual(H.lookAt(5, 12, 14), { x: 1, y: 0, tilt: 8 });     // a destra
+  assert.deepEqual(H.lookAt(5, 12, 2), { x: 0, y: -1, tilt: 0 });     // in alto
+  const g = H.lookAt(5, 12, 6);                                      // in alto a sinistra
+  assert.equal(g.tilt, -8);
+  assert.ok(Math.abs(Math.hypot(g.x, g.y) - 1) < 0.02 && g.x < 0 && g.y < 0);
+});
+
+test('nearHogs: solo i ricci entro la distanza indicata, esclusa la cella stessa', () => {
+  const b = new Array(25).fill(0);
+  b[0] = 2; b[12] = 2; b[24] = 2; b[13] = 1;
+  assert.deepEqual(H.nearHogs(5, b, 6, 1), [0, 12]);
+  assert.deepEqual(H.nearHogs(5, b, 12, 2), [0, 24]);
+  assert.deepEqual(H.nearHogs(5, b, 12, 1), []);
+});

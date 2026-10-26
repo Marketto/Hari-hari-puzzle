@@ -9,7 +9,8 @@
  *   3. riparazione: finché esiste una seconda soluzione, una sua cella passa a una zona vicina
  *   4. accettato solo se risolvibile con pura logica (logicSolve), senza tentativi
  *
- * Esporta HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate, ... }.
+ * Esporta HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate,
+ *   tapValue, isDoubleTap, lookAt, nearHogs, ... }.
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -277,5 +278,35 @@
     return reg.every((g) => Number.isInteger(g) && g >= 0 && g < n);
   }
 
-  HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate, randomSolution, growRegions, regionConnected };
+  /* ---------- Comandi e reazioni (puri, usati dalla UI e dai test) ---------- */
+  // Tap singolo: vuoto ↔ ✕; un riccio viene tolto e la cella resta vuota.
+  const tapValue = (v) => (v === 0 ? 1 : 0);
+
+  // Il tocco corrente forma un doppio tap col precedente? Stessa cella, entro "win" ms dal rilascio del primo.
+  const DOUBLE_TAP_MS = 300;
+  function isDoubleTap(last, i, now, win = DOUBLE_TAP_MS) {
+    return !!last && last.i === i && now - last.t >= 0 && now - last.t < win;
+  }
+
+  // Direzione dello sguardo da "from" verso "to": vettore unitario (x a destra, y in giù) e inclinazione della testa
+  function lookAt(n, from, to) {
+    const dr = ((to / n) | 0) - ((from / n) | 0), dc = (to % n) - (from % n);
+    const d = Math.hypot(dr, dc);
+    if (!d) return { x: 0, y: 0, tilt: 0 };
+    const r2 = (v) => Math.round(v * 100) / 100 || 0;
+    return { x: r2(dc / d), y: r2(dr / d), tilt: Math.sign(dc) * 8 };
+  }
+
+  // Ricci (valore 2) entro distanza di Chebyshev "d" dalla cella i, esclusa i
+  function nearHogs(n, board, i, d = 2) {
+    const r = (i / n) | 0, c = i % n, out = [];
+    board.forEach((v, k) => {
+      if (v !== 2 || k === i) return;
+      if (Math.max(Math.abs(((k / n) | 0) - r), Math.abs((k % n) - c)) <= d) out.push(k);
+    });
+    return out;
+  }
+
+  HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate, randomSolution, growRegions, regionConnected,
+    tapValue, isDoubleTap, DOUBLE_TAP_MS, lookAt, nearHogs };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
