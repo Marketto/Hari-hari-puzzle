@@ -26,6 +26,7 @@
     home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5l8-7 8 7V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg>',
     heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15.5 2 12 2 8.2 2 5.3 4.3 3 7.2 3c1.9 0 3.6 1 4.8 2.6C13.2 4 14.9 3 16.8 3 19.7 3 22 5.3 22 8.2 22 12 19 15.5 12 21z"/></svg>',
+    music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="6.5" cy="17.5" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="17.5" cy="15" rx="3" ry="2.5" fill="currentColor"/><path class="mute" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   };
   const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.9l-5.6 2.9 1.1-6.2L3 9.2l6.2-.9z" stroke-linejoin="round"/></svg>`;
   const stars = (n) => [0, 1, 2].map((i) => STAR(i < n)).join('');
@@ -45,7 +46,54 @@
   ];
 
   /* ---------- stato ---------- */
-  const S = { game: null, inst: null, elapsed: 0, won: false, pushed: false };
+  const S = { game: null, inst: null, elapsed: 0, won: false, pushed: false, best: 0, ms: {}, lastMove: 0, idleSaid: false };
+
+  /* ---------- Hari parla ---------- */
+  const SAY = {
+    start: ['m_start1', 'm_start2'], good: ['m_good1', 'm_good2'], half: ['m_half'], almost: ['m_almost1', 'm_almost2'],
+    oops: ['m_oops1', 'm_oops2'], idle: ['m_idle1', 'm_idle2'], poke: ['m_poke1', 'm_poke2'], cheer: ['m_cheer'],
+  };
+  const pick = (kind) => t(SAY[kind][(Math.random() * SAY[kind].length) | 0]);
+  let sayTimer = 0, lastSay = 0;
+  function say(kind, force) {
+    const now = Date.now();
+    if (!force && now - lastSay < 4500) return;
+    lastSay = now;
+    const box = $('#hariSay');
+    box.querySelector('p').textContent = pick(kind);
+    const m = box.querySelector('svg.hari');
+    m.classList.remove('happy', 'oops', 'jump');
+    void m.getBoundingClientRect();
+    m.classList.add(...(kind === 'oops' ? ['oops'] : kind === 'idle' ? [] : ['happy', 'jump']));
+    box.hidden = false;
+    box.classList.remove('in', 'out');
+    void box.offsetWidth;
+    box.classList.add('in');
+    sfx.blip();
+    clearTimeout(sayTimer);
+    sayTimer = setTimeout(() => {
+      box.classList.add('out');
+      sayTimer = setTimeout(() => { box.hidden = true; }, 320);
+    }, 3000);
+  }
+  function hideSay() { clearTimeout(sayTimer); $('#hariSay').hidden = true; }
+
+  // progresso verso la soluzione: guida la musica e i messaggi di Hari
+  function onProgress(reset) {
+    if (!S.inst || !S.game.progress) return;
+    const p = S.game.progress(S.inst.snapshot());
+    HH.music.setIntensity(p);
+    S.lastMove = Date.now(); S.idleSaid = false;
+    if (reset) { S.best = p; S.ms = { half: p >= 0.5, almost: p >= 0.85 }; return; }
+    if (p >= 1) return;
+    if (p >= 0.85 && !S.ms.almost) { S.ms.almost = S.ms.half = true; say('almost', true); sfx.milestone(); }
+    else if (p >= 0.5 && !S.ms.half) { S.ms.half = true; say('half', true); sfx.milestone(); }
+    else if (p > S.best + 0.12 && Math.random() < 0.5) say('good');
+    S.best = Math.max(S.best, p);
+  }
+  function livesHTML(left, max, lost = -1) {
+    return Array.from({ length: max }, (_, i) => `<span class="lv${i < left ? ' on' : ''}${i === lost ? ' lost' : ''}">${ICON.heart}</span>`).join('');
+  }
 
   function persist() {
     if (!S.game || !S.inst || S.won) return;
@@ -58,6 +106,8 @@
     if (m) m.textContent = nf(snap.moves);
     if (tm) tm.textContent = fmt(S.elapsed);
     if (st) st.innerHTML = stars(S.game.rate(snap));
+    const lv = $('#hLives');
+    if (lv && S.game.lives && Date.now() - (S.heartAnim || 0) > 850) lv.innerHTML = livesHTML(S.game.lives - (snap.mistakes || 0), S.game.lives);
   }
   function updateScore() {
     const el = $('#scoreChip b');
@@ -66,11 +116,12 @@
 
   // timer di gioco: avanza solo se la partita è visibile e non ancora vinta
   setInterval(() => {
-    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden) return;
+    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden) return;
     S.elapsed++;
     const tm = $('#hTime');
     if (tm) tm.textContent = fmt(S.elapsed);
     if (S.elapsed % 5 === 0) persist();
+    if (!S.idleSaid && S.lastMove && Date.now() - S.lastMove > 30000) { S.idleSaid = true; say('idle', true); }
   }, 1000);
   document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
   G.addEventListener('pagehide', persist);
@@ -78,13 +129,14 @@
   /* ---------- Mascotte ---------- */
   function react(mood) {
     document.querySelectorAll('svg.hari').forEach((m) => {
-      if (m.closest('#winBox')) return;
+      if (m.closest('#winBox') || m.closest('#hariSay')) return;
       m.classList.remove('jump', 'oops', 'happy');
       void m.getBoundingClientRect();
       m.classList.add(...(mood === 'oops' ? ['oops'] : ['happy', 'jump']));
       clearTimeout(m._t);
       m._t = setTimeout(() => m.classList.remove('jump', 'oops', 'happy'), mood === 'oops' ? 900 : 1900);
     });
+    if (mood === 'oops' && Math.random() < 0.6) say('oops');
   }
   function hearts(host) {
     for (let i = 0; i < 7; i++) {
@@ -109,6 +161,8 @@
 
   /* ---------- Home ---------- */
   function renderHome() {
+    HH.music.play('menu', 0.45);
+    HH.music.duck(false);
     const saves = HH.games.map((g) => ({ g, s: P.loadGame(g.id) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
     const r = saves[0];
     const resume = r ? `
@@ -182,6 +236,7 @@
         <span class="chip" aria-label="${t('time')}">${ICON.clock}<b id="hTime">${fmt(S.elapsed)}</b></span>
         <span class="chip" aria-label="${t('moves')}">${ICON.paw}<b id="hMoves">0</b></span>
         <span class="chip stars" id="hStars" aria-hidden="true"></span>
+        ${g.lives ? `<span class="chip lives" id="hLives" aria-label="${t('lives')}"></span>` : ''}
         <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>
       </div>
       <div class="plate ${g.plate || ''}"><div class="board" id="board"></div></div>
@@ -195,13 +250,29 @@
       get level() { return P.get(g.id).level; },
       sfx, react, win,
       changed(o) {
-        if (o && o.reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; }
+        const reset = !!(o && o.reset);
+        if (reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; $('#loseDlg').hidden = true; HH.music.duck(false); }
         if (!S.inst) return;
-        hud(); persist();
+        hud(); persist(); onProgress(reset);
+      },
+      mistake(left) {
+        S.heartAnim = Date.now();
+        const lv = $('#hLives');
+        if (lv) lv.innerHTML = livesHTML(left, g.lives, left);
+        sfx.bad();
+        setTimeout(() => sfx.heart(), 250);
+        react('oops');
+        if (left <= 0) setTimeout(lose, 1000);
+        else setTimeout(() => { const l = $('#hLives'); if (l) l.innerHTML = livesHTML(left, g.lives); }, 900);
       },
     };
     S.inst = g.create($('#board'), ctx, saved && saved.state);
     hud(); persist();
+    onProgress(true);
+    HH.music.play(g.id, g.progress ? g.progress(S.inst.snapshot()) : 0);
+    HH.music.duck(false);
+    sfx.open();
+    if (push) setTimeout(() => say('start', true), 650);
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
     $('#gUndo').onclick = () => S.inst.undo();
     $('#gRestart').onclick = () => S.inst.restart();
@@ -214,6 +285,8 @@
 
   function goHome() {
     persist();
+    hideSay();
+    $('#loseDlg').hidden = true;
     S.game = null; S.inst = null;
     HH.store.set('screen', null);
     $('#game').hidden = true; $('#game').innerHTML = '';
@@ -241,6 +314,8 @@
     P.clearGame(g.id);
     updateScore();
     react('win');
+    hideSay();
+    HH.music.duck(true);
     sfx.win();
     HH.fx.confetti($('#fxCanvas'));
     $('#winDlg').hidden = false;
@@ -248,6 +323,7 @@
       <div class="win-rays" aria-hidden="true"></div>
       <div class="win-hari">${HH.mascot.svg({ cls: 'hari happy jump' })}</div>
       <h2 class="ribbon"><span>${t('win')}</span></h2>
+      <p class="cheer">${pick('cheer')}</p>
       <div class="win-stars">${[0, 1, 2].map((i) => `<span class="ws${i < st ? ' on' : ''}" style="--d:${0.35 + i * 0.3}s">${STAR(i < st)}</span>`).join('')}</div>
       ${rec ? `<p class="newrec">${ICON.trophy}${t('newrec')}</p>` : ''}
       <dl class="win-stats">
@@ -259,7 +335,8 @@
         <button class="tool round" id="winHome" aria-label="Home">${ICON.home}</button>
         <button class="candy big" id="winNext">${ICON.sparkle}<span>${t('next')}</span></button>
       </div>`;
-    for (let i = 0; i < st; i++) setTimeout(sfx.star, 350 + i * 300);
+    for (let i = 0; i < st; i++) setTimeout(() => sfx.star(i), 350 + i * 300);
+    if (rec) setTimeout(sfx.record, 450 + st * 300);
     const t0 = performance.now(), dur = 1100;
     (function count(now) {
       const k = Math.min(1, (now - t0) / dur);
@@ -272,12 +349,36 @@
     $('#winNext').onclick = () => {
       $('#winDlg').hidden = true;
       $('#gLevel').textContent = `${t('level')} ${P.get(g.id).level}`;
+      HH.music.duck(false);
       S.inst.fresh();
+      setTimeout(() => say('start', true), 500);
     };
     $('#winHome').onclick = () => {
       $('#winDlg').hidden = true;
+      HH.music.duck(false);
       if (S.pushed) history.back(); else goHome();
     };
+  }
+
+  /* ---------- Cuori finiti ---------- */
+  function lose() {
+    if (!S.game || S.won) return;
+    hideSay();
+    HH.music.duck(true);
+    sfx.lose();
+    $('#loseDlg').hidden = false;
+    $('#loseBox').innerHTML = `
+      <div class="lose-hari">${HH.mascot.svg({ cls: 'hari oops sad' })}</div>
+      <h2>${t('nolives')}</h2>
+      <div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>
+      <p>${pick('oops')}</p>
+      <div class="win-actions">
+        <button class="tool round" id="loseHome" aria-label="Home">${ICON.home}</button>
+        <button class="candy big" id="loseRetry">${ICON.restart}<span>${t('retry')}</span></button>
+      </div>`;
+    $('#loseRetry').focus();
+    $('#loseRetry').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); sfx.pick(); setTimeout(() => say('start', true), 400); };
+    $('#loseHome').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); if (S.pushed) history.back(); else goHome(); };
   }
 
   /* ---------- Progressi ---------- */
@@ -316,6 +417,8 @@
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
+    $('#musicBtn').setAttribute('aria-label', t('music'));
+    $('#soundBtn').setAttribute('aria-label', t('sound'));
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
@@ -328,16 +431,32 @@
     HH.fx.background($('#bgCanvas'));
     sfx.setMuted(HH.store.get('muted', false));
     document.documentElement.classList.toggle('muted', sfx.isMuted());
+    HH.music.setOn(HH.store.get('music', true));
+    document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
+    // l'audio parte al primo tocco (regola dei browser)
+    const unlock = () => HH.audio.unlock();
+    ['pointerdown', 'keydown', 'touchend'].forEach((ev) => document.addEventListener(ev, unlock, { passive: true }));
+    $('#hariSay').insertAdjacentHTML('afterbegin', `<div class="say-hari">${HH.mascot.svg({ cls: 'hari' })}</div>`);
 
     $('#brand').insertAdjacentHTML('afterbegin', HH.mascot.mini());
     $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
     $('#soundBtn').innerHTML = ICON.sound;
+    $('#musicBtn').innerHTML = ICON.music;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
     $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
     $('#home').addEventListener('click', (e) => {
       const hm = e.target.closest('#heroMascot');
-      if (hm) { react('happy'); sfx.giggle(); hearts(hm.parentElement); return; }
+      if (hm) {
+        react('happy'); sfx.giggle(); hearts(hm.parentElement);
+        const b = $('.bubble');
+        if (b) {
+          b.textContent = pick('poke');
+          b.classList.remove('talk'); void b.offsetWidth; b.classList.add('talk');
+          clearTimeout(b._t); b._t = setTimeout(() => { b.textContent = t('tagline'); }, 2600);
+        }
+        return;
+      }
       const c = e.target.closest('[data-game]');
       if (c) { sfx.tap(); openGame(c.dataset.game); }
     });
@@ -356,6 +475,12 @@
       $('#langDlg').hidden = true;
       applyTexts();
     });
+    $('#musicBtn').onclick = () => {
+      HH.audio.unlock();
+      HH.music.setOn(!HH.music.isOn());
+      HH.store.set('music', HH.music.isOn());
+      document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
+    };
     $('#soundBtn').onclick = () => {
       sfx.setMuted(!sfx.isMuted());
       HH.store.set('muted', sfx.isMuted());

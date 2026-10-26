@@ -3,10 +3,10 @@
  * - font Google in cache al primo avvio online (stale-while-revalidate)
  * Incrementa VERSION a ogni release (lo fa `npm run release`).
  */
-const VERSION = 'hh-v0.2.0';
+const VERSION = 'hh-v0.3.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
-  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/fx.js',
+  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
   'src/games/hedgedoku-logic.js', 'src/games/hedgedoku-ui.js', 'src/games/boba-logic.js', 'src/games/boba-ui.js',
   'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png',

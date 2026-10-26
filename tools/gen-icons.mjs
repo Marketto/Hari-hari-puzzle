@@ -14,6 +14,7 @@ const inner = globalThis.HH.mascot.svg({ cls: 'icon' })
   .replace(/<ellipse class="hari-shadow"[^>]*\/>/, '')
   .replace(/<!--tw-->[\s\S]*?<!--\/tw-->/, '')
   .replace(/<g class="hari-happy"[\s\S]*?<\/g>/, '')
+  .replace(/<g class="hari-sad"[\s\S]*?<\/g>/, '')
   .replace(/<g class="hari-sweat"[\s\S]*?<\/g>\s*<\/g>/, '</g>');
 const out = path.join(root, 'assets/icons');
 fs.mkdirSync(out, { recursive: true });

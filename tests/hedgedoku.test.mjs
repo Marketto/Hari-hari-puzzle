@@ -134,3 +134,45 @@ test('validate rifiuta zone spezzate o incomplete', () => {
   const broken = p.regions.slice(); broken[0] = 99;
   assert.equal(H.validate(6, broken), false);
 });
+
+/* ---------- Giudizio delle mosse e riccio d'aiuto ---------- */
+test('judge: solo le celle della soluzione sono corrette; i ricci corretti non hanno mai conflitti', () => {
+  for (let seed = 1; seed <= 15; seed++) {
+    const nn = 5 + (seed % 4);
+    const p = H.generate(nn, HH.rng(seed * 101));
+    const b = new Array(nn * nn).fill(0);
+    for (let i = 0; i < nn * nn; i++) {
+      const j = H.judge(nn, p.regions, p.solution, b, i);
+      assert.equal(j.correct, p.solution[Math.floor(i / nn)] === i % nn);
+    }
+    // piazza i ricci corretti uno alla volta: mai conflitti
+    p.solution.forEach((c, r) => {
+      const i = r * nn + c;
+      const j = H.judge(nn, p.regions, p.solution, b, i);
+      assert.ok(j.correct && j.blockers.length === 0, `seed ${seed} riga ${r}`);
+      b[i] = 2;
+    });
+    assert.ok(H.check(nn, p.regions, b).solved);
+  }
+});
+
+test('judge: un riccio sbagliato vicino/in riga a uno giusto riporta chi lo blocca', () => {
+  const p = H.generate(6, HH.rng(77));
+  const b = new Array(36).fill(0);
+  const good = 0 * 6 + p.solution[0];
+  b[good] = 2;
+  const sameRow = good === 0 ? 1 : 0;
+  const j = H.judge(6, p.regions, p.solution, b, sameRow);
+  assert.equal(j.correct, false);
+  assert.deepEqual(j.blockers, [good]);
+});
+
+test('il riccio d’aiuto appartiene sempre alla soluzione e il livello resta unico', () => {
+  for (let seed = 1; seed <= 10; seed++) {
+    const p = H.generate(7, HH.rng(seed + 500));
+    const r = seed % 7;
+    const given = r * 7 + p.solution[r];
+    assert.equal(p.solution[Math.floor(given / 7)], given % 7);
+    assert.equal(bruteSolutions(7, p.regions).length, 1);
+  }
+});

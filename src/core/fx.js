@@ -1,5 +1,5 @@
-/* Effetti: cielo animato (bolle di colore, nuvole, luna di notte, stelline, petali, dolcetti fluttuanti),
- * coriandoli, suoni WebAudio. Tutto offline, niente asset esterni.
+/* Effetti visivi: cielo animato (bolle di colore, nuvole, luna di notte, stelline, petali, dolcetti fluttuanti),
+ * coriandoli. I suoni sono in audio.js. Tutto offline, niente asset esterni.
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -238,36 +238,6 @@
     })();
   }
 
-  /* ---------- Suoni ---------- */
-  let ac = null, muted = false;
-  function tone(freq, dur, type = 'sine', vol = 0.12, slide = 0, delay = 0) {
-    if (muted) return;
-    try {
-      ac = ac || new (G.AudioContext || G.webkitAudioContext)();
-      const t = ac.currentTime + delay;
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, t);
-      if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(ac.destination);
-      o.start(t); o.stop(t + dur + 0.02);
-    } catch (e) { /* audio non disponibile */ }
-  }
-  const sfx = {
-    tap: () => tone(880, 0.08, 'triangle', 0.08),
-    mark: () => tone(1250, 0.05, 'triangle', 0.05),
-    pick: () => tone(660, 0.12, 'sine', 0.09, 1.4),
-    // gorgoglio: note che salgono mentre il bicchiere si riempie
-    pour: (ms = 500) => { const n = Math.max(3, Math.round(ms / 90)); for (let i = 0; i < n; i++) tone(380 + i * 45 + Math.random() * 30, 0.09, 'sine', 0.07, 1.3, (i * ms) / n / 1000); },
-    bad: () => tone(220, 0.18, 'square', 0.04, 0.8),
-    star: () => { tone(1046, 0.12, 'triangle', 0.09); tone(1568, 0.18, 'triangle', 0.07, 1, 0.07); },
-    giggle: () => [988, 1175, 1047, 1319].forEach((f, i) => tone(f, 0.09, 'triangle', 0.07, 1.15, i * 0.08)),
-    win: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.22, 'triangle', 0.1, 1, i * 0.11)),
-    setMuted: (m) => { muted = m; },
-    isMuted: () => muted,
-  };
-
-  HH.fx = { background, confetti, sfx };
+  // i suoni vivono in src/core/audio.js
+  HH.fx = { background, confetti, sfx: HH.audio.sfx };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

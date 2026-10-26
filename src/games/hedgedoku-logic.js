@@ -9,7 +9,7 @@
  *   3. riparazione: finché esiste una seconda soluzione, una sua cella passa a una zona vicina
  *   4. accettato solo se risolvibile con pura logica (logicSolve), senza tentativi
  *
- * Esporta HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, validate, ... }.
+ * Esporta HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate, ... }.
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -258,6 +258,18 @@
     return { conflicts, placed: hs.length, solved: hs.length === n && conflicts.size === 0 };
   }
 
+  /* Giudica un riccio messo nella cella i.
+   *   correct: la cella fa parte dell'unica soluzione
+   *   blockers: ricci già presenti che violano una regola con i (stessa riga/colonna/zona o adiacenti)
+   * Un riccio corretto non ha mai blockers se sulla griglia ci sono solo ricci corretti. */
+  function judge(n, reg, sol, board, i) {
+    const correct = sol[(i / n) | 0] === i % n;
+    const tmp = board.slice();
+    tmp[i] = 2;
+    const blockers = [...check(n, reg, tmp).conflicts].filter((j) => j !== i);
+    return { correct, blockers };
+  }
+
   // Controllo strutturale di un livello (usato da test e dal caricamento dei salvataggi)
   function validate(n, reg) {
     if (!Array.isArray(reg) || reg.length !== n * n) return false;
@@ -265,5 +277,5 @@
     return reg.every((g) => Number.isInteger(g) && g >= 0 && g < n);
   }
 
-  HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, validate, randomSolution, growRegions, regionConnected };
+  HH.hedgedoku = { generate, logicSolve, findSolutions, solveCount, check, judge, validate, randomSolution, growRegions, regionConnected };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

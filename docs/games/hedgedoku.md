@@ -5,6 +5,14 @@ Puzzle di deduzione nello stile "Queens" (lo stesso genere di Meowdoku), con i r
 ## Regole
 Griglia N×N divisa in N zone colorate. Metti N ricci: uno per riga, uno per colonna, uno per zona; due ricci non si toccano mai, neanche in diagonale.
 
+## Verifica e cuori (v0.3)
+- Ogni riccio viene confrontato subito con l'unica soluzione (`judge()`): se è giusto resta, se è sbagliato diventa triste,
+  si illuminano in rosso i ricci con cui viola una regola (stessa riga, colonna, zona o una delle 8 caselle intorno), si perde un cuore
+  e al suo posto resta una ✕. Sulla griglia quindi restano solo ricci corretti.
+- 3 cuori: al 3° errore compare "Hai finito i cuori" e il livello ricomincia (stesso puzzle).
+- Stelle: 3 senza errori, 2 con un errore, 1 con due.
+- Dal livello 6 (7×7 e 8×8) un **riccio d'aiuto** già piazzato, con bollino dorato, non rimovibile.
+
 ## Controlli (v0.2)
 - Selettore **Riccio / Segna** sopra la griglia (ricordato tra le sessioni).
 - Riccio: tocco = metti/togli riccio.
@@ -31,7 +39,7 @@ Griglia N×N divisa in N zone colorate. Metti N ricci: uno per riga, uno per col
 Misure (60 livelli per taglia): 100% logici; tempo medio 0,7 ms (5×5) → 3,8 ms (8×8).
 
 ## Test (`tests/hedgedoku.test.mjs`)
-Per 25 semi × taglie 5–8: tutte le celle assegnate, N zone connesse, soluzione valida, **unicità verificata da un solver a forza bruta indipendente** (tutte le N! permutazioni), risolvibilità logica. Più test di `check()` su riga, colonna, zona, diagonale e ✕.
+Per 25 semi × taglie 5–8: tutte le celle assegnate, N zone connesse, soluzione valida, **unicità verificata da un solver a forza bruta indipendente** (tutte le N! permutazioni), risolvibilità logica. Più test di `check()` su riga, colonna, zona, diagonale e ✕, di `judge()` (solo le celle della soluzione sono giuste; chi blocca un riccio sbagliato) e del riccio d'aiuto.
 
 ## Idee
 - Suggerimento: evidenzia una cella deducibile (riga/colonna/zona con una sola cella libera).

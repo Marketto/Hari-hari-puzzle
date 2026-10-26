@@ -76,6 +76,109 @@
   const isDone = (c) => c.length === HH.boba.CAP && c.every((x) => x === c[0]);
   const reduce = () => G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ---------- bicchiere in volo disegnato su canvas, con liquido che segue la gravità ----------
+   * Il contorno interno del bicchiere è un poligono convesso. A ogni fotogramma lo ruotiamo nel
+   * "sistema della gravità" (angolo del bicchiere meno lo sciabordio) e troviamo, per ogni strato,
+   * la quota orizzontale che racchiude esattamente il suo volume (ricerca binaria sull'area). */
+  const CUP_PTS = [[5, 22], [10.5, 136], [11.3, 140.2], [13.2, 143.6], [16.4, 145.5], [21, 146], [39, 146], [43.6, 145.5], [46.8, 143.6], [48.7, 140.2], [49.5, 136], [55, 22]];
+  function clipY(poly, y0, keepBelow) {
+    const out = [];
+    const inside = (p) => (keepBelow ? p[1] >= y0 : p[1] <= y0);
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      const ia = inside(a), ib = inside(b);
+      if (ia) out.push(a);
+      if (ia !== ib) { const u = (y0 - a[1]) / (b[1] - a[1]); out.push([a[0] + (b[0] - a[0]) * u, y0]); }
+    }
+    return out;
+  }
+  function area(poly) {
+    let s = 0;
+    for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; s += a[0] * b[1] - b[0] * a[1]; }
+    return Math.abs(s) / 2;
+  }
+  function centroid(poly) {
+    let x = 0, y = 0;
+    poly.forEach((p) => { x += p[0]; y += p[1]; });
+    return [x / poly.length, y / poly.length];
+  }
+  // volume (area) di ogni strato a bicchiere dritto
+  const VOL = [0, 1, 2, 3].map((k) => {
+    const top = BASE - (k + 1) * UNIT, bot = k === 0 ? 147 : BASE - k * UNIT;
+    return area(clipY(clipY(CUP_PTS, top, true), bot, false));
+  });
+  const SYM_PATHS = [
+    'M5 10a5 5 0 1 0 10 0a5 5 0 1 0-10 0z',
+    'M10 16C3 11 4 5 7.5 5 9 5 10 6.5 10 7c0-.5 1-2 2.5-2C16 5 17 11 10 16z',
+    'M10 3l2.1 4.6 5 .5-3.8 3.3 1.1 4.9-4.4-2.6-4.4 2.6 1.1-4.9-3.8-3.3 5-.5z',
+    'M10 4l6 11H4z',
+    'M7 5h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
+    'M10 3l6 7-6 7-6-7z',
+    'M10 3c3 5 5 7 5 9.5a5 5 0 0 1-10 0C5 10 7 8 10 3z',
+    'M4 16C4 8 9 4 16 4c0 7-4 12-12 12z',
+    'M13 3a7 7 0 1 0 4 10 5.5 5.5 0 1 1-4-10z',
+  ];
+  let symCache = null;
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (n) => cs.getPropertyValue(n).trim();
+    return { f: [...Array(9)].map((_, i) => v('--f' + i)), glass: v('--glass'), edge: v('--glass-edge'), boba: v('--boba') };
+  }
+  function drawCup(c, o) {
+    const { px, py, k, th, phi, piv, layers, colors } = o;
+    if (!symCache && typeof Path2D !== 'undefined') symCache = SYM_PATHS.map((d) => new Path2D(d));
+    const L = CUP_PTS.map(([x, y]) => [x - piv.x, y - piv.y]);
+    const rot = (p, a) => [p[0] * Math.cos(a) - p[1] * Math.sin(a), p[0] * Math.sin(a) + p[1] * Math.cos(a)];
+    const Q = L.map((p) => rot(p, th - phi));                 // sistema della gravità
+    const ys = Q.map((p) => p[1]);
+    const ymin = Math.min(...ys), ymax = Math.max(...ys);
+    const levelFor = (V) => {
+      let lo = ymin, hi = ymax;
+      for (let i = 0; i < 28; i++) { const mid = (lo + hi) / 2; if (area(clipY(Q, mid, true)) > V) lo = mid; else hi = mid; }
+      return (lo + hi) / 2;
+    };
+    const path = (poly) => { c.beginPath(); poly.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); };
+    c.save();
+    c.translate(px, py); c.scale(k, k);
+    c.save(); c.rotate(th); path(L); c.fillStyle = colors.glass; c.fill(); c.restore();
+    // liquido: strati impilati dal basso nel sistema della gravità
+    c.save(); c.rotate(phi);
+    let cum = 0, below = ymax + 1, surface = null;
+    layers.forEach((ly) => {
+      if (ly.vol < 0.5) return;
+      cum += ly.vol;
+      const y = levelFor(cum);
+      const poly = clipY(clipY(Q, y, true), below + 0.6, false);
+      if (poly.length > 2) {
+        path(poly); c.fillStyle = colors.f[ly.f]; c.fill();
+        const shade = clipY(clipY(Q, below - 4, true), below + 0.6, false);
+        if (shade.length > 2) { path(shade); c.fillStyle = 'rgba(0,0,0,.07)'; c.fill(); }
+        if (symCache && area(poly) > 260) {
+          const [cx, cy] = centroid(poly);
+          c.save(); c.translate(cx, cy); c.rotate(-phi); c.scale(0.7, 0.7); c.translate(-10, -10);
+          c.fillStyle = 'rgba(255,255,255,.92)'; c.fill(symCache[ly.f]); c.restore();
+        }
+      }
+      below = y; surface = y;
+    });
+    if (surface !== null) {                                    // riflesso sulla superficie
+      const band = clipY(clipY(Q, surface, true), surface + 2.4, false);
+      if (band.length > 2) { path(band); c.fillStyle = 'rgba(255,255,255,.4)'; c.fill(); }
+    }
+    c.restore();
+    // perle, riflessi del vetro, contorno (nel sistema del bicchiere)
+    c.save(); c.rotate(th); c.translate(-piv.x, -piv.y);
+    c.save(); path(CUP_PTS); c.clip();
+    PEARLS.forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 3.7, 0, Math.PI * 2); c.fillStyle = colors.boba; c.fill(); c.beginPath(); c.arc(x - 1.2, y - 1.3, 1.1, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,.5)'; c.fill(); });
+    c.fillStyle = 'rgba(255,255,255,.5)'; c.fillRect(9, 28, 5, 104);
+    c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(16.5, 30, 2, 88);
+    c.restore();
+    path(CUP_PTS); c.lineWidth = 3; c.lineJoin = 'round'; c.strokeStyle = colors.edge; c.stroke();
+    c.beginPath(); c.ellipse(30, 22, 25.5, 4, 0, 0, Math.PI * 2); c.lineWidth = 2.5; c.stroke();
+    c.restore();
+    c.restore();
+  }
+
   function create(el, ctx, saved) {
     const B = HH.boba;
     let s, sel = -1, busy = false;
@@ -115,17 +218,17 @@
       if (reduce()) {
         render({ justDone });
         ctx.sfx.pour(300);
+        if (justDone >= 0) ctx.sfx.cupDone();
         if (B.isSolved(s.cups)) setTimeout(ctx.win, 300);
         return;
       }
 
       // tempi (ms)
-      const T = { lift: 220, move: 320, tilt: 260, pour: 340 + m * 150, back: 230, ret: 300 };
+      const T = { lift: 240, move: 340, tilt: 380, pour: 360 + m * 160, back: 300, ret: 320 };
       const tPour = T.lift + T.move + T.tilt;
       const total = tPour + T.pour + T.back + T.ret;
       busy = true;
 
-      // misura la sorgente PRIMA di ridisegnare (posizione senza sollevamento: offsetLeft/Top ignorano i transform)
       render({ fillTo: to, amount: m, fillDelay: tPour + 140, fillDur: T.pour - 140, away: from, justDone, lidDelay: tPour + T.pour });
       const wrap = el.querySelector('.bb-wrap');
       const srcBtn = wrap.children[from], dstBtn = wrap.children[to];
@@ -134,31 +237,77 @@
       const dX = dstBtn.offsetLeft, dY = dstBtn.offsetTop;
       const dir = dX >= sx ? 1 : -1;                              // destinazione a destra?
       const toPx = (y) => (y - VB_Y) * k;
-      const pivot = { x: (dir > 0 ? 55 : 5) * k, y: toPx(22) };   // angolo della bocca da cui esce il liquido
-      const tx = dX + 30 * k - dir * 3 * k;                       // punto di versamento: sopra la bocca
+      const piv = { x: dir > 0 ? 55 : 5, y: 22 };                 // angolo della bocca (unità SVG)
+      const tx = dX + 30 * k - dir * 3 * k;                       // punto di versamento, sopra la bocca
       const ty = dY + toPx(22) - 40 * k;
-      const left = tx - pivot.x, top = ty - pivot.y;
-      const dx = sx - left, dy = sy - top;
+      const DX = sx + piv.x * k - tx, DY = sy + toPx(piv.y) - ty; // da dove parte il perno
 
-      const fly = document.createElement('div');
-      fly.className = 'bb-fly';
-      fly.style.cssText = `left:${left}px;top:${top}px;width:${srcBtn.offsetWidth}px;transform-origin:${pivot.x}px ${pivot.y}px`;
-      fly.innerHTML = cupSVG(prev[from], 'fly', { drain: m, drainDelay: tPour + 80, drainDur: T.pour - 80, done: false });
-      wrap.appendChild(fly);
-
-      const ang = dir * 108;
-      const at = (ms) => Math.min(1, ms / total);
-      fly.animate([
-        { transform: `translate(${dx}px, ${dy - 16}px) rotate(0deg)`, offset: 0 },
-        { transform: `translate(${dx}px, ${dy - 54}px) rotate(${-dir * 4}deg)`, offset: at(T.lift), easing: 'ease-in-out' },
-        { transform: `translate(0px, 0px) rotate(${dir * 18}deg)`, offset: at(T.lift + T.move), easing: 'ease-in' },
-        { transform: `translate(0px, 0px) rotate(${ang}deg)`, offset: at(tPour) },
-        { transform: `translate(0px, 0px) rotate(${ang + dir * 10}deg)`, offset: at(tPour + T.pour), easing: 'ease-in-out' },
-        { transform: `translate(0px, ${-6}px) rotate(0deg)`, offset: at(tPour + T.pour + T.back), easing: 'ease-in-out' },
-        { transform: `translate(${dx}px, ${dy}px) rotate(0deg)`, offset: 1 },
-      ], { duration: total, fill: 'forwards' });
+      /* tela per il bicchiere in volo: il liquido segue la gravità */
+      const PAD_X = 80, PAD_Y = 170;
+      const cv = document.createElement('canvas');
+      cv.className = 'bb-fly';
+      const W = wrap.offsetWidth + PAD_X * 2, Hh = wrap.offsetHeight + PAD_Y + 40;
+      const dpr = Math.min(2, G.devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = Hh * dpr;
+      cv.style.cssText = `left:${-PAD_X}px;top:${-PAD_Y}px;width:${W}px;height:${Hh}px`;
+      wrap.appendChild(cv);
+      const g2 = cv.getContext('2d');
+      const colors = readColors();
+      const layers = prev[from].map((f, i) => ({ f, vol: VOL[i], full: VOL[i] }));
+      const ang = dir * 112;
+      const KF = [
+        [0, DX, DY - 16, 0],
+        [T.lift, DX, DY - 54, -dir * 5],
+        [T.lift + T.move, 0, 0, dir * 22],
+        [tPour, 0, 0, ang],
+        [tPour + T.pour, 0, 0, ang + dir * 10],
+        [tPour + T.pour + T.back, 0, -6, 0],
+        [total, DX, DY, 0],
+      ];
+      const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+      function pose(ms) {
+        let i = 0;
+        while (i < KF.length - 2 && ms > KF[i + 1][0]) i++;
+        const a = KF[i], b = KF[i + 1];
+        const u = ease(Math.min(1, Math.max(0, (ms - a[0]) / (b[0] - a[0]))));
+        return [a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u];
+      }
+      // svuotamento: dall'alto, uno strato alla volta, durante il versamento
+      function drain(ms) {
+        let d = Math.min(1, Math.max(0, (ms - tPour - 80) / (T.pour - 80))) * m;
+        for (let j = layers.length - 1; j >= layers.length - m; j--) {
+          const take = Math.min(1, d);
+          layers[j].vol = layers[j].full * (1 - take);
+          d -= take;
+        }
+      }
+      // sciabordio: molla smorzata guidata da rotazione e spostamento
+      const slosh = { phi: 0, v: 0, prev: null };
+      let t0 = 0, raf = 0;
+      function frame(now) {
+        if (!t0) t0 = now;
+        const ms = now - t0;
+        const [ox, oy, deg] = pose(ms);
+        const th = (deg * Math.PI) / 180;
+        if (slosh.prev) {
+          const dt = Math.max(1, now - slosh.prev.now) / 16.7;
+          const om = (th - slosh.prev.th) / dt, vx = (ox - slosh.prev.ox) / dt;
+          const target = Math.max(-0.45, Math.min(0.45, -om * 2.2 - vx * 0.012));
+          slosh.v += (target - slosh.phi) * 0.18 * dt;
+          slosh.v *= Math.pow(0.84, dt);
+          slosh.phi += slosh.v * dt;
+        }
+        slosh.prev = { now, th, ox };
+        drain(ms);
+        g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g2.clearRect(0, 0, W, Hh);
+        drawCup(g2, { px: tx + ox + PAD_X, py: ty + oy + PAD_Y, k, th, phi: slosh.phi, piv, layers, colors });
+        if (ms < total) raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
 
       // getto di liquido dal bordo alla superficie nel bicchiere di destinazione
+      const at = (ms) => Math.min(1, ms / total);
       const surface = dY + toPx(BASE - (s.cups[to].length - m) * UNIT);
       const stream = document.createElement('div');
       stream.className = 'bb-stream';
@@ -174,7 +323,7 @@
       ], { duration: total, fill: 'forwards' });
 
       // schizzi
-      const drops = [-1, 1, -0.5, 0.6].map((d, i) => {
+      const drops = [-1, 1, -0.5, 0.6, 0.2].map((d, i) => {
         const e = document.createElement('i');
         e.className = 'bb-drop';
         e.style.cssText = `left:${tx - 3}px;top:${surface - 6}px;background:var(--f${flavor})`;
@@ -183,15 +332,17 @@
           { transform: 'translate(0,0) scale(0)', opacity: 1 },
           { transform: `translate(${d * 12 * k}px, ${-14 * k}px) scale(1)`, opacity: 1, offset: 0.45 },
           { transform: `translate(${d * 18 * k}px, ${2 * k}px) scale(.5)`, opacity: 0 },
-        ], { duration: 520, delay: tPour + 200 + i * 110, fill: 'both', easing: 'ease-out' });
+        ], { duration: 520, delay: tPour + 200 + i * 100, fill: 'both', easing: 'ease-out' });
         return e;
       });
       dstBtn.animate([{ transform: 'none' }, { transform: 'scale(1.04, .97)' }, { transform: 'none' }],
         { duration: 260, delay: tPour + T.pour, easing: 'ease-out' });
 
       setTimeout(() => ctx.sfx.pour(T.pour), tPour);
+      if (justDone >= 0) setTimeout(() => ctx.sfx.cupDone(), tPour + T.pour + 80);
       setTimeout(() => {
-        fly.remove(); stream.remove(); drops.forEach((d) => d.remove());
+        cancelAnimationFrame(raf);
+        cv.remove(); stream.remove(); drops.forEach((d) => d.remove());
         srcBtn.classList.remove('away');
         busy = false;
         if (B.isSolved(s.cups)) ctx.win();
@@ -229,5 +380,12 @@
     id: 'boba', name: 'Boba Sort', rules: 'r2', art, create,
     rate: (s) => (s.moves <= s.par ? 3 : s.moves <= Math.ceil(s.par * 1.35) ? 2 : 1),
     parTime: (s) => (s.start.length - 2) * 22,
+    // somma degli strati "giusti" alla base di ogni bicchiere: 0 all'inizio, 1 a soluzione
+    progress: (s) => {
+      const colors = s.start.length - 2;
+      let sum = 0;
+      s.cups.forEach((c) => { if (!c.length) return; let k = 1; while (k < c.length && c[k] === c[0]) k++; sum += k; });
+      return Math.max(0, Math.min(1, (sum - colors) / (colors * (HH.boba.CAP - 1))));
+    },
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

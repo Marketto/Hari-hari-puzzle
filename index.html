@@ -34,6 +34,7 @@
     <div class="actions">
       <button id="installBtn" class="pill accent" hidden></button>
       <button id="scoreChip" class="pill score" aria-haspopup="dialog"></button>
+      <button id="musicBtn" class="icon-btn" aria-label="Music"></button>
       <button id="soundBtn" class="icon-btn" aria-label="Sound"></button>
       <button id="langBtn" class="pill" aria-haspopup="dialog"></button>
     </div>
@@ -54,12 +55,15 @@
   </div>
 </div>
 <div id="winDlg" class="overlay" hidden role="dialog" aria-modal="true"><div id="winBox" class="win-box"></div></div>
+<div id="loseDlg" class="overlay" hidden role="dialog" aria-modal="true"><div id="loseBox" class="win-box lose-box"></div></div>
+<div id="hariSay" class="say" hidden aria-live="polite"><p></p></div>
 <canvas id="fxCanvas" class="fx" aria-hidden="true"></canvas>
 
 <script src="src/i18n/locales.js"></script>
 <script src="src/core/rng.js"></script>
 <script src="src/core/core.js"></script>
 <script src="src/core/mascot.js"></script>
+<script src="src/core/audio.js"></script>
 <script src="src/core/fx.js"></script>
 <script src="src/games/hedgedoku-logic.js"></script>
 <script src="src/games/hedgedoku-ui.js"></script>

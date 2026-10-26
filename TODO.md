@@ -13,6 +13,14 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
+## Fatto (v0.3.0)
+- [x] Hedgedoku: verifica immediata contro la soluzione, ricci sbagliati evidenziati con chi li blocca, 3 cuori, "cuori finiti" → ricomincia
+- [x] Hedgedoku: riccio d'aiuto dal livello 6; stelle in base agli errori; nuovi unit test su `judge()` e aiuto (26 test totali)
+- [x] Boba Sort: liquido che segue la gravità durante il travaso (canvas, livelli a volume costante, sciabordio)
+- [x] Musica generativa: menu + un brano per gioco, strati dinamici legati al progresso, tempo che accelera vicino alla soluzione
+- [x] Effetti sonori intonati, pulsanti musica/effetti separati
+- [x] Hari parla: fumetti motivazionali (14 frasi × 43 lingue), espressione triste
+
 ## Fatto (v0.2.0)
 - [x] Salvataggio automatico della partita (mossa, timer, background) e ripresa all'avvio
 - [x] Punteggio, stelle 1–3, record, miglior tempo, vittorie; schermata Progressi; ghiande totali in alto
@@ -27,5 +35,6 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-26 v0.3 · `npm test` 26/26 · livello dello screenshot dell'utente: unica soluzione [0,3,1,4,2], generatore corretto, problema era la verifica · browser: errore → cuore perso e ✕, 3 errori → finestra e riprova, audio attivo, cambio brano menu/gioco, travaso con liquido orizzontale
 - 2026-10-26 v0.2 · `npm test` 17/17 · browser 390×844: ✕ si toglie al secondo tocco, trascinamento riga = 5 ✕, ricarica → partita ripresa (5 mosse, tempo conservato), travaso animato, vittoria 3★ 401 punti, progressi; desktop scuro (ja) OK
 - 2026-10-26 v0.1 · screenshot chiaro/scuro/RTL OK

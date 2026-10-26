@@ -10,6 +10,12 @@ Ogni gusto ha un simbolo (cuore, stella, goccia…) per chi distingue male i col
 Il bicchiere scelto si solleva; al secondo tocco vola sopra la destinazione, ruota di ~108° attorno all'angolo della bocca e versa:
 getto del colore del gusto (clip-path animato), strati della sorgente che si svuotano dall'alto, strati della destinazione che salgono dal basso, schizzi, gorgoglio sonoro, rimbalzo del bicchiere. Se il bicchiere diventa completo compaiono coperchio e cannuccia. Durata ~1,6 s (+150 ms per strato); con "riduci movimento" il travaso è istantaneo.
 
+## Liquido con la gravità (v0.3)
+Il bicchiere in volo è disegnato su canvas. Il contorno interno è un poligono convesso: a ogni fotogramma viene ruotato nel
+"sistema della gravità" (angolo del bicchiere meno lo sciabordio) e per ogni strato si cerca con ricerca binaria la quota orizzontale
+che ne racchiude esattamente il volume. Così la superficie resta sempre orizzontale, il liquido scivola verso la bocca quando il
+bicchiere si inclina, e gli strati si svuotano dall'alto. Lo sciabordio è una molla smorzata guidata da rotazione e spostamento.
+
 ## Difficoltà
 Gusti = `min(9, 3 + ⌊(livello − 1) / 2⌋)`, sempre 2 bicchieri vuoti, capienza 4.
 

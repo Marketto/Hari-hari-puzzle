@@ -9,7 +9,7 @@ Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico 
 3. **Ogni livello deve essere risolvibile** (e a soluzione unica dove il genere lo prevede), con unit test in `tests/<gioco>.test.mjs` che usano un oracolo indipendente dal generatore.
 4. **i18n completo**: ogni stringa visibile passa da `HH.i18n.t(key)`. Una chiave nuova va in tutte le 43 righe di `src/i18n/locales.js`.
 5. **Token di design**: colori solo tramite variabili in `src/styles.css` (tema chiaro + scuro). Mai colori letterali nei componenti.
-6. **Ogni gioco salva la partita**: `snapshot()` serializzabile + `create(el, ctx, saved)`; chiama `ctx.changed()` dopo ogni mossa.
+6. **Ogni gioco salva la partita**: `snapshot()` serializzabile + `create(el, ctx, saved)`; chiama `ctx.changed()` dopo ogni mossa; espone `progress(s)` (0..1) che guida musica e messaggi.
 7. Prima di chiudere un task: `npm test` (unit test + i18n-check) e `npm run build`.
 
 ## Router — da richiesta a skill/agente
@@ -20,6 +20,7 @@ Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico 
 | difficoltà, livelli, generatori, solver | `puzzle-generator` | `game-designer` | `npm test`, `npm run bench` |
 | testi, traduzioni, nuova lingua, RTL | `i18n` | `i18n-translator` | `tools/i18n-check.mjs` |
 | grafica, animazioni, mascotte, tema | `kawaii-ui` | — | `tools/gen-icons.mjs`, `tools/rasterize-icons.py` |
+| musica, suoni, frasi di Hari | `audio-music` (+ `i18n` per le frasi) | — | `node --test tests/music.test.mjs` |
 | APK, Play Store, PWA, icone, offline | `android-release` | `release-android` | `tools/build-inline.mjs` |
 | bug, regressioni, verifica prima del merge | `qa-check` | `qa-tester` | tutti |
 | richiesta ambigua o multi-area | — | `router` | — |

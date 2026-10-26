@@ -73,7 +73,7 @@
       const r = (i / n) | 0, c = i % n;
       const flash = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].map(([dr, dc]) => [r + dr, c + dc])
         .filter(([rr, cc]) => rr >= 0 && cc >= 0 && rr < n && cc < n).map(([rr, cc]) => rr * n + cc);
-      ctx.sfx.tap();
+      if (s.grid[i]) ctx.sfx.lightOn(s.grid.filter(Boolean).length); else ctx.sfx.lightOff();
       paint(flash);
       ctx.changed();
       if (L.isSolved(s.grid)) setTimeout(ctx.win, 500);
@@ -94,5 +94,10 @@
     id: 'lantern', name: 'Lantern Glow', rules: 'r3', art, create, plate: 'night',
     rate: (s) => (s.moves <= s.par ? 3 : s.moves <= s.par * 2 ? 2 : 1),
     parTime: (s) => s.n * s.n * 3,
+    // lanterne accese in più rispetto all'inizio
+    progress: (s) => {
+      const lit0 = s.start.filter(Boolean).length, lit = s.grid.filter(Boolean).length;
+      return Math.max(0, Math.min(1, (lit - lit0) / Math.max(1, s.grid.length - lit0)));
+    },
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

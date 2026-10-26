@@ -27,6 +27,7 @@ CLAUDE.md / AGENTS.md        regole d'oro + tabella ROUTER (richiesta → skill 
   kawaii-ui/                 stile visivo e mascotte
   android-release/           PWA → APK/AAB
   qa-check/                  checklist manuale e automatica
+  audio-music/               brani generativi, effetti, frasi di Hari
 TODO.md                      lavoro corrente (In corso / Prossimo / Fatto / Verifiche)
 ROADMAP.md                   versioni pianificate
 ```

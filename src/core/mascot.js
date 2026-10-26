@@ -4,6 +4,7 @@
  *   .hari-body    respiro / salto          .hari-quills  ondeggio degli aculei
  *   .hari-eye     battito di ciglia        .hari-shine   riflessi che seguono il dito
  *   .hari-happy   occhi ^^ (con .happy)    .hari-sweat   goccia (con .oops)
+ *   .hari-sad     bocca all'ingiù, lacrima, sopracciglia (con .sad)
  *   .hari-ear     orecchie che si muovono  .hari-flower  fiore di sakura
  *   .hari-twinkle stelline intorno
  * HH.mascot.mini() -> riccio piccolo per le celle (stringa in cache).
@@ -120,8 +121,15 @@
     </g>
     <ellipse cx="120" cy="158" rx="7.5" ry="5.5" fill="#3a1e14"/>
     <ellipse cx="117.5" cy="156.4" rx="2.6" ry="1.6" fill="#fff" opacity=".85"/>
-    <path d="M110 167Q120 181 130 167Q120 171 110 167Z" fill="#b84358" stroke="#3a1e14" stroke-width="2" stroke-linejoin="round"/>
-    <ellipse cx="120" cy="172.5" rx="4" ry="2.2" fill="#ff9fb2"/>
+    <g class="hari-mouth">
+      <path d="M110 167Q120 181 130 167Q120 171 110 167Z" fill="#b84358" stroke="#3a1e14" stroke-width="2" stroke-linejoin="round"/>
+      <ellipse cx="120" cy="172.5" rx="4" ry="2.2" fill="#ff9fb2"/>
+    </g>
+    <g class="hari-sad">
+      <path d="M110 174Q120 164 130 174" fill="none" stroke="#3a1e14" stroke-width="3" stroke-linecap="round"/>
+      <path d="M77 156C74 163 74 168 78 170C82 168 82 163 77 156Z" fill="#a8dcff" stroke="#5aa6d6" stroke-width="1.6"/>
+      <path d="M71 107l17 -7M169 107l-17 -7" stroke="#6b402c" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
     <g class="hari-berry">
       <path d="M120 222C104 215 102 197 109 191C114 187 126 187 131 191C138 197 136 215 120 222Z" fill="url(#${id}s)" stroke="#a5223f" stroke-width="2" stroke-linejoin="round"/>
       <path d="M113 196q-2 6 0 12" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
@@ -138,10 +146,10 @@
       <path d="M-14 6q-9 -2 -12 6q8 3 12 -6Z" fill="#8fd6a2" stroke="#4f9e69" stroke-width="1.2"/>
       ${sakura(13)}
     </g></g>
-    <g class="hari-sweat" transform="translate(196 108)">
+    <g transform="translate(196 108)"><g class="hari-sweat">
       <path d="M0 -12C5 -3 8 3 0 8C-8 3 -5 -3 0 -12Z" fill="#a8dcff" stroke="#5aa6d6" stroke-width="2"/>
       <ellipse cx="-2" cy="1" rx="1.6" ry="3" fill="#fff" opacity=".8"/>
-    </g>
+    </g></g>
   </g>
 </svg>`;
   }
