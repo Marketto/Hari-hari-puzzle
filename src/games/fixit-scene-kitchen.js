@@ -91,10 +91,10 @@
       if (st !== 'broken') return bracket(240) + bracket(290) + lace + board + (st === 'fixed' ? sparkle(310, 98, 5) : '');
       return bracket(240) + `<circle cx="290" cy="110" r="1.8" fill="var(--fi-ink)"/><circle cx="290" cy="118" r="1.8" fill="var(--fi-ink)"/>` +
         `<g class="fi-wobble"><g transform="rotate(30 230 104)">${board}</g></g>` +
-        `<g transform="rotate(-80 252 182)">${bracket(252, 174)}</g>`;
+        `<g transform="rotate(-80 256 300)">${bracket(256, 292)}</g>`;
     },
     jars(st, S) {
-      if (!S.shelfUp) return '';
+      if (!S.shelfUp && st !== 'broken') return '';
       const jar = (x, w, h, lid, fill, dots) => `<rect x="${x}" y="${100 - h}" width="${w}" height="${h}" rx="5" fill="var(--fi-glass)" opacity=".55"/>` +
         `<rect x="${x + 2}" y="${100 - h * 0.62}" width="${w - 4}" height="${h * 0.62 - 2}" rx="3" fill="${fill}"/>` +
         dots + `<rect x="${x}" y="${100 - h}" width="${w}" height="${h}" rx="5" fill="none" ${o(1.8)}/>` +
