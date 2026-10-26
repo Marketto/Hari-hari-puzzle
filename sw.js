@@ -1,9 +1,12 @@
-/* Service worker: app completamente offline.
- * - precache della shell (cache-first)
+/* Service worker: app completamente offline + aggiornamenti automatici.
+ * - precache della shell (cache-first), scaricata ignorando la cache HTTP così ogni versione è completa e coerente
  * - font Google in cache al primo avvio online (stale-while-revalidate)
- * Incrementa VERSION a ogni release (lo fa `npm run release`).
+ * - aggiornamento: la versione nuova si installa in background e aspetta; la pagina le manda {type:'skip'}
+ *   in un momento sicuro (home o app in background) dopo aver salvato la partita. I salvataggi stanno in localStorage:
+ *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
+ * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.6.1';
+const VERSION = 'hh-v0.6.2';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
@@ -11,11 +14,21 @@ const SHELL = [
   'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
   'src/games/sushi-logic.js', 'src/games/sushi-ui.js', 'src/games/sushi.css',
   'src/games/fixit-logic.js', 'src/games/fixit-ui.js', 'src/games/fixit.css',
-  'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png',
+  'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(VERSION);
+    await c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })));
+    // prima installazione: si attiva subito; un aggiornamento invece aspetta il via dalla pagina
+    if (!self.registration.active) await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'skip') self.skipWaiting();
+  if (e.data && e.data.type === 'version' && e.source) e.source.postMessage({ type: 'version', version: VERSION });
 });
 
 self.addEventListener('activate', (e) => {
@@ -34,5 +47,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (url.origin !== location.origin) return;
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request).catch(() => caches.match('index.html'))));
+  e.respondWith(caches.open(VERSION).then((c) => c.match(e.request, { ignoreSearch: true }))
+    .then((hit) => hit || fetch(e.request).catch(() => caches.match('index.html'))));
 });

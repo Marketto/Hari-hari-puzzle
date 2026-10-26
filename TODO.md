@@ -13,6 +13,12 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
+## Fatto (v0.6.2)
+- [x] Proposta d'installazione su Android: finestra di Hari (prompt nativo su Chrome, istruzioni dal menu sugli altri browser), "Più tardi" = 3 giorni, mai durante una partita
+- [x] Aggiornamenti automatici: controllo all'avvio, al ritorno nell'app e ogni 30 min; si applicano nella home o in background, in partita con il pulsante "Aggiorna"; partita salvata e ripresa
+- [x] Salvataggi a prova di aggiornamento: migrazioni `HH.progress.MIGRATE`, copia di riserva se un salvataggio non si apre, `storage.persist()`; icona apple-touch nella cache offline
+- [x] `tests/pwa.test.mjs` (versione, shell offline, SW, migrazioni); 7 stringhe × 43 lingue
+
 ## Fatto (v0.6.1)
 - [x] Sushi Bar in stile anime: locale con noren, lanterne, finestra tonda con sakura e targhette; clienti con kimono, occhioni a due riflessi, guanciotte e battito di ciglia; cibo con ombre cel e riflessi; nastro in acciaio con piattini colorati; Hari con hachimaki; tagliere di hinoki e secchio di legno
 - [x] Fix-It House in stile anime: temporale (nuvole, pioggia, lampo) che si dirada a ogni riparazione, colline, staccionata, albero ombreggiato, casa con assi, zoccolo, porta a pannelli, orologio e mensola, cassetta della posta, Hari col caschetto che salta a ogni riparazione; attrezzi in una cassetta con maniglia
@@ -63,6 +69,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-26 v0.6.2 · `npm test` 77/77 · server locale con 2 aggiornamenti simulati: in partita barra → Aggiorna → stessa partita (mosse e griglia), nella home aggiornamento automatico, cache vecchie rimosse, offline ok · Android simulato: prompt nativo (it chiaro, ar scuro), istruzioni senza prompt, "Più tardi" non ripropone, desktop nessuna proposta
 - 2026-10-26 v0.6.1 · `npm test` 73/73 · Sushi Bar e Fix-It House a 360/390 px chiaro/scuro: nessuno scorrimento laterale, livello di Fix-It risolto fino all'arcobaleno, ordine servibile evidenziato
 - 2026-10-26 v0.6 · `npm test` 73/73 · Fix-It House in app a 360/390 px chiaro/scuro: nessuno scorrimento laterale, ordine sbagliato → cuore perso + frecce verso i prerequisiti; etichette tradotte (it, ja, ar) · Sushi Bar: cliente servito, tagliere/nastro ok
 - 2026-10-26 v0.4 · `npm test` 31/31 · stato dello screenshot dell'utente riconosciuto come 'bloccato' (test) · browser: vicolo cieco → "Sei bloccato", ultima mossa non risolutiva → "Hai finito le mosse"

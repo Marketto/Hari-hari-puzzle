@@ -1,6 +1,6 @@
 // Server statico minimo per lo sviluppo (nessuna dipendenza):
 //   node tools/serve.mjs [porta]
-// Nota: il service worker si registra solo su https; in locale l'app funziona comunque.
+// Il service worker si registra su https e su localhost (utile per provare aggiornamenti e offline).
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';

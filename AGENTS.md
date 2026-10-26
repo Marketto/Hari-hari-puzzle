@@ -12,8 +12,8 @@ Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico 
 6. **Ogni gioco salva la partita**: `snapshot()` serializzabile + `create(el, ctx, saved)`; chiama `ctx.changed()` dopo ogni mossa; espone `progress(s)` (0..1) che guida musica e messaggi.
 7. Prima di chiudere un task: `npm test` (unit test + i18n-check) e `npm run build`.
 8. **Consegna = commit + push su `main`**: il workflow `pages.yml` pubblica su https://marketto.github.io/Hari-hari-puzzle/.
-   Non inviare file o anteprime in chat. Prima del push: incrementa `VERSION` in `sw.js` (altrimenti i telefoni restano sulla
-   versione in cache), autore commit `Marketto <Marketto@users.noreply.github.com>` (repo pubblico: mai email o dati personali),
+   Non inviare file o anteprime in chat. Prima del push: incrementa `VERSION` in `sw.js` e `version` in `package.json` (un test li confronta; senza, i telefoni
+   non ricevono l'aggiornamento automatico), autore commit `Marketto <Marketto@users.noreply.github.com>` (repo pubblico: mai email o dati personali),
    poi attendi l'esito del deploy e verifica che `sw.js` online riporti la nuova versione.
 
 ## Router — da richiesta a skill/agente

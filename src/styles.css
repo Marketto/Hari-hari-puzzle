@@ -491,6 +491,23 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .lose-hari .hari { width: 140px; height: 140px; }
 .lose-hari .hari .hari-sweat { display: inline; }
 
+/* proposta d'installazione */
+.install-box { width: min(380px, 100%); align-items: center; padding: 6px 22px 22px; text-align: center; }
+.inst-hari { width: 130px; height: 130px; margin-top: -4px; }
+.inst-hari .hari { width: 100%; height: 100%; }
+.install-box h2 { margin: 0 0 6px; font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1.2; color: var(--accent-2); text-wrap: balance; }
+.install-box p { margin: 0 0 18px; font-weight: 700; color: var(--ink-2); text-wrap: pretty; }
+.inst-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+/* nuova versione pronta */
+.upd-bar {
+  position: fixed; z-index: 45; left: 50%; bottom: max(14px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 24px); padding: 8px 8px 8px 18px; border-radius: 999px;
+  background: var(--card-solid); border: 2px solid var(--line); box-shadow: var(--shadow); font-weight: 800; animation: rise .4s cubic-bezier(.3, 1.5, .5, 1);
+}
+.upd-bar span { min-width: 0; }
+.upd-bar .candy { flex: none; min-height: 42px; padding: 0 16px; font-size: 15px; }
+
 /* vittoria */
 .win-box {
   position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; text-align: center;

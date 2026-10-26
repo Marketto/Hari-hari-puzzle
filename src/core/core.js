@@ -27,10 +27,16 @@
     },
     set(id, p) { HH.store.set('prog:' + id, p); },
     totalScore() { return (HH.games || []).reduce((s, g) => s + (HH.progress.get(g.id).total || 0), 0); },
+    // I salvataggi di versioni precedenti passano dalle migrazioni (MIGRATE[v] porta da v a v+1);
+    // se una migrazione manca il salvataggio resta intatto in memoria ma non viene caricato.
     loadGame(id) {
-      const s = HH.store.get('save:' + id, null);
+      let s = HH.store.get('save:' + id, null);
+      if (!s || !s.state || typeof s.v !== 'number') return null;
+      while (s && s.v < SAVE_VERSION) s = HH.progress.MIGRATE[s.v] ? HH.progress.MIGRATE[s.v](s, id) : null;
       return s && s.v === SAVE_VERSION && s.state ? s : null;
     },
+    MIGRATE: {},
+    SAVE_VERSION,
     saveGame(id, data) { HH.store.set('save:' + id, Object.assign({ v: SAVE_VERSION, ts: Date.now() }, data)); },
     clearGame(id) { HH.store.del('save:' + id); },
   };

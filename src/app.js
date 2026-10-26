@@ -61,12 +61,12 @@
   };
   const pick = (kind) => t(SAY[kind][(Math.random() * SAY[kind].length) | 0]);
   let sayTimer = 0, lastSay = 0;
-  function say(kind, force) {
+  function say(kind, force, text) {
     const now = Date.now();
     if (!force && now - lastSay < 4500) return;
     lastSay = now;
     const box = $('#hariSay');
-    box.querySelector('p').textContent = pick(kind);
+    box.querySelector('p').textContent = text || pick(kind);
     const m = box.querySelector('svg.hari');
     m.classList.remove('happy', 'oops', 'jump');
     void m.getBoundingClientRect();
@@ -277,7 +277,16 @@
         setTimeout(() => lose(kind), 450);
       },
     };
-    S.inst = g.create($('#board'), ctx, saved && saved.state);
+    try {
+      S.inst = g.create($('#board'), ctx, saved && saved.state);
+    } catch (err) {
+      // salvataggio illeggibile (es. dopo un aggiornamento): ne teniamo una copia e si riparte dal livello raggiunto
+      if (!saved) throw err;
+      HH.store.set('save-bak:' + id, saved);
+      P.clearGame(id);
+      S.elapsed = 0;
+      S.inst = g.create($('#board'), ctx, null);
+    }
     hud(); persist();
     onProgress(true);
     HH.music.play(g.id, g.progress ? g.progress(S.inst.snapshot()) : 0);
@@ -303,6 +312,9 @@
     $('#game').hidden = true; $('#game').innerHTML = '';
     $('#home').hidden = false;
     renderHome();
+    $('#updBar').hidden = true;
+    if (waitingSW) applyUpdate();
+    else setTimeout(offerInstall, 1200);
   }
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
@@ -436,6 +448,112 @@
     if (S.game) { persist(); openGame(S.game.id, false); } else renderHome();
   }
 
+  /* ---------- PWA: proposta d'installazione (Android) ---------- */
+  const standalone = () => (G.matchMedia && G.matchMedia('(display-mode: standalone)').matches) || G.navigator.standalone === true;
+  const isAndroid = () => /Android/i.test(G.navigator.userAgent || '');
+  let installEvt = null;
+  function installSheet(manual) {
+    $('#installBox').innerHTML = `<div class="inst-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
+      <h2 id="installTitle">${t('installTitle')}</h2>
+      <p>${t(manual ? 'installHow' : 'installText')}</p>
+      <div class="inst-row">${manual ? '' : `<button class="candy big" id="instGo">${ICON.install}<span>${t('install')}</span></button>`}
+        <button class="tool" id="instLater"><span>${t('installLater')}</span></button></div>`;
+    $('#installDlg').hidden = false;
+    sfx.open();
+  }
+  function closeInstall(snoozeDays) {
+    $('#installDlg').hidden = true;
+    if (snoozeDays) HH.store.set('install:snooze', Date.now() + snoozeDays * 864e5);
+  }
+  // propone l'installazione solo nella home, mai durante una partita, e non più di una volta ogni 3 giorni
+  function offerInstall() {
+    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden) return;
+    if (Date.now() < HH.store.get('install:snooze', 0)) return;
+    if (installEvt) installSheet(false);
+    else if (isAndroid()) installSheet(true);   // browser senza prompt automatico: istruzioni dal menu
+  }
+  async function doInstall() {
+    if (!installEvt) { installSheet(true); return; }
+    const ev = installEvt;
+    installEvt = null;
+    closeInstall(0);
+    ev.prompt();
+    let outcome = 'dismissed';
+    try { outcome = (await ev.userChoice).outcome; } catch (e) { /* annullato */ }
+    if (outcome !== 'accepted') HH.store.set('install:snooze', Date.now() + 3 * 864e5);
+    $('#installBtn').hidden = !isAndroid() || standalone();
+  }
+  function setupInstall() {
+    $('#installBtn').hidden = !(isAndroid() && !standalone());
+    G.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      installEvt = e;
+      $('#installBtn').hidden = false;
+      setTimeout(offerInstall, 2500);
+    });
+    G.addEventListener('appinstalled', () => { installEvt = null; closeInstall(0); $('#installBtn').hidden = true; HH.store.set('installed', 1); });
+    $('#installBtn').onclick = doInstall;
+    $('#installDlg').addEventListener('click', (e) => {
+      if (e.target.closest('#instGo')) doInstall();
+      else if (e.target.closest('#instLater') || e.target === $('#installDlg')) closeInstall(3);
+    });
+    // Android senza evento (es. Firefox, Samsung Internet o prompt già usato): istruzioni dopo qualche secondo
+    setTimeout(() => { if (!installEvt) offerInstall(); }, 7000);
+  }
+
+  /* ---------- PWA: aggiornamenti automatici ----------
+   * Il service worker nuovo si scarica da solo (controllo all'avvio, al ritorno in primo piano e ogni 30 min) e resta
+   * "in attesa". Lo attiviamo in un momento sicuro: subito se si è nella home, altrimenti quando l'app va in background
+   * o quando si tocca "Aggiorna". Prima di ricaricare la partita viene salvata; i salvataggi stanno in localStorage,
+   * che il service worker non tocca, e all'avvio la partita in sospeso riparte da dove era.
+   */
+  let waitingSW = null;
+  function applyUpdate() {
+    if (!waitingSW) return;
+    persist();
+    HH.store.set('justUpdated', 1);
+    waitingSW.postMessage({ type: 'skip' });
+  }
+  function updateReady(w) {
+    waitingSW = w;
+    if (!S.game) { applyUpdate(); return; }
+    const bar = $('#updBar');
+    bar.innerHTML = `<span>${t('updReady')}</span><button class="candy" id="updGo">${ICON.sparkle}<span>${t('updNow')}</span></button>`;
+    bar.hidden = false;
+    $('#updGo').onclick = applyUpdate;
+  }
+  function setupUpdates() {
+    if (HH.store.get('justUpdated')) {
+      HH.store.del('justUpdated');
+      setTimeout(() => say('cheer', true, t('updDone')), 900);
+    }
+    if (!('serviceWorker' in G.navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost') || HH.INLINE) return;
+    const sw = G.navigator.serviceWorker;
+    let hadController = !!sw.controller;
+    let reloading = false;
+    sw.addEventListener('controllerchange', () => {
+      if (!hadController) { hadController = true; return; }   // prima installazione: niente ricarica
+      if (reloading) return;
+      reloading = true;
+      persist();
+      location.reload();
+    });
+    sw.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+      const watch = (w) => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && sw.controller) updateReady(w); });
+      if (reg.waiting && sw.controller) updateReady(reg.waiting);
+      watch(reg.installing);
+      reg.addEventListener('updatefound', () => watch(reg.installing));
+      const check = () => { if (G.navigator.onLine !== false) reg.update().catch(() => {}); };
+      setInterval(check, 30 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') check();
+        else if (waitingSW) applyUpdate();          // l'utente ha lasciato l'app: aggiorna senza disturbare
+      });
+    }).catch(() => {});
+    // chiede al browser di non cancellare i dati (salvataggi) anche con poco spazio
+    if (G.navigator.storage && G.navigator.storage.persist) G.navigator.storage.persist().catch(() => {});
+  }
+
   /* ---------- Avvio ---------- */
   function boot() {
     HH.i18n.set(HH.i18n.detect());
@@ -502,18 +620,8 @@
       if (e.key === 'Escape') { $('#langDlg').hidden = true; $('#statsDlg').hidden = true; }
     });
 
-    // PWA: installazione su Android
-    let deferred = null;
-    G.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; $('#installBtn').hidden = false; });
-    $('#installBtn').onclick = async () => {
-      if (!deferred) return;
-      deferred.prompt();
-      try { await deferred.userChoice; } catch (e) { /* annullato */ }
-      deferred = null; $('#installBtn').hidden = true;
-    };
-    if ('serviceWorker' in navigator && location.protocol === 'https:' && !HH.INLINE) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
+    setupInstall();
+    setupUpdates();
 
     applyTexts();
     // riapertura dell'app: si torna alla partita in sospeso
