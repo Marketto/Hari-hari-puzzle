@@ -15,7 +15,7 @@ Minimo esatto con A*, limite di mosse, sconfitta per mosse finite o vicolo cieco
 ## v0.5 — Sushi Bar e mosse contate ovunque ✅ (ottobre 2026)
 Nuovo gioco di cucina Sushi Bar; Lantern Glow con minimo esatto e limite di mosse.
 
-## v0.6 — Fix-It House (ottobre 2026)
+## v0.6 — Fix-It House ✅ (ottobre 2026)
 Casa del riccio danneggiata dal vento: guasti da riparare nell'ordine giusto con l'attrezzo giusto.
 
 ## v0.7 — Rifiniture PWA (novembre 2026)

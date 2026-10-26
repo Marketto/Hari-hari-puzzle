@@ -10,11 +10,12 @@
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
-- [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is
+- [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 - [ ] Pixel Mochi (Nonogram) — vedi docs/games/proposals.md
 
-## In lavorazione
-- [ ] Fix-It House: casa del riccio da riparare nell'ordine giusto (agente game-designer) → integrazione, traduzioni, musica
+## Fatto (v0.6.0)
+- [x] Nuovo gioco **Fix-It House**: 17 guasti con dipendenze di buon senso (scala → tetto/camino, crepa → vernice, valvola → tubo → pozzanghera, interruttore → fili → lampada…), attrezzo giusto, 3 cuori, frecce che rivelano le dipendenze
+- [x] Guasti ben visibili (contorno tratteggiato + bollino "!"), brano `fixit`, 35 stringhe × 43 lingue, 28 test con oracolo indipendente (73 test totali)
 
 ## Fatto (v0.5.0)
 - [x] Lantern Glow: minimo esatto con Gauss su GF(2) (test contro forza bruta), mosse contate, sconfitta a mosse finite
@@ -58,6 +59,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-26 v0.6 · `npm test` 73/73 · Fix-It House in app a 360/390 px chiaro/scuro: nessuno scorrimento laterale, ordine sbagliato → cuore perso + frecce verso i prerequisiti; etichette tradotte (it, ja, ar) · Sushi Bar: cliente servito, tagliere/nastro ok
 - 2026-10-26 v0.4 · `npm test` 31/31 · stato dello screenshot dell'utente riconosciuto come 'bloccato' (test) · browser: vicolo cieco → "Sei bloccato", ultima mossa non risolutiva → "Hai finito le mosse"
 - 2026-10-26 Pages · sito online 200, manifest e icone serviti, service worker attivo con cache `hh-v0.3.0`, nessun errore JS
 - 2026-10-26 v0.3 · `npm test` 26/26 · livello dello screenshot dell'utente: unica soluzione [0,3,1,4,2], generatore corretto, problema era la verifica · browser: errore → cuore perso e ✕, 3 errori → finestra e riprova, audio attivo, cambio brano menu/gioco, travaso con liquido orizzontale

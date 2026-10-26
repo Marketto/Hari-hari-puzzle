@@ -10,6 +10,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Boba Sort** | travasa i gusti di bubble tea finché ogni bicchiere ne ha uno solo |
 | **Lantern Glow** | accendi tutte le lanterne (Lights Out) con mosse contate |
 | **Sushi Bar** | prendi gli ingredienti dal nastro e prepara gli ordini dei clienti prima che perdano la pazienza |
+| **Fix-It House** | ripara i danni del temporale nell'ordine giusto e con l'attrezzo giusto |
 | In arrivo | Pixel Mochi (Nonogram) · Mochi Binary (Takuzu) · Yarn Link (Flow) |
 
 ## Provalo

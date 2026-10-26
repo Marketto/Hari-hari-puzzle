@@ -1,0 +1,165 @@
+/* Fix-It House — stili (prefisso fi-). Colori solo tramite token: chiaro qui sotto, scuro nei due blocchi successivi. */
+:root {
+  --tint-fixit: #ffe1d1;
+  --fi-ink: #5a372d;
+  --fi-sky: #c9e8ff; --fi-sky-2: #fff0f4; --fi-cloud: #ffffff; --fi-sun: #ffd166; --fi-hill: #c4ecd0;
+  --fi-grass: #a5df94; --fi-grass-2: #74c06b;
+  --fi-wall: #fff1dc; --fi-wall-2: #efd2b0; --fi-plaster: #fbe6ca; --fi-fresh: #ffe9f0; --fi-peel: #f0bf9c;
+  --fi-paper: #ffe2ea; --fi-paper-dot: #ffc9d8; --fi-floor: #dba679; --fi-floor-2: #b98055;
+  --fi-roof: #ff94a8; --fi-roof-2: #e46a84; --fi-roof-new: #ffc2cf;
+  --fi-brick: #ea8c6e; --fi-brick-2: #c76a52; --fi-stone: #ddd2c8; --fi-stone-2: #b4a79b;
+  --fi-wood: #cf9160; --fi-wood-2: #9f653c;
+  --fi-glass: #bfe5ff; --fi-glass-2: #ffffff; --fi-hole: #4c3340; --fi-soot: #55495a; --fi-bristle: #55495a;
+  --fi-leaf: #84d08d; --fi-leaf-2: #5cb46c;
+  --fi-autumn: #ffb35c; --fi-autumn-2: #f2834f; --fi-autumn-3: #f0c94e;
+  --fi-water: #85cbff; --fi-water-2: #3f9fe2;
+  --fi-metal: #cfd6e2; --fi-metal-2: #8e9bb0; --fi-valve: #ff6f86; --fi-wire: #6b7ee0;
+  --fi-spark: #ffd23d; --fi-fire: #ffb03b; --fi-fire-2: #ff6a3d; --fi-fire-3: #fff2a8;
+  --fi-glow: rgba(255, 214, 110, .42); --fi-smoke: rgba(255, 255, 255, .9);
+  --fi-curtain: #c1a8ff; --fi-curtain-2: #9e82f0; --fi-soil: #a8714b;
+  --fi-flower-1: #ff7fa3; --fi-flower-2: #ffd45e; --fi-flower-3: #b48cff;
+  --fi-ring: var(--bad); --fi-chain: #9a6d5e; --fi-chain-bg: #fffaf6; --fi-sel-halo: rgba(255, 111, 156, .3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-fixit: #4a3242;
+    --fi-ink: #2e1a24;
+    --fi-sky: #34295c; --fi-sky-2: #5b4282; --fi-cloud: rgba(205, 190, 255, .32); --fi-sun: #fff4cf; --fi-hill: #3a2d58;
+    --fi-grass: #4e8a68; --fi-grass-2: #3b6f53;
+    --fi-wall: #ead7c2; --fi-wall-2: #c9ab8f; --fi-plaster: #dcc6aa; --fi-fresh: #f3d9e3; --fi-peel: #c8977a;
+    --fi-paper: #d9b3c7; --fi-paper-dot: #c495ae; --fi-floor: #a8764f; --fi-floor-2: #83593a;
+    --fi-roof: #df6f8c; --fi-roof-2: #b44c69; --fi-roof-new: #f4a0b6;
+    --fi-glass: #8fb6ec; --fi-hole: #23161f; --fi-soot: #3a3140; --fi-bristle: #a596b8;
+    --fi-glow: rgba(255, 214, 110, .55); --fi-smoke: rgba(235, 225, 255, .55);
+    --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
+  }
+}
+:root[data-theme="dark"] {
+  --tint-fixit: #4a3242;
+  --fi-ink: #2e1a24;
+  --fi-sky: #34295c; --fi-sky-2: #5b4282; --fi-cloud: rgba(205, 190, 255, .32); --fi-sun: #fff4cf; --fi-hill: #3a2d58;
+  --fi-grass: #4e8a68; --fi-grass-2: #3b6f53;
+  --fi-wall: #ead7c2; --fi-wall-2: #c9ab8f; --fi-plaster: #dcc6aa; --fi-fresh: #f3d9e3; --fi-peel: #c8977a;
+  --fi-paper: #d9b3c7; --fi-paper-dot: #c495ae; --fi-floor: #a8764f; --fi-floor-2: #83593a;
+  --fi-roof: #df6f8c; --fi-roof-2: #b44c69; --fi-roof-new: #f4a0b6;
+  --fi-glass: #8fb6ec; --fi-hole: #23161f; --fi-soot: #3a3140; --fi-bristle: #a596b8;
+  --fi-glow: rgba(255, 214, 110, .55); --fi-smoke: rgba(235, 225, 255, .55);
+  --fi-chain: #e0c2b6; --fi-chain-bg: #2e2242; --fi-sel-halo: rgba(255, 143, 179, .3);
+}
+
+.fi-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(calc(100vw - 64px), 460px); }
+.fi-scene {
+  position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); user-select: none; -webkit-user-select: none;
+}
+.fi-scene > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fi-over { z-index: 2; pointer-events: none; overflow: visible; }
+
+/* zone toccabili */
+.fi-spot {
+  position: absolute; z-index: 3; padding: 0; border: 0; border-radius: 14px; background: transparent;
+  touch-action: manipulation; transition: box-shadow .15s, background-color .15s;
+}
+.fi-spot::before {                                  /* contorno tratteggiato "da sistemare" */
+  content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2.5px dashed var(--accent);
+  opacity: .75; animation: fi-ring 1.8s ease-in-out infinite; pointer-events: none;
+}
+.fi-spot::after {                                   /* bollino "!" */
+  content: "!"; position: absolute; top: -9px; right: -9px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  font: 800 13px/1 var(--font-body); color: var(--accent-ink); background: var(--accent); box-shadow: 0 0 0 2px var(--card-solid), 0 2px 0 var(--accent-2);
+  animation: fi-blink 2.4s ease-in-out infinite;
+}
+.fi-spot.done::before, .fi-spot.done::after { display: none; }
+.fi-spot.sel::before { border-style: solid; opacity: 1; }
+@keyframes fi-ring { 50% { transform: scale(1.06); opacity: .35; } }
+.fi-spot.done { pointer-events: none; }
+.fi-spot:hover:not(.done) { background: var(--fi-sel-halo); }
+.fi-spot.sel { background: var(--fi-sel-halo); box-shadow: 0 0 0 3px var(--accent), 0 0 0 7px var(--fi-sel-halo); animation: fi-sel 1.2s ease-in-out infinite; }
+.fi-spot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* cassetta degli attrezzi */
+.fi-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100%; }
+.fi-tool {
+  display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 16px;
+  border: 2px solid var(--line); background: var(--card-solid); box-shadow: 0 4px 0 var(--line-2), var(--shadow-s);
+  transition: transform .12s, box-shadow .12s, border-color .12s; touch-action: manipulation;
+}
+.fi-tool svg { width: 36px; height: 36px; }
+.fi-tool:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line-2); }
+.fi-tool.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--card-solid)); box-shadow: 0 4px 0 var(--accent-2); transform: translateY(-2px); }
+.fi-tools.ready .fi-tool { animation: fi-invite 1.6s ease-in-out infinite; }
+.fi-tools.ready .fi-tool:nth-child(2n) { animation-delay: .2s; }
+.fi-tools.ready .fi-tool:nth-child(3n) { animation-delay: .4s; }
+
+/* dipendenze */
+.fi-link path { stroke: var(--fi-chain); stroke-width: 2.6; stroke-dasharray: 1 7; stroke-linecap: round; opacity: .85; }
+.fi-link .hd { fill: var(--fi-chain); stroke: none; stroke-dasharray: none; }
+.fi-arrow path { stroke: var(--fi-ring); stroke-width: 4; stroke-dasharray: 2 9; stroke-linecap: round; animation: fi-march .6s linear infinite; }
+.fi-arrow .hd { fill: var(--fi-ring); stroke: none; stroke-dasharray: none; animation: none; }
+.fi-ring { fill: none; stroke: var(--fi-ring); stroke-width: 4; transform-box: fill-box; transform-origin: center; animation: fi-ring .5s ease-in-out infinite alternate; }
+.fi-chain circle { fill: var(--fi-chain-bg); stroke: var(--fi-chain); stroke-width: 2; }
+.fi-chain rect { fill: none; stroke: var(--fi-chain); stroke-width: 1.8; }
+
+/* animazioni della scena */
+.fi-g, .fi-spin, .fi-flame, .fi-sway, .fi-dangle, .fi-wobble, .fi-puff { transform-box: fill-box; }
+.fi-pop { transform-origin: center; animation: fi-pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+g.fi-shake { transform-origin: center; animation: fi-shake .45s; }
+.fi-spot.fi-shake, .fi-tool.fi-shake { animation: fi-shake .45s; }
+.fi-spin { transform-origin: center; animation: fi-spin 3s linear infinite; }
+.fi-flow { animation: fi-flow .8s linear infinite; }
+.fi-drip { animation: fi-drip 1.3s ease-in infinite; }
+.fi-spray { animation: fi-blink 0.7s ease-in-out infinite; }
+.fi-ripple { transform-box: fill-box; transform-origin: center; animation: fi-ripple 2s ease-out infinite; }
+.fi-zap { animation: fi-zap .9s steps(2, end) infinite; }
+.fi-dangle { transform-origin: 50% 0; animation: fi-swing 2.2s ease-in-out infinite; }
+.fi-wobble { transform-origin: 0 50%; animation: fi-wobble 2.6s ease-in-out infinite; }
+.fi-puff { transform-origin: center bottom; animation: fi-breathe 2.4s ease-in-out infinite; }
+.fi-flame { transform-origin: center bottom; animation: fi-flame .5s ease-in-out infinite alternate; }
+.fi-glowdot, .fi-beam { animation: fi-glow 2.4s ease-in-out infinite; }
+.fi-sway { transform-origin: center bottom; animation: fi-sway 3s ease-in-out infinite; }
+.fi-flutter { transform-box: fill-box; transform-origin: center; animation: fi-flutter 1.8s ease-in-out infinite; }
+.fi-smoke circle { transform-box: fill-box; transform-origin: center; animation: fi-smoke 2.4s ease-out infinite; opacity: 0; }
+.fi-blow { animation: fi-blow 6.5s linear infinite; opacity: 0; }
+.fi-cloud { animation: fi-drift 26s ease-in-out infinite alternate; }
+.fi-cloud.c2 { animation-duration: 34s; animation-direction: alternate-reverse; }
+.fi-sun { transform-box: fill-box; transform-origin: center; animation: fi-breathe 4s ease-in-out infinite; }
+.fi-rainbow { animation: fi-fade 1.2s ease-out both; }
+.fi-burst > g { animation: fi-burst .8s ease-out both; }
+.solved .fi-sun { animation: fi-pop .8s cubic-bezier(.3, 1.6, .5, 1), fi-breathe 4s ease-in-out .8s infinite; }
+
+@keyframes fi-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes fi-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-3deg); } 40% { transform: translateX(6px) rotate(3deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+@keyframes fi-sel { 50% { box-shadow: 0 0 0 3px var(--accent), 0 0 0 11px var(--fi-sel-halo); } }
+@keyframes fi-invite { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes fi-blink { 50% { opacity: .25; } }
+@keyframes fi-march { to { stroke-dashoffset: -22; } }
+@keyframes fi-ring { from { transform: scale(1); opacity: 1; } to { transform: scale(1.06); opacity: .55; } }
+@keyframes fi-spin { to { transform: rotate(360deg); } }
+@keyframes fi-flow { to { stroke-dashoffset: -20; } }
+@keyframes fi-drip { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(54px); opacity: .1; } }
+@keyframes fi-ripple { 0% { transform: scale(.5); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes fi-zap { 50% { opacity: 0; } }
+@keyframes fi-swing { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes fi-wobble { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-2deg); } }
+@keyframes fi-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes fi-flame { from { transform: scale(1, 1); } to { transform: scale(.92, 1.1); } }
+@keyframes fi-glow { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@keyframes fi-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes fi-flutter { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(4px, -5px) rotate(40deg); } }
+@keyframes fi-smoke { 0% { transform: translateY(8px) scale(.5); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-14px) scale(1.25); opacity: 0; } }
+@keyframes fi-blow { 0% { transform: translate(0, 0); opacity: 0; } 8% { opacity: 1; } 50% { transform: translate(220px, -18px); } 92% { opacity: 1; } 100% { transform: translate(460px, 10px); opacity: 0; } }
+@keyframes fi-drift { to { transform: translateX(26px); } }
+@keyframes fi-fade { from { opacity: 0; } to { opacity: .85; } }
+@keyframes fi-burst { 0% { transform: translate(0, 0) scale(.4); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
+
+@media (max-width: 420px) {
+  .fi-wrap { gap: 12px; }
+  .fi-tools { gap: 6px; }
+  .fi-tool { width: 46px; height: 46px; border-radius: 14px; }
+  .fi-tool svg { width: 32px; height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fi-wrap *, .fi-wrap *::before, .fi-wrap *::after { animation: none !important; transition: none !important; }
+  .fi-smoke circle, .fi-blow { opacity: 1; }
+  .fi-blow { display: none; }
+}
