@@ -25,7 +25,10 @@ nuovo gioco Hari Parade (Snake); installazione Android proposta e aggiornamenti 
 ## v0.8 — Più giochi, tutorial, Hedgedoku vivo ✅ (ottobre 2026)
 Pixel Mochi, Mochi Binary, Yarn Link; tutorial alla prima partita; schermo sempre acceso; Hedgedoku tocco/doppio tocco con ricci animati.
 
-## v0.9 — Rifiniture PWA (novembre 2026)
+## v0.9 — Hari Knots ✅ (ottobre 2026)
+Gioco delle corde intrecciate con fisica delle corde.
+
+## v0.9.1 — Rifiniture PWA (novembre 2026)
 - Font locali (offline totale al primo avvio)
 - Impostazioni (tema, suono, vibrazione, reset), schermata "Come si gioca" animata per ogni gioco
 - Suggerimenti in Hedgedoku e Lantern Glow, impostazioni

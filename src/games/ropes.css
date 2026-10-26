@@ -1,0 +1,123 @@
+/* Hari Knots — stile.
+ * Vassoio a pois, lastre di legno pastello (di notte: vetro caramella) con la faccina sulla linguetta,
+ * corde morbide disegnate su canvas (i colori arrivano da questi token, letti con getComputedStyle).
+ * Colori solo da token --rk-* (chiaro e scuro).
+ */
+:root {
+  --tint-ropes: #ffe4cf;
+  --rk-c0: #ff6f9c; --rk-c1: #3fbf9b; --rk-c2: #ffbb2e; --rk-c3: #4f9dff; --rk-c4: #a77cf5;
+  --rk-c5: #ff8a3d; --rk-c6: #e8475a; --rk-c7: #7cc644; --rk-c8: #a8714c; --rk-c9: #1fb0c2;
+  --rk-line: rgba(75, 40, 35, .72); --rk-shadow: rgba(110, 55, 45, .2); --rk-hi: rgba(255, 255, 255, .62);
+  --rk-pat: rgba(255, 255, 255, .42); --rk-face: #4b2e28; --rk-blush: rgba(255, 110, 150, .7); --rk-sym: #ffffff;
+  --rk-glow: #ff6f9c; --rk-spark: #ffd447; --rk-cursor: #d9497a;
+  --rk-tray: #fff3e8; --rk-tray-edge: rgba(200, 130, 100, .28); --rk-dot: rgba(230, 160, 130, .22);
+  --rk-p0: #ffd7c2; --rk-p0-2: #e9a98a; --rk-p1: #c8eedd; --rk-p1-2: #86c9ad; --rk-p2: #e3d6ff; --rk-p2-2: #ab95e0;
+  --rk-plate-shadow: rgba(120, 60, 50, .2); --rk-plate-hi: rgba(255, 255, 255, .7); --rk-grain: rgba(150, 80, 50, .1);
+  --rk-hole: #6b4337; --rk-hole-rim: rgba(255, 255, 255, .75); --rk-hole-hi: rgba(255, 255, 255, .25);
+  --rk-tab-face: #4b2e28; --rk-pill: #fffaf6; --rk-yay: #ff6f9c; --rk-yay-line: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-ropes: #43304a;
+    --rk-c0: #ff86b0; --rk-c1: #4fd8b2; --rk-c2: #ffcb4f; --rk-c3: #6db0ff; --rk-c4: #bb98ff;
+    --rk-c5: #ff9e5a; --rk-c6: #ff6a7c; --rk-c7: #92da5c; --rk-c8: #c99470; --rk-c9: #3ccbdc;
+    --rk-line: rgba(25, 12, 30, .8); --rk-shadow: rgba(0, 0, 0, .34); --rk-hi: rgba(255, 255, 255, .5);
+    --rk-pat: rgba(255, 255, 255, .34); --rk-face: #2a1626; --rk-glow: #ffd27d; --rk-cursor: #ff8fb3;
+    --rk-tray: #2f2346; --rk-tray-edge: rgba(255, 210, 235, .16); --rk-dot: rgba(255, 220, 245, .08);
+    --rk-p0: #6d4a6e; --rk-p0-2: #9b6f97; --rk-p1: #355e62; --rk-p1-2: #5c9592; --rk-p2: #4f477e; --rk-p2-2: #7f73b8;
+    --rk-plate-shadow: rgba(0, 0, 0, .35); --rk-plate-hi: rgba(255, 255, 255, .22); --rk-grain: rgba(255, 255, 255, .06);
+    --rk-hole: #1a1026; --rk-hole-rim: rgba(255, 230, 245, .35); --rk-hole-hi: rgba(255, 255, 255, .12);
+    --rk-tab-face: #2a1626; --rk-pill: #2e2242; --rk-yay: #ff8fb3; --rk-yay-line: #2a1626;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-ropes: #43304a;
+  --rk-c0: #ff86b0; --rk-c1: #4fd8b2; --rk-c2: #ffcb4f; --rk-c3: #6db0ff; --rk-c4: #bb98ff;
+  --rk-c5: #ff9e5a; --rk-c6: #ff6a7c; --rk-c7: #92da5c; --rk-c8: #c99470; --rk-c9: #3ccbdc;
+  --rk-line: rgba(25, 12, 30, .8); --rk-shadow: rgba(0, 0, 0, .34); --rk-hi: rgba(255, 255, 255, .5);
+  --rk-pat: rgba(255, 255, 255, .34); --rk-face: #2a1626; --rk-glow: #ffd27d; --rk-cursor: #ff8fb3;
+  --rk-tray: #2f2346; --rk-tray-edge: rgba(255, 210, 235, .16); --rk-dot: rgba(255, 220, 245, .08);
+  --rk-p0: #6d4a6e; --rk-p0-2: #9b6f97; --rk-p1: #355e62; --rk-p1-2: #5c9592; --rk-p2: #4f477e; --rk-p2-2: #7f73b8;
+  --rk-plate-shadow: rgba(0, 0, 0, .35); --rk-plate-hi: rgba(255, 255, 255, .22); --rk-grain: rgba(255, 255, 255, .06);
+  --rk-hole: #1a1026; --rk-hole-rim: rgba(255, 230, 245, .35); --rk-hole-hi: rgba(255, 255, 255, .12);
+  --rk-tab-face: #2a1626; --rk-pill: #2e2242; --rk-yay: #ff8fb3; --rk-yay-line: #2a1626;
+}
+
+.rk-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.rk-stage { position: relative; width: 100%; }
+.rk-plates, .rk-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rk-plates { overflow: visible; }
+.rk-cv { touch-action: none; outline: none; border-radius: 22px; cursor: grab; }
+.rk-cv:active { cursor: grabbing; }
+.rk-cv:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+
+/* vassoio */
+.rk-tray { fill: var(--rk-tray); stroke: var(--rk-tray-edge); stroke-width: 4; }
+.rk-dot { fill: var(--rk-dot); }
+
+/* lastre */
+.rk-pl { transform-box: fill-box; transform-origin: 50% 40%; }
+.rk-pl-sh { fill: var(--rk-plate-shadow); }
+.rk-pl-body { fill: var(--c); stroke: var(--c2); stroke-width: 6; }
+.rk-pl-hi { fill: none; stroke: var(--rk-plate-hi); stroke-width: 6; stroke-linecap: round; }
+.rk-grain { fill: none; stroke: var(--rk-grain); stroke-width: 5; stroke-linecap: round; }
+.rk-tab-b { fill: var(--c); stroke: var(--c2); stroke-width: 6; }
+.rk-eyes { fill: var(--rk-tab-face); animation: rk-blink 5s infinite; transform-box: fill-box; transform-origin: center; }
+.rk-pl:nth-of-type(2n) .rk-eyes { animation-delay: -2.2s; }
+.rk-shine { fill: var(--rk-hi); }
+.rk-happy { fill: none; stroke: var(--rk-tab-face); stroke-width: 4; stroke-linecap: round; display: none; }
+.rk-blush { fill: var(--rk-blush); }
+.rk-mouth { fill: none; stroke: var(--rk-tab-face); stroke-width: 3.4; stroke-linecap: round; }
+.rk-pl.free .rk-eyes { display: none; }
+.rk-pl.free .rk-happy { display: inline; }
+.rk-pl.free .rk-tab { animation: rk-wiggle .26s ease-in-out 2; transform-box: fill-box; transform-origin: center; }
+.rk-pl.fall { animation: rk-fall 1s cubic-bezier(.45, 0, .85, .35) forwards; pointer-events: none; }
+.rk-pl.gone { display: none; }
+
+/* fori */
+.rk-rim { fill: var(--rk-hole-rim); }
+.rk-pit { fill: var(--rk-hole); }
+.rk-pit-hi { fill: none; stroke: var(--rk-hole-hi); stroke-width: 3; stroke-linecap: round; }
+.rk-glow { fill: none; stroke: var(--rk-glow); stroke-width: 7; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.rk-hole.on .rk-glow { opacity: 1; animation: rk-glow 1s ease-in-out infinite; }
+
+/* vittoria */
+.rk-yay { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.rk-yay text { font: 400 64px var(--font-display); fill: var(--rk-yay); stroke: var(--rk-yay-line); stroke-width: 10; paint-order: stroke fill; }
+.win .rk-yay { opacity: 1; animation: rk-yay .9s cubic-bezier(.3, 1.7, .5, 1) both; }
+
+/* sotto il tabellone */
+.rk-foot { display: flex; gap: 8px; width: 100%; justify-content: center; }
+.rk-pill { display: flex; align-items: center; gap: 7px; min-width: 0; height: 40px; padding: 0 14px 0 10px; border-radius: 20px; background: var(--rk-pill); border: 2px solid var(--line); box-shadow: var(--shadow-s); font-weight: 800; font-variant-numeric: tabular-nums; }
+.rk-pill svg { width: 30px; height: 22px; flex: none; }
+.rk-pill b { font: 400 18px var(--font-display); }
+.rk-lab { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-hint { margin: 0; min-height: 1.4em; font-weight: 800; color: var(--ink-2); text-align: center; }
+.rk-hint.warn { color: var(--accent-2); animation: rk-pop .4s cubic-bezier(.3, 1.8, .5, 1); }
+.rk-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* illustrazioni (card e tutorial) */
+.rk-art-spark { transform-box: fill-box; transform-origin: center; animation: rk-twinkle 1.8s ease-in-out infinite; }
+.rk-tu-swing { transform-origin: 24px 66px; animation: rk-tu-swing 2.6s ease-in-out infinite; }
+.rk-tu-glow { transform-box: fill-box; transform-origin: center; animation: rk-glow 1s ease-in-out infinite; }
+.rk-tu-fly1 { animation: rk-tu-fly 3s ease-in infinite; }
+.rk-tu-fly2 { animation: rk-tu-fly 3s ease-in infinite; animation-delay: .5s; }
+.rk-tu-plate { animation: rk-tu-plate 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes rk-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.15); } }
+@keyframes rk-wiggle { 50% { transform: rotate(8deg) scale(1.1); } }
+@keyframes rk-fall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 18% { transform: translate(0, -3%) rotate(calc(var(--rot) * -.15)); opacity: 1; } 75% { opacity: .9; } 100% { transform: translate(var(--dx), 150%) rotate(var(--rot)); opacity: 0; } }
+@keyframes rk-glow { 0%, 100% { transform: scale(.8); opacity: .45; } 50% { transform: scale(1.05); opacity: 1; } }
+@keyframes rk-yay { from { transform: scale(.3) rotate(-8deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes rk-pop { from { transform: scale(.7); } to { transform: scale(1); } }
+@keyframes rk-twinkle { 50% { transform: scale(.6) rotate(30deg); opacity: .6; } }
+/* il capo della corda ruota attorno al nodino fisso (24,66) fino al foro (86,30) */
+@keyframes rk-tu-swing { 0%, 15% { transform: rotate(0); } 55%, 80% { transform: rotate(-30.3deg); } 100% { transform: rotate(0); } }
+@keyframes rk-tu-fly { 0%, 30% { transform: translate(0, 0); opacity: 1; } 62% { transform: translate(6px, -40px) rotate(-6deg); opacity: 0; } 92% { transform: translate(0, 0); opacity: 0; } 100% { opacity: 1; } }
+@keyframes rk-tu-plate { 0%, 40% { transform: translate(0, 0) rotate(0); opacity: 1; } 75% { transform: translate(6px, 40px) rotate(10deg); opacity: 0; } 90% { transform: translate(0, 0); opacity: 0; } 100% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-eyes, .rk-hole.on .rk-glow, .rk-pl.free .rk-tab, .rk-art-spark, .rk-tu-swing, .rk-tu-glow,
+  .rk-tu-fly1, .rk-tu-fly2, .rk-tu-plate, .rk-hint.warn, .win .rk-yay { animation: none !important; }
+  .rk-pl.fall { animation: none !important; opacity: 0; }
+}

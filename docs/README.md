@@ -14,4 +14,8 @@
 | [games/sushi-bar.md](games/sushi-bar.md) | Sushi Bar: ricette, clienti, difficoltà, bot di test |
 | [games/fixit.md](games/fixit.md) | Fix-It House: guasti, dipendenze, attrezzi, livelli |
 | [games/parade.md](games/parade.md) | Hari Parade: sfilata tipo Snake, prato, garanzie del generatore, controlli, animazioni |
+| [games/ropes.md](games/ropes.md) | Hari Knots: corde, incroci, attorcigliamenti, lastre, risolutore |
+| [games/pixel.md](games/pixel.md) | Pixel Mochi: disegni, risolutore di linea, unicità |
+| [games/binary.md](games/binary.md) | Mochi Binary: regole takuzu, generatore, cuori |
+| [games/yarn.md](games/yarn.md) | Yarn Link: fili, generatore, unicità, fragoline |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

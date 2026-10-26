@@ -203,6 +203,13 @@
       mel: ['1 2 3 5 . 3 2 .', '2 3 4 6 . 4 3 .', '4 5 6 8 . 6 5 .', '5 - 3 . 2 - - .',
         '6 5 4 3 . 5 6 .', '2 3 4 5 . 6 7 .', '8 7 6 5 4 3 2 .', '1 . 5 . 1 - - .'],
     },
+    // corde e nodini: melodia che si annoda e si scioglie (koto + carillon)
+    ropes: {
+      bpm: 98, root: 64, lead: 'koto', arp: 'musicbox', swing: 0.1, perc: 'pop',
+      chords: [1, 6, 4, 5, 1, 2, 5, 1], bass: 'R . F . R . O .',
+      mel: ['3 5 3 2 1 . 5 .', '6 8 6 5 3 . . .', '4 6 4 3 2 . 6 .', '5 - 4 3 2 - - .',
+        '1 3 5 8 7 . 5 .', '6 5 4 3 4 . 6 .', '5 6 5 4 3 2 3 .', '1 . 5 . 1 - - .'],
+    },
     lantern: {
       bpm: 76, root: 62, lead: 'koto', arp: 'koto', swing: 0, perc: 'night',
       chords: [6, 4, 6, 1, 1, 6, 5, 1], bass: 'R . . F . . R .',

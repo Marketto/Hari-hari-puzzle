@@ -14,6 +14,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Hari Parade** | guida la sfilata di ricci: ogni frutto allunga la fila, non urtare niente (stile Snake) |
 | **Pixel Mochi** | nonogram: risolvi gli indizi e appare un disegno kawaii (43 disegni) |
 | **Mochi Binary** | takuzu: mochi alla fragola e al matcha, mai tre uguali in fila |
+| **Hari Knots** | sposta i nodini delle corde nei fori liberi: le corde libere volano via, libera tutte le lastre |
 | **Yarn Link** | collega i gomitoli dello stesso colore riempiendo tutta la griglia (stile Flow) |
 
 ## Provalo

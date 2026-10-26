@@ -6,7 +6,7 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.8.1';
+const VERSION = 'hh-v0.9.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
@@ -18,6 +18,7 @@ const SHELL = [
   'src/games/binary-logic.js', 'src/games/binary-ui.js', 'src/games/binary.css',
   'src/games/pixel-logic.js', 'src/games/pixel-ui.js', 'src/games/pixel.css',
   'src/games/yarn-logic.js', 'src/games/yarn-ui.js', 'src/games/yarn.css',
+  'src/games/ropes-logic.js', 'src/games/ropes-ui.js', 'src/games/ropes.css',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 

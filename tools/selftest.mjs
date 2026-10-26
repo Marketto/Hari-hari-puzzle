@@ -115,6 +115,27 @@ for (const level of [1, 4, 8, 16]) {
   ok(pixel.PICS.length >= 40, `Pixel Mochi: ${pixel.PICS.length} disegni`);
 }
 
+// Hari Knots: 3 → 9 corde, 1 → 3 lastre; minimo esatto con A* (riverificato con un nodeLimit alto), media < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/ropes-logic.js'), 'utf8'), { filename: 'ropes-logic.js' });
+  const { ropes } = globalThis.HH;
+  for (const level of [1, 3, 6, 10, 14, 18, 24]) {
+    let ms = 0, good = 0, min = 0, opt = 0, cross = 0;
+    const T = 20, c = ropes.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const L = ropes.generate(level, globalThis.HH.rng(level * 389 + k));
+      ms += performance.now() - t;
+      min += L.min; opt += L.opt; cross += L.over.length;
+      const r = ropes.solve(L, null, { nodeLimit: 200000 });
+      let st = ropes.initial(L);
+      L.solution.forEach(([q, e, h]) => { st = ropes.move(L, st, q, e, h).state; });
+      if (ropes.stableStart(L) && r.min === L.min && ropes.isSolved(st) && L.min >= c.lo && L.min <= c.hi) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Knots livello ${level}: ${c.K} corde, ${c.P} lastre, ${(cross / T).toFixed(1)} incroci, minimo ${(min / T).toFixed(2)} mosse, prime mosse giuste ${Math.round((opt / T) * 100)}%: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

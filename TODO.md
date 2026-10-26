@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.9.0)
+- [x] Nuovo gioco **Hari Knots**: corde agganciate ai fori di lastre pastello; la corda spostata passa sopra a quelle che incrocia per la prima volta; corde scoperte e non attorcigliate volano via a catena; lastre libere cadono. Fisica Verlet, A* per il minimo, oracolo BFS nei test, brano `ropes`, tutorial, 11 stringhe × 43 lingue
+
 ## Fatto (v0.8.1)
 - [x] Sushi Bar: piattini più distanziati (4 per giro, 25–40 px liberi a 360 px), nastro un po' più veloce e clienti più pazienti per compensare
 - [x] Sushi Bar: più varietà subito (livello 1: onigiri, salmone, tonno, gambero), una ricetta nuova ogni 2 livelli; il disegno del nastro scorre alla velocità dei piattini
