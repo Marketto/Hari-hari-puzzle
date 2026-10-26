@@ -6,6 +6,7 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 
 ## Prossimo
+- [ ] Scegliere lo stile anime '90/2000 per Sushi Bar e Fix-It House — proposte in `design/proposte-anime.html` (online: /design/proposte-anime.html)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello

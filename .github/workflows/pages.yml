@@ -25,7 +25,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp -r index.html sw.js manifest.webmanifest src assets _site/
+          cp -r index.html sw.js manifest.webmanifest src assets design _site/
           [ -d .well-known ] && cp -r .well-known _site/ || true
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
