@@ -296,7 +296,7 @@
    * scene(kind, o): kind = market | gym | park | cafe | doctor | faint | bakery | craft | plants | shop
    * o = { ph: fase di Hari, night: 0..1, friend: tipo dell'amico al tavolo (o null), nf: amico appena conosciuto,
    *       label: testo del "nuovo amico!" }. Gli elementi [data-k="1..4"] compaiono man mano (la UI li accende col progresso). */
-  const SW = 320, SH = 220;
+  const SW = 320, SH = 220, Y0 = -34, YH = 306;   // disegno in 320×220, inquadratura più alta (palco quasi quadrato, barra in basso)
   const ring = (x, y, r, fill, w = 1.6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="var(--lh-ink)" stroke-width="${w}"/>`;
   const rr = (x, y, w, h, r, fill, sw = 1.8, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="var(--lh-ink)" stroke-width="${sw}" ${extra}/>`;
   const fig = (inner, x, y, size, cls = '') => `<g class="${cls}">${at(inner, x - size / 2, y - size * 0.93, size)}</g>`;
@@ -307,10 +307,10 @@
   const icAt = (n, col = 'var(--lh-ink)', sz = 18) => (x, y) => `<g transform="translate(${f1(x - sz / 2)} ${f1(y - sz / 2)}) scale(${f1(sz / 24)})" style="color:${col}" fill="none" stroke="${col}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${(IC[n] || '').replace(/currentColor/g, col)}</g>`;
   const heartIn = (x, y) => heart(x, y, 6);
   function roomBg(wall, floor1, floor2, o, win = [228, 26, 70, 52]) {
-    let s = `<rect width="${SW}" height="${SH}" fill="${wall}"/>`;
-    s += `<rect y="150" width="${SW}" height="${SH - 150}" fill="${floor1}"/>`;
-    for (let k = 0; k < 9; k++) s += `<path d="M${-60 + k * 52} ${SH}L${f1(20 + k * 35)} 150" stroke="${floor2}" stroke-width="2"/>`;
-    s += `<path d="M0 166H${SW}M0 188H${SW}" stroke="${floor2}" stroke-width="1.5" opacity=".6"/>`;
+    let s = `<rect y="${Y0}" width="${SW}" height="${YH}" fill="${wall}"/>`;
+    s += `<rect y="150" width="${SW}" height="${Y0 + YH - 150}" fill="${floor1}"/>`;
+    for (let k = 0; k < 9; k++) s += `<path d="M${-100 + k * 64} ${Y0 + YH}L${f1(20 + k * 35)} 150" stroke="${floor2}" stroke-width="2"/>`;
+    s += `<path d="M0 166H${SW}M0 188H${SW}M0 214H${SW}M0 244H${SW}" stroke="${floor2}" stroke-width="1.5" opacity=".6"/>`;
     s += `<rect y="144" width="${SW}" height="8" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.4"/>`;
     if (win) {
       const [x, y, w, h] = win, sky = o.night > 0.5 ? 'var(--lh-sky-night)' : o.night > 0.15 ? 'var(--lh-sky-dawn)' : 'var(--lh-sky-day)';
@@ -322,10 +322,9 @@
     }
     return s;
   }
-  const veil = (o, k = 0.28) => (o.night > 0.15 ? `<rect width="${SW}" height="${SH}" fill="var(--lh-night)" opacity="${f1(o.night * k)}" pointer-events="none"/>` : '') + `<rect width="${SW}" height="${SH}" fill="var(--lh-sc-dim)" pointer-events="none"/>`;
+  const veil = (o, k = 0.28) => (o.night > 0.15 ? `<rect y="${Y0}" width="${SW}" height="${YH}" fill="var(--lh-night)" opacity="${f1(o.night * k)}" pointer-events="none"/>` : '') + `<rect y="${Y0}" width="${SW}" height="${YH}" fill="var(--lh-sc-dim)" pointer-events="none"/>`;
   // accessori sopra la testa di Hari (cappello da cuoco, fascia, ...)
   const chefHat = (x, y) => `<path d="M${x - 15} ${y}q-12-2-9-13 4-8 12-5 3-10 12-10t12 10q8-3 12 5 3 11-9 13z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/><rect x="${x - 15}" y="${y - 2}" width="30" height="8" rx="2" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/>`;
-  const band = (x, y) => `<path d="M${x - 24} ${y + 4}q24-10 48 0l-1 6q-23-9-46 0z" fill="var(--lh-red)" stroke="var(--lh-ink)" stroke-width="1.3"/>`;
   const plaster = (x, y) => `<g transform="rotate(-24 ${x} ${y})"><rect x="${x - 9}" y="${y - 3.5}" width="18" height="7" rx="3.5" fill="var(--lh-pink)" stroke="var(--lh-ink)" stroke-width="1.1"/><rect x="${x - 3}" y="${y - 3}" width="6" height="6" rx="1" fill="var(--lh-white)"/><circle cx="${x - 6}" cy="${y}" r=".8" fill="var(--lh-pink-2)"/><circle cx="${x + 6}" cy="${y}" r=".8" fill="var(--lh-pink-2)"/></g>`;
   const fruit = (x, y, r, c) => `${ring(x, y, r, c, 1.2)}<path d="M${x} ${y - r}q1-3 3-4" stroke="var(--lh-leaf-2)" stroke-width="1.6" fill="none"/>`;
   const FRUIT = ['var(--lh-red)', 'var(--lh-fire)', 'var(--lh-leaf)', 'var(--lh-yellow)', 'var(--lh-lilac)', 'var(--lh-pink-2)'];
@@ -335,7 +334,8 @@
     let s = '';
     if (kind === 'market') {
       s += roomBg('var(--lh-house-2)', 'var(--lh-fl-tiles-1)', 'var(--lh-fl-tiles-2)', o, null);
-      for (let k = 0; k < 8; k++) s += `<path d="M${k * 40} 0h40v16q-10 8-20 0-10 8-20 0z" fill="${k % 2 ? 'var(--lh-white)' : 'var(--lh-awning)'}" stroke="var(--lh-ink)" stroke-width="1.2"/>`;
+      s += `<rect y="${Y0}" width="${SW}" height="${-Y0}" fill="var(--lh-awning)"/>`;
+      for (let k = 0; k < 8; k++) s += `<path d="M${k * 40} ${Y0}h40v${16 - Y0}q-10 8-20 0-10 8-20 0z" fill="${k % 2 ? 'var(--lh-white)' : 'var(--lh-awning)'}" stroke="var(--lh-ink)" stroke-width="1.2"/>`;
       // scaffali con frutta e verdura
       for (const sx of [12, 112]) {
         s += rr(sx, 34, 92, 112, 6, 'var(--lh-wood-1)');
@@ -371,27 +371,26 @@
       s += sparkleAt(70, 150, 7, 'lh-a-tw', 0) + sparkleAt(230, 40, 6, 'lh-a-tw', 0.6) + sparkleAt(176, 70, 5, 'lh-a-tw', 1.1);
     } else if (kind === 'park') {
       const sky = o.night > 0.5 ? 'var(--lh-sky-night)' : o.night > 0.15 ? 'var(--lh-sky-dawn)' : 'var(--lh-sky-day)';
-      s += `<rect width="${SW}" height="${SH}" fill="${sky}"/>`;
+      s += `<rect y="${Y0}" width="${SW}" height="${YH}" fill="${sky}"/>`;
       s += o.night > 0.5 ? `<circle cx="262" cy="40" r="14" fill="var(--lh-star)"/>` : `<circle cx="262" cy="40" r="16" fill="var(--lh-yellow)" stroke="var(--lh-ink)" stroke-width="1.4"/>`;
       s += `<ellipse class="lh-a-cloud" cx="80" cy="42" rx="26" ry="10" fill="var(--lh-hi)" opacity=".85"/>`;
-      s += `<path d="M-10 132q80-46 170-6t180-16V${SH}H-10z" fill="var(--lh-grass-2)" stroke="var(--lh-ink)" stroke-width="1.4"/>`;
+      s += `<path d="M-10 132q80-46 170-6t180-16V${Y0 + YH}H-10z" fill="var(--lh-grass-2)" stroke="var(--lh-ink)" stroke-width="1.4"/>`;
       // alberi che scorrono (Hari corre sul posto)
       let trees = '';
       for (let k = 0; k < 8; k++) { const x = 20 + k * 80, c = ['var(--lh-tree-sp)', 'var(--lh-tree-su)', 'var(--lh-tree-au)', 'var(--lh-tree-wi)'][o.season || 0]; trees += `<rect x="${x - 3}" y="104" width="6" height="34" fill="var(--lh-trunk)" stroke="var(--lh-ink)" stroke-width="1"/>${ring(x, 96, 20, c, 1.4)}${ring(x + 8, 88, 8, 'var(--lh-hi)', 0).replace('fill="var(--lh-hi)"', 'fill="var(--lh-hi)" opacity=".25"')}`; }
       s += `<g class="lh-a-scroll">${trees}</g>`;
-      s += `<rect y="138" width="${SW}" height="${SH - 138}" fill="var(--lh-grass)"/><path d="M-10 186q170-26 340 0v22q-170-26-340 0z" fill="var(--lh-road)" stroke="var(--lh-ink)" stroke-width="1.2"/>`;
+      s += `<rect y="138" width="${SW}" height="${Y0 + YH - 138}" fill="var(--lh-grass)"/><path d="M-10 186q170-26 340 0v22q-170-26-340 0z" fill="var(--lh-road)" stroke="var(--lh-ink)" stroke-width="1.2"/>`;
       let fl = '';
       for (let k = 0; k < 10; k++) fl += sakura(16 + k * 64, 160 + (k % 3) * 8, 4);
       s += `<g class="lh-a-scroll2">${fl}</g>`;
       if (o.nf) s += `<g class="lh-a-pop">${fig(friend(o.nf, 'joy', 0), 236, 204, 70, 'lh-a-run')}</g>`;
       s += `<g class="lh-a-run"><g class="lh-a-fr0">${fig(H0('joy', 0), 140, 206, 92)}</g><g class="lh-a-fr1">${fig(H0('joy', 1), 140, 206, 92)}</g></g>`;
-      s += band(140, 122).replace('<path', '<path class="lh-a-run"');
       s += `<path class="lh-a-sweat1" d="M176 132c3 5 4 8 0 10-4-2-3-5 0-10z" fill="var(--lh-sweat)" stroke="var(--lh-ink)" stroke-width="1"/>`;
       s += `<g class="lh-a-fly"><path d="M60 96q-8-10-12 0 4 8 12 0 8 8 12 0-4-10-12 0z" fill="var(--lh-pink)" stroke="var(--lh-ink)" stroke-width="1"/></g>`;
     } else if (kind === 'cafe') {
       s += roomBg('var(--lh-house-3)', 'var(--lh-fl-parquet-1)', 'var(--lh-fl-parquet-2)', o);
       // bancone con la macchina del caffè e il pulcino barista
-      s += fig(friend('chick', '', 0), 74, 132, 62, 'lh-a-bob2');
+      s += fig(friend('chick', '', 0), 74, 114, 62, 'lh-a-bob2');
       s += rr(10, 104, 130, 44, 6, 'var(--lh-wood-2)') + rr(18, 76, 30, 30, 5, 'var(--lh-metal)') + `<path class="lh-a-steam" d="M33 72q-5-8 0-14t0-14" fill="none" stroke="var(--lh-hi)" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
       for (const lx of [110, 210]) s += `<path d="M${lx} 0v26" stroke="var(--lh-ink)" stroke-width="1.6"/><path d="M${lx - 14} 38q14-22 28 0z" fill="var(--lh-gold)" stroke="var(--lh-ink)" stroke-width="1.4"/><circle class="lh-a-glow" cx="${lx}" cy="40" r="6" fill="var(--lh-bulb)"/>`;
       // Hari e l'amico al tavolino
@@ -411,21 +410,21 @@
       s += rr(88, 30, 40, 52, 4, 'var(--lh-paper)') + `<path d="M96 44h24M96 54h24M96 64h16" stroke="var(--lh-blue-2)" stroke-width="2.4" stroke-linecap="round"/>`;
       if (kind === 'faint') {
         s += rr(40, 140, 170, 22, 6, 'var(--lh-white)') + rr(40, 120, 18, 60, 5, 'var(--lh-mint-2)') + rr(200, 132, 14, 48, 5, 'var(--lh-mint-2)');
-        s += fig(H0('sleep', 0), 102, 162, 76);
-        s += `<path d="M58 140q60-18 142 0v20H58z" fill="var(--lh-mint)" stroke="var(--lh-ink)" stroke-width="1.8"/><path d="M80 146q20 6 40 0M140 146q20 6 40 0" fill="none" stroke="var(--lh-mint-2)" stroke-width="2"/>`;
+        s += fig(H0('sleep', 0), 100, 160, 76);
+        s += `<path d="M58 152q60-14 142 0v12H58z" fill="var(--lh-mint)" stroke="var(--lh-ink)" stroke-width="1.8"/><path d="M130 156q20 5 40 0" fill="none" stroke="var(--lh-mint-2)" stroke-width="2"/>`;
         s += `<text class="lh-a-zzz lh-sc-text" x="132" y="96">z</text><text class="lh-a-zzz lh-sc-text" style="animation-delay:.9s" x="142" y="84">z</text>`;
-        s += `<g data-k="3">${plaster(122, 130)}</g>`;
+        s += `<g data-k="3">${plaster(113, 137)}</g>`;
         s += fig(friend('kitty', 'joy', 0), 262, 198, 84, 'lh-a-bob2');
-        s += `<path d="M236 160q26 18 52 0l2 40h-56z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/>`;
+        s += `<path d="M236 184q26 10 52 0l2 18h-56z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/>`;
         s += say(286, 96, heartIn, 'lh-a-chat1');
       } else {
         s += rr(60, 140, 120, 18, 6, 'var(--lh-mint)') + `<path d="M70 158v34M170 158v34" stroke="var(--lh-metal-2)" stroke-width="5" stroke-linecap="round"/>`;
         s += fig(H0('', 0), 120, 166, 82, 'lh-a-bob');
-        s += `<g data-k="3">${plaster(140, 140)}</g>`;
+        s += `<g data-k="3">${plaster(134, 147)}</g>`;
         // la gattina dottoressa col camice e lo stetoscopio
         s += fig(friend('kitty', 'joy', 0), 236, 198, 86, 'lh-a-bob2');
-        s += `<path d="M208 160q28 18 56 0l2 40h-60z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/><path d="M236 170v28" stroke="var(--lh-white-2)" stroke-width="2"/>`;
-        s += `<path d="M220 164q-30 10-60-6" fill="none" stroke="var(--lh-metal-2)" stroke-width="2.6" stroke-linecap="round"/><g class="lh-a-steth">${ring(156, 156, 6, 'var(--lh-metal)', 1.6)}</g>`;
+        s += `<path d="M206 184q30 10 60 0l2 18h-64z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/><path d="M236 190v12" stroke="var(--lh-white-2)" stroke-width="2"/>`;
+        s += `<path d="M216 186q-30 0-56-26" fill="none" stroke="var(--lh-metal-2)" stroke-width="2.6" stroke-linecap="round"/><g class="lh-a-steth">${ring(156, 156, 6, 'var(--lh-metal)', 1.6)}</g>`;
         s += `<g class="lh-a-float">${heart(150, 96, 7)}</g><g class="lh-a-float" style="animation-delay:1.1s">${heart(176, 104, 5, 'var(--lh-pink)')}</g>`;
         s += say(262, 100, icAt('health', 'var(--lh-pink-2)'), 'lh-a-chat1') + say(88, 92, icAt('mood'), 'lh-a-chat2', 0, true);
       }
@@ -461,14 +460,15 @@
       s += roomBg('var(--lh-house-6)', 'var(--lh-fl-wood-1)', 'var(--lh-fl-wood-2)', o);
       s += `<path d="M30 140v-80M30 60q-14 6-14 20h28q0-14-14-20z" stroke="var(--lh-ink)" stroke-width="1.6" fill="var(--lh-yellow)"/><circle class="lh-a-glow" cx="30" cy="86" r="8" fill="var(--lh-bulb)" opacity=".7"/>`;
       s += rr(58, 112, 26, 34, 6, 'var(--lh-pot)') + ring(71, 96, 20, 'var(--lh-leaf)') + ring(80, 88, 10, 'var(--lh-leaf-2)', 1.2);
-      s += fig(H0('joy', 0), 160, 172, 82, 'lh-a-bounce');
-      s += rr(96, 150, 128, 34, 12, 'var(--lh-pink)') + rr(96, 128, 128, 30, 12, 'var(--lh-pink-2)') + rr(90, 140, 18, 44, 8, 'var(--lh-pink)') + rr(212, 140, 18, 44, 8, 'var(--lh-pink)');
+      s += rr(96, 118, 128, 40, 12, 'var(--lh-pink-2)');
+      s += fig(H0('joy', 0), 160, 166, 82, 'lh-a-bounce');
+      s += rr(96, 152, 128, 32, 12, 'var(--lh-pink)') + rr(90, 136, 18, 48, 8, 'var(--lh-pink)') + rr(212, 136, 18, 48, 8, 'var(--lh-pink)');
       s += `<g class="lh-a-swing"><path d="M220 128l12 10" stroke="var(--lh-ink)" stroke-width="1.2"/><rect x="226" y="134" width="22" height="14" rx="3" fill="var(--lh-sign)" stroke="var(--lh-ink)" stroke-width="1.2"/><g transform="translate(229 135) scale(.5)">${(IC.acorn)}</g></g>`;
       s += fig(friend('bear', 'joy', 0), 280, 204, 70, 'lh-a-bob2') + say(286, 130, icAt('relax', 'var(--lh-pink-2)'), 'lh-a-chat1');
       s += sparkleAt(124, 112, 7) + sparkleAt(200, 104, 6, 'lh-a-tw', 0.7);
     }
     s += veil(o, kind === 'park' ? 0.45 : 0.22);
-    return `<svg class="lh-scene-svg" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${s}</svg>`;
+    return `<svg class="lh-scene-svg" viewBox="0 ${Y0 + 4} ${SW} ${YH - 8}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${s}</svg>`;
   }
 
   HH.lifeArt = { icon, iconFor, IC, hari, friend, wrap, at, room, card, map, iso, PLACE_IC, scene };

@@ -134,7 +134,7 @@
 .lh-toast.good .lh-ic { background: var(--mint); color: var(--on-mint); }
 .lh-toast.gold .lh-ic { background: var(--gold); color: var(--ink); }
 .lh-say {
-  position: absolute; z-index: 5; max-width: 62%; padding: 6px 11px; border-radius: 16px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s);
+  position: absolute; z-index: 5; width: max-content; max-width: min(72%, 240px); padding: 6px 11px; border-radius: 16px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s);
   font-weight: 800; font-size: 13px; line-height: 1.25; transform: translate(-50%, -100%); pointer-events: none; animation: lh-pop .35s cubic-bezier(.3, 1.6, .5, 1) both;
 }
 .lh-say::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; margin-left: -5px; background: var(--card-solid); box-shadow: 2px 2px 0 0 var(--line-2); transform: rotate(45deg); }
@@ -193,7 +193,7 @@
 .lh-sc-text { font-family: var(--font-display); font-size: 13px; fill: var(--lh-ink); }
 .lh-scene [data-k] { opacity: 0; transition: opacity .5s; }
 .lh-scene [data-k].on { opacity: 1; animation: lh-popin .5s cubic-bezier(.3, 1.6, .5, 1) both; }
-.lh-scene g, .lh-scene path, .lh-scene circle, .lh-scene ellipse, .lh-scene text { transform-box: fill-box; transform-origin: 50% 100%; }
+.lh-scene [class*="lh-a-"], .lh-scene [data-k], .lh-scene .lh-sc-grow { transform-box: fill-box; transform-origin: 50% 100%; }
 .lh-a-bob { animation: lh-a-bob 1.4s ease-in-out infinite; }
 .lh-a-bob2 { animation: lh-a-bob 1.8s ease-in-out .4s infinite; }
 .lh-a-cart { animation: lh-a-cart 7s ease-in-out infinite; transform-origin: 0 0; }

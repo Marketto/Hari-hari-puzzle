@@ -199,7 +199,9 @@
         queueEl.hidden = mode === 'build' || (!a && !s.queue.length);
         queueEl.classList.toggle('map', mode === 'map');
         const x = `<i>${ic('close')}</i>`;
-        queueEl.innerHTML = (a ? `<button class="lh-q cur${a.auto ? ' auto' : ''}" data-q="-1" aria-label="${T('lf_stop')}: ${actName(a.id)}"><span>${ic(ACT_IC[a.id] || 'fun')}</span>${a.id === 'faint' ? '' : x}${a.auto ? `<em>${ic('life')}</em>` : ''}</button>` : '')
+        // fuori casa l'azione in corso è già nella barra della scena: qui solo quelle in attesa
+        if (mode === 'map' && s.away && !s.queue.length) queueEl.hidden = true;
+        queueEl.innerHTML = (a && !(mode === 'map' && s.away) ? `<button class="lh-q cur${a.auto ? ' auto' : ''}" data-q="-1" aria-label="${T('lf_stop')}: ${actName(a.id)}"><span>${ic(ACT_IC[a.id] || 'fun')}</span>${a.id === 'faint' ? '' : x}${a.auto ? `<em>${ic('life')}</em>` : ''}</button>` : '')
           + s.queue.map((q, i) => `<button class="lh-q" data-q="${i}" aria-label="${T('lf_stop')}: ${actName(q.id)}">${ic(ACT_IC[q.id] || 'fun')}${x}</button>`).join('');
       }
       const cur = queueEl.querySelector('.cur');
@@ -229,7 +231,8 @@
     function placeSay() {
       if (!sayEl) return;
       const x = hv.sx != null && !hv.hide && mode !== 'map' ? hv.sx : W / 2, y = hv.sy != null && !hv.hide && mode !== 'map' ? hv.sy - 6 : 70;
-      sayEl.style.left = `${Math.max(70, Math.min(W - 70, x))}px`;
+      const hw = Math.min(W - 16, sayEl.offsetWidth || 140) / 2 + 6;
+      sayEl.style.left = `${Math.max(hw, Math.min(W - hw, x))}px`;
       sayEl.style.top = `${Math.max((sayEl.offsetHeight || 40) + 8, y)}px`;
     }
     function floatAt(x, y, html) {

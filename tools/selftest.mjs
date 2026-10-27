@@ -157,7 +157,7 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
-// Hari Home (simulazione senza livelli): 4 fasi della vita, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
+// Hari Home (simulazione senza livelli): 4 fasi della vita + Hari da solo col libero arbitrio, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
 {
   for (const f of ['life-data.js', 'life-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });
   const life = globalThis.HH.life, LD = globalThis.HH.lifeData;
@@ -166,6 +166,7 @@ for (const level of [1, 4, 8, 16]) {
     'casa ristrutturata': () => { const st = life.create(2); st.money = 9000; st.home.dmg = []; for (const id of ['bed2', 'sofa1', 'plant2', 'lamp1']) for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) if (!life.canPlace(st, id, x, y, 0) && life.buy(st, id, x, y, 0).ok) { y = 9; break; } return st; },
     'casa grande': () => { const st = life.create(3); st.money = 99999; life.expand(st); life.expand(st); life.expand(st); life.chooseBiz(st, 'bakery'); st.biz.level = 4; st.biz.helpers = 3; return st; },
     'nonno in pensione': () => { const st = life.create(4); st.born = st.t - LD.DAY * LD.YEAR_DAYS * 50; life.retire(st); return st; },
+    'da solo (libero arbitrio, casa arredata)': () => { const st = life.create(5); st.money = 9000; st.home.dmg = []; for (const id of ['sofa1', 'books', 'mat', 'stove1']) for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) if (!life.canPlace(st, id, x, y, 0) && life.buy(st, id, x, y, 0).ok) { y = 9; break; } st.fridge = [4, 0, 0]; return st; },
   };
   for (const [name, mk] of Object.entries(stages)) {
     const st = mk(), T = 20;

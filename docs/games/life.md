@@ -41,9 +41,36 @@ Consumo di base all'ora: pancia −0,05, energia −0,035, pulizia −0,035, sva
   **pacco di cibo da casa**. I soldi non vanno mai sotto zero: le bollette non pagate diventano un debito che si ripaga
   coi guadagni successivi.
 
+## Comandi (come dire a Hari cosa fare)
+- **Indicatori in alto = azioni rapide**: luna → dorme (letto migliore, o pisolino), pancia → cucina/mangia (frigo vuoto:
+  lo dice e apre il quartiere per la spesa), goccia → vasca o doccia (senza: apre Costruisci), stella → TV/libri/acquario/
+  divano (senza: parco), amici → invita (o telefona se non ha amici), cuore → dottore, nuvola (stress) → allenamento/vasca/
+  divano/parco, faccina (umore) → il bisogno più urgente. `HH.life.quick(s, need)` = `plan()` + `order()`.
+- **Menu radiale su Hari**: sempre dormire, mangiare, lavarsi, svago, amici, lavoro (banchetto o negozio) e città, più
+  "basta" se sta facendo qualcosa; ogni voce usa l'oggetto migliore (`plan`). Su un **mobile** le sue azioni, su un
+  **guasto** la riparazione; il pavimento lo fa camminare (e svuota la coda).
+- **Coda delle azioni** (stile The Sims, in basso a sinistra): l'azione in corso con l'anello del tempo e quelle in attesa
+  (max `QMAX` = 4); tocca per annullare (la successiva parte subito). Un comando mentre Hari fa qualcosa *di sua
+  iniziativa* (badge verde con la fogliolina) la interrompe; mentre esegue un comando del giocatore va in coda. Se una cosa
+  in coda non si può più fare (soldi, oggetto venduto) viene saltata con un avviso (`qfail`).
+- **Bisogno critico** (< 0,18, stress > 0,82): l'indicatore lampeggia di rosso e, se Hari è libero, sopra di lui pulsa un
+  fumetto con l'icona del bisogno; toccarlo = azione rapida.
+- Primo avvio: un fumetto sotto gli indicatori spiega che si toccano (`s.tips.needs`); tutorial `tu_life_1/2`.
+
+## Libero arbitrio (`think`, in `life-logic.js`)
+Quando non ci sono comandi né attività, non è fuori casa e non è appena stato fermato dal giocatore (`calm`: 40 min di
+gioco), Hari guarda i bisogni sotto soglia (`D.FREE`): energia 0,25 (**di notte, 22–5, 0,85**: va a letto la sera),
+pancia 0,35, pulizia 0,3, svago 0,28, amici 0,25, stress > 0,7. Urgenza = (soglia − valore)/soglia + spinta (notte +0,6
+al sonno, pancia +0,1) + un pizzico di casualità (0..0,15, dal generatore salvato: resta deterministico). Prova le
+scelte in ordine con la casa (`plan(s, k, true)`: niente città né spese) e parte con la prima possibile (`act.auto`).
+**Isteresi**: le attività vanno fino in fondo e riportano il bisogno ben sopra la soglia, quindi niente oscillazioni; se non
+c'è niente da fare riprova dopo 30 min. Frigo vuoto / niente doccia né vasca → un solo fumetto (`hint`) e il pulsante
+Quartiere/Costruisci pulsa, finché il problema non si risolve. Si spegne da "Vita" (Libero arbitrio, `s.free`).
+Test: da solo per 4 giorni con frigo pieno e letto energia/pancia/pulizia restano > 0,15, dorme la sera, mangia, si lava,
+≤ 14 scelte al giorno e non spende ghiande; col frigo vuoto avvisa una volta.
+
 ## Attività
-Tocca **Hari** (telefona, invita, basta), un **mobile** o un **guasto** (chiave inglese) per il menu radiale; tocca il
-pavimento per farlo camminare. Ogni attività ha la sua icona in un fumetto con l'anello del tempo che manca.
+Ogni attività ha la sua icona in un fumetto sopra Hari con l'anello del tempo che manca (e nella coda).
 
 | Attività | Dove | Durata | Effetti principali |
 |---|---|---|---|
@@ -60,8 +87,20 @@ pavimento per farlo camminare. Ogni attività ha la sua icona in un fumetto con 
 **Quartiere** (mappa isometrica a cartolina): supermercato (cibo semplice 6, gustoso 14, gourmet 28; posti in frigo
 4/8/14 secondo il frigo), dottore (40: cura i malanni, salute +0,3, check-up), parco (gratis: sport, a volte un amico),
 palestra (12), caffè (10: amici, svago; il primo amico si conosce qui, poi 45%), negozio di mobili (apre il catalogo),
-il mio negozio (dal livello 2 dell'attività). Durante una commissione la mappa mostra Hari sul posto e la barra di
-avanzamento; la casetta lo riporta a casa (la spesa pagata arriva comunque).
+il mio negozio (dal livello 2 dell'attività). Il caffè fa chiacchierare con un amico (65%) e a metà visita si può
+conoscerne uno nuovo (il primo sempre, poi 45%; al parco 15%): l'evento arriva *durante* la scena.
+
+**Scene animate** (`HH.lifeArt.scene(kind, o)`, vignette SVG 320×220 inquadrate più alte, animazioni solo CSS `.lh-a-*`,
+token `--lh-*`, velo `--lh-sc-dim` nel tema scuro e velo notturno con l'ora del gioco): per tutta la durata della
+commissione, al posto della mappa, con nome del luogo, barra di avanzamento, pulsante mappa e casetta per tornare.
+Supermercato (Hari col carrello tra gli scaffali, la frutta salta nel cestino, coniglietta alla cassa), parco (corsa sul
+posto con alberi e fiori che scorrono, farfalla; l'amico nuovo corre con lui), palestra (bilanciere, sudore e stelline,
+orsetto allenatore), caffè (tavolino, tazze fumanti, fumetti con cuoricini ed emoji; "Nuovo amico!" con l'amico che
+compare), dottore (lettino, gattina col camice e lo stetoscopio, cerotto colorato a metà visita; da malato: a letto con
+le zzz), il mio negozio secondo l'attività (pasticceria: cappello da cuoco, forno, vetrina che si riempie, pulcino
+cliente; bottega d'arte: cavalletto che si colora; vivaio: annaffiatoio e piantine che crescono), negozio di mobili
+(Hari che salta sul divano, orsetto commesso, pulsante Costruisci). Gli elementi `[data-k]` compaiono col progresso.
+`prefers-reduced-motion` ferma tutto. Nessun canvas: costo trascurabile.
 
 **Malanni** (raffreddore, mal di pancia, acciacchi da 55 anni) estratti a mezzanotte: 2% + salute bassa, stress alto,
 inverno, muffa/perdita in casa, e **dopo i 50 anni senza check-up da 12 giorni**. Passano da soli dopo 4 giorni se la
@@ -124,7 +163,7 @@ nipotino riccio torna a 20 anni ed eredita casa, ghiande, amici e attività con 
 ## Integrazione con l'app
 - `endless: true` (catalogo e `HH.games`): header con chip età/giorno/ghiande (`meta`), niente livello/fragoline/cuori/
   mosse/tempo; "Ricomincia" chiede conferma ("è una vita intera!"); niente "Annulla" e "Nuovo".
-- `snapshot()` = stato puro JSON con `v` (versione); `HH.life.migrate` porta le versioni vecchie (tabella `MIG`),
+- `snapshot()` = stato puro JSON con `v` (versione 2: `queue`, `free`, `calm`, `tips`; `MIG[1]` li aggiunge ai salvataggi v1); `HH.life.migrate` porta le versioni vecchie (tabella `MIG`),
   riempie i campi mancanti, scarta oggetti sconosciuti e rifiuta versioni future (l'app tiene una copia di riserva).
 - `ctx.changed()` ogni ~2,5 s di gioco e dopo ogni azione; `progress(s)` = 0,08 + 0,85·umore (musica a strati).
 - Musica `life`: carillon e marimba a 88 bpm, swing leggero, percussioni "lullaby".
@@ -135,4 +174,5 @@ riparata, attività ≥ 2, umore medio ≥ 0,55, traguardi), trascuratezza → s
 sesto, dottore a pagamento, casa bella → umore su e stress giù, sport in casa e al parco → stress giù, amici al caffè,
 visite e telefonate, invecchiamento monotono con le 4 fasi, pensione e nuova generazione, determinismo e ripresa da
 JSON, migrazione, regole di costruzione e trasloco, bollette e debito, attività dal banchetto al negozio, prestazioni
-(un giorno simulato < 10 ms).
+(un giorno simulato < 10 ms), libero arbitrio (da solo per giorni, frigo vuoto → avviso una volta, interruttore),
+comandi e coda (precedenza al giocatore, annulla, azioni rapide, menu di Hari completo), migrazione v1 → v2.
