@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.9.1)
+- [x] Hari Knots, regola nuova: il capo sollevato viaggia in aria sopra tutto; se passa sopra una corda che copriva la sua ci si avvolge (si srotola solo ripassandoci sopra); anteprima rossa durante il trascinamento, animazione di avvolgimento e srotolamento; livelli con trappole vere (la giocata ingenua non basta), minimo 2→5–6 mosse; tutorial e regole aggiornati in 43 lingue
+
 ## Fatto (v0.9.0)
 - [x] Nuovo gioco **Hari Knots**: corde agganciate ai fori di lastre pastello; la corda spostata passa sopra a quelle che incrocia per la prima volta; corde scoperte e non attorcigliate volano via a catena; lastre libere cadono. Fisica Verlet, A* per il minimo, oracolo BFS nei test, brano `ropes`, tutorial, 11 stringhe × 43 lingue
 
@@ -96,6 +99,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.9.1 · `npm test` · Hari Knots: mossa che avvolge trascinata nel browser → anteprima rossa e avvolgimento, livelli 1/8/22 risolti fino alla vittoria
 - 2026-10-27 v0.9.0 · `npm test` 176/176 · 10 giochi × it/ja/ar × chiaro/scuro a 360 px: nessun errore, nessuna chiave non tradotta · Hari Knots risolto fino alla vittoria (livelli 1, 3, 8) a 360/390 px
 - 2026-10-26 v0.8.1 · `npm test` · Sushi Bar: bot vince livelli 1–15 senza perdere clienti; a 360/390 px spazio tra piattini 24–40 px; livello 1 mostra riso, alga, salmone, tonno, gambero
 - 2026-10-26 v0.8.0 · `npm test` 160/160 · 9 giochi × it/ja/ar/de × chiaro/scuro × 360/390 px: nessun errore, nessuno scorrimento, nessuna chiave non tradotta, tutorial presente in tutti · aggiornamento da v0.6.1 simulato: arriva da solo
