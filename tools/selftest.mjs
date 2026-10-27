@@ -115,28 +115,26 @@ for (const level of [1, 4, 8, 16]) {
   ok(pixel.PICS.length >= 40, `Pixel Mochi: ${pixel.PICS.length} disegni`);
 }
 
-// Hari Knots (regole modello 2): 3 → 9 corde, 1 → 3 lastre; minimo esatto con A* (riverificato con un nodeLimit alto),
-// la giocata golosa non basta (dal livello 4); generazione media < 50 ms (ricerca A* profonda: vedi docs/games/ropes.md)
+// Hari Knots (regole modello 3, "Mikado con le corde"): 3 → 9 corde, 1 → 3 lastre; minimo esatto con A* (riverificato con un
+// nodeLimit alto), la giocata golosa non basta (dal livello 2); generazione media < 50 ms
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/ropes-logic.js'), 'utf8'), { filename: 'ropes-logic.js' });
   const { ropes } = globalThis.HH;
   for (const level of [1, 3, 6, 10, 14, 18, 24]) {
-    let ms = 0, good = 0, min = 0, cross = 0, gap = 0;
+    let ms = 0, good = 0, min = 0, cross = 0, gap = 0, free0 = 0;
     const T = 12, c = ropes.config(level);
     for (let k = 0; k < T; k++) {
       const t = performance.now();
       const L = ropes.generate(level, globalThis.HH.rng(level * 389 + k));
       ms += performance.now() - t;
-      min += L.min; cross += L.over.length;
-      const K = L.ropes.length;
-      gap += L.min - ropes.heuristic(K, ropes.packState(L, ropes.initial(L)), new Int32Array(K));
+      min += L.min; cross += L.over.length; gap += L.gap; free0 += L.free0;
       const r = ropes.solve(L, null, { nodeLimit: 100000 });
       let st = ropes.initial(L);
       L.solution.forEach(([q, e, h]) => { st = ropes.move(L, st, q, e, h).state; });
-      const naiveOk = c.lo > 2 ? ropes.naive(L, L.min) > 0 : false;
+      const naiveOk = c.lo >= 3 ? ropes.naive(L, L.min) > 0 : false;
       if (ropes.stableStart(L) && r.min === L.min && ropes.isSolved(st) && L.min >= c.lo && L.min <= c.hi && !naiveOk) good++;
     }
-    ok(good >= T - 1 && ms / T < 50, `Hari Knots livello ${level}: ${c.K} corde, ${c.P} lastre, ${(cross / T).toFixed(1)} strati, minimo ${(min / T).toFixed(2)} mosse (+${(gap / T).toFixed(2)} oltre l'euristica): ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+    ok(good >= T - 1 && ms / T < 50, `Hari Knots livello ${level}: ${c.K} corde, ${c.P} lastre, ${(cross / T).toFixed(1)} incroci, ${(free0 / T).toFixed(1)} libere all'inizio, minimo ${(min / T).toFixed(2)} mosse (+${(gap / T).toFixed(2)} oltre l'euristica): ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
   }
 }
 

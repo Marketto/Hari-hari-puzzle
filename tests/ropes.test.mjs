@@ -1,7 +1,8 @@
-// Unit test Hari Knots (regole modello 2: il capo viaggia in aria, chi passa sopra chi la copriva ci si avvolge):
-// ogni livello generato dev'essere risolvibile e il minimo di mosse dichiarato (A*) dev'essere esatto.
+// Unit test Hari Knots (regole modello 3, "Mikado con le corde"): si sposta solo una corda senza niente sopra, si posa sopra a
+// tutte quelle che incrocia, sparisce quando non incrocia più nessuna. Ogni livello generato dev'essere risolvibile e il
+// minimo di mosse dichiarato (A*) dev'essere esatto.
 // L'ORACOLO è indipendente dalla logica del gioco: un simulatore riscritto da zero a partire dalle regole
-// (incroci con formula parametrica razionale, strati in una Map di coppie, attorcigliamenti in un Set, lastre in un array)
+// (incroci con formula parametrica razionale, strati in una Map di coppie, lastre in un array)
 // e una ricerca in ampiezza esaustiva (BFS) con chiavi JSON, senza euristica.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,16 +30,15 @@ function hit(p1, p2, q1, q2) {
   return inside(tn) && inside(un);
 }
 
-/* ---------- oracolo: regole (modello 2: il capo viaggia in aria) ---------- */
+/* ---------- oracolo: regole del modello 3 ---------- */
 const pk = (i, j) => (i < j ? `${i},${j}` : `${j},${i}`);
-// stato: ends · top: coppia → corda di sopra · wrap: coppia → [chi è avvolta, attorno a chi] · plates
+// stato: ends · top: coppia → corda di sopra · plates
 function oStart(L) {
-  const top = new Map(), wrap = new Map();
+  const top = new Map();
   L.over.forEach(([i, j]) => top.set(pk(i, j), i));
-  L.twists.forEach(([i, j]) => wrap.set(pk(i, j), [i, j]));
-  return { ends: L.ropes.map((e) => e && e.slice()), top, wrap, plates: L.plates.map(() => true) };
+  return { ends: L.ropes.map((e) => e && e.slice()), top, plates: L.plates.map(() => true) };
 }
-const oClone = (s) => ({ ends: s.ends.map((e) => e && e.slice()), top: new Map(s.top), wrap: new Map(s.wrap), plates: s.plates.slice() });
+const oClone = (s) => ({ ends: s.ends.map((e) => e && e.slice()), top: new Map(s.top), plates: s.plates.slice() });
 const contains = (p, [x, y]) => p[0] <= x && x <= p[2] && p[1] <= y && y <= p[3];
 const overlap = (p, q) => !(p[2] < q[0] || q[2] < p[0] || p[3] < q[1] || q[3] < p[1]);
 const segOf = (L, e) => [L.holes[e[0]], L.holes[e[1]]];
@@ -47,37 +47,27 @@ function oFree(L, s) {
   const used = new Set(s.ends.flatMap((e) => e || []));
   return L.holes.map((_, h) => h).filter((h) => !used.has(h) && L.plates.some((p, i) => s.plates[i] && contains(p, L.holes[h])));
 }
+// corda libera: nessuna corda presente le sta sopra
+const oIsFree = (s, r) => !!s.ends[r] && !s.ends.some((e, j) => e && j !== r && s.top.get(pk(r, j)) === j);
 function oMove(L, s0, r, end, h) {
-  if (!s0.ends[r] || !oFree(L, s0).includes(h)) return null;
+  if (!oIsFree(s0, r) || !oFree(L, s0).includes(h)) return null;
   const s = oClone(s0);
-  const from = L.holes[s.ends[r][end]], fixed = L.holes[s.ends[r][1 - end]], to = L.holes[h];
   s.ends[r][end] = h;
   for (let j = 0; j < s.ends.length; j++) {
     if (j === r || !s.ends[j]) continue;
-    const k = pk(r, j), B = segOf(L, s.ends[j]);
-    const p = hit(from, to, ...B);        // il capo, in aria, passa sopra B
-    const c1 = hit(fixed, to, ...B);      // la corda posata incrocia B
-    const wasTop = s.top.get(k), wrapped = s.wrap.has(k);
-    s.top.delete(k);
-    if (wrapped) {
-      if (p) { s.wrap.delete(k); if (c1) s.top.set(k, j); }
-    } else if (wasTop === j) {
-      if (p) s.wrap.set(k, [r, j]);
-      else if (c1) s.top.set(k, j);
-    } else if (c1) s.top.set(k, r);
+    if (ropeHit(L, s, r, j)) s.top.set(pk(r, j), r);     // si posa sopra a tutte quelle che incrocia
+    else s.top.delete(pk(r, j));
   }
-  // corde: sparisce chi non ha corde sopra e non è avvolta (ripetuto finché succede qualcosa)
+  // sparisce (ripetendo finché succede qualcosa) chi non incrocia nessuna corda presente — rifatto con la geometria
   for (let changed = true; changed;) {
     changed = false;
     const alive = s.ends.map((e, i) => (e ? i : -1)).filter((i) => i >= 0);
-    const gone = alive.filter((i) => !alive.some((j) => j !== i && (s.top.get(pk(i, j)) === j || s.wrap.has(pk(i, j)))));
-    for (const i of gone) {
-      s.ends[i] = null;
+    for (const i of alive) {
+      if (alive.some((j) => j !== i && s.ends[j] && ropeHit(L, s, i, j))) continue;
+      s.ends[i] = null; changed = true;
       for (const k of [...s.top.keys()]) if (k.split(',').map(Number).includes(i)) s.top.delete(k);
-      changed = true;
     }
   }
-  // lastre: cade chi non è tenuta da nessuna corda e non ha lastre presenti sopra che la sovrappongono
   for (let changed = true; changed;) {
     changed = false;
     for (let p = L.plates.length - 1; p >= 0; p--) {
@@ -89,9 +79,9 @@ function oMove(L, s0, r, end, h) {
   }
   return s;
 }
-const oKey = (s) => JSON.stringify([s.ends, [...s.top.entries()].sort(), [...s.wrap.keys()].sort(), s.plates]);
+const oKey = (s) => JSON.stringify([s.ends, [...s.top.entries()].sort(), s.plates]);
 const oSolved = (s) => s.ends.every((e) => !e);
-function oBFS(L, s0 = oStart(L), limit = 300000) {
+function oBFS(L, s0 = oStart(L), limit = 400000) {
   let frontier = [s0];
   const seen = new Set([oKey(s0)]);
   for (let d = 0; frontier.length; d++) {
@@ -99,7 +89,7 @@ function oBFS(L, s0 = oStart(L), limit = 300000) {
     for (const s of frontier) {
       if (oSolved(s)) return d;
       s.ends.forEach((e, r) => {
-        if (!e) return;
+        if (!e || !oIsFree(s, r)) return;
         for (const end of [0, 1]) for (const h of oFree(L, s)) {
           const t = oMove(L, s, r, end, h), k = oKey(t);
           if (!seen.has(k)) { seen.add(k); next.push(t); }
@@ -111,13 +101,11 @@ function oBFS(L, s0 = oStart(L), limit = 300000) {
   }
   return -1;
 }
-// stato dell'oracolo == stato pubblico della logica (direzione dell'avvolgimento inclusa)
 function sameState(st, s) {
   assert.deepEqual(st.ends, s.ends);
   assert.deepEqual(st.plates, s.plates);
   const top = new Map(st.over.map(([i, j]) => [pk(i, j), i]));
   assert.deepEqual([...top.entries()].sort(), [...s.top.entries()].sort());
-  assert.deepEqual(st.twists.map((x) => JSON.stringify(x)).sort(), [...s.wrap.values()].map((x) => JSON.stringify(x)).sort());
 }
 
 /* ---------- geometria ---------- */
@@ -144,121 +132,80 @@ test('incroci: la logica concorda con la formula parametrica su 20 000 casi casu
 });
 
 /* ---------- regole su livelli costruiti a mano ---------- */
-// griglia 5×5: corda 0 = B orizzontale (0,2)-(4,2); corda 1 = A verticale (1,4)-(1,0) che incrocia B in (1,2)
+// griglia 5×5: B orizzontale (0,2)-(4,2) · A verticale x=1 · C verticale x=3; B sta sopra a entrambe
 const HOLES = [[0, 2], [4, 2], [1, 4], [1, 0], [3, 0], [3, 4], [4, 4], [2, 0]];
-function two(over, twists = [], ropes = [[0, 1], [2, 3]]) {
-  return { rule: R.RULE, cols: 5, rows: 5, holes: HOLES, plates: [[0, 0, 4, 4]], ropes, over, twists, min: 1 };
-}
-// confronto diretto logica/oracolo sulla relazione subito dopo la mossa (prima delle sparizioni)
-function both(L, st, r, end, h) {
-  const m = R.move(L, st, r, end, h);
-  const o = oMove(L, oStart(Object.assign({}, L, { ropes: st.ends, over: st.over, twists: st.twists })), r, end, h);
-  return { m, pre: m.pre, o };
-}
-const rel = (pre) => ({ over: pre.over.map((x) => x.join()).sort(), twists: pre.twists.map((x) => x.join()).sort() });
+const lvl = (ropes, over) => ({ rule: R.RULE, cols: 5, rows: 5, holes: HOLES, plates: [[0, 0, 4, 4]], ropes, over, min: 1 });
+const L3 = lvl([[0, 1], [2, 3], [4, 5]], [[0, 1], [0, 2]]);
 
-test('regola 1 — A sopra B: dopo A sopra B se la corda posata incrocia B, altrimenti niente (anche se il capo passa sopra B)', () => {
-  const L = two([[1, 0]]);
-  let { pre } = both(L, R.initial(L), 1, 1, 4);              // (1,0)→(3,0): A = (1,4)-(3,0) incrocia ancora B
-  assert.deepEqual(rel(pre), { over: ['1,0'], twists: [] });
-  ({ pre } = both(L, R.initial(L), 1, 0, 4));                 // (1,4)→(3,0): passa sopra B, A = (3,0)-(1,0) non incrocia
-  assert.deepEqual(rel(pre), { over: [], twists: [] });
+test('regola 1 — si possono spostare solo le corde senza niente sopra', () => {
+  assert.ok(R.validLevel(L3) && R.stableStart(L3));
+  const st = R.initial(L3);
+  assert.deepEqual(R.freeRopes(L3, st), [0]);
+  assert.equal(R.move(L3, st, 1, 0, 6), null, 'A è sotto B: bloccata');
+  assert.equal(R.move(L3, st, 2, 1, 6), null, 'C è sotto B: bloccata');
+  assert.equal(oMove(L3, oStart(L3), 1, 0, 6), null);
+  assert.ok(R.move(L3, st, 0, 1, 6));
 });
 
-test('regola 2 — nessuna relazione: se la corda posata incrocia B ci arriva sopra', () => {
-  const L = two([], [], [[0, 1], [3, 4]]);                    // A = (1,0)-(3,0), lontana da B
-  const st = R.initial(L);
-  const { pre, m } = both(L, st, 1, 1, 5);                     // (3,0)→(3,4): A = (1,0)-(3,4) incrocia B
-  assert.deepEqual(rel(pre), { over: ['1,0'], twists: [] });
-  assert.deepEqual(m.lifted, [0]);
-});
-
-test('regola 3 — B sopra A: il capo che passa sopra B ci si AVVOLGE; altrimenti B resta sopra (se incrociano)', () => {
-  const L = two([[0, 1]]);
-  let r = both(L, R.initial(L), 1, 1, 4);                      // (1,0)→(3,0): il capo non passa sopra B
-  assert.deepEqual(rel(r.pre), { over: ['0,1'], twists: [] });
-  r = both(L, R.initial(L), 1, 0, 4);                          // (1,4)→(3,0): il capo passa sopra B
-  assert.deepEqual(rel(r.pre), { over: [], twists: ['1,0'] }, 'A avvolta attorno a B');
-  assert.deepEqual(r.m.wrapped, [0]);
-  assert.equal(r.m.gone.length, 0, 'avvolte: nessuna delle due sparisce, anche se i segmenti non si incrociano più');
-  sameState(r.m.state, r.o);
-  // B sopra A ma senza passarci sopra e senza incrociare più: B non copre più A → A sparisce
-  const L2 = two([[0, 1]], [], [[0, 1], [2, 3]]);
-  const r2 = both(L2, R.initial(L2), 1, 0, 6);                 // (1,4)→(4,4): il capo non attraversa B, A = (4,4)-(1,0) incrocia B
-  assert.deepEqual(rel(r2.pre), { over: ['0,1'], twists: [] });
-});
-
-test('regola 4 — avvolte: restano avvolte finché un capo non ripassa sopra l\'altra (con A o con B: simmetrico)', () => {
-  const L = two([], [[1, 0]], [[0, 1], [4, 3]]);               // A = (3,0)-(1,0) avvolta attorno a B, i segmenti non si incrociano
-  assert.ok(R.validLevel(L) && R.stableStart(L));
-  const st = R.initial(L);
-  // A si sposta senza passare sopra B: resta avvolta
-  let r = both(L, st, 1, 0, 7);                                // (3,0)→(2,0)
-  assert.deepEqual(rel(r.pre), { over: [], twists: ['1,0'] });
-  sameState(r.m.state, r.o);
-  // A ripassa sopra B: si srotola; la corda posata incrocia B → B sopra A
-  r = both(L, st, 1, 0, 5);                                    // (3,0)→(3,4)
-  assert.deepEqual(rel(r.pre), { over: ['0,1'], twists: [] });
-  assert.deepEqual(r.m.unwound, [0]);
-  sameState(r.m.state, r.o);
-  // B si sposta senza passare sopra A: restano avvolte
-  r = both(L, st, 0, 1, 6);                                    // B: (4,2)→(4,4)
-  assert.deepEqual(rel(r.pre), { over: [], twists: ['1,0'] });
-  // B ripassa sopra A (tocca A in (2,0)): si srotola; B posata tocca A → A sopra B
-  r = both(L, st, 0, 1, 7);                                    // B: (4,2)→(2,0)
-  assert.deepEqual(rel(r.pre), { over: ['1,0'], twists: [] });
-  assert.deepEqual(r.m.unwound, [1]);
-  sameState(r.m.state, r.o);
-  // srotolata e non più incrociata: libera → sparisce (se nessun'altra la copre)
-  r = both(L, st, 1, 1, 6);                                    // A: (1,0)→(4,4): passa sopra B, A = (3,0)-(4,4) incrocia B → B sopra A
-  assert.deepEqual(rel(r.pre), { over: ['0,1'], twists: [] });
-});
-
-test('regole: sparizione a cascata e lastre', () => {
-  // A avvolta attorno a B: srotolandola, B (scoperta) vola via al primo turno, A (non più coperta) al secondo; poi cade la lastra
-  const L = two([], [[1, 0]], [[0, 1], [4, 3]]);
-  const m = R.move(L, R.initial(L), 1, 0, 5);
-  assert.deepEqual(m.unwound, [0]);
-  assert.deepEqual(m.gone, [[0, 0], [1, 1]]);
-  assert.deepEqual(m.fell, [[0, 0]]);
-  assert.ok(R.isSolved(m.state));
-  // una corda attorcigliata non sparisce mai, anche scoperta
-  const m2 = R.move(L, R.initial(L), 1, 0, 7);
+test('regola 2 — la corda spostata si posa sopra a tutte quelle che incrocia', () => {
+  // B = (3,0)-(4,2) non incrocia A; spostata in (0,2) diventa orizzontale e ci passa sopra
+  const L = lvl([[4, 1], [2, 3]], []);
+  const m = R.move(L, R.initial(L), 0, 0, 0);
+  assert.deepEqual(m.covered, [1]);
+  assert.deepEqual(m.state.over, [[0, 1]]);
+  // B spostata in (4,4): incrocia ancora A e C → resta sopra a tutte e due
+  const m2 = R.move(L3, R.initial(L3), 0, 1, 6);
+  assert.deepEqual(m2.state.over.map((x) => x.join()).sort(), ['0,1', '0,2']);
   assert.equal(m2.gone.length, 0);
+  sameState(m2.state, oMove(L3, oStart(L3), 0, 1, 6));
 });
 
-test('regole: mosse illegali (foro occupato, foro di una lastra caduta, corda sparita)', () => {
-  const L = two([[0, 1]]);
-  const st = R.initial(L);
-  assert.equal(R.move(L, st, 1, 0, 3), null, 'foro occupato');
-  assert.equal(R.move(L, st, 1, 0, 0), null, 'foro occupato (dalla corda 0)');
-  assert.equal(R.move(L, st, 1, 0, 99), null, 'foro inesistente');
-  const gone = Object.assign(R.initial(L), { ends: [[0, 1], null], over: [], twists: [] });
-  assert.equal(R.move(L, gone, 1, 0, 4), null, 'corda sparita');
-  const L2 = {
-    rule: R.RULE, cols: 4, rows: 2, holes: [[0, 0], [1, 1], [3, 0], [3, 1], [0, 1], [2, 0]],
-    plates: [[0, 0, 1, 1], [2, 0, 3, 1]], ropes: [[0, 1], [4, 2]], over: [[0, 1]], twists: [], min: 1,
-  };
-  const s3 = Object.assign(R.initial(L2), { plates: [true, false], ends: [[0, 1], null], over: [], twists: [] });
-  assert.deepEqual(R.freeHoles(L2, s3), [4]);
-  assert.equal(R.move(L2, s3, 0, 0, 3), null);
+test('regola 3 — sparisce solo una corda senza incroci (niente sopra e niente sotto), anche quelle di sotto', () => {
+  // B in (2,0): B = (0,2)-(2,0) incrocia ancora A ma non più C → C resta senza incroci e vola via
+  const m = R.move(L3, R.initial(L3), 0, 1, 7);
+  assert.deepEqual(m.released, [2]);
+  assert.deepEqual(m.gone, [[2, 0]]);
+  assert.deepEqual(m.state.over, [[0, 1]]);
+  sameState(m.state, oMove(L3, oStart(L3), 0, 1, 7));
+  // da qui ogni mossa legale dà lo stesso stato nella logica e nell'oracolo
+  const st = m.state;
+  for (const [r, end, h] of R.legalMoves(L3, st)) sameState(R.move(L3, st, r, end, h).state, oMove(L3, oStart(Object.assign({}, L3, { ropes: st.ends, over: st.over })), r, end, h));
+  // una corda coperta non sparisce: A resta finché B la incrocia
+  assert.ok(m.state.ends[1]);
 });
 
-test('lastre: quella sotto aspetta che cada quella sopra; fori condivisi tengono entrambe', () => {
+test('lastre: cadono quando nessuna corda le tiene, quella sotto aspetta quella sopra', () => {
   const L = {
     rule: R.RULE, cols: 5, rows: 3,
     holes: [[0, 0], [1, 2], [2, 1], [4, 0], [4, 2], [3, 1], [0, 2], [3, 0]],
     plates: [[0, 0, 2, 2], [2, 0, 4, 2]],
-    ropes: [[7, 4], [3, 5]], over: [], twists: [[1, 0]], min: 1,
+    ropes: [[7, 4], [3, 5]], over: [[1, 0]], min: 1,
   };
   const p = R.prep(L);
   assert.equal(p.pins[2], 3, 'il foro in colonna 2 tiene entrambe le lastre');
   assert.equal(p.above[0], 2, 'la lastra 1 sta sopra la 0');
-  assert.ok(R.stableStart(L), 'due corde avvolte sulla lastra 1: la 0 non è tenuta ma ha sopra la 1');
-  const S = R.packState(L, { ends: [[7, 4], null], over: [], twists: [], plates: [true, true] });
-  const fx = R.settle(L, S);
-  assert.deepEqual(fx.gone, [[0, 0]]);
-  assert.deepEqual(fx.fell, [[1, 0], [0, 1]]);
+  assert.ok(R.stableStart(L), 'due corde incrociate sulla lastra 1: la 0 non è tenuta ma ha sopra la 1');
+  // la corda 1 (libera) va in (2,1): non incrocia più la 0 → spariscono tutte e due; cade la 1 e poi la 0
+  const m = R.move(L, R.initial(L), 1, 0, 2);
+  assert.ok(R.isSolved(m.state));
+  assert.deepEqual(m.fell, [[1, 0], [0, 1]]);
+  const o = oMove(L, oStart(L), 1, 0, 2);
+  assert.ok(oSolved(o) && o.plates.every((x) => !x));
+});
+
+test('regole: mosse illegali (foro occupato, foro di una lastra caduta, corda sparita)', () => {
+  const st = R.initial(L3);
+  assert.equal(R.move(L3, st, 0, 0, 3), null, 'foro occupato');
+  assert.equal(R.move(L3, st, 0, 0, 99), null, 'foro inesistente');
+  const gone = Object.assign(R.initial(L3), { ends: [null, [2, 3], [4, 5]], over: [] });
+  assert.equal(R.move(L3, gone, 0, 0, 6), null, 'corda sparita');
+  const L2 = {
+    rule: R.RULE, cols: 4, rows: 2, holes: [[0, 0], [1, 1], [3, 0], [3, 1], [0, 1], [2, 0]],
+    plates: [[0, 0, 1, 1], [2, 0, 3, 1]], ropes: [[0, 1], [4, 2]], over: [[0, 1]], min: 1,
+  };
+  const s3 = Object.assign(R.initial(L2), { plates: [true, false], ends: [[0, 1], null], over: [] });
+  assert.deepEqual(R.freeHoles(L2, s3), [4]);
+  assert.equal(R.move(L2, s3, 0, 0, 3), null);
 });
 
 /* ---------- generatore ---------- */
@@ -276,14 +223,9 @@ test('generatore: livelli 1–24 validi, stabili, risolvibili; la soluzione dich
       assert.ok(R.stableStart(L), tag + ': nessuna corda sparisce all\'inizio');
       assert.ok(L.min >= 1 && L.solution.length === L.min, tag);
       const s0 = oStart(L);
-      s0.ends.forEach((_, i) => {
-        const held = s0.ends.some((__, j) => j !== i && (s0.top.get(pk(i, j)) === j || s0.wrap.has(pk(i, j))));
-        assert.ok(held, `${tag}: corda ${i} coperta o avvolta`);
-      });
-      for (let i = 0; i < c.K; i++) for (let j = i + 1; j < c.K; j++) {
-        if (s0.top.has(pk(i, j))) assert.ok(ropeHit(L, s0, i, j), `${tag}: strato solo se si incrociano`);
-        else if (!s0.wrap.has(pk(i, j))) assert.ok(!ropeHit(L, s0, i, j), `${tag}: ogni incrocio ha uno strato`);
-      }
+      s0.ends.forEach((_, i) => assert.ok(s0.ends.some((__, j) => j !== i && ropeHit(L, s0, i, j)), `${tag}: corda ${i} incrocia almeno un'altra`));
+      for (let i = 0; i < c.K; i++) for (let j = i + 1; j < c.K; j++) assert.equal(s0.top.has(pk(i, j)), ropeHit(L, s0, i, j), `${tag}: uno strato per incrocio`);
+      assert.ok(s0.ends.some((_, r) => oIsFree(s0, r)), tag + ': almeno una corda libera');
       let s = s0;
       for (const [r, end, h] of L.solution) { s = oMove(L, s, r, end, h); assert.ok(s, tag + ': mossa legale'); }
       assert.ok(oSolved(s), tag + ': la soluzione libera tutto');
@@ -292,9 +234,9 @@ test('generatore: livelli 1–24 validi, stabili, risolvibili; la soluzione dich
   }
 });
 
-test('generatore: il minimo (A*) coincide con la BFS esaustiva dell\'oracolo (livelli 1–10)', () => {
-  for (let lv = 1; lv <= 10; lv++) {
-    for (let k = 0; k < (lv <= 6 ? 3 : 1); k++) {
+test('generatore: il minimo (A*) coincide con la BFS esaustiva dell\'oracolo (livelli 1–8)', () => {
+  for (let lv = 1; lv <= 8; lv++) {
+    for (let k = 0; k < (lv <= 4 ? 3 : 1); k++) {
       const L = R.generate(lv, HH.rng(lv * 104729 + k));
       const d = oBFS(L);
       assert.ok(d !== null, `livello ${lv}: BFS entro il limite`);
@@ -303,18 +245,17 @@ test('generatore: il minimo (A*) coincide con la BFS esaustiva dell\'oracolo (li
   }
 });
 
-test('difficoltà: il minimo cresce col livello e la giocata ingenua non basta (dal livello 4)', () => {
+test('difficoltà: il minimo cresce col livello e la giocata ingenua non basta (dal livello 2)', () => {
   const avg = (lv) => { let t = 0; for (let k = 0; k < 4; k++) t += R.generate(lv, HH.rng(lv * 55 + k)).min; return t / 4; };
   const a = avg(1), b = avg(8), c = avg(22);
-  assert.ok(a <= b && b < c && c >= 5, `${a} ${b} ${c}`);
-  for (const lv of [8, 14, 22]) {
+  assert.ok(a < b && b < c && c >= 8, `${a} ${b} ${c}`);
+  for (const lv of [3, 8, 14, 22]) {
     const L = R.generate(lv, HH.rng(lv));
     assert.ok(R.naive(L, L.min) < 0, `livello ${lv}: la giocata golosa non risolve nel minimo`);
-    assert.ok(L.min > R.heuristic(L.ropes.length, R.packState(L, R.initial(L)), new Int32Array(L.ropes.length)) || L.min >= 4);
   }
 });
 
-test('A*: minimo esatto anche da stati intermedi, e "irrisolvibile" solo se la BFS lo conferma', () => {
+test('A*: minimo esatto anche da stati intermedi', () => {
   const rnd = HH.rng(99);
   let checked = 0;
   for (let lv = 1; lv <= 7; lv++) {
@@ -324,8 +265,9 @@ test('A*: minimo esatto anche da stati intermedi, e "irrisolvibile" solo se la B
       const mv = R.legalMoves(L, st);
       const [r, end, h] = mv[Math.floor(rnd() * mv.length)];
       st = R.move(L, st, r, end, h).state;
+      if (R.isSolved(st)) break;
       const a = R.solve(L, st, { nodeLimit: 50000 });
-      const o = oStart(Object.assign({}, L, { ropes: st.ends, over: st.over, twists: st.twists }));
+      const o = oStart(Object.assign({}, L, { ropes: st.ends, over: st.over }));
       o.plates = st.plates.slice();
       const bfs = oBFS(L, o);
       if (bfs === null) continue;
@@ -345,6 +287,7 @@ test('mosse casuali: la logica e l\'oracolo producono sempre lo stesso stato', (
       for (let step = 0; step < 30 && !R.isSolved(st); step++) {
         const mv = R.legalMoves(L, st);
         assert.deepEqual(R.freeHoles(L, st).sort((a, b) => a - b), oFree(L, s).sort((a, b) => a - b));
+        assert.deepEqual(R.freeRopes(L, st), s.ends.map((_, r) => r).filter((r) => oIsFree(s, r)));
         if (!mv.length) break;
         const [r, end, h] = mv[Math.floor(rnd() * mv.length)];
         st = R.move(L, st, r, end, h).state;
@@ -363,7 +306,7 @@ test('determinismo: stesso seme → stesso livello', () => {
   }
 });
 
-test('salvataggio e ripresa: livello e stato sopravvivono al JSON; stati rotti o del vecchio modello vengono scartati', () => {
+test('salvataggio e ripresa: livello e stato sopravvivono al JSON; stati rotti o dei modelli precedenti vengono scartati', () => {
   const L = R.generate(9, HH.rng(5));
   const st0 = R.initial(L);
   const [r, end, h] = R.legalMoves(L, st0)[0];
@@ -375,15 +318,12 @@ test('salvataggio e ripresa: livello e stato sopravvivono al JSON; stati rotti o
   assert.equal(R.solve(snap.L, snap.st).min, R.solve(L, st).min);
   const bad1 = JSON.parse(JSON.stringify(st)); bad1.ends[bad1.ends.findIndex(Boolean)] = [0, 0];
   assert.equal(R.validState(L, bad1), false);
+  const bad2 = JSON.parse(JSON.stringify(st0)); bad2.over = [];
+  assert.equal(R.validState(L, bad2), false, 'incroci senza strato');
   const bad3 = JSON.parse(JSON.stringify(st0)); bad3.plates = [];
   assert.equal(R.validState(L, bad3), false);
-  // una coppia non può essere avvolta e avere anche uno strato
-  if (st0.over.length) {
-    const bad4 = JSON.parse(JSON.stringify(st0)); bad4.twists.push(bad4.over[0].slice());
-    assert.equal(R.validState(L, bad4), false);
-  }
-  const old = JSON.parse(JSON.stringify(L)); delete old.rule;
-  assert.equal(R.validLevel(old), false, 'livelli del modello 1');
+  const old = JSON.parse(JSON.stringify(L)); old.rule = 2; old.twists = [];
+  assert.equal(R.validLevel(old), false, 'livelli del modello 2');
   assert.equal(R.validLevel({ cols: 4 }), false);
   assert.equal(R.validLevel(null), false);
 });

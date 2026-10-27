@@ -15,7 +15,7 @@
   --rk-plate-shadow: rgba(120, 60, 50, .2); --rk-plate-hi: rgba(255, 255, 255, .7); --rk-grain: rgba(150, 80, 50, .1);
   --rk-hole: #6b4337; --rk-hole-rim: rgba(255, 255, 255, .75); --rk-hole-hi: rgba(255, 255, 255, .25);
   --rk-tab-face: #4b2e28; --rk-pill: #fffaf6; --rk-yay: #ff6f9c; --rk-yay-line: #ffffff;
-  --rk-warn: #e8475a; --rk-float: #ff6f9c; --rk-float-line: #ffffff;
+  --rk-warn: #e8475a; --rk-sink: rgba(60, 25, 30, .38); --rk-lock: #ffd447; --rk-halo: rgba(255, 186, 60, .8); --rk-dim: rgba(255, 245, 238, .38);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -29,7 +29,7 @@
     --rk-plate-shadow: rgba(0, 0, 0, .35); --rk-plate-hi: rgba(255, 255, 255, .22); --rk-grain: rgba(255, 255, 255, .06);
     --rk-hole: #1a1026; --rk-hole-rim: rgba(255, 230, 245, .35); --rk-hole-hi: rgba(255, 255, 255, .12);
     --rk-tab-face: #2a1626; --rk-pill: #2e2242; --rk-yay: #ff8fb3; --rk-yay-line: #2a1626;
-    --rk-warn: #ff8a9a; --rk-float: #ffd27d; --rk-float-line: #2a1626;
+    --rk-warn: #ff8a9a; --rk-sink: rgba(10, 4, 20, .5); --rk-lock: #ffd27d; --rk-halo: rgba(255, 220, 120, .5); --rk-dim: rgba(30, 20, 50, .45);
   }
 }
 :root[data-theme="dark"] {
@@ -43,7 +43,7 @@
   --rk-plate-shadow: rgba(0, 0, 0, .35); --rk-plate-hi: rgba(255, 255, 255, .22); --rk-grain: rgba(255, 255, 255, .06);
   --rk-hole: #1a1026; --rk-hole-rim: rgba(255, 230, 245, .35); --rk-hole-hi: rgba(255, 255, 255, .12);
   --rk-tab-face: #2a1626; --rk-pill: #2e2242; --rk-yay: #ff8fb3; --rk-yay-line: #2a1626;
-  --rk-warn: #ff8a9a; --rk-float: #ffd27d; --rk-float-line: #2a1626;
+  --rk-warn: #ff8a9a; --rk-sink: rgba(10, 4, 20, .5); --rk-lock: #ffd27d; --rk-halo: rgba(255, 220, 120, .5); --rk-dim: rgba(30, 20, 50, .45);
 }
 
 .rk-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -105,9 +105,9 @@
 .rk-tu-glow { transform-box: fill-box; transform-origin: center; animation: rk-glow 1s ease-in-out infinite; }
 .rk-tu-fly1 { animation: rk-tu-fly 3s ease-in infinite; }
 .rk-tu-fly2 { animation: rk-tu-fly 3s ease-in infinite; animation-delay: .5s; }
-.rk-tu-rope1 { animation: rk-tu-before 2.6s steps(1) infinite; }
-.rk-tu-rope2, .rk-tu-loops { animation: rk-tu-after 2.6s steps(1) infinite; }
-.rk-tu-oops { animation: rk-tu-oops 2.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.rk-tu-shake { animation: rk-tu-shake 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.rk-tu-glowrope { animation: rk-tu-halo 1.6s ease-in-out infinite; }
+.rk-meter { width: 100%; margin: 0; }
 .rk-tu-plate { animation: rk-tu-plate 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 
 @keyframes rk-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.15); } }
@@ -119,15 +119,13 @@
 @keyframes rk-twinkle { 50% { transform: scale(.6) rotate(30deg); opacity: .6; } }
 /* il capo della corda ruota attorno al nodino fisso (24,66) fino al foro (86,30) */
 @keyframes rk-tu-swing { 0%, 15% { transform: rotate(0); } 55%, 80% { transform: rotate(-30.3deg); } 100% { transform: rotate(0); } }
-@keyframes rk-tu-before { 0%, 54% { opacity: 1; } 55%, 96% { opacity: 0; } }
-@keyframes rk-tu-after { 0%, 54% { opacity: 0; } 55%, 96% { opacity: 1; } 97%, 100% { opacity: 0; } }
-@keyframes rk-tu-oops { 0%, 56% { opacity: 0; transform: scale(.4); } 66% { opacity: 1; transform: scale(1.25); } 80% { opacity: 1; transform: scale(1); } 92%, 100% { opacity: 0; } }
+@keyframes rk-tu-shake { 0%, 40%, 100% { transform: translateX(0); } 48% { transform: translateX(-2px) rotate(-8deg); } 56% { transform: translateX(2px) rotate(8deg); } 64% { transform: translateX(0); } }
+@keyframes rk-tu-halo { 50% { opacity: .15; } }
 @keyframes rk-tu-fly { 0%, 30% { transform: translate(0, 0); opacity: 1; } 62% { transform: translate(6px, -40px) rotate(-6deg); opacity: 0; } 92% { transform: translate(0, 0); opacity: 0; } 100% { opacity: 1; } }
 @keyframes rk-tu-plate { 0%, 40% { transform: translate(0, 0) rotate(0); opacity: 1; } 75% { transform: translate(6px, 40px) rotate(10deg); opacity: 0; } 90% { transform: translate(0, 0); opacity: 0; } 100% { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   .rk-eyes, .rk-hole.on .rk-glow, .rk-pl.free .rk-tab, .rk-art-spark, .rk-tu-swing, .rk-tu-glow,
-  .rk-tu-fly1, .rk-tu-fly2, .rk-tu-plate, .rk-tu-rope1, .rk-tu-rope2, .rk-tu-loops, .rk-tu-oops, .rk-hint.warn, .win .rk-yay { animation: none !important; }
+  .rk-tu-fly1, .rk-tu-fly2, .rk-tu-plate, .rk-tu-shake, .rk-tu-glowrope, .rk-hint.warn, .win .rk-yay { animation: none !important; }
   .rk-pl.fall { animation: none !important; opacity: 0; }
-  .rk-tu-rope1 { opacity: 0; }
 }
