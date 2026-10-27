@@ -176,8 +176,10 @@ button.candy:active, .card:active .candy, .resume:active .candy { transform: tra
 [dir="rtl"] .bubble::before { transform: rotate(-45deg); }
 .logo {
   margin: 0; font-family: var(--font-display); font-weight: 400; line-height: 1; font-size: clamp(46px, 10vw, 96px);
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .18em;
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 0 .16em;
 }
+/* titolo a sinistra (va a capo da solo), condividi + versione sempre a fianco */
+.logo-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .18em; min-width: 0; }
 .lw { display: inline-flex; }
 .lw > span {
   display: inline-block; color: var(--c); -webkit-text-stroke: .075em var(--ink); paint-order: stroke fill;
@@ -188,7 +190,7 @@ button.candy:active, .card:active .candy, .resume:active .candy { transform: tra
 .lw.b { --c: var(--mint); --o: .45s; }
 .logo .br { flex-basis: 100%; height: 0; }
 /* colonna accanto a "Puzzle": pulsante condividi sopra la versione */
-.logo-side { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .12em; margin-inline-start: .3em; align-self: center; }
+.logo-side { display: inline-flex; flex: none; flex-direction: column; align-items: center; gap: 8px; }
 .share-btn {
   display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px 0 9px; border: 0; border-radius: 999px; cursor: pointer;
   font: 800 12px/1 var(--font-body); letter-spacing: .04em; color: var(--accent-ink); background: var(--accent); box-shadow: 0 3px 0 var(--accent-2);
@@ -621,6 +623,10 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   .hero { grid-template-columns: 128px 1fr; gap: 6px 12px; padding-block: 6px 18px; }
   .bubble { font-size: 13px; padding: 7px 12px; margin-bottom: 10px; }
   .logo { font-size: clamp(36px, 11.5vw, 56px); }
+  /* su telefono: condividi solo icona, tondo */
+  .share-btn { width: 36px; height: 36px; padding: 0; justify-content: center; }
+  .share-btn span { display: none; }
+  .share-btn svg { width: 17px; height: 17px; }
   .sub { margin-top: 12px; font-size: 11.5px; }
   .resume { gap: 10px; padding: 8px 10px 8px 8px; }
   .resume-art { width: 64px; height: 56px; }

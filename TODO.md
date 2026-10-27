@@ -15,6 +15,7 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
 ## Fatto (v0.12.3)
+- [x] Home: Condividi (solo icona su telefono) e versione sempre a fianco del titolo
 - [x] Home: 3 modalità di visualizzazione dei giochi (lista, icone 2 per riga, carosello in prospettiva stile Cover Flow del Mac), scelta salvata
 
 ## Fatto (v0.12.2)

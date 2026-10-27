@@ -229,7 +229,7 @@
         </div>
         <div class="hero-copy">
           <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span><span class="logo-side"><button class="share-btn" id="shareBtn" type="button">${ICON.share}<span>${lab('share', 'Share')}</span></button><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></span></h1>
+          <h1 class="logo" aria-label="Hari Hari Puzzle"><span class="logo-main">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span></span><span class="logo-side"><button class="share-btn" id="shareBtn" type="button" aria-label="${lab('share', 'Share')}" title="${lab('share', 'Share')}">${ICON.share}<span>${lab('share', 'Share')}</span></button><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></span></h1>
           <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
         </div>
       </section>
