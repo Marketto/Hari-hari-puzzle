@@ -14,6 +14,11 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.13.2)
+- [x] Hari Home: al rientro Hari entra e cammina fino al centro della stanza; se non ha bisogni gironzola per casa
+- [x] Hari Home: scene del quartiere più vivide (tolto il velo viola del tema scuro, notte in "moltiplica" più leggera, saturazione +15%)
+- [x] Hari Home: lavorare senza postazione dice chiaramente cosa manca (forno/scrivania/bancone, evidenziato nel pannello Attività) e i "Lavoretti" (+40 ghiande / 3 h) permettono di mettere da parte i soldi
+
 ## Fatto (v0.13.1)
 - [x] Schermo intero: barra in alto alta quanto il pulsante con logo di Hari, nome del gioco e livello; toccando il logo si apre il menu con le azioni della vista normale (tutti i giochi, annulla, ricomincia, nuovo puzzle, come si gioca, audio, esci); indicatori (tempo, mosse, fragoline, cuori) in una barra compatta
 
@@ -144,6 +149,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.13.2 · `npm test` · Hari Home: rientro dal parco (cammina nella stanza), scena del parco in tema scuro, lavoretti senza forno
 - 2026-10-28 v0.13.1 · `npm test` · schermo intero in Boba (scuro), Sushi e Hari Home: barra, menu, audio, ricomincia, esci, tutti i giochi; la barra indicatori torna al suo posto all'uscita
 - 2026-10-28 v0.13.0 · `npm test` · Hari Home: autonomia (4 giorni da solo su 3 semi), azioni rapide, coda, scene del quartiere in chiaro/scuro; testi in it/de/ar
 - 2026-10-28 v0.12.4 · `npm test` · Boba: vicolo cieco con versate possibili → banner, Annulla e Ricomincia; schermo intero del riquadro in 3 giochi (chiaro/scuro)
