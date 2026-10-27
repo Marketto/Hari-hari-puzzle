@@ -11,6 +11,9 @@
   const P = HH.progress;
 
   const ICON = {
+    vList: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx="1.5" fill="currentColor"/><rect x="3" y="15" width="5" height="5" rx="1.5" fill="currentColor"/><path d="M11 6.5h10M11 17.5h10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    vGrid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2.4" fill="currentColor"/></svg>',
+    vCarousel: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4" width="10" height="16" rx="2.4" fill="currentColor"/><path d="M4.5 7v10M19.5 7v10M1.8 9v6M22.2 9v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     // audio unificato: altoparlante + nota (musica e suoni) · solo altoparlante (solo suoni) · altoparlante sbarrato (muto)
     audio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h3.5L11 5v14l-4.5-4H3z" fill="currentColor"/><path class="wave" d="M14 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><g class="note"><path d="M18 14.5V5.5l4-1v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16.6" cy="14.6" rx="1.9" ry="1.6" fill="currentColor"/><ellipse cx="20.6" cy="12.6" rx="1.9" ry="1.6" fill="currentColor"/></g><path class="mute" d="M14.5 9l6 6M20.5 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
@@ -231,10 +234,56 @@
         </div>
       </section>
       ${resume}
-      <section class="grid-cards" aria-label="Games">${cards}</section>
+      <div class="view-bar" role="radiogroup" aria-label="${lab('viewLabel', 'View')}">${VIEWS.map((v) => `<button class="view-btn${v.id === homeView() ? ' on' : ''}" role="radio" aria-checked="${v.id === homeView()}" data-view="${v.id}" aria-label="${lab(v.key, v.en)}" title="${lab(v.key, v.en)}">${ICON[v.icon]}</button>`).join('')}</div>
+      <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="Games">${cards}</section>
+      ${homeView() === 'carousel' ? `<div class="cf-dots" aria-hidden="true">${HH.catalog.map((g, i) => `<i data-i="${i}"></i>`).join('')}</div>` : ''}
       ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
       <section class="grid-cards small">${soon}</section>` : ''}`;
     markRemote();
+    if (homeView() === 'carousel') coverFlow();
+  }
+
+  /* ---------- modalità di visualizzazione dei giochi: lista · icone 2 per riga · carosello (Cover Flow) ---------- */
+  const VIEWS = [
+    { id: 'list', icon: 'vList', key: 'viewList', en: 'List' },
+    { id: 'grid', icon: 'vGrid', key: 'viewGrid', en: 'Icons' },
+    { id: 'carousel', icon: 'vCarousel', key: 'viewCarousel', en: 'Carousel' },
+  ];
+  const homeView = () => { const v = HH.store.get('homeView', 'grid'); return VIEWS.some((x) => x.id === v) ? v : 'grid'; };
+  // carosello: la card al centro è grande e dritta, le altre ruotano in prospettiva come il Cover Flow del Mac
+  function coverFlow() {
+    const row = $('#gameCards');
+    if (!row) return;
+    const cards = [...row.querySelectorAll('.card')];
+    const dots = [...document.querySelectorAll('.cf-dots i')];
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const mid = row.scrollLeft + row.clientWidth / 2;
+      let best = 0, bd = Infinity;
+      cards.forEach((c, i) => {
+        const cx = c.offsetLeft + c.offsetWidth / 2;
+        const d = Math.max(-1.6, Math.min(1.6, (cx - mid) / c.offsetWidth));
+        const a = Math.abs(d);
+        if (a < bd) { bd = a; best = i; }
+        c.style.transform = `perspective(900px) translateZ(${(-a * 140).toFixed(0)}px) rotateY(${(-d * 42).toFixed(1)}deg) scale(${(1 - Math.min(a, 1) * 0.12).toFixed(3)})`;
+        c.style.zIndex = String(100 - Math.round(a * 10));
+        c.style.opacity = (1 - Math.min(a, 1.6) * 0.28).toFixed(2);
+        c.classList.toggle('cf-on', a < 0.5);
+      });
+      dots.forEach((dot, i) => dot.classList.toggle('on', i === best));
+    };
+    row.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(paint); }, { passive: true });
+    G.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(paint); });
+    // tocco su una card laterale: prima la porta al centro, poi si gioca
+    row.addEventListener('click', (e) => {
+      const c = e.target.closest('.card');
+      if (c && !c.classList.contains('cf-on')) { e.stopPropagation(); e.preventDefault(); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
+    }, true);
+    // riparte dall'ultimo gioco aperto
+    const last = cards.findIndex((c) => c.dataset.game === HH.store.get('cfLast'));
+    if (last > 0) row.scrollLeft = cards[last].offsetLeft + cards[last].offsetWidth / 2 - row.clientWidth / 2;
+    paint();
   }
 
   // illustrazione della card dal catalogo statico (il codice del gioco si scarica solo quando lo si apre)
@@ -741,8 +790,10 @@
         }
         return;
       }
+      const vb = e.target.closest('[data-view]');
+      if (vb) { sfx.tap(); HH.store.set('homeView', vb.dataset.view); renderHome(); return; }
       const c = e.target.closest('[data-game]');
-      if (c) { sfx.tap(); openGame(c.dataset.game); }
+      if (c) { sfx.tap(); HH.store.set('cfLast', c.dataset.game); openGame(c.dataset.game); }
     });
     $('#langBtn').onclick = () => { renderLangSheet(); $('#langDlg').hidden = false; const cur = $('.lang.cur'); if (cur) cur.focus(); };
     $('#scoreChip').onclick = openStats;
