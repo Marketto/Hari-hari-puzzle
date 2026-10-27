@@ -671,7 +671,20 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 
 /* schermo intero */
 .icon-btn.full svg { width: 20px; height: 20px; }
-:fullscreen .app { padding-top: max(6px, env(safe-area-inset-top, 0px)); }
+/* schermo intero del solo riquadro di gioco */
+.fs-exit { display: none; }
+.plate:fullscreen, .plate:-webkit-full-screen {
+  display: grid; place-items: center; width: 100vw; height: 100dvh; max-width: none; margin: 0; border-radius: 0; overflow: auto;
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(var(--dots) 1.6px, transparent 2.2px) 0 0 / 28px 28px, linear-gradient(180deg, var(--sky-top) 0%, var(--bg) 70%);
+}
+.plate.night:fullscreen { background: radial-gradient(var(--plate-night-dot) 1px, transparent 1.6px) 0 0 / 22px 22px, linear-gradient(180deg, var(--plate-night-1), var(--plate-night-2)); }
+.plate:fullscreen::before, .plate:-webkit-full-screen::before { display: none; }
+.plate:fullscreen::backdrop { background: var(--bg); }
+.plate:fullscreen .fs-exit, .plate:-webkit-full-screen .fs-exit {
+  display: grid; place-items: center; position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top, 0px)); inset-inline-end: max(10px, env(safe-area-inset-right, 0px));
+}
+.plate:fullscreen .fs-exit svg { width: 20px; height: 20px; }
 
 /* ---------- modalità di visualizzazione dei giochi ---------- */
 .view-bar { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 12px; }
@@ -729,3 +742,13 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .cf-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-2); transition: width .25s, background-color .25s; }
 .cf-dots i.on { width: 22px; border-radius: 4px; background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .view-carousel .card { transition: none; } }
+
+/* Boba Sort: vicolo cieco (la partita continua, si propone Annulla/Ricomincia) */
+.bb-dead {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 2px auto 10px; padding: 10px 14px; max-width: 420px; text-align: center;
+  border-radius: 18px; background: color-mix(in srgb, var(--bad) 14%, var(--card-solid)); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bad) 40%, transparent);
+  animation: pop-x .35s cubic-bezier(.3, 1.8, .5, 1);
+}
+.bb-dead p { margin: 0; font-weight: 700; font-size: 14px; line-height: 1.35; }
+.bb-dead-act { display: flex; gap: 8px; }
+.bb-dead-act .tool, .bb-dead-act .candy { height: 38px; padding: 0 16px; font-size: 14px; }

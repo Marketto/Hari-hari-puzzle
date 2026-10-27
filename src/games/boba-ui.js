@@ -204,15 +204,25 @@
         <span class="mv-meter-bar"><i style="width:${(left / s.max) * 100}%"></i></span>
       </div>`;
     }
-    // dopo ogni travaso: vittoria, mosse finite, oppure bloccato (nessuna versata o vicolo cieco)
+    // dopo ogni travaso: vittoria o mosse finite (fine partita). Vicolo cieco (nessuna versata, oppure travasi
+    // possibili ma da cui non si può più vincere): la partita NON finisce, Hari lo dice e propone Annulla/Ricomincia.
     function after() {
       const st = B.status(s.cups, s.max - s.moves);
-      if (st === 'solved') ctx.win();
-      else if (st === 'moves' || st === 'stuck') { s.over = st; ctx.changed(); ctx.outOfMoves(st); }
+      if (st === 'solved') { s.dead = false; ctx.win(); return; }
+      if (st === 'moves') { s.dead = false; s.over = st; ctx.changed(); ctx.outOfMoves(st); return; }
+      const dead = st === 'stuck';
+      if (dead && !s.dead) { s.dead = true; ctx.react('oops'); ctx.sfx.bad(); render(); }
+      else if (!dead && s.dead) { s.dead = false; render(); }
+    }
+    const tx = (k, en) => { const v = HH.i18n.t(k); return v && v !== k ? v : en; };
+    function deadBanner() {
+      if (!s.dead) return '';
+      return `<div class="bb-dead" role="status"><p>${tx('bb_dead', "Dead end: from here the cups can't all be sorted. Undo a few pours or restart!")}</p>
+        <div class="bb-dead-act">${s.hist.length && s.moves < s.max ? `<button class="tool" data-act="undo">${tx('undo', 'Undo')}</button>` : ''}<button class="candy" data-act="restart">${tx('restart', 'Restart')}</button></div></div>`;
     }
 
     function render(o = {}) {
-      el.innerHTML = `${meter()}<div class="bb-wrap" dir="ltr">${s.cups.map((c, i) => {
+      el.innerHTML = `${meter()}${deadBanner()}<div class="bb-wrap" dir="ltr">${s.cups.map((c, i) => {
         const co = { done: isDone(c), justDone: i === o.justDone, lidDelay: o.lidDelay };
         if (i === o.fillTo) Object.assign(co, { fillFrom: c.length - o.amount, fillDelay: o.fillDelay, fillDur: o.fillDur });
         const label = `${i + 1}: ${c.map((f) => FLAVORS[f]).join(', ') || '—'}`;
@@ -369,6 +379,8 @@
     }
 
     el.onclick = (e) => {
+      const act = e.target.closest('[data-act]');
+      if (act && !busy) { if (act.dataset.act === 'undo') api.undo(); else api.restart(); return; }
       if (busy || s.over || s.moves >= s.max) return;
       const b = e.target.closest('.bb-cup');
       if (!b) return;
@@ -392,17 +404,24 @@
         s.par = opt ? opt.moves : s.par;
         s.max = s.par + B.extraMoves(s.par);
       }
+      if (s.over === 'stuck') { delete s.over; s.dead = true; }
       if (s.over || (s.moves >= s.max && !B.isSolved(s.cups))) { s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; delete s.over; }
       render();
     } else fresh();
 
-    return {
+    const api = {
       fresh,
-      restart() { if (busy) return; s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; delete s.over; sel = -1; render(); ctx.changed({ reset: true }); },
+      restart() { if (busy) return; s.cups = s.start.map((c) => c.slice()); s.hist = []; s.moves = 0; s.dead = false; delete s.over; sel = -1; render(); ctx.changed({ reset: true }); },
       // annulla rimette i bicchieri com'erano ma la mossa resta spesa: il limite non si aggira
-      undo() { if (busy || s.over || !s.hist.length || s.moves >= s.max) return; s.cups = s.hist.pop(); sel = -1; render(); ctx.sfx.set(); ctx.changed(); },
+      undo() {
+        if (busy || s.over || !s.hist.length || s.moves >= s.max) return;
+        s.cups = s.hist.pop(); sel = -1;
+        s.dead = B.status(s.cups, s.max - s.moves) === 'stuck';
+        render(); ctx.sfx.set(); ctx.changed();
+      },
       snapshot: () => s,
     };
+    return api;
   }
 
   /* tutorial della prima partita */

@@ -301,8 +301,10 @@
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   const isFull = () => !!fsEl();
+  // a schermo intero va SOLO il riquadro di gioco; dentro c'è il pulsante per tornare alla vista classica
+  function exitFull() { if (isFull()) toggleFull(); }
   function toggleFull() {
-    const d = document.documentElement;
+    const d = document.querySelector('#gPlate') || document.documentElement;
     try {
       if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
       else { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
@@ -361,7 +363,7 @@
         ${g.lives ? `<span class="chip lives" id="hLives" aria-label="${t('lives')}"></span>` : ''}
         <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>`}
       </div>
-      <div class="plate ${g.plate || ''}"><div class="board" id="board"></div></div>
+      <div class="plate ${g.plate || ''}" id="gPlate"><button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('fullExit', 'Exit full screen')}">${ICON.unfull}</button><div class="board" id="board"></div></div>
       <div class="g-tools">
         ${g.endless ? '' : `<button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>`}
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
@@ -396,6 +398,7 @@
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
     const fb = $('#gFull');
     if (fb) fb.onclick = () => { sfx.tap(); toggleFull(); };
+    $('#gFsExit').onclick = () => { sfx.tap(); exitFull(); };
     if (push) {
       try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
       G.scrollTo(0, 0);
@@ -437,6 +440,7 @@
    * Ogni gioco può dichiarare tutorial: [{ key, en, art }] (art = SVG 120×90 animato con CSS). */
   const lab = (k, en) => { const v = t(k); return v && v !== k ? v : en; };
   function tutorial(g, done) {
+    exitFull();
     const steps = g.tutorial;
     let i = 0;
     const dlg = $('#tutDlg'), box = $('#tutBox');
@@ -480,6 +484,7 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
   function goHome() {
+    exitFull();
     persist();
     hideSay();
     $('#loseDlg').hidden = true;
@@ -497,6 +502,7 @@
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
   function win() {
+    exitFull();
     const g = S.game;
     if (!g || S.won) return;
     S.won = true;
@@ -563,6 +569,7 @@
 
   /* ---------- Cuori finiti ---------- */
   function lose(kind = 'lives') {
+    exitFull();
     if (!S.game || S.won) return;
     hideSay();
     HH.music.duck(true);
@@ -571,7 +578,7 @@
     $('#loseBox').innerHTML = `
       <div class="lose-hari">${HH.mascot.svg({ cls: 'hari oops sad' })}</div>
       <h2>${t({ moves: 'nomoves', stuck: 'stuck' }[kind] || 'nolives')}</h2>
-      ${kind !== 'lives' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>`}
+      ${kind === 'moves' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : kind === 'lives' ? `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>` : ''}
       <p>${pick('oops')}</p>
       <div class="win-actions">
         <button class="tool round" id="loseHome" aria-label="Home">${ICON.home}</button>
