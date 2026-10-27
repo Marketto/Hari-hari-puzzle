@@ -5,6 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/binary-logic.js');
 const B = HH.binary;
@@ -107,7 +109,7 @@ test('generazione veloce (media < 10 ms per il 10×10)', () => {
   const t = performance.now();
   for (let s = 0; s < 20; s++) B.generate(25, HH.rng(1000 + s));
   const ms = (performance.now() - t) / 20;
-  assert.ok(ms < 10, `media ${ms.toFixed(2)} ms`);
+  assert.ok(ms < 10 * SLOW, `media ${ms.toFixed(2)} ms`);
 });
 
 test('determinismo: stesso seme → stesso livello', () => {

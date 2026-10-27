@@ -7,6 +7,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/core/rules.js', 'src/games/ropes-logic.js');
 const R = HH.ropes;
@@ -347,5 +349,5 @@ test('livello di riserva valido e tempi del generatore (< 50 ms in media al live
   let ms = 0;
   const T = 12;
   for (let k = 0; k < T; k++) { const t = performance.now(); R.generate(30, HH.rng(k + 500)); ms += performance.now() - t; }
-  assert.ok(ms / T < 50, `media ${(ms / T).toFixed(2)} ms`);
+  assert.ok(ms / T < 50 * SLOW, `media ${(ms / T).toFixed(2)} ms`);
 });

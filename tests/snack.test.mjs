@@ -5,6 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/snack-logic.js');
 const S = HH.snack;
@@ -284,7 +286,7 @@ test('curva di difficoltà monotona (almeno 4 gradini) e generazione veloce', ()
   for (const level of [1, 5, 10, 20]) {
     const t0 = performance.now();
     for (let k = 0; k < 20; k++) S.newLevel(level, HH.rng(k));
-    assert.ok((performance.now() - t0) / 20 < 10, `newLevel(${level}) lento`);
+    assert.ok((performance.now() - t0) / 20 < 10 * SLOW, `newLevel(${level}) lento`);
   }
 });
 

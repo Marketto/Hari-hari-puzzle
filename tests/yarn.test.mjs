@@ -4,6 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/yarn-logic.js');
 const Y = HH.yarn;
@@ -154,7 +156,7 @@ test('determinismo: stesso seme, stesso livello', () => {
 test('generazione veloce (media < 25 ms anche sul 9×9 più difficile)', () => {
   const t = performance.now();
   for (let s = 0; s < 20; s++) Y.generate(20, HH.rng(700 + s));
-  assert.ok((performance.now() - t) / 20 < 25);
+  assert.ok((performance.now() - t) / 20 < 25 * SLOW);
 });
 
 /* ---------- Regole del disegno ---------- */

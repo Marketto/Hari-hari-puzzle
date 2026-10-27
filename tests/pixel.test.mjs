@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/pixel-logic.js');
 const P = HH.pixel;
@@ -122,7 +124,7 @@ test('generazione veloce (media < 10 ms sul 10×10)', () => {
   const t = performance.now();
   for (let k = 0; k < 50; k++) P.generate(20, HH.rng(k));
   const ms = (performance.now() - t) / 50;
-  assert.ok(ms < 10, `${ms.toFixed(2)} ms`);
+  assert.ok(ms < 10 * SLOW, `${ms.toFixed(2)} ms`);
 });
 
 test('solveLine: casi base e contraddizioni', () => {

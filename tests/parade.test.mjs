@@ -4,6 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/parade-logic.js');
 const P = HH.parade;
@@ -318,7 +320,7 @@ test('difficoltà crescente e generazione veloce', () => {
   const t0 = performance.now();
   for (let i = 0; i < 200; i++) P.newLevel(1 + (i % 20), HH.rng(i));
   const ms = (performance.now() - t0) / 200;
-  assert.ok(ms < 10, `newLevel medio ${ms.toFixed(2)} ms`);
+  assert.ok(ms < 10 * SLOW, `newLevel medio ${ms.toFixed(2)} ms`);
 });
 
 test('modalità attesa: dopo "Via!" la sfilata resta ferma finché non arriva una direzione valida', () => {

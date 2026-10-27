@@ -4,6 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { load } from './_load.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 
 const HH = load('src/core/rng.js', 'src/games/fixit-logic.js');
 const F = HH.fixit;
@@ -143,7 +145,7 @@ test('generazione deterministica e veloce (< 10 ms medi)', () => {
   assert.deepEqual(F.generate(9, HH.rng(5)), F.generate(9, HH.rng(5)));
   const t = performance.now();
   for (let s = 0; s < 200; s++) F.generate(1 + (s % 20), HH.rng(1000 + s));
-  assert.ok((performance.now() - t) / 200 < 10);
+  assert.ok((performance.now() - t) / 200 < 10 * SLOW);
 });
 
 /* ---------- apply ---------- */

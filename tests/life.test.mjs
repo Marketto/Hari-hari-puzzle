@@ -6,6 +6,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { L, D, invariants, buyItem, wiseBot, run } from './_life-bot.mjs';
+// i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
+const SLOW = process.env.CI ? 3 : 1;
 const DAY = 1440;
 
 test('vita nuova: monolocale decadente con guasti, budget iniziale, invarianti', () => {
@@ -280,7 +282,7 @@ test('prestazioni: un giorno di simulazione in pochi millisecondi', () => {
   const t0 = performance.now();
   for (let d = 0; d < 30; d++) L.tick(s, DAY);
   const ms = (performance.now() - t0) / 30;
-  assert.ok(ms < 10, `${ms.toFixed(2)} ms per giorno`);
+  assert.ok(ms < 10 * SLOW, `${ms.toFixed(2)} ms per giorno`);
   // un fotogramma (0,1 s reali a ×3 col sonno) è minuscolo
   const t1 = performance.now();
   for (let i = 0; i < 600; i++) L.tick(s, L.rate(s) * 0.016);
