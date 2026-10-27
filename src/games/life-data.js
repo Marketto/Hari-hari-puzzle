@@ -66,9 +66,9 @@
    * La porta è sempre nell'ultima casella del muro sinistro; le finestre sono slot del muro destro (R) o sinistro (L). */
   const HOMES = [
     { c: 6, r: 6, rent: 50, p: 0, win: [['R', 2, 2]] },
-    { c: 8, r: 6, rent: 90, p: 1500, win: [['R', 2, 2], ['R', 5, 2]] },
-    { c: 8, r: 8, rent: 130, p: 4000, win: [['R', 2, 2], ['R', 5, 2], ['L', 2, 2]] },
-    { c: 10, r: 8, rent: 0, p: 12000, win: [['R', 2, 2], ['R', 6, 2], ['L', 2, 2]] },
+    { c: 8, r: 6, rent: 90, p: 2500, win: [['R', 2, 2], ['R', 5, 2]] },
+    { c: 8, r: 8, rent: 130, p: 7000, win: [['R', 2, 2], ['R', 5, 2], ['L', 2, 2]] },
+    { c: 10, r: 8, rent: 0, p: 18000, win: [['R', 2, 2], ['R', 6, 2], ['L', 2, 2]] },
   ];
 
   /* guasti del monolocale decadente: p = costo della riparazione, m = minuti di lavoro.
@@ -91,7 +91,7 @@
    * r = variazioni orarie dei bisogni sommate al consumo di base (moltiplicate per la qualità q dell'oggetto dove ha senso) */
   const TRAVEL = 40;
   const ACTS = {
-    sleep: { dur: 660, at: 'obj', kinds: ['bed'], r: { energy: 0.185, food: 0.028, hygiene: 0.022, fun: 0.03, social: 0.012, stress: -0.05 } },
+    sleep: { dur: 660, at: 'obj', kinds: ['bed'], r: { energy: 0.185, food: 0.028, hygiene: 0.022, fun: 0.03, social: 0.012, stress: -0.035 } },
     nap: { dur: 600, at: 'hari', r: { energy: 0.16, food: 0.028, hygiene: 0.012, fun: 0.03, social: 0.012, stress: -0.01 } },
     eat: { dur: 30, at: 'obj', kinds: ['fridge'], r: {} },
     cook: { dur: 50, at: 'obj', kinds: ['stove', 'oven'], r: { fun: 0.08 } },
@@ -121,8 +121,8 @@
    * rent = affitto settimanale del locale, help = aiutanti massimi. Il banchetto (livello 1) lavora da casa. */
   const BIZ = {
     types: { bakery: 'oven', craft: 'desk', plants: 'bench' },
-    base: [0, 70, 150, 320, 650],
-    up: [0, 0, 1200, 4000, 12000],
+    base: [0, 90, 170, 270, 450],
+    up: [0, 0, 2000, 8000, 25000],
     rent: [0, 0, 60, 140, 280],
     help: [0, 0, 1, 2, 3],
     salary: 60,

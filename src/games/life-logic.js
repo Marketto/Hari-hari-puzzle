@@ -349,6 +349,9 @@
       if (!o) return { ok: false, why: 'none' };
       if (!o.ok) return { ok: false, why: o.why };
     }
+    // la stessa attività sullo stesso bersaglio continua (niente da ripagare né da rifare)
+    const cur = s.act;
+    if (cur && cur.id === id && (tg.u == null || cur.u === tg.u) && (!tg.dmg || cur.dmg === tg.dmg) && id !== 'shop') return { ok: true, same: true };
     // l'attività precedente si interrompe (la spesa già pagata arriva comunque in frigo)
     if (s.act) stop(s);
     const act = { id, left: A.dur, total: A.dur };
@@ -455,8 +458,8 @@
         const e = earnPreview(s);
         gain(s, e);
         s.stats.earned += e; s.stats.shifts++; b.shifts++;
-        b.skill = clamp(b.skill + 0.03 * (1 - b.skill));
-        b.rep = clamp(b.rep + 0.015 + 0.04 * (n.mood - 0.45));
+        b.skill = clamp(b.skill + 0.02 * (1 - b.skill));
+        b.rep = clamp(b.rep + (0.01 + 0.025 * (n.mood - 0.45)) * (1 - 0.5 * b.rep));
         s.worked = true;
         ev.push({ type: 'earn', n: e });
         break;
@@ -537,9 +540,10 @@
     }
     // stress: vita di città, bisogni trascurati, casa malandata o bella, lavoro, debiti, malanni
     const low = ['food', 'energy', 'hygiene', 'fun', 'social'].filter((k) => n[k] < 0.2).length;
-    d.stress += (s.retired ? 0.004 : 0.012) + 0.022 * low;
-    if (home) d.stress += 0.007 * s.home.dmg.length - 0.035 * bt;
-    if (a && (a.id === 'work' || a.id === 'office')) d.stress += 0.05 * (1.3 - n.mood * 0.6);
+    const content = (n.food + n.energy + n.hygiene + n.fun + n.social) / 5;
+    d.stress += (s.retired ? 0.002 : 0.006) + 0.014 * low - (content > 0.55 ? 0.012 : 0);
+    if (home) d.stress += 0.0025 * s.home.dmg.length - 0.03 * bt;
+    if (a && (a.id === 'work' || a.id === 'office')) d.stress += 0.06 * (1.3 - n.mood * 0.6);
     if (s.debt > 0) d.stress += 0.01;
     if (s.sick) { d.stress += 0.01; d.energy -= 0.015; }
     if (asleep) d.stress -= 0.005;
@@ -598,7 +602,9 @@
   function daily(s, ev) {
     const day = Math.round(s.t / DAY), b = s.biz, n = s.needs;
     if (b && b.level >= 2 && b.helpers) gain(s, b.helpers * BIZ.base[b.level] * 0.4 * (0.75 + 0.5 * b.rep));
-    if (s.retired) gain(s, 30 + 20 * (b ? b.level : 0));
+    if (s.retired) { const pn = 30 + 20 * (b ? b.level : 0); gain(s, pn); ev.push({ type: 'pension', n: pn }); }
+    // rete di sicurezza gentile: senza soldi e col frigo vuoto arriva un pacco di cibo da casa dei genitori
+    if (s.money < 20 && stock(s) === 0 && fridgeCap(s) > 0) { s.fridge[0] += 2; ev.push({ type: 'gift' }); }
     if (b && !s.worked && !s.retired) b.rep = clamp(b.rep - 0.012);
     s.worked = false;
     for (const f of s.friends) f.f = Math.max(0.1, f.f - 0.012);
