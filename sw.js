@@ -19,6 +19,7 @@ const SHELL = [
   'src/games/pixel-logic.js', 'src/games/pixel-ui.js', 'src/games/pixel.css',
   'src/games/yarn-logic.js', 'src/games/yarn-ui.js', 'src/games/yarn.css',
   'src/games/ropes-logic.js', 'src/games/ropes-ui.js', 'src/games/ropes.css',
+  'src/games/snack-logic.js', 'src/games/snack-ui.js', 'src/games/snack.css',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 

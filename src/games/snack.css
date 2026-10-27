@@ -1,0 +1,177 @@
+/* Hari Snack Rush — stile.
+ * Sentiero in pseudo-prospettiva disegnato su <canvas>: cielo, montagne e colline dipinte, sakura (di giorno) o lanterne
+ * (di notte) lungo i bordi. Il canvas legge questi token con getComputedStyle e li usa per disegnare e per "cuocere" gli
+ * SVG dei personaggi: nessun colore è scritto nel JavaScript. Personaggi, merende e porte hanno colori fissi; cielo,
+ * sentiero e decorazioni cambiano col tema.
+ */
+:root {
+  --tint-snack: #ffe0d2;
+  /* personaggi (uguali nei due temi) */
+  --sr-ink: #4a2c22; --sr-eye: #2a160e; --sr-iris: #9a5a34; --sr-hi: #ffffff; --sr-nose: #3a1e14; --sr-mouth: #ff7f98;
+  --sr-blush: rgba(255, 130, 165, .72); --sr-shade: rgba(74, 44, 34, .14);
+  --sr-quill: #9a6342; --sr-quill-2: #714330; --sr-quill-3: #b97d58; --sr-face: #fff1e2; --sr-ear: #ffe4cc; --sr-ear-in: #ffadc0;
+  --sr-sakura: #ffc2d4; --sr-sakura-in: #ff7fa3;
+  --sr-chick: #ffdc55; --sr-chick-2: #f2b62a; --sr-beak: #ff9a3d; --sr-feet: #ff9a3d;
+  --sr-bunny: #fffaf6; --sr-bunny-2: #e6d8ea; --sr-bunny-in: #ffb3c8;
+  --sr-pig: #ffbccb; --sr-pig-2: #f390a8; --sr-snout: #ff9ab2;
+  --sr-bear: #c48a5f; --sr-bear-2: #96603f; --sr-muzzle: #f6dcbc;
+  --sr-wool: #fffdf6; --sr-wool-2: #e9e0cf; --sr-sheep: #f5cdbd; --sr-sheep-2: #dca896;
+  --sr-sq: #ec8b45; --sr-sq-2: #c0622a; --sr-sq-belly: #ffe3c4;
+  --sr-po: #f6f8ff; --sr-po-2: #c8d3ef; --sr-scarf: #63acff; --sr-scarf-2: #3b7ad6;
+  --sr-owl: #a77dd6; --sr-owl-2: #7b56ad; --sr-owl-belly: #f3e6ff; --sr-owl-eye: #ffe27a;
+  --sr-cat: #cbc4da; --sr-cat-2: #9d95b5; --sr-cat-in: #ffc2d4; --sr-bell: #ffd24d;
+  --sr-crown: #ffd84a; --sr-crown-2: #e3a41f; --sr-gem: #ff6f9c;
+  --sr-bib: #fffaf6; --sr-bib-2: #ff9fbf; --sr-tongue: #ff9ab2; --sr-drool: #cfeaff;
+  --sr-basket: #e8b77a; --sr-basket-2: #b98451;
+  /* merende di Hari */
+  --sr-seed: #7d6c74; --sr-seed-2: #f4ede2; --sr-seed-3: rgba(60, 40, 50, .25); --sr-blue: #6383ec; --sr-blue-2: #4560c2;
+  --sr-straw: #ff4f6d; --sr-straw-seed: #ffe9a8; --sr-green: #6fd06f; --sr-green-2: #3d9a4b;
+  --sr-cherry: #ec3651; --sr-apple: #ff5d5d; --sr-apple-2: #d93d45; --sr-stem: #8a5a3c;
+  /* ciò che soffia l'animalone (innocuo) */
+  --sr-shell: #c99566; --sr-shell-2: #9a6a42; --sr-shell-in: #f3dcc0;
+  --sr-bubble: rgba(200, 235, 255, .45); --sr-bubble-2: #8fcfff; --sr-bubble-3: #ffb3e6;
+  --sr-leaf: #8fd16a; --sr-leaf-2: #4f9a3d;
+  /* porte, pancini, effetti */
+  --sr-good: rgba(96, 205, 255, .5); --sr-good-2: #2f9fd8; --sr-good-3: #bfeaff;
+  --sr-bad: rgba(255, 110, 135, .5); --sr-bad-2: #d9455f; --sr-bad-3: #ffd0d8;
+  --sr-post: #fffaf6; --sr-post-2: #e9d9cf; --sr-text: #ffffff; --sr-text-line: #4a2c22;
+  --sr-trail: rgba(255, 255, 255, .55);
+  --sr-puff: #ffffff; --sr-heart: #ff6f9c; --sr-spark: #ffd84a; --sr-gold: #ffd84a; --sr-mint: #6fdcc3; --sr-mark: #b07cff; --sr-zzz: #8fb4ff;
+  --sr-tummy: #ffb84d; --sr-tummy-2: #ffe2a6; --sr-tummy-bg: rgba(255, 250, 246, .92);
+  /* mondo (cambia col tema) */
+  --sr-sky-1: #8fd0ff; --sr-sky-2: #c9ecff; --sr-sky-3: #ffe6ef; --sr-sun: #ffd45e; --sr-sun-glow: rgba(255, 212, 94, .35);
+  --sr-cloud: rgba(255, 255, 255, .95); --sr-star: rgba(255, 255, 255, 0);
+  --sr-mount-1: #b7b8ec; --sr-mount-2: #9a9fde; --sr-snowcap: #ffffff;
+  --sr-hill-1: #9fdc7d; --sr-hill-2: #7fc865; --sr-grass-1: #a6e07f; --sr-grass-2: #93d46d; --sr-grass-dot: #fff6a8;
+  --sr-road-1: #f6dfb8; --sr-road-2: #efd2a4; --sr-road-edge: #fff4dc; --sr-road-line: rgba(255, 255, 255, .7); --sr-curb: #e2a77d;
+  --sr-tree: #ffc2d4; --sr-tree-2: #ff9fbf; --sr-tree-3: #ffe3ec; --sr-trunk: #9a6342; --sr-trunk-2: #714330;
+  --sr-bush: #7cc865; --sr-bush-2: #5aa64b; --sr-flower: #ffffff; --sr-flower-2: #ffd84a;
+  --sr-lamp: #ffd88a; --sr-lamp-2: #ff9f7a; --sr-lamp-glow: rgba(255, 200, 120, 0); --sr-post-wood: #8a5a3c;
+  --sr-fog: rgba(255, 240, 248, .55); --sr-shadow: rgba(60, 90, 30, .26); --sr-veil: rgba(255, 250, 244, .62);
+  --sr-bar-1: #a9dcff; --sr-bar-2: #e6f6ff; --sr-night: 0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-snack: #3d2a4a;
+    --sr-sky-1: #1f1a46; --sr-sky-2: #3b2f72; --sr-sky-3: #7a4f8f; --sr-sun: #fff4cf; --sr-sun-glow: rgba(255, 244, 207, .18);
+    --sr-cloud: rgba(170, 150, 230, .32); --sr-star: rgba(255, 246, 200, .95);
+    --sr-mount-1: #3d3470; --sr-mount-2: #2f285c; --sr-snowcap: #b9b2e6;
+    --sr-hill-1: #2f5a48; --sr-hill-2: #264b3c; --sr-grass-1: #33604a; --sr-grass-2: #2c5541; --sr-grass-dot: #ffe78a;
+    --sr-road-1: #6f5e86; --sr-road-2: #655479; --sr-road-edge: #8f7da6; --sr-road-line: rgba(255, 240, 200, .45); --sr-curb: #4f4168;
+    --sr-tree: #d98bb4; --sr-tree-2: #b56b98; --sr-tree-3: #f0b6d2; --sr-trunk: #6b4a3c; --sr-trunk-2: #4c3229;
+    --sr-bush: #2f6648; --sr-bush-2: #24523a; --sr-flower: #e8e2ff; --sr-flower-2: #fff09a;
+    --sr-lamp: #ffe9a8; --sr-lamp-2: #ff9f7a; --sr-lamp-glow: rgba(255, 200, 120, .45); --sr-post-wood: #5a3e33;
+    --sr-fog: rgba(120, 90, 170, .35); --sr-shadow: rgba(0, 0, 0, .32); --sr-veil: rgba(28, 21, 48, .66);
+    --sr-bar-1: #2a2356; --sr-bar-2: #463a82; --sr-night: 1;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-snack: #3d2a4a;
+  --sr-sky-1: #1f1a46; --sr-sky-2: #3b2f72; --sr-sky-3: #7a4f8f; --sr-sun: #fff4cf; --sr-sun-glow: rgba(255, 244, 207, .18);
+  --sr-cloud: rgba(170, 150, 230, .32); --sr-star: rgba(255, 246, 200, .95);
+  --sr-mount-1: #3d3470; --sr-mount-2: #2f285c; --sr-snowcap: #b9b2e6;
+  --sr-hill-1: #2f5a48; --sr-hill-2: #264b3c; --sr-grass-1: #33604a; --sr-grass-2: #2c5541; --sr-grass-dot: #ffe78a;
+  --sr-road-1: #6f5e86; --sr-road-2: #655479; --sr-road-edge: #8f7da6; --sr-road-line: rgba(255, 240, 200, .45); --sr-curb: #4f4168;
+  --sr-tree: #d98bb4; --sr-tree-2: #b56b98; --sr-tree-3: #f0b6d2; --sr-trunk: #6b4a3c; --sr-trunk-2: #4c3229;
+  --sr-bush: #2f6648; --sr-bush-2: #24523a; --sr-flower: #e8e2ff; --sr-flower-2: #fff09a;
+  --sr-lamp: #ffe9a8; --sr-lamp-2: #ff9f7a; --sr-lamp-glow: rgba(255, 200, 120, .45); --sr-post-wood: #5a3e33;
+  --sr-fog: rgba(120, 90, 170, .35); --sr-shadow: rgba(0, 0, 0, .32); --sr-veil: rgba(28, 21, 48, .66);
+  --sr-bar-1: #2a2356; --sr-bar-2: #463a82; --sr-night: 1;
+}
+
+.sr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(calc(100vw - 76px), 440px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- barra: aculei per lancio, strada fino al boss, pausa ---------- */
+.sr-bar {
+  position: relative; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 6px 0 6px; border-radius: 23px; overflow: hidden;
+  background: linear-gradient(180deg, var(--sr-bar-1), var(--sr-bar-2)); box-shadow: inset 0 0 0 2px var(--line-2), var(--shadow-s);
+}
+.sr-pow { position: relative; display: flex; align-items: center; gap: 2px; padding: 0 9px 0 4px; height: 34px; border-radius: 17px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); }
+.sr-ic { display: grid; width: 26px; height: 26px; flex: none; }
+.sr-ic svg { width: 100%; height: 100%; }
+.sr-pow.up .sr-ic { animation: sr-pop .5s cubic-bezier(.3, 1.8, .5, 1); }
+.sr-pow b {
+  min-width: 2.1ch; font-family: var(--font-display); font-weight: 400; font-size: 20px; line-height: 1; color: var(--sr-text);
+  -webkit-text-stroke: 4px var(--sr-text-line); paint-order: stroke fill; font-variant-numeric: tabular-nums;
+}
+.sr-pow.up b { display: inline-block; animation: sr-pop .5s cubic-bezier(.3, 1.8, .5, 1); color: var(--sr-gold); }
+.sr-pow.down b { display: inline-block; animation: sr-shake .4s; color: var(--sr-bad-3); }
+.sr-pow.max b { color: var(--sr-gold); }
+.sr-track { position: relative; flex: 1; min-width: 40px; height: 12px; margin: 0 16px 0 14px; border-radius: 7px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); }
+.sr-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 7px; background: linear-gradient(90deg, var(--sr-mint), var(--sr-heart)); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35); transition: width .4s; }
+.sr-rider { position: absolute; top: 50%; left: 0; width: 28px; height: 28px; margin: -18px 0 0 -14px; transition: left .4s; }
+.sr-rider .mini-hari { width: 100%; height: 100%; animation: sr-hop .45s ease-in-out infinite alternate; }
+.sr-flag { position: absolute; right: -16px; top: 50%; width: 28px; height: 28px; margin-top: -15px; }
+.sr-flag svg { width: 100%; height: 100%; animation: sr-wiggle 1.8s ease-in-out infinite; transform-origin: 50% 90%; }
+.sr-bar.boss .sr-flag svg { animation: sr-pulse .6s ease-in-out infinite; }
+.sr-pbtn {
+  position: relative; display: grid; place-items: center; flex: none; width: 34px; height: 34px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%;
+  background: var(--card-solid); color: var(--accent-2); box-shadow: 0 3px 0 var(--line-2); cursor: pointer;
+}
+.sr-pbtn svg { width: 18px; height: 18px; }
+.sr-pbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+
+/* ---------- palco: canvas del sentiero ---------- */
+.sr-stage {
+  position: relative; width: 100%; aspect-ratio: 2 / 3; max-height: max(300px, min(74svh, 640px, calc(100svh - 345px))); border-radius: 22px; overflow: hidden; touch-action: none; cursor: grab;
+  background: linear-gradient(180deg, var(--sr-sky-1), var(--sr-sky-2) 30%, var(--sr-grass-1) 31%);
+  box-shadow: inset 0 0 0 2px var(--line-2), 0 5px 0 var(--line-2), var(--shadow-s);
+}
+.sr-stage:active { cursor: grabbing; }
+.sr-stage:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.sr-cv { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.sr-stage::after { content: ""; position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 2px var(--line-2); pointer-events: none; }
+.sr-stage.wobble { animation: sr-wobble .5s ease-in-out; }
+
+.sr-msg { position: absolute; inset: 0 0 auto; height: 46%; z-index: 5; display: grid; place-items: center; pointer-events: none; }
+.sr-msg b {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 11vw, 46px); color: var(--sr-text); opacity: 0;
+  -webkit-text-stroke: 7px var(--sr-text-line); paint-order: stroke fill; text-shadow: 0 5px 0 var(--sr-text-line);
+}
+.sr-msg.show b { animation: sr-msg .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.sr-msg b.ready { color: var(--sr-gold); }
+.sr-msg.show b.ready { animation: sr-msg .5s cubic-bezier(.3, 1.6, .5, 1) both, sr-breathe .8s ease-in-out .5s infinite; }
+.sr-msg b.go { color: var(--sr-heart); }
+.sr-msg.show b.go { animation: sr-go .65s cubic-bezier(.3, 1.6, .5, 1) both; }
+.sr-msg b.boss { max-width: 90%; color: var(--sr-tummy); font-size: clamp(24px, 8vw, 34px); line-height: 1.2; text-align: center; text-wrap: balance; }
+.sr-msg.show b.boss { animation: sr-go 1.7s cubic-bezier(.3, 1.6, .5, 1) both; }
+.sr-msg b.hint { max-width: 86%; font-size: clamp(17px, 5vw, 22px); line-height: 1.25; text-align: center; text-wrap: balance; -webkit-text-stroke-width: 5px; }
+.sr-msg.show b.hint { opacity: 1; animation: sr-hint 1.6s ease-in-out infinite; }
+.sr-msg b.gold { color: var(--sr-gold); font-size: clamp(24px, 8vw, 32px); }
+.sr-msg.show b.gold { animation: sr-go .9s cubic-bezier(.3, 1.6, .5, 1) both; }
+
+.sr-pause {
+  position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: var(--sr-veil); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); color: var(--ink); text-align: center; cursor: pointer; animation: fade .25s;
+}
+.sr-pause b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.sr-pause small { font-weight: 800; font-size: 14px; color: var(--ink-2); }
+.sr-play { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: 0 5px 0 var(--accent-2), var(--shadow-s); animation: sr-breathe 1.6s ease-in-out infinite; }
+.sr-play svg { width: 30px; height: 30px; margin-left: 4px; }
+
+/* tutorial */
+.sr-tut-gate { animation: sr-pulse 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.sr-tut-run { animation: sr-run 2.8s ease-in-out infinite; }
+.sr-tut-fly { animation: sr-fly 1.2s linear infinite; }
+.sr-tut-fly.d2 { animation-delay: -.4s; }
+.sr-tut-fly.d3 { animation-delay: -.8s; }
+.sr-tut-bye { animation: sr-bye 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes sr-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes sr-shake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 2px); } 40% { transform: translate(5px, -2px); } 60% { transform: translate(-4px, 1px); } 80% { transform: translate(3px, 0); } }
+@keyframes sr-wobble { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-1.2deg); } 75% { transform: rotate(1.2deg); } }
+@keyframes sr-hop { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+@keyframes sr-wiggle { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes sr-pulse { 50% { transform: scale(1.14); } }
+@keyframes sr-breathe { 50% { transform: scale(1.06); } }
+@keyframes sr-fade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sr-msg { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes sr-go { 0% { opacity: 0; transform: scale(.4); } 30% { opacity: 1; transform: scale(1.15); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.1) translateY(-10px); } }
+@keyframes sr-hint { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes sr-run { 0%, 100% { transform: translateX(-22px); } 50% { transform: translateX(22px); } }
+@keyframes sr-fly { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-46px) scale(.5); opacity: 0; } }
+@keyframes sr-bye { 0%, 45% { transform: translate(0, 0) scale(1); opacity: 1; } 75% { transform: translate(10px, -16px) scale(.8) rotate(12deg); opacity: .6; } 100% { transform: translate(18px, -26px) scale(.5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .sr-rider .mini-hari, .sr-flag svg, .sr-play, .sr-tut-gate, .sr-tut-run, .sr-tut-fly, .sr-tut-bye { animation: none !important; }
+  .sr-stage.wobble { animation: none; }
+}

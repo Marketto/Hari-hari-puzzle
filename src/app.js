@@ -193,7 +193,7 @@
         </span>
         <span class="card-body">
           <span class="card-title">${g.name}</span>
-          <span class="card-rule">${t(g.rules)}</span>
+          <span class="card-rule">${lab(g.rules, g.rulesEn || g.rules)}</span>
           <span class="card-stats"><span class="stars" aria-hidden="true">${stars(p.last)}</span><span class="best" title="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span></span>
           <span class="card-foot"><span class="wins">${t('wins')} <b>${nf(p.wins)}</b></span><span class="candy">${ICON.play}<span>${t(s ? 'resume' : 'play')}</span></span></span>
         </span>
@@ -255,7 +255,7 @@
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
         <button class="candy" id="gNew">${ICON.sparkle}<span>${t('newg')}</span></button>
       </div>
-      <aside class="rules"><div class="rules-hari">${HH.mascot.svg({ cls: 'hari' })}</div><p>${t(g.rules)}</p></aside>`;
+      <aside class="rules"><div class="rules-hari">${HH.mascot.svg({ cls: 'hari' })}</div><p>${lab(g.rules, g.rulesEn || g.rules)}</p></aside>`;
     const ctx = {
       get level() { return P.get(g.id).level; },
       sfx, react, win,

@@ -16,6 +16,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Mochi Binary** | takuzu: mochi alla fragola e al matcha, mai tre uguali in fila |
 | **Hari Knots** | sposta i nodini delle corde nei fori liberi: le corde libere volano via, libera tutte le lastre |
 | **Yarn Link** | collega i gomitoli dello stesso colore riempiendo tutta la griglia (stile Flow) |
+| **Hari Snack Rush** | corri lungo il sentiero e lancia semi e frutta agli animaletti affamati; scegli le porte giuste e riempi la pancia dell'animalone goloso (azione stile mob control, senza violenza) |
 
 ## Provalo
 - **Online / Android**: https://marketto.github.io/Hari-hari-puzzle/ → da Chrome su Android: ⋮ → *Installa app*

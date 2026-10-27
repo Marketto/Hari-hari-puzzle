@@ -138,6 +138,25 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Snack Rush: 4 gradini (tier 0 → 4), copione < 10 ms, sempre una porta buona, fame per ondata proporzionata al potere
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/snack-logic.js'), 'utf8'), { filename: 'snack-logic.js' });
+  const { snack } = globalThis.HH;
+  for (const level of [1, 4, 8, 12, 16]) {
+    let ms = 0, good = 0, animals = 0;
+    const T = 20, c = snack.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const s = snack.newLevel(level, globalThis.HH.rng(level * 211 + k));
+      ms += performance.now() - t;
+      const gates = s.script.filter((e) => e.k === 'g');
+      animals += s.script.filter((e) => e.k === 'a').length;
+      if (gates.length === c.gates && gates.every((g) => [g.l, g.r].some((op) => op && (op[0] === 'x' || op[0] === '+')))) good++;
+    }
+    ok(good === T && ms / T < 10, `Snack Rush livello ${level} (gradino ${c.tier}): ${c.waves} ondate, ${(animals / T).toFixed(0)} animali, ${c.gates} porte, animalone ${c.boss.kind} da ${c.bossNeed} bocconi: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

@@ -18,4 +18,5 @@
 | [games/pixel.md](games/pixel.md) | Pixel Mochi: disegni, risolutore di linea, unicità |
 | [games/binary.md](games/binary.md) | Mochi Binary: regole takuzu, generatore, cuori |
 | [games/yarn.md](games/yarn.md) | Yarn Link: fili, generatore, unicità, fragoline |
+| [games/snack.md](games/snack.md) | Hari Snack Rush: sentiero in prospettiva, merende, porte, animalone goloso, curva di difficoltà, bot di test |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

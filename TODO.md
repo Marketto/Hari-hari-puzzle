@@ -13,6 +13,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## In revisione (prossima versione)
+- [x] Nuovo gioco **Hari Snack Rush** (azione stile mob control, senza violenza): sentiero in pseudo-prospettiva su canvas, Hari lancia semi e frutta a ventaglio, animali affamati che tornano a casa felici, porte ×/+/−/÷, animalone goloso a rotazione (scoiattolo, orso polare, gufo, gattino) che soffia gusci/bolle/foglie/petali; brano `snack`, tutorial, test con bot
+- [ ] Traduzioni delle 11 chiavi nuove (`r11`, `sr_*`, `tu_snack_*`) in 43 lingue
+
 ## Fatto (v0.9.3)
 - [x] Sushi Bar: 12 ingredienti (nuovi polpo, granchio, branzino, sesamo) e 14 ricette (tako, kani, suzuki, avocado maki, uramaki al sesamo, dragon roll); dal livello 1 salmone, tonno e gambero, entro il 4 tutti i pesci; le partite salvate prendono le ricette nuove
 
