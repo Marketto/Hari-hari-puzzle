@@ -4,11 +4,7 @@
 - [x] Repo pubblico collegato: https://github.com/Marketto/Hari-hari-puzzle (autori commit anonimizzati con noreply GitHub)
 - [x] GitHub Pages attivo: https://marketto.github.io/Hari-hari-puzzle/ (deploy automatico a ogni push su `main`)
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
-
-## In revisione (prossima versione)
-- [ ] Nuovo gioco **Hari Home** (`life`, simulazione di vita isometrica stile Sims, senza livelli né fine): monolocale decadente con 8 guasti, costruisci (37 oggetti, 5 pavimenti, 5 carte da parati, 3 traslochi), 8 bisogni con umore/stress legati alla bellezza della casa, quartiere (spesa, dottore, parco, palestra, caffè, mobili, negozio), attività in 3 tipi e 4 livelli con aiutanti, malanni e check-up, 4 età fino a nonno, pensione e nuova generazione, 11 traguardi; brano `life`, tutorial, supporto `endless` in `app.js` (chip età/giorno/ghiande in header, card e Progressi)
-- [ ] Traduzioni delle 125 chiavi nuove (`r12`, `tu_life_1..4`, `lf_*`) in 43 lingue (EN/IT pronte)
-- [ ] Prova su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
+- [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
@@ -17,6 +13,10 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.12.0)
+- [x] Nuovo gioco **Hari Home** (`life`, simulazione di vita isometrica stile Sims, senza livelli né fine): monolocale decadente con 8 guasti, costruisci (37 oggetti, 5 pavimenti, 5 carte da parati, 3 traslochi), 8 bisogni con umore/stress legati alla bellezza della casa, quartiere (spesa, dottore, parco, palestra, caffè, mobili, negozio), attività in 3 tipi e 4 livelli con aiutanti, malanni e check-up, 4 età fino a nonno, pensione e nuova generazione, 11 traguardi; brano `life`, tutorial, supporto `endless` in `app.js` (chip età/giorno/ghiande in header, card e Progressi)
+- [x] Traduzioni delle 125 chiavi nuove (`r12`, `tu_life_1..4`, `lf_*`) in 43 lingue (EN/IT pronte)
 
 ## Fatto (v0.11.0)
 - [x] Giochi in lazy load: all'avvio solo catalogo + illustrazioni e colori delle card (~160 KB invece di ~1 MB di giochi); ogni gioco si scarica la prima volta che lo si apre e poi resta offline; gli aggiornamenti riscaricano solo i giochi già scaricati; nuvoletta sulle card non ancora scaricate, messaggio di Hari se offline (`dlNeed`, 43 lingue); `npm run cards`
@@ -120,6 +120,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.12.0 · `npm test` · Hari Home: tutte le schermate in tema chiaro/scuro, testi in it/de/ar/ja senza chiavi mancanti né sbordamenti a 360 px, file unico
 - 2026-10-27 v0.11.0 · `npm test` · lazy load nel browser: avvio senza file dei giochi, download all'apertura, gioco offline, gioco non scaricato offline, ripresa partita, tema scuro, file unico
 - 2026-10-27 v0.10.1 · `npm test` · Snack Rush: bot attento/lento/impreciso e bot con porte a caso, livelli 1–15
 - 2026-10-27 v0.10.0 · `npm test` · Hari Snack Rush: ondate, porte, animalone, vittoria, sconfitta; temi chiaro/scuro; testi in it/ja/ar
