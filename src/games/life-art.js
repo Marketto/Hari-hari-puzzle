@@ -322,7 +322,8 @@
     }
     return s;
   }
-  const veil = (o, k = 0.28) => (o.night > 0.15 ? `<rect y="${Y0}" width="${SW}" height="${YH}" fill="var(--lh-night)" opacity="${f1(o.night * k)}" pointer-events="none"/>` : '') + `<rect y="${Y0}" width="${SW}" height="${YH}" fill="var(--lh-sc-dim)" pointer-events="none"/>`;
+  // notte: velo leggero in "moltiplica" (scurisce senza spegnere i colori)
+  const veil = (o, k = 0.2) => (o.night > 0.15 ? `<rect y="${Y0}" width="${SW}" height="${YH}" fill="var(--lh-night)" opacity="${f1(o.night * k)}" style="mix-blend-mode:multiply" pointer-events="none"/>` : '');
   // accessori sopra la testa di Hari (cappello da cuoco, fascia, ...)
   const chefHat = (x, y) => `<path d="M${x - 15} ${y}q-12-2-9-13 4-8 12-5 3-10 12-10t12 10q8-3 12 5 3 11-9 13z" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/><rect x="${x - 15}" y="${y - 2}" width="30" height="8" rx="2" fill="var(--lh-white)" stroke="var(--lh-ink)" stroke-width="1.6"/>`;
   const plaster = (x, y) => `<g transform="rotate(-24 ${x} ${y})"><rect x="${x - 9}" y="${y - 3.5}" width="18" height="7" rx="3.5" fill="var(--lh-pink)" stroke="var(--lh-ink)" stroke-width="1.1"/><rect x="${x - 3}" y="${y - 3}" width="6" height="6" rx="1" fill="var(--lh-white)"/><circle cx="${x - 6}" cy="${y}" r=".8" fill="var(--lh-pink-2)"/><circle cx="${x + 6}" cy="${y}" r=".8" fill="var(--lh-pink-2)"/></g>`;

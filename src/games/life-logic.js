@@ -232,6 +232,7 @@
   }
 
   /* ---------- attività ---------- */
+  const gigPay = (s) => Math.round(D.GIG * (0.8 + 0.4 * s.needs.mood));
   function earnPreview(s, mood) {
     const b = s.biz;
     if (!b || !b.level) return 0;
@@ -342,6 +343,7 @@
     else {
       const st = b ? best(s, BIZ.types[b.type]) : null;
       add('work', busy ? 'busy' : s.retired ? 'retired' : !b ? 'nobiz' : !st ? 'nostation' : '', 0, { u: st ? st.u : undefined, earn: st ? earnPreview(s) : 0, k: 'work' });
+      if (!st) add('gig', busy ? 'busy' : s.retired ? 'retired' : '', 0, { earn: gigPay(s), k: 'work' });
     }
     add('town', busy ? 'busy' : '', 0, { k: 'town' });
     return out;
@@ -350,6 +352,7 @@
   function hariWhy(s, id) {
     if (s.act && s.act.id === 'faint') return 'busy';
     if (id === 'invite') return s.away ? 'away' : !s.friends.length ? 'nofriend' : '';
+    if (id === 'gig') return s.retired ? 'retired' : '';
     return '';
   }
 
@@ -360,6 +363,7 @@
     let tg;
     if (A.at === 'obj') {
       const it = opt.u != null ? findItem(s, opt.u) : A.kinds.map((k) => best(s, k)).find(Boolean);
+      if (!it && id === 'work') return { ok: false, why: !s.biz ? 'nobiz' : 'nostation' };   // messaggio chiaro: manca la postazione
       if (!it || !A.kinds.includes(ITEMS[it.id].k)) return { ok: false, why: 'none' };
       tg = { u: it.u };
     } else if (A.at === 'dmg') tg = { dmg: opt.dmg };
@@ -441,11 +445,21 @@
     if (s.away) comeHome(s);
     return true;
   }
+  // rientro: Hari entra dalla porta e cammina fino al centro della stanza (la grafica lo fa camminare dalla porta)
   function comeHome(s) {
     s.away = null;
     const d = door(s), g = grid(s);
-    const { c } = dims(s);
+    const { c, r } = dims(s);
     if (!g[d.y * c + d.x]) { s.hx = d.x; s.hy = d.y; } else { const n = near(s, d.x, d.y); if (n) { s.hx = n.x; s.hy = n.y; } }
+    const m = near(s, Math.floor(c / 2), Math.floor(r / 2));
+    if (m) { s.hx = m.x; s.hy = m.y; }
+  }
+  // quando non ha niente da fare Hari gironzola per casa (mai fermo a lungo nello stesso punto)
+  function stroll(s) {
+    const { c, r } = dims(s);
+    const n = near(s, Math.floor(rnd(s) * c), Math.floor(rnd(s) * r));
+    if (n && (n.x !== s.hx || n.y !== s.hy)) { s.hx = n.x; s.hy = n.y; return true; }
+    return false;
   }
   function addFood(s, buy) { buy.forEach((n, q) => { s.fridge[q] += n; }); }
   function walk(s, x, y) {
@@ -480,6 +494,13 @@
         break;
       }
       case 'workout': s.stats.workouts++; break;
+      case 'gig': {
+        const e = gigPay(s);
+        gain(s, e);
+        s.stats.earned += e;
+        s.worked = true;
+        break;
+      }
       case 'work': case 'office': {
         const b = s.biz;
         const e = earnPreview(s);
@@ -752,7 +773,11 @@
     need('fun', n.fun, F.T.fun);
     need('social', n.social, F.T.social);
     need('stress', 1 - n.stress, F.T.stress);
-    if (!want.length) return;
+    if (!want.length) {
+      // nessun bisogno: ogni tanto due passi per casa (timer a parte, così i bisogni restano controllati di continuo)
+      if (s.t >= (s.stroll || 0)) { s.stroll = s.t + 45; if (rnd(s) < 0.6) stroll(s); }
+      return;
+    }
     for (const w of want) w.u += rnd(s) * 0.15;               // un pizzico di carattere
     want.sort((a, b) => b.u - a.u);
     for (const w of want) {
@@ -764,6 +789,7 @@
       const r = start(s, p.id, p.u != null ? { u: p.u } : {});
       if (r.ok && s.act) { s.act.auto = 1; ev.push({ type: 'auto', id: p.id, k: w.k }); return; }
     }
+    if (s.t >= (s.stroll || 0)) { s.stroll = s.t + 45; stroll(s); }
     s.calm = s.t + F.RETRY;                                    // niente da fare per ora: riprova tra un po'
   }
 
@@ -1012,7 +1038,7 @@
   const progress = (s) => clamp(0.08 + 0.85 * s.needs.mood, 0, 0.95);
 
   HH.life = {
-    create, tick, rate, options, start, stop, walk, order, cancel, quick, plan, path, access, near, dmgTile, door, dims, foot, grid,
+    gigPay, create, tick, rate, options, start, stop, walk, order, cancel, quick, plan, path, access, near, dmgTile, door, dims, foot, grid,
     canPlace, buy, move, sell, refund, canWall, buyWall, moveWall, wallBusy, setStyle, stylePrice, expand,
     chooseBiz, upgradeBiz, hire, retire, newGeneration, earnPreview,
     beauty, age, phase, clock, daylight, maxHealth, sleeping, fridgeCap, stock, findItem, best, progress, migrate,

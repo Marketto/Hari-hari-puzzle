@@ -56,7 +56,7 @@
     --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
     --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
     --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
+    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(0, 0, 0, 0);
   }
 }
 :root[data-theme="dark"] {
@@ -64,7 +64,7 @@
   --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
   --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
   --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
+  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(0, 0, 0, 0);
 }
 
 /* il piatto del gioco si allarga un po' su telefono (la casa ha bisogno di spazio) */
@@ -187,7 +187,7 @@
 
 /* scene animate dei luoghi (vignette SVG, animazioni leggere solo CSS) */
 .lh-scene { position: absolute; inset: 0; overflow: hidden; }
-.lh-scene-svg { display: block; width: 100%; height: 100%; }
+.lh-scene-svg { display: block; width: 100%; height: 100%; filter: saturate(1.15); }
 .lh-scene-top { position: absolute; left: 50%; top: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%); max-width: calc(100% - 16px); padding: 4px 12px 4px 6px; border-radius: 16px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); font-weight: 800; font-size: 13px; white-space: nowrap; max-width: calc(100% - 16px); }
 .lh-scene-top .lh-ic { width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); }
 .lh-sc-text { font-family: var(--font-display); font-size: 13px; fill: var(--lh-ink); }
@@ -371,3 +371,5 @@
   .lh-scene .lh-a-chat1, .lh-scene .lh-a-meet { opacity: 1; }
   .lh-scene .lh-a-fr1, .lh-scene .lh-a-chat2, .lh-scene .lh-a-chat3, .lh-scene .lh-a-chat4, .lh-scene .lh-a-drop, .lh-scene [class^="lh-a-sweat"], .lh-scene .lh-a-drip { opacity: 0; }
 }
+
+.lh-need-st { box-shadow: inset 0 0 0 2px var(--accent); animation: lh-pulse 1.6s ease-in-out 3; }

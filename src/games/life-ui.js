@@ -22,7 +22,7 @@
   const EN = {
     lf_mood: 'Mood', lf_health: 'Health', lf_energy: 'Energy', lf_food: 'Tummy', lf_stress: 'Stress', lf_social: 'Friends', lf_fun: 'Fun', lf_hygiene: 'Clean',
     lf_sleep: 'Sleep', lf_eat: 'Snack', lf_cook: 'Cook', lf_shower: 'Shower', lf_relax: 'Relax', lf_watch: 'Watch TV', lf_read: 'Read',
-    lf_workout: 'Work out', lf_work: 'Work', lf_call: 'Call', lf_invite: 'Invite', lf_repair: 'Repair', lf_stop: 'Stop', lf_go: 'Go!',
+    lf_workout: 'Work out', lf_work: 'Work', lf_gig: 'Odd jobs', lf_gigTip: 'Small jobs around town while you save up for your work station', lf_call: 'Call', lf_invite: 'Invite', lf_repair: 'Repair', lf_stop: 'Stop', lf_go: 'Go!',
     lf_p_home: 'Home', lf_p_market: 'Market', lf_p_doctor: 'Doctor', lf_p_park: 'Park', lf_p_gym: 'Gym', lf_p_cafe: 'Café', lf_p_shop: 'Furniture', lf_p_office: 'My shop',
     lf_k_bed: 'Bed', lf_k_tub: 'Bathtub', lf_k_fridge: 'Fridge', lf_k_stove: 'Stove', lf_k_oven: 'Oven', lf_k_table: 'Table', lf_k_sofa: 'Sofa', lf_k_tv: 'TV',
     lf_k_books: 'Bookcase', lf_k_aquarium: 'Aquarium', lf_k_desk: 'Desk', lf_k_bench: 'Plant bench', lf_k_sport: 'Exercise', lf_k_plant: 'Plant', lf_k_lamp: 'Lamp',
@@ -55,7 +55,7 @@
   const acorn = (n) => `<span class="lh-acorn">${ic('acorn')}${nf(n)}</span>`;
   const dur = (m) => { const h = Math.floor(m / 60), mm = Math.round(m % 60); return h ? `${h}h${mm ? String(mm).padStart(2, '0') : ''}` : `${mm}′`; };
   const NEED_IC = { mood: 'mood', health: 'health', energy: 'energy', food: 'food', stress: 'stress', social: 'social', fun: 'fun', hygiene: 'hygiene' };
-  const ACT_IC = { town: 'town', sleep: 'sleep', nap: 'sleep', eat: 'eat', cook: 'cook', shower: 'shower', bath: 'bath', relax: 'relax', watch: 'watch', read: 'read', fish: 'fish', workout: 'workout', work: 'work', call: 'call', invite: 'invite', repair: 'repair', stop: 'stop', shop: 'market', doctor: 'doctor', jog: 'park', gym: 'workout', cafe: 'cafe', office: 'office', faint: 'doctor' };
+  const ACT_IC = { gig: 'work', town: 'town', sleep: 'sleep', nap: 'sleep', eat: 'eat', cook: 'cook', shower: 'shower', bath: 'bath', relax: 'relax', watch: 'watch', read: 'read', fish: 'fish', workout: 'workout', work: 'work', call: 'call', invite: 'invite', repair: 'repair', stop: 'stop', shop: 'market', doctor: 'doctor', jog: 'park', gym: 'workout', cafe: 'cafe', office: 'office', faint: 'doctor' };
   const ACT_KEY = { town: 'lf_town', bath: 'lf_k_tub', nap: 'lf_sleep', fish: 'lf_relax', shop: 'lf_p_market', doctor: 'lf_p_doctor', jog: 'lf_p_park', gym: 'lf_p_gym', cafe: 'lf_p_cafe', office: 'lf_p_office', faint: 'lf_p_doctor' };
   const actName = (id) => T(ACT_KEY[id] || 'lf_' + id);
   const KIND_KEY = { shower: 'lf_shower', shelf: 'lf_k_books', mat: 'lf_k_sport', bike: 'lf_k_sport', poster: 'lf_k_art', flowers: 'lf_k_plant' };
@@ -874,10 +874,12 @@
       const meter = (v) => `<span class="lh-meter"><b style="width:${Math.round(v * 100)}%"></b></span>`;
       openSheet('biz', `${ic('office')} ${T('lf_b_' + b.type)}`, `<div class="lh-list">
         <div class="lh-li">${ic('trophy')}<span class="lh-grow">${T('lf_lv' + b.level)} ${'★'.repeat(b.level)}<small>+${nf(L.earnPreview(s))} ${ic('acorn')} / ${dur(ACTS.work.dur)}${BIZ.rent[b.level] ? ` · ${T('lf_rent')}: ${nf(BIZ.rent[b.level])}` : ''}</small></span>
-          <button class="lh-btn" data-work="1"${s.retired ? ' disabled' : ''}>${ic('work')}${T('lf_work')}</button></div>
+          <button class="lh-btn" data-work="1"${s.retired || (b.level === 1 && !hasSt) ? ' disabled' : ''}>${ic('work')}${T('lf_work')}</button></div>
+        ${b.level === 1 && !hasSt ? `<div class="lh-li lh-need-st"><canvas data-thumb="${st}" style="width:64px;height:48px"></canvas><span class="lh-grow">${T('lf_w_nostation')}<small>${kindName(ITEMS[st].k)}</small></span><button class="lh-btn" data-station="${st}">${ic('acorn')}${nf(ITEMS[st].p)}</button></div>
+        <div class="lh-li">${ic('work')}<span class="lh-grow">${T('lf_gig')}<small>+${nf(L.gigPay(s))} ${ic('acorn')} / ${dur(ACTS.gig.dur)} · ${T('lf_gigTip')}</small></span><button class="lh-btn ghost" data-gig="1"${s.retired ? ' disabled' : ''}>${ic('work')}${T('lf_gig')}</button></div>` : ''}
         <div class="lh-li">${ic('fun')}<span class="lh-grow">${T('lf_skill')}${meter(b.skill)}</span></div>
         <div class="lh-li">${ic('health')}<span class="lh-grow">${T('lf_rep')}${meter(b.rep)}</span></div>
-        ${b.level === 1 && !hasSt ? `<div class="lh-li"><canvas data-thumb="${st}" style="width:64px;height:48px"></canvas><span class="lh-grow">${kindName(ITEMS[st].k)}</span><button class="lh-btn" data-station="${st}">${ic('acorn')}${nf(ITEMS[st].p)}</button></div>` : ''}
+
         ${maxH ? `<div class="lh-li">${ic('helper')}<span class="lh-grow">${T('lf_hire')} ${b.helpers}/${maxH}<small>−${nf(BIZ.salary)} / 7 ${ic('sun')}</small></span><button class="lh-btn ghost" data-hire="1"${b.helpers >= maxH ? ' disabled' : ''}>${ic('helper')}+1</button></div>` : ''}
         ${next ? `<div class="lh-li">${ic('up')}<span class="lh-grow">${T('lf_upgrade')}: ${T('lf_lv' + (b.level + 1))}<small>+${nf(BIZ.base[b.level + 1] - BIZ.base[b.level])} ${ic('acorn')}</small></span><button class="lh-btn" data-up="1"${s.money < next ? ' disabled' : ''}>${ic('acorn')}${nf(next)}</button></div>` : ''}
       </div>`);
@@ -907,6 +909,7 @@
       if (go) { if (go.dataset.no) { refuse(go.dataset.no); return; } const r = doStart(go.dataset.go); if (r) { closeSheet(); if (r.now) { mapView = false; mapAuto = true; } renderMap(); } return; }
       const pk = e.target.closest('[data-pick]');
       if (pk) { L.chooseBiz(s, pk.dataset.pick); ctx.sfx.milestone(); openBiz(); ctx.changed(); return; }
+      if (e.target.closest('[data-gig]')) { if (doStart('gig')) closeSheet(); return; }
       if (e.target.closest('[data-work]')) { const b = s.biz; const ok = b.level >= 2 ? doStart('office') : doStart('work'); if (ok) { closeSheet(); if (b.level >= 2 && ok.now) openMap(true); } return; }
       if (e.target.closest('[data-free]')) { s.free = !s.free; s.calm = 0; ctx.sfx.tap(); openLife(); ctx.changed(); return; }
       const stn = e.target.closest('[data-station]');

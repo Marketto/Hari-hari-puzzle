@@ -103,6 +103,8 @@
     fish: { dur: 40, at: 'obj', kinds: ['aquarium'], r: { fun: 0.2, stress: -0.16 } },
     workout: { dur: 60, at: 'obj', kinds: ['bike', 'mat'], r: { stress: -0.2, health: 0.03, energy: -0.08, hygiene: -0.14, food: -0.03 } },
     work: { dur: 180, at: 'obj', kinds: ['desk', 'oven', 'bench'], r: { energy: -0.035, fun: -0.03, hygiene: -0.01 } },
+    // lavoretti: si guadagna qualcosa anche senza postazione (per mettere da parte i soldi del forno/scrivania/bancone)
+    gig: { dur: 180, at: 'hari', r: { energy: -0.04, fun: -0.035, hygiene: -0.012, stress: 0.02 } },
     call: { dur: 15, at: 'hari', r: { social: 0.6, fun: 0.1 } },
     invite: { dur: 120, at: 'hari', r: { social: 0.26, fun: 0.12, stress: -0.06 } },
     repair: { dur: 60, at: 'dmg', r: { energy: -0.03, hygiene: -0.04 } },
@@ -140,6 +142,6 @@
   HH.lifeData = {
     ITEMS, CATS, FLOORS, WALLS, HOMES, DAMAGES, FOODS, ACTS, FREE, PLACES, BIZ, FRIENDS, GOALS, TRAVEL,
     DAY: 1440, YEAR_DAYS: 8, START_AGE: 20, RETIRE_AGE: 65, GEN_AGE: 75, PHASES: [20, 35, 50, 65],
-    START_MONEY: 300, MIN_PER_SEC: 4, SLEEP_FAST: 6, SAVE_V: 2, QMAX: 4,
+    START_MONEY: 300, GIG: 40, MIN_PER_SEC: 4, SLEEP_FAST: 6, SAVE_V: 2, QMAX: 4,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

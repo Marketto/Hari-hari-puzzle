@@ -679,7 +679,7 @@
     --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
     --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
     --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
+    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(0, 0, 0, 0);
   }
 }
 :root[data-theme="dark"] {
@@ -687,5 +687,5 @@
   --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
   --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
   --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
+  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(0, 0, 0, 0);
 }

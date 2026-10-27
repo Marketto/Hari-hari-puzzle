@@ -37,6 +37,7 @@ test('bot giudizioso: dopo 45 giorni ha più soldi, casa riparata, attività ≥
 
 test('trascuratezza: senza mangiare né lavarsi salute e umore crollano, il dottore lo rimette in sesto', () => {
   const s = L.create(3);
+  s.free = false;                                    // trascuratezza: Hari non deve badare a sé da solo
   const h0 = s.needs.health, m0 = s.needs.mood;
   let fainted = false;
   // lavora e basta: niente cibo, niente doccia, mai a letto (si addormenta da solo quando è sfinito)
@@ -171,6 +172,35 @@ test('invecchiamento monotono con le fasi; pensione e nuova generazione facoltat
   assert.equal(L.create(1).gen, 1);
   // da giovani niente pensione
   assert.equal(L.retire(L.create(1)).ok, false);
+});
+
+test('attività senza postazione: messaggio chiaro e lavoretti per mettere da parte i soldi', () => {
+  const s = L.create(6);
+  L.chooseBiz(s, 'bakery');
+  s.money = 50;
+  const r = L.start(s, 'work');
+  assert.equal(r.ok, false);
+  assert.equal(r.why, 'nostation');
+  assert.ok(L.options(s, {}).some((o) => o.id === 'gig' && o.ok), 'lavoretti nel menu di Hari');
+  const m0 = s.money;
+  assert.ok(L.start(s, 'gig').ok);
+  while (s.act) L.tick(s, 10);
+  assert.ok(s.money > m0 + 25, `lavoretti: ${m0} → ${s.money}`);
+});
+
+test('rientro a casa e gironzolare: Hari non resta fermo davanti alla porta', () => {
+  const s = L.create(5);
+  s.money = 500;
+  assert.ok(L.start(s, 'jog').ok);
+  while (s.act) L.tick(s, 10);
+  assert.equal(s.away, null);
+  const d = L.door(s);
+  assert.ok(Math.abs(s.hx - d.x) + Math.abs(s.hy - d.y) >= 2, `fermo alla porta: ${s.hx},${s.hy}`);
+  // con i bisogni a posto ogni tanto cambia posto da solo
+  Object.keys(s.needs).forEach((k) => { s.needs[k] = k === 'stress' ? 0 : 1; });
+  const seen = new Set();
+  for (let i = 0; i < 60; i++) { L.tick(s, 10); if (!s.act && !s.away) seen.add(`${s.hx},${s.hy}`); }
+  assert.ok(seen.size >= 2, 'non gironzola mai');
 });
 
 test('determinismo e ripresa da JSON', () => {
