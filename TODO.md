@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.11.0)
+- [x] Giochi in lazy load: all'avvio solo catalogo + illustrazioni e colori delle card (~160 KB invece di ~1 MB di giochi); ogni gioco si scarica la prima volta che lo si apre e poi resta offline; gli aggiornamenti riscaricano solo i giochi già scaricati; nuvoletta sulle card non ancora scaricate, messaggio di Hari se offline (`dlNeed`, 43 lingue); `npm run cards`
+
 ## Fatto (v0.10.1)
 - [x] Hari Snack Rush più sfidante: animali più veloci e numerosi, ondate più fitte, porte cattive dal livello 2 (−2 dal 4, ÷2 dal 6) e più frequenti, animalone più goloso che chiama amici dal livello 4 e soffia di più; le porte contano (chi sceglie a caso perde spesso dal livello 5)
 
@@ -112,6 +115,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.11.0 · `npm test` · lazy load nel browser: avvio senza file dei giochi, download all'apertura, gioco offline, gioco non scaricato offline, ripresa partita, tema scuro, file unico
 - 2026-10-27 v0.10.1 · `npm test` · Snack Rush: bot attento/lento/impreciso e bot con porte a caso, livelli 1–15
 - 2026-10-27 v0.10.0 · `npm test` · Hari Snack Rush: ondate, porte, animalone, vittoria, sconfitta; temi chiaro/scuro; testi in it/ja/ar
 - 2026-10-27 v0.9.3 · `npm test` · Sushi Bar: galleria di ingredienti e piatti, bot cuoco su livelli 1–15

@@ -1,0 +1,59 @@
+/* Catalogo dei giochi: l'unico file dei giochi caricato all'avvio (con cards.js, le illustrazioni delle card).
+ * Ogni gioco è un modulo scaricato in lazy load solo quando lo si apre: HH.loadGame(id) inserisce in ordine
+ * i suoi CSS e script classici (logic prima di ui); il gioco si registra come sempre con HH.games.push({...}).
+ * Il service worker legge questo file (importScripts) per sapere quali file mettere in cache quando servono.
+ * Ordine = ordine delle card in home. Nuovo gioco: aggiungi la voce qui e poi `npm run cards`.
+ */
+(function (G) {
+  const HH = (G.HH = G.HH || {});
+  const f = (...names) => names.map((n) => 'src/games/' + n);
+  HH.catalog = [
+    { id: 'hedgedoku', name: 'Hedgedoku', rules: 'r1', files: f('hedgedoku.css', 'hedgedoku-logic.js', 'hedgedoku-ui.js') },
+    { id: 'boba', name: 'Boba Sort', rules: 'r2', files: f('boba-logic.js', 'boba-ui.js') },
+    { id: 'lantern', name: 'Lantern Glow', rules: 'r3', plate: 'night', files: f('lantern-logic.js', 'lantern-ui.js') },
+    { id: 'sushi', name: 'Sushi Bar', rules: 'r4', files: f('sushi.css', 'sushi-logic.js', 'sushi-ui.js') },
+    { id: 'fixit', name: 'Fix-It House', rules: 'r5', files: f('fixit.css', 'fixit-scene-kitchen.css', 'fixit-scene-bedroom.css', 'fixit-scene-bathroom.css', 'fixit-scene-garden.css',
+      'fixit-logic.js', 'fixit-kit.js', 'fixit-scene-house.js', 'fixit-scene-kitchen.js', 'fixit-scene-bedroom.js', 'fixit-scene-bathroom.js', 'fixit-scene-garden.js', 'fixit-ui.js') },
+    { id: 'parade', name: 'Hari Parade', rules: 'r6', files: f('parade.css', 'parade-logic.js', 'parade-ui.js') },
+    { id: 'binary', name: 'Mochi Binary', rules: 'r8', files: f('binary.css', 'binary-logic.js', 'binary-ui.js') },
+    { id: 'pixel', name: 'Pixel Mochi', rules: 'r7', files: f('pixel.css', 'pixel-logic.js', 'pixel-ui.js') },
+    { id: 'yarn', name: 'Yarn Link', rules: 'r9', files: f('yarn.css', 'yarn-logic.js', 'yarn-ui.js') },
+    { id: 'ropes', name: 'Hari Knots', rules: 'r10c', files: f('ropes.css', 'ropes-logic.js', 'ropes-ui.js') },
+    { id: 'snack', name: 'Hari Snack Rush', rules: 'r11', files: f('snack.css', 'snack-logic.js', 'snack-ui.js') },
+  ];
+
+  /* ---------- caricamento in lazy load ---------- */
+  const loading = {};
+  HH.gameMeta = (id) => HH.catalog.find((c) => c.id === id);
+  HH.gameLoaded = (id) => (HH.games || []).find((g) => g.id === id);
+  function addFile(src) {
+    return new Promise((resolve, reject) => {
+      const d = G.document;
+      const el = src.endsWith('.css') ? Object.assign(d.createElement('link'), { rel: 'stylesheet', href: src }) : Object.assign(d.createElement('script'), { src, async: false });
+      el.onload = () => resolve();
+      el.onerror = () => { el.remove(); reject(new Error('load ' + src)); };
+      (src.endsWith('.css') ? d.head : d.body).appendChild(el);
+    });
+  }
+  // scarica (o prende dalla cache offline) i file del gioco nell'ordine del catalogo → Promise con la voce di HH.games
+  HH.loadGame = function (id) {
+    const ready = HH.gameLoaded(id);
+    if (ready) return Promise.resolve(ready);
+    if (loading[id]) return loading[id];
+    const meta = HH.gameMeta(id);
+    if (!meta) return Promise.reject(new Error('unknown game ' + id));
+    const css = meta.files.filter((x) => x.endsWith('.css')), js = meta.files.filter((x) => !x.endsWith('.css'));
+    loading[id] = Promise.all(css.map(addFile))
+      .then(() => js.reduce((p, f) => p.then(() => addFile(f)), Promise.resolve()))
+      .then(() => { const g = HH.gameLoaded(id); if (!g) throw new Error('game not registered ' + id); return g; })
+      .finally(() => { delete loading[id]; });
+    return loading[id];
+  };
+  // il gioco è già disponibile offline? (file nella cache del service worker o già caricato)
+  HH.gameOffline = function (id) {
+    if (HH.gameLoaded(id)) return Promise.resolve(true);
+    const meta = HH.gameMeta(id);
+    if (!meta || !G.caches) return Promise.resolve(false);
+    return Promise.all(meta.files.map((f) => G.caches.match(f, { ignoreSearch: true }))).then((r) => r.every(Boolean)).catch(() => false);
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : self);

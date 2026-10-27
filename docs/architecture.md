@@ -32,5 +32,12 @@ Vedi `.claude/skills/add-game/SKILL.md`. Logica pura in `*-logic.js` (testata da
 
 ## Offline
 - Shell e icone: precache in `sw.js` (`SHELL`). **Aggiorna `VERSION`** a ogni release.
+- **Giochi in lazy load**: all'avvio si caricano solo `src/games/catalog.js` (elenco dei giochi e dei loro file),
+  `cards.js` e `tokens.css` (generati da `npm run cards`: illustrazioni, colori e stili delle card). Aprendo un gioco,
+  `HH.loadGame(id)` inserisce i suoi CSS e script nell'ordine del catalogo. Il service worker (che legge il catalogo con
+  `importScripts`) mette in cache i file del gioco la prima volta che arrivano: da lì in poi il gioco funziona offline.
+  A ogni aggiornamento i giochi già scaricati vengono riscaricati nella cache nuova (se manca la rete si tiene la copia
+  vecchia). Le card dei giochi non ancora scaricati hanno una nuvoletta; offline, aprirli mostra un messaggio di Hari.
+  La versione in un file (`npm run build`) contiene tutti i giochi.
 - Font Google: cache runtime `hh-fonts`. Roadmap v0.3: font in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio.
 - Nessuna API di rete nel codice di gioco.

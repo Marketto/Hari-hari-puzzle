@@ -42,3 +42,6 @@ In `.claude/settings.json` puoi far girare il controllo traduzioni a ogni modifi
   "hooks": { "PostToolUse": [{ "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "node tools/i18n-check.mjs" }] }] }
 }
 ```
+
+## gen-cards.mjs (`npm run cards`)
+Genera `src/games/cards.js` (illustrazioni SVG delle card, estratte da `art()` di ogni gioco) e `src/games/tokens.css` (token di colore dei giochi in tema chiaro/scuro + regole CSS usate dalle illustrazioni). Va rilanciato dopo aver cambiato `art`, colori o nome di un gioco; un test controlla che i file siano aggiornati.

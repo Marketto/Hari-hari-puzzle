@@ -26,8 +26,8 @@ HH.games.push({
 ## Passi
 1. `src/games/<id>-logic.js`: funzioni pure `generate(size|level, rnd)`, `check/isSolved`, eventuale `solve`. Esporta su `HH.<id>`.
 2. `src/games/<id>-ui.js`: rendering con `innerHTML` + delega eventi su `el.onclick`. Griglie con `dir="ltr"`.
-3. Registra entrambi i file in `index.html` (logic prima di ui, prima di `app.js`) e in `SHELL` di `sw.js`.
-4. CSS in `src/styles.css` con prefisso a 2 lettere (`px-`), tinta card `--tint-<id>` in **entrambi** i temi.
+3. Aggiungi la voce in `src/games/catalog.js` (`id`, `name`, `rules`, `files` in ordine: CSS, logic, eventuali file di supporto, ui per ultima). NON metterli in `index.html` né in `SHELL`: il gioco si scarica in lazy load quando lo si apre e il service worker lo mette in cache da solo. Poi `npm run cards` (rigenera `cards.js` e `tokens.css`; `art` deve essere una funzione pura che restituisce SVG).
+4. CSS in `src/games/<id>.css` con prefisso a 2 lettere (`px-`), token in `:root` + tema scuro, tinta card `--tint-<id>` in **entrambi** i temi (finisce in `tokens.css`, caricato all'avvio).
 5. Chiave regole `rN` in tutte le lingue (skill `i18n`).
 6. Unit test in `tests/<id>.test.mjs` (oracolo indipendente); docs in `docs/games/<id>.md`; togli il gioco da `SOON` in `src/app.js` se presente.
 7. `npm test && npm run build`, poi spunta in `TODO.md`.

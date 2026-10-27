@@ -633,3 +633,12 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* lazy load dei giochi: card in download, card non ancora scaricate (nuvoletta: serve internet la prima volta) */
+.card.loading .card-art > svg { animation: wiggle .8s ease-in-out infinite; opacity: .7; }
+.card.loading .candy { opacity: .6; }
+.card.remote .card-art::before {
+  content: ""; position: absolute; top: 12px; inset-inline-end: 12px; z-index: 1; width: 30px; height: 20px;
+  border-radius: 12px; background: var(--card-solid); box-shadow: -8px 4px 0 -3px var(--card-solid), 8px 4px 0 -4px var(--card-solid), 0 2px 0 var(--line-2);
+  opacity: .9;
+}

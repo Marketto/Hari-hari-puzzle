@@ -48,3 +48,31 @@ test('salvataggi: versione attuale caricata, vecchie migrate o lasciate intatte'
   P.set('boba', { level: 7, total: 900 });
   assert.equal(P.get('boba').level, 7);
 });
+
+test('lazy load: catalogo completo, file esistenti, card e token generati aggiornati, giochi non in index.html né nella shell', async () => {
+  const { generate, tokens } = await import('../tools/gen-cards.mjs');
+  const HH = load('src/games/catalog.js');
+  const ids = HH.catalog.map((g) => g.id);
+  assert.equal(new Set(ids).size, ids.length, 'id doppi nel catalogo');
+  for (const g of HH.catalog) {
+    assert.ok(g.files.length && g.files.some((f) => f.endsWith('-ui.js')), g.id);
+    for (const f of g.files) {
+      assert.ok(fs.existsSync(path.join(root, f)), `${f} non esiste`);
+      assert.ok(!html.includes(f), `${f} caricato all'avvio da index.html`);
+      assert.ok(!SHELL.includes(f), `${f} nella shell (deve essere lazy)`);
+    }
+    // logic prima di ui
+    const js = g.files.filter((f) => f.endsWith('.js'));
+    assert.ok(js[js.length - 1].endsWith('-ui.js'), `${g.id}: la UI deve essere l'ultimo script`);
+  }
+  // ogni file di gioco del repo è in un catalogo (niente giochi dimenticati)
+  const all = new Set(HH.catalog.flatMap((g) => g.files));
+  for (const f of fs.readdirSync(path.join(root, 'src/games'))) {
+    if (['catalog.js', 'cards.js', 'tokens.css'].includes(f)) continue;
+    assert.ok(all.has('src/games/' + f), `src/games/${f} non è in nessun gioco del catalogo`);
+  }
+  assert.equal(fs.readFileSync(path.join(root, 'src/games/cards.js'), 'utf8'), generate(), 'cards.js non aggiornato: npm run cards');
+  assert.equal(fs.readFileSync(path.join(root, 'src/games/tokens.css'), 'utf8'), tokens(), 'tokens.css non aggiornato: npm run cards');
+  for (const f of ['src/games/catalog.js', 'src/games/cards.js', 'src/games/tokens.css']) assert.ok(SHELL.includes(f), `${f} manca in SHELL`);
+  assert.match(sw, /importScripts\('src\/games\/catalog\.js'\)/);
+});

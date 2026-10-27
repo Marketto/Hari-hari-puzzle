@@ -4,12 +4,22 @@
 // -> dist/artifact.html          (frammento senza <html>/<head>/<body>, per anteprime Claude Artifact)
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 let html = read('index.html');
 
+// versione in un file: dentro ci sono tutti i giochi (niente lazy load), prima di app.js
+{
+  const ctx = vm.createContext({});
+  vm.runInContext(read('src/games/catalog.js'), ctx);
+  const files = ctx.HH.catalog.flatMap((g) => g.files);
+  const css = files.filter((f) => f.endsWith('.css')).map((f) => `<link rel="stylesheet" href="${f}">\n`).join('');
+  const js = files.filter((f) => f.endsWith('.js')).map((f) => `<script src="${f}"></script>\n`).join('');
+  html = html.replace('<script src="src/app.js"></script>', js + '<script src="src/app.js"></script>').replace('</head>', css + '</head>');
+}
 html = html.replace(/<!--build:remove-->[\s\S]*?<!--\/build:remove-->\n?/g, '');
 html = html.replace(/<link rel="stylesheet" href="(src\/[^"]+)">/g, (_, p) => `<style>\n${read(p)}\n</style>`);
 html = html.replace(/<script src="(src\/[^"]+)"><\/script>\n?/g, (_, p) => `<script>\n${read(p).replace(/<\/script/gi, '<\\/script')}\n</script>\n`);

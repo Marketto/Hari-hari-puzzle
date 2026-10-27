@@ -4,7 +4,7 @@ PWA kawaii di puzzle logici, **100% offline**, installabile su Android, mascotte
 Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico che registra moduli su `window.HH`.
 
 ## Regole d'oro
-1. **Offline first**: nessuna chiamata di rete a runtime. Nuovi file vanno aggiunti a `SHELL` in `sw.js` e allo script-list di `index.html`.
+1. **Offline first + lazy load**: nessuna chiamata esterna a runtime. I giochi sono moduli scaricati solo quando li si apre: i loro file stanno in `src/games/catalog.js` (non in `index.html` né in `SHELL`), poi `npm run cards` rigenera `cards.js`/`tokens.css`. File del nucleo: in `SHELL` di `sw.js` e nello script-list di `index.html`.
 2. **Logica separata dalla UI**: `src/games/<id>-logic.js` è puro (niente DOM) e testabile da Node; `<id>-ui.js` disegna.
 3. **Ogni livello deve essere risolvibile** (e a soluzione unica dove il genere lo prevede), con unit test in `tests/<gioco>.test.mjs` che usano un oracolo indipendente dal generatore.
 4. **i18n completo**: ogni stringa visibile passa da `HH.i18n.t(key)`. Una chiave nuova va in tutte le 43 righe di `src/i18n/locales.js`.
@@ -42,6 +42,8 @@ src/core/fx.js             sfondo animato · coriandoli · suoni WebAudio
 src/core/mascot.js         SVG di Hari (grande e mini)
 src/games/*-logic.js       logica pura dei giochi
 src/games/*-ui.js          interfaccia dei giochi, si registra in HH.games
+src/games/catalog.js       elenco dei giochi e dei loro file + HH.loadGame (lazy load)
+src/games/cards.js · tokens.css   GENERATI (npm run cards): illustrazioni e colori delle card
 src/i18n/locales.js        43 lingue
 tools/                     script di sviluppo (vedi docs/tools.md)
 docs/                      documentazione strutturata
@@ -52,5 +54,6 @@ docs/                      documentazione strutturata
 - `npm test` — selftest logica + controllo traduzioni
 - `npm run build` — `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html`
 - `npm run icons` — rigenera le icone dalla mascotte
+- `npm run cards` — rigenera illustrazioni e token delle card dopo aver toccato `art` o i colori di un gioco
 
 Stato e priorità: `TODO.md` (lavoro corrente) · `ROADMAP.md` (versioni).

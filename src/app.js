@@ -171,11 +171,11 @@
   function renderHome() {
     HH.music.play('menu', 0.45);
     HH.music.duck(false);
-    const saves = HH.games.map((g) => ({ g, s: P.loadGame(g.id) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
+    const saves = HH.catalog.map((g) => ({ g, s: P.loadGame(g.id) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
     const r = saves[0];
     const resume = r ? `
       <button class="resume" data-game="${r.g.id}">
-        <span class="resume-art" style="--tint:var(--tint-${r.g.id})">${r.g.art()}</span>
+        <span class="resume-art" style="--tint:var(--tint-${r.g.id})">${cardArt(r.g.id)}</span>
         <span class="resume-text">
           <small><i class="dot"></i>${t('paused')}</small>
           <b>${r.g.name}</b>
@@ -183,13 +183,13 @@
         </span>
         <span class="candy">${ICON.play}<span>${t('resume')}</span></span>
       </button>` : '';
-    const cards = HH.games.map((g, idx) => {
+    const cards = HH.catalog.map((g, idx) => {
       const p = P.get(g.id), s = P.loadGame(g.id);
       return `<button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id});--i:${idx}">
         <span class="card-art">
           <span class="ribbon-tag">${t('level')} ${p.level}</span>
           ${s ? `<span class="pause-tag">${ICON.pause}${fmt(s.elapsed)}</span>` : ''}
-          ${g.art()}
+          ${cardArt(g.id)}
         </span>
         <span class="card-body">
           <span class="card-title">${g.name}</span>
@@ -200,7 +200,7 @@
       </button>`;
     }).join('');
     // i giochi "in arrivo" spariscono da soli quando quello vero è registrato
-    const soon = SOON.filter((x) => !HH.games.some((g) => g.name === x.name)).map((g) => `
+    const soon = SOON.filter((x) => !HH.catalog.some((g) => g.name === x.name)).map((g) => `
       <div class="card soon" aria-disabled="true">
         <span class="card-art">${g.art}</span>
         <span class="card-body"><span class="card-title">${g.name}</span><span class="chip ghost">${t('soon')}</span></span>
@@ -221,12 +221,43 @@
       <section class="grid-cards" aria-label="Games">${cards}</section>
       ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
       <section class="grid-cards small">${soon}</section>` : ''}`;
+    markRemote();
+  }
+
+  // illustrazione della card dal catalogo statico (il codice del gioco si scarica solo quando lo si apre)
+  const cardArt = (id) => (HH.cardArt && HH.cardArt[id]) || '';
+  // card dei giochi non ancora scaricati: nuvoletta (servono internet la prima volta)
+  function markRemote() {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return;
+    HH.catalog.forEach((c) => HH.gameOffline(c.id).then((ok) => {
+      const el = document.querySelector(`.card[data-game="${c.id}"]`);
+      if (el) el.classList.toggle('remote', !ok);
+    }));
   }
 
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
-    const g = HH.games.find((x) => x.id === id);
-    if (!g) return;
+    if (!HH.gameMeta(id)) return;
+    const g = HH.gameLoaded(id);
+    if (!g) {
+      // primo avvio del gioco: lo scarica (o lo prende dalla cache offline) e poi lo apre
+      if (S.loading) return;
+      S.loading = id;
+      const card = document.querySelector(`[data-game="${id}"]`);
+      if (card) card.classList.add('loading');
+      HH.loadGame(id).then(() => {
+        S.loading = null;
+        if (card) card.classList.remove('loading');
+        if (!$('#home').hidden || !S.game) openGame(id, push);
+      }).catch(() => {
+        S.loading = null;
+        if (card) card.classList.remove('loading');
+        say('oops', true, lab('dlNeed', 'This game downloads the first time you play: connect to the internet and try again!'));
+        if (!$('#home').hidden) return;
+        renderHome();
+      });
+      return;
+    }
     persist();
     S.game = g; S.inst = null; S.won = false;
     const saved = P.loadGame(id);
@@ -337,7 +368,7 @@
       const st = steps[i], last = i === steps.length - 1;
       box.innerHTML = `<div class="sheet-head"><h2 id="tutTitle">${lab('help', 'How to play')} · ${g.name}</h2>
           <button class="icon-btn close" id="tutSkip" aria-label="${lab('tutSkip', 'Skip')}">✕</button></div>
-        <div class="tut-stage" style="--tint:var(--tint-${g.id}, var(--hair))">${st.art || g.art()}<div class="tut-hari">${HH.mascot.mini()}</div></div>
+        <div class="tut-stage" style="--tint:var(--tint-${g.id}, var(--hair))">${st.art || cardArt(g.id)}<div class="tut-hari">${HH.mascot.mini()}</div></div>
         <p class="tut-text">${lab(st.key, st.en)}</p>
         <div class="tut-foot"><span class="tut-dots" aria-hidden="true">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</span>
           <button class="candy" id="tutNext">${last ? ICON.sparkle : ''}<span>${last ? t('play') : t('next')}</span></button></div>`;
@@ -470,10 +501,10 @@
 
   /* ---------- Progressi ---------- */
   function openStats() {
-    const rows = HH.games.map((g) => {
+    const rows = HH.catalog.map((g) => {
       const p = P.get(g.id);
       return `<div class="stat-row" style="--tint:var(--tint-${g.id})">
-        <span class="stat-art">${g.art()}</span>
+        <span class="stat-art">${cardArt(g.id)}</span>
         <div class="stat-main">
           <div class="stat-name"><b>${g.name}</b><span class="stars">${stars(p.last)}</span></div>
           <dl class="stat-grid">

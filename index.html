@@ -16,19 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Mochiy+Pop+One&display=swap">
 <link rel="stylesheet" href="src/styles.css">
-<link rel="stylesheet" href="src/games/hedgedoku.css">
-<link rel="stylesheet" href="src/games/sushi.css">
-<link rel="stylesheet" href="src/games/fixit.css">
-<link rel="stylesheet" href="src/games/fixit-scene-kitchen.css">
-<link rel="stylesheet" href="src/games/fixit-scene-bedroom.css">
-<link rel="stylesheet" href="src/games/fixit-scene-bathroom.css">
-<link rel="stylesheet" href="src/games/fixit-scene-garden.css">
-<link rel="stylesheet" href="src/games/parade.css">
-<link rel="stylesheet" href="src/games/binary.css">
-<link rel="stylesheet" href="src/games/pixel.css">
-<link rel="stylesheet" href="src/games/yarn.css">
-<link rel="stylesheet" href="src/games/ropes.css">
-<link rel="stylesheet" href="src/games/snack.css">
+<link rel="stylesheet" href="src/games/tokens.css">
 </head>
 <body>
 <canvas id="bgCanvas" class="bg" aria-hidden="true"></canvas>
@@ -82,34 +70,9 @@
 <script src="src/core/mascot.js"></script>
 <script src="src/core/audio.js"></script>
 <script src="src/core/fx.js"></script>
-<script src="src/games/hedgedoku-logic.js"></script>
-<script src="src/games/hedgedoku-ui.js"></script>
-<script src="src/games/boba-logic.js"></script>
-<script src="src/games/boba-ui.js"></script>
-<script src="src/games/lantern-logic.js"></script>
-<script src="src/games/lantern-ui.js"></script>
-<script src="src/games/sushi-logic.js"></script>
-<script src="src/games/sushi-ui.js"></script>
-<script src="src/games/fixit-logic.js"></script>
-<script src="src/games/fixit-kit.js"></script>
-<script src="src/games/fixit-scene-house.js"></script>
-<script src="src/games/fixit-scene-kitchen.js"></script>
-<script src="src/games/fixit-scene-bedroom.js"></script>
-<script src="src/games/fixit-scene-bathroom.js"></script>
-<script src="src/games/fixit-scene-garden.js"></script>
-<script src="src/games/fixit-ui.js"></script>
-<script src="src/games/parade-logic.js"></script>
-<script src="src/games/parade-ui.js"></script>
-<script src="src/games/binary-logic.js"></script>
-<script src="src/games/binary-ui.js"></script>
-<script src="src/games/pixel-logic.js"></script>
-<script src="src/games/pixel-ui.js"></script>
-<script src="src/games/yarn-logic.js"></script>
-<script src="src/games/yarn-ui.js"></script>
-<script src="src/games/ropes-logic.js"></script>
-<script src="src/games/ropes-ui.js"></script>
-<script src="src/games/snack-logic.js"></script>
-<script src="src/games/snack-ui.js"></script>
+<!-- i giochi si scaricano in lazy load quando li si apre (HH.loadGame, vedi src/games/catalog.js) -->
+<script src="src/games/catalog.js"></script>
+<script src="src/games/cards.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

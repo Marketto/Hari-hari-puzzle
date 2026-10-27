@@ -6,33 +6,45 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.10.1';
+const VERSION = 'hh-v0.11.0';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js',
-  'src/games/hedgedoku-logic.js', 'src/games/hedgedoku.css', 'src/games/hedgedoku-ui.js', 'src/games/boba-logic.js', 'src/games/boba-ui.js',
-  'src/games/lantern-logic.js', 'src/games/lantern-ui.js',
-  'src/games/sushi-logic.js', 'src/games/sushi-ui.js', 'src/games/sushi.css',
-  'src/games/fixit-logic.js', 'src/games/fixit-kit.js', 'src/games/fixit-scene-house.js', 'src/games/fixit-scene-kitchen.js', 'src/games/fixit-scene-kitchen.css', 'src/games/fixit-scene-bedroom.js', 'src/games/fixit-scene-bedroom.css', 'src/games/fixit-scene-bathroom.js', 'src/games/fixit-scene-bathroom.css', 'src/games/fixit-scene-garden.js', 'src/games/fixit-scene-garden.css', 'src/games/fixit-ui.js', 'src/games/fixit.css',
-  'src/games/parade-logic.js', 'src/games/parade-ui.js', 'src/games/parade.css',
-  'src/games/binary-logic.js', 'src/games/binary-ui.js', 'src/games/binary.css',
-  'src/games/pixel-logic.js', 'src/games/pixel-ui.js', 'src/games/pixel.css',
-  'src/games/yarn-logic.js', 'src/games/yarn-ui.js', 'src/games/yarn.css',
-  'src/games/ropes-logic.js', 'src/games/ropes-ui.js', 'src/games/ropes.css',
-  'src/games/snack-logic.js', 'src/games/snack-ui.js', 'src/games/snack.css',
+  'src/games/tokens.css', 'src/games/catalog.js', 'src/games/cards.js',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
+// file dei giochi: scaricati e messi in cache solo quando il gioco viene aperto la prima volta (lazy load)
+importScripts('src/games/catalog.js');
+const GAME_FILES = new Set(self.HH.catalog.flatMap((g) => g.files));
+const isGameFile = (url) => { const u = new URL(url, self.registration.scope); return GAME_FILES.has(u.pathname.slice(new URL(self.registration.scope).pathname.length)); };
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
     await c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })));
+    await carryGames(c);
     // prima installazione: si attiva subito. Aggiornamento: aspetta il via dalla pagina SOLO se la pagina aperta
     // sa gestirlo (risponde "can-update"); con pagine di versioni vecchie, o ad app chiusa, si attiva subito
     // (altrimenti resterebbe in attesa finché l'app non viene chiusa del tutto).
     if (!self.registration.active || !(await pagesCanUpdate())) await self.skipWaiting();
   })());
 });
+
+// aggiornamento: i giochi già scaricati con la versione precedente si riscaricano aggiornati nella cache nuova,
+// così restano giocabili offline (se la rete manca si tiene la copia vecchia)
+async function carryGames(c) {
+  const old = (await caches.keys()).filter((k) => k !== VERSION && k.startsWith('hh-v'));
+  const have = new Map();
+  for (const k of old) for (const req of await (await caches.open(k)).keys()) if (isGameFile(req.url)) have.set(req.url, k);
+  // un gioco si porta dietro solo se tutti i suoi file c'erano
+  const scope = new URL(self.registration.scope);
+  const games = self.HH.catalog.filter((g) => g.files.every((f) => have.has(new URL(f, scope).href)));
+  await Promise.all(games.flatMap((g) => g.files.map(async (f) => {
+    const url = new URL(f, scope).href;
+    try { const r = await fetch(new Request(url, { cache: 'reload' })); if (r.ok) return c.put(url, r); throw new Error(r.status); }
+    catch (e) { const r = await (await caches.open(have.get(url))).match(url); if (r) return c.put(url, r); }
+  })));
+}
 
 async function pagesCanUpdate() {
   const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
@@ -66,6 +78,15 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (url.origin !== location.origin) return;
-  e.respondWith(caches.open(VERSION).then((c) => c.match(e.request, { ignoreSearch: true }))
-    .then((hit) => hit || fetch(e.request).catch(() => caches.match('index.html'))));
+  e.respondWith(caches.open(VERSION).then(async (c) => {
+    const hit = await c.match(e.request, { ignoreSearch: true });
+    if (hit) return hit;
+    // file di un gioco aperto per la prima volta: si scarica e resta in cache per giocare offline
+    if (isGameFile(e.request.url)) {
+      const r = await fetch(e.request, { cache: 'reload' });
+      if (r.ok) c.put(new URL(e.request.url).origin + new URL(e.request.url).pathname, r.clone());
+      return r;
+    }
+    return fetch(e.request).catch(() => caches.match('index.html'));
+  }));
 });
