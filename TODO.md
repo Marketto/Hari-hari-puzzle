@@ -14,6 +14,18 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.12.4)
+- [x] Boba Sort: il vicolo cieco non chiude più la partita: banner "Vicolo cieco" con Annulla/Ricomincia e si può continuare a versare; la finestra di fine partita solo a mosse finite (tolto lo "0" fuorviante); verificato che il risolutore non segnala falsi vicoli ciechi (oracolo BFS su partite casuali)
+- [x] Schermo intero solo sul riquadro di gioco, con il pulsante per tornare alla vista classica dentro il riquadro; si esce da soli a vittoria, sconfitta, tutorial o ritorno alla home
+
+## Fatto (v0.12.3)
+- [x] Home: Condividi (solo icona su telefono) e versione sempre a fianco del titolo
+- [x] Home: 3 modalità di visualizzazione dei giochi (lista, icone 2 per riga, carosello in prospettiva stile Cover Flow del Mac), scelta salvata
+
+## Fatto (v0.12.2)
+- [x] Pulsante "Condividi" in home sopra la versione (menu di condivisione del telefono, altrimenti copia il link con un messaggio di Hari)
+- [x] Un solo pulsante audio a 3 stati: musica e suoni → solo suoni → muto (preferenza salvata)
+
 ## Fatto (v0.12.1)
 - [x] Giochi più larghi: bordi laterali minimi su telefono (area di gioco a ~11 px dal bordo invece di ~38; tolto anche il margine predefinito di 8 px del body), larghezza unica `--game-w`
 - [x] Pulsante schermo intero nell'header di ogni gioco (dove il browser lo supporta; chiavi `full`/`fullExit` in 43 lingue)
@@ -124,6 +136,9 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.12.4 · `npm test` · Boba: vicolo cieco con versate possibili → banner, Annulla e Ricomincia; schermo intero del riquadro in 3 giochi (chiaro/scuro)
+- 2026-10-27 v0.12.3 · `npm test` · lista/icone/carosello a 360 px (chiaro e scuro) e a 1100 px, carosello: scorrimento, card centrale, apertura del gioco
+- 2026-10-27 v0.12.2 · `npm test` · ciclo audio a 3 stati e preferenze salvate, condivisione (copia link) nel browser, home chiara/scura a 360 px
 - 2026-10-27 v0.12.1 · `npm test` · margini misurati a 360 px in tutti i 12 giochi, nessuno scroll orizzontale, schermo intero attivato/disattivato
 - 2026-10-27 v0.12.0 · `npm test` · Hari Home: tutte le schermate in tema chiaro/scuro, testi in it/de/ar/ja senza chiavi mancanti né sbordamenti a 360 px, file unico
 - 2026-10-27 v0.11.0 · `npm test` · lazy load nel browser: avvio senza file dei giochi, download all'apertura, gioco offline, gioco non scaricato offline, ripresa partita, tema scuro, file unico

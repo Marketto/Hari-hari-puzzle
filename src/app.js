@@ -11,6 +11,12 @@
   const P = HH.progress;
 
   const ICON = {
+    vList: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx="1.5" fill="currentColor"/><rect x="3" y="15" width="5" height="5" rx="1.5" fill="currentColor"/><path d="M11 6.5h10M11 17.5h10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    vGrid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2.4" fill="currentColor"/></svg>',
+    vCarousel: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4" width="10" height="16" rx="2.4" fill="currentColor"/><path d="M4.5 7v10M19.5 7v10M1.8 9v6M22.2 9v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    // audio unificato: altoparlante + nota (musica e suoni) · solo altoparlante (solo suoni) · altoparlante sbarrato (muto)
+    audio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h3.5L11 5v14l-4.5-4H3z" fill="currentColor"/><path class="wave" d="M14 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><g class="note"><path d="M18 14.5V5.5l4-1v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16.6" cy="14.6" rx="1.9" ry="1.6" fill="currentColor"/><ellipse cx="20.6" cy="12.6" rx="1.9" ry="1.6" fill="currentColor"/></g><path class="mute" d="M14.5 9l6 6M20.5 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     unfull: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -223,15 +229,61 @@
         </div>
         <div class="hero-copy">
           <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></h1>
+          <h1 class="logo" aria-label="Hari Hari Puzzle"><span class="logo-main">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span></span><span class="logo-side"><button class="share-btn" id="shareBtn" type="button" aria-label="${lab('share', 'Share')}" title="${lab('share', 'Share')}">${ICON.share}<span>${lab('share', 'Share')}</span></button><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></span></h1>
           <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
         </div>
       </section>
       ${resume}
-      <section class="grid-cards" aria-label="Games">${cards}</section>
+      <div class="view-bar" role="radiogroup" aria-label="${lab('viewLabel', 'View')}">${VIEWS.map((v) => `<button class="view-btn${v.id === homeView() ? ' on' : ''}" role="radio" aria-checked="${v.id === homeView()}" data-view="${v.id}" aria-label="${lab(v.key, v.en)}" title="${lab(v.key, v.en)}">${ICON[v.icon]}</button>`).join('')}</div>
+      <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="Games">${cards}</section>
+      ${homeView() === 'carousel' ? `<div class="cf-dots" aria-hidden="true">${HH.catalog.map((g, i) => `<i data-i="${i}"></i>`).join('')}</div>` : ''}
       ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
       <section class="grid-cards small">${soon}</section>` : ''}`;
     markRemote();
+    if (homeView() === 'carousel') coverFlow();
+  }
+
+  /* ---------- modalità di visualizzazione dei giochi: lista · icone 2 per riga · carosello (Cover Flow) ---------- */
+  const VIEWS = [
+    { id: 'list', icon: 'vList', key: 'viewList', en: 'List' },
+    { id: 'grid', icon: 'vGrid', key: 'viewGrid', en: 'Icons' },
+    { id: 'carousel', icon: 'vCarousel', key: 'viewCarousel', en: 'Carousel' },
+  ];
+  const homeView = () => { const v = HH.store.get('homeView', 'grid'); return VIEWS.some((x) => x.id === v) ? v : 'grid'; };
+  // carosello: la card al centro è grande e dritta, le altre ruotano in prospettiva come il Cover Flow del Mac
+  function coverFlow() {
+    const row = $('#gameCards');
+    if (!row) return;
+    const cards = [...row.querySelectorAll('.card')];
+    const dots = [...document.querySelectorAll('.cf-dots i')];
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const mid = row.scrollLeft + row.clientWidth / 2;
+      let best = 0, bd = Infinity;
+      cards.forEach((c, i) => {
+        const cx = c.offsetLeft + c.offsetWidth / 2;
+        const d = Math.max(-1.6, Math.min(1.6, (cx - mid) / c.offsetWidth));
+        const a = Math.abs(d);
+        if (a < bd) { bd = a; best = i; }
+        c.style.transform = `perspective(900px) translateZ(${(-a * 140).toFixed(0)}px) rotateY(${(-d * 42).toFixed(1)}deg) scale(${(1 - Math.min(a, 1) * 0.12).toFixed(3)})`;
+        c.style.zIndex = String(100 - Math.round(a * 10));
+        c.style.opacity = (1 - Math.min(a, 1.6) * 0.28).toFixed(2);
+        c.classList.toggle('cf-on', a < 0.5);
+      });
+      dots.forEach((dot, i) => dot.classList.toggle('on', i === best));
+    };
+    row.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(paint); }, { passive: true });
+    G.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(paint); });
+    // tocco su una card laterale: prima la porta al centro, poi si gioca
+    row.addEventListener('click', (e) => {
+      const c = e.target.closest('.card');
+      if (c && !c.classList.contains('cf-on')) { e.stopPropagation(); e.preventDefault(); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
+    }, true);
+    // riparte dall'ultimo gioco aperto
+    const last = cards.findIndex((c) => c.dataset.game === HH.store.get('cfLast'));
+    if (last > 0) row.scrollLeft = cards[last].offsetLeft + cards[last].offsetWidth / 2 - row.clientWidth / 2;
+    paint();
   }
 
   // illustrazione della card dal catalogo statico (il codice del gioco si scarica solo quando lo si apre)
@@ -249,8 +301,10 @@
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   const isFull = () => !!fsEl();
+  // a schermo intero va SOLO il riquadro di gioco; dentro c'è il pulsante per tornare alla vista classica
+  function exitFull() { if (isFull()) toggleFull(); }
   function toggleFull() {
-    const d = document.documentElement;
+    const d = document.querySelector('#gPlate') || document.documentElement;
     try {
       if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
       else { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
@@ -309,7 +363,7 @@
         ${g.lives ? `<span class="chip lives" id="hLives" aria-label="${t('lives')}"></span>` : ''}
         <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>`}
       </div>
-      <div class="plate ${g.plate || ''}"><div class="board" id="board"></div></div>
+      <div class="plate ${g.plate || ''}" id="gPlate"><button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('fullExit', 'Exit full screen')}">${ICON.unfull}</button><div class="board" id="board"></div></div>
       <div class="g-tools">
         ${g.endless ? '' : `<button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>`}
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
@@ -344,6 +398,7 @@
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
     const fb = $('#gFull');
     if (fb) fb.onclick = () => { sfx.tap(); toggleFull(); };
+    $('#gFsExit').onclick = () => { sfx.tap(); exitFull(); };
     if (push) {
       try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
       G.scrollTo(0, 0);
@@ -385,6 +440,7 @@
    * Ogni gioco può dichiarare tutorial: [{ key, en, art }] (art = SVG 120×90 animato con CSS). */
   const lab = (k, en) => { const v = t(k); return v && v !== k ? v : en; };
   function tutorial(g, done) {
+    exitFull();
     const steps = g.tutorial;
     let i = 0;
     const dlg = $('#tutDlg'), box = $('#tutBox');
@@ -428,6 +484,7 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
   function goHome() {
+    exitFull();
     persist();
     hideSay();
     $('#loseDlg').hidden = true;
@@ -445,6 +502,7 @@
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
   function win() {
+    exitFull();
     const g = S.game;
     if (!g || S.won) return;
     S.won = true;
@@ -511,6 +569,7 @@
 
   /* ---------- Cuori finiti ---------- */
   function lose(kind = 'lives') {
+    exitFull();
     if (!S.game || S.won) return;
     hideSay();
     HH.music.duck(true);
@@ -519,7 +578,7 @@
     $('#loseBox').innerHTML = `
       <div class="lose-hari">${HH.mascot.svg({ cls: 'hari oops sad' })}</div>
       <h2>${t({ moves: 'nomoves', stuck: 'stuck' }[kind] || 'nolives')}</h2>
-      ${kind !== 'lives' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>`}
+      ${kind === 'moves' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : kind === 'lives' ? `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>` : ''}
       <p>${pick('oops')}</p>
       <div class="win-actions">
         <button class="tool round" id="loseHome" aria-label="Home">${ICON.home}</button>
@@ -568,11 +627,31 @@
     $('#langTitle').textContent = t('lang');
   }
 
+  const audioState = () => (sfx.isMuted() ? 'off' : HH.music.isOn() ? 'all' : 'sfx');
+  const audioLabel = () => { const st = audioState(); return st === 'all' ? lab('audioAll', 'Music and sounds on') : st === 'sfx' ? lab('audioSfx', 'Sounds only') : lab('audioOff', 'Audio off'); };
+  function audioUI() {
+    const st = audioState(), root = document.documentElement;
+    root.classList.toggle('muted', st === 'off');
+    root.classList.toggle('nomusic', st !== 'all');
+    const b = $('#audioBtn');
+    if (b) { b.setAttribute('aria-label', audioLabel()); b.title = audioLabel(); b.dataset.state = st; }
+  }
+
+  // condividi l'app: menu di condivisione del telefono, altrimenti copia il link
+  const SITE = 'https://marketto.github.io/Hari-hari-puzzle/';
+  function share() {
+    sfx.tap();
+    const data = { title: 'Hari Hari Puzzle', text: lab('shareText', 'Cozy logic puzzles with Hari the hedgehog: free, and they work offline too!'), url: SITE };
+    if (navigator.share) { navigator.share(data).catch(() => {}); return; }
+    const done = () => { say('good', true, lab('shareCopied', 'Link copied! Send it to a friend 💌')); react('happy'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(`${data.text} ${SITE}`).then(done, () => say('good', true, SITE));
+    else say('good', true, SITE);
+  }
+
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
-    $('#musicBtn').setAttribute('aria-label', t('music'));
-    $('#soundBtn').setAttribute('aria-label', t('sound'));
+    audioUI();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
@@ -693,9 +772,8 @@
     HH.i18n.set(HH.i18n.detect());
     HH.fx.background($('#bgCanvas'));
     sfx.setMuted(HH.store.get('muted', false));
-    document.documentElement.classList.toggle('muted', sfx.isMuted());
     HH.music.setOn(HH.store.get('music', true));
-    document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
+    audioUI();
     // l'audio parte al primo tocco (regola dei browser)
     const unlock = () => HH.audio.unlock();
     ['pointerdown', 'keydown', 'touchend'].forEach((ev) => document.addEventListener(ev, unlock, { passive: true }));
@@ -703,8 +781,7 @@
 
     $('#brand').insertAdjacentHTML('afterbegin', HH.mascot.mini());
     $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
-    $('#soundBtn').innerHTML = ICON.sound;
-    $('#musicBtn').innerHTML = ICON.music;
+    $('#audioBtn').innerHTML = ICON.audio;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
     $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
@@ -720,8 +797,10 @@
         }
         return;
       }
+      const vb = e.target.closest('[data-view]');
+      if (vb) { sfx.tap(); HH.store.set('homeView', vb.dataset.view); renderHome(); return; }
       const c = e.target.closest('[data-game]');
-      if (c) { sfx.tap(); openGame(c.dataset.game); }
+      if (c) { sfx.tap(); HH.store.set('cfLast', c.dataset.game); openGame(c.dataset.game); }
     });
     $('#langBtn').onclick = () => { renderLangSheet(); $('#langDlg').hidden = false; const cur = $('.lang.cur'); if (cur) cur.focus(); };
     $('#scoreChip').onclick = openStats;
@@ -738,18 +817,22 @@
       $('#langDlg').hidden = true;
       applyTexts();
     });
-    $('#musicBtn').onclick = () => {
+    // un solo pulsante audio: musica e suoni → solo suoni → muto → musica e suoni
+    $('#audioBtn').onclick = () => {
       HH.audio.unlock();
-      HH.music.setOn(!HH.music.isOn());
+      const st = audioState();
+      const next = st === 'all' ? 'sfx' : st === 'sfx' ? 'off' : 'all';
+      HH.music.setOn(next === 'all');
+      sfx.setMuted(next === 'off');
       HH.store.set('music', HH.music.isOn());
-      document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
-    };
-    $('#soundBtn').onclick = () => {
-      sfx.setMuted(!sfx.isMuted());
       HH.store.set('muted', sfx.isMuted());
-      document.documentElement.classList.toggle('muted', sfx.isMuted());
+      audioUI();
       sfx.tap();
+      const b = $('#audioBtn');
+      b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+      say(next === 'off' ? 'idle' : 'good', true, audioLabel());
     };
+    $('#home').addEventListener('click', (e) => { if (e.target.closest('#shareBtn')) { e.stopPropagation(); share(); } }, true);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { $('#langDlg').hidden = true; $('#statsDlg').hidden = true; }
     });
