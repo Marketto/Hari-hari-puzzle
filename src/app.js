@@ -11,6 +11,9 @@
   const P = HH.progress;
 
   const ICON = {
+    // audio unificato: altoparlante + nota (musica e suoni) · solo altoparlante (solo suoni) · altoparlante sbarrato (muto)
+    audio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h3.5L11 5v14l-4.5-4H3z" fill="currentColor"/><path class="wave" d="M14 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><g class="note"><path d="M18 14.5V5.5l4-1v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16.6" cy="14.6" rx="1.9" ry="1.6" fill="currentColor"/><ellipse cx="20.6" cy="12.6" rx="1.9" ry="1.6" fill="currentColor"/></g><path class="mute" d="M14.5 9l6 6M20.5 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     unfull: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -223,7 +226,7 @@
         </div>
         <div class="hero-copy">
           <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></h1>
+          <h1 class="logo" aria-label="Hari Hari Puzzle">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span><span class="logo-side"><button class="share-btn" id="shareBtn" type="button">${ICON.share}<span>${lab('share', 'Share')}</span></button><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></span></h1>
           <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
         </div>
       </section>
@@ -568,11 +571,31 @@
     $('#langTitle').textContent = t('lang');
   }
 
+  const audioState = () => (sfx.isMuted() ? 'off' : HH.music.isOn() ? 'all' : 'sfx');
+  const audioLabel = () => { const st = audioState(); return st === 'all' ? lab('audioAll', 'Music and sounds on') : st === 'sfx' ? lab('audioSfx', 'Sounds only') : lab('audioOff', 'Audio off'); };
+  function audioUI() {
+    const st = audioState(), root = document.documentElement;
+    root.classList.toggle('muted', st === 'off');
+    root.classList.toggle('nomusic', st !== 'all');
+    const b = $('#audioBtn');
+    if (b) { b.setAttribute('aria-label', audioLabel()); b.title = audioLabel(); b.dataset.state = st; }
+  }
+
+  // condividi l'app: menu di condivisione del telefono, altrimenti copia il link
+  const SITE = 'https://marketto.github.io/Hari-hari-puzzle/';
+  function share() {
+    sfx.tap();
+    const data = { title: 'Hari Hari Puzzle', text: lab('shareText', 'Cozy logic puzzles with Hari the hedgehog: free, and they work offline too!'), url: SITE };
+    if (navigator.share) { navigator.share(data).catch(() => {}); return; }
+    const done = () => { say('good', true, lab('shareCopied', 'Link copied! Send it to a friend 💌')); react('happy'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(`${data.text} ${SITE}`).then(done, () => say('good', true, SITE));
+    else say('good', true, SITE);
+  }
+
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
-    $('#musicBtn').setAttribute('aria-label', t('music'));
-    $('#soundBtn').setAttribute('aria-label', t('sound'));
+    audioUI();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
@@ -693,9 +716,8 @@
     HH.i18n.set(HH.i18n.detect());
     HH.fx.background($('#bgCanvas'));
     sfx.setMuted(HH.store.get('muted', false));
-    document.documentElement.classList.toggle('muted', sfx.isMuted());
     HH.music.setOn(HH.store.get('music', true));
-    document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
+    audioUI();
     // l'audio parte al primo tocco (regola dei browser)
     const unlock = () => HH.audio.unlock();
     ['pointerdown', 'keydown', 'touchend'].forEach((ev) => document.addEventListener(ev, unlock, { passive: true }));
@@ -703,8 +725,7 @@
 
     $('#brand').insertAdjacentHTML('afterbegin', HH.mascot.mini());
     $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
-    $('#soundBtn').innerHTML = ICON.sound;
-    $('#musicBtn').innerHTML = ICON.music;
+    $('#audioBtn').innerHTML = ICON.audio;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
     $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
@@ -738,18 +759,22 @@
       $('#langDlg').hidden = true;
       applyTexts();
     });
-    $('#musicBtn').onclick = () => {
+    // un solo pulsante audio: musica e suoni → solo suoni → muto → musica e suoni
+    $('#audioBtn').onclick = () => {
       HH.audio.unlock();
-      HH.music.setOn(!HH.music.isOn());
+      const st = audioState();
+      const next = st === 'all' ? 'sfx' : st === 'sfx' ? 'off' : 'all';
+      HH.music.setOn(next === 'all');
+      sfx.setMuted(next === 'off');
       HH.store.set('music', HH.music.isOn());
-      document.documentElement.classList.toggle('nomusic', !HH.music.isOn());
-    };
-    $('#soundBtn').onclick = () => {
-      sfx.setMuted(!sfx.isMuted());
       HH.store.set('muted', sfx.isMuted());
-      document.documentElement.classList.toggle('muted', sfx.isMuted());
+      audioUI();
       sfx.tap();
+      const b = $('#audioBtn');
+      b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+      say(next === 'off' ? 'idle' : 'good', true, audioLabel());
     };
+    $('#home').addEventListener('click', (e) => { if (e.target.closest('#shareBtn')) { e.stopPropagation(); share(); } }, true);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { $('#langDlg').hidden = true; $('#statsDlg').hidden = true; }
     });

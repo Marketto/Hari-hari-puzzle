@@ -118,9 +118,11 @@ svg { display: block; }
 .pill.score { padding: 0 14px 0 8px; gap: 5px; }
 .pill.score svg { width: 26px; height: 26px; animation: bob 3s ease-in-out infinite; }
 .pill.score b { font-weight: 800; font-variant-numeric: tabular-nums; }
-.muted #soundBtn .wave, #soundBtn .mute, #musicBtn .mute { display: none; }
-.muted #soundBtn .mute, .nomusic #musicBtn .mute { display: inline; }
-.nomusic #musicBtn, .muted #soundBtn { color: var(--ink-2); }
+/* pulsante audio unico: nota = musica accesa, onda = suoni accesi, ✕ = tutto spento */
+#audioBtn .mute, .nomusic #audioBtn .note, .muted #audioBtn .wave { display: none; }
+.muted #audioBtn .mute { display: inline; }
+.muted #audioBtn { color: var(--ink-2); }
+#audioBtn.pop svg { animation: pop .35s cubic-bezier(.3, 1.8, .5, 1); }
 
 .candy {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 44px; padding: 0 20px;
@@ -185,8 +187,18 @@ button.candy:active, .card:active .candy, .resume:active .candy { transform: tra
 .lw.a { --c: var(--accent); }
 .lw.b { --c: var(--mint); --o: .45s; }
 .logo .br { flex-basis: 100%; height: 0; }
+/* colonna accanto a "Puzzle": pulsante condividi sopra la versione */
+.logo-side { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .12em; margin-inline-start: .3em; align-self: center; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px 0 9px; border: 0; border-radius: 999px; cursor: pointer;
+  font: 800 12px/1 var(--font-body); letter-spacing: .04em; color: var(--accent-ink); background: var(--accent); box-shadow: 0 3px 0 var(--accent-2);
+  transform: rotate(-4deg); transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+}
+.share-btn svg { width: 15px; height: 15px; }
+.share-btn:hover { transform: rotate(-2deg) scale(1.06); }
+.share-btn:active { transform: rotate(-4deg) translateY(2px); box-shadow: 0 1px 0 var(--accent-2); }
 .logo-ver {
-  display: inline-block; vertical-align: top; margin: .9em 0 0 .5em; padding: .28em .75em .3em; border-radius: 999px; font: 800 .2em/1 var(--font-body);
+  display: inline-block; vertical-align: top; margin: 0; padding: .28em .75em .3em; border-radius: 999px; font: 800 .2em/1 var(--font-body);
   letter-spacing: .04em; color: var(--on-mint); background: color-mix(in srgb, var(--mint) 45%, var(--card-solid));
   box-shadow: 0 2px 0 color-mix(in srgb, var(--mint-2) 55%, transparent); transform: rotate(-6deg); animation: ver-bob 3.6s ease-in-out infinite;
 }
