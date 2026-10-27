@@ -79,7 +79,7 @@
   --sr-bar-1: #2a2356; --sr-bar-2: #463a82; --sr-night: 1;
 }
 
-.sr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(calc(100vw - 76px), 440px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.sr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(var(--game-w), 440px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
 /* ---------- barra: aculei per lancio, strada fino al boss, pausa ---------- */
 .sr-bar {

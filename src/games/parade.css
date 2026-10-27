@@ -52,7 +52,7 @@
   --pa-key: #3a2c52; --pa-key-2: #261d3a; --pa-key-ink: #ffd6e6;
 }
 
-.pa-wrap { position: relative; display: flex; flex-direction: column; gap: 10px; width: min(calc(100vw - 76px), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.pa-wrap { position: relative; display: flex; flex-direction: column; gap: 10px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
 /* ---------- barra-cielo: frutti, avanzamento, rallenty, pausa ---------- */
 .pa-bar {

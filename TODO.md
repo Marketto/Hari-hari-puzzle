@@ -14,6 +14,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.12.1)
+- [x] Giochi più larghi: bordi laterali minimi su telefono (area di gioco a ~11 px dal bordo invece di ~38; tolto anche il margine predefinito di 8 px del body), larghezza unica `--game-w`
+- [x] Pulsante schermo intero nell'header di ogni gioco (dove il browser lo supporta; chiavi `full`/`fullExit` in 43 lingue)
+
 ## Fatto (v0.12.0)
 - [x] Nuovo gioco **Hari Home** (`life`, simulazione di vita isometrica stile Sims, senza livelli né fine): monolocale decadente con 8 guasti, costruisci (37 oggetti, 5 pavimenti, 5 carte da parati, 3 traslochi), 8 bisogni con umore/stress legati alla bellezza della casa, quartiere (spesa, dottore, parco, palestra, caffè, mobili, negozio), attività in 3 tipi e 4 livelli con aiutanti, malanni e check-up, 4 età fino a nonno, pensione e nuova generazione, 11 traguardi; brano `life`, tutorial, supporto `endless` in `app.js` (chip età/giorno/ghiande in header, card e Progressi)
 - [x] Traduzioni delle 125 chiavi nuove (`r12`, `tu_life_1..4`, `lf_*`) in 43 lingue (EN/IT pronte)
@@ -120,6 +124,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.12.1 · `npm test` · margini misurati a 360 px in tutti i 12 giochi, nessuno scroll orizzontale, schermo intero attivato/disattivato
 - 2026-10-27 v0.12.0 · `npm test` · Hari Home: tutte le schermate in tema chiaro/scuro, testi in it/de/ar/ja senza chiavi mancanti né sbordamenti a 360 px, file unico
 - 2026-10-27 v0.11.0 · `npm test` · lazy load nel browser: avvio senza file dei giochi, download all'apertura, gioco offline, gioco non scaricato offline, ripresa partita, tema scuro, file unico
 - 2026-10-27 v0.10.1 · `npm test` · Snack Rush: bot attento/lento/impreciso e bot con porte a caso, livelli 1–15

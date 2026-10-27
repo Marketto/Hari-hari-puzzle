@@ -11,6 +11,8 @@
   const P = HH.progress;
 
   const ICON = {
+    full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    unfull: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -243,6 +245,24 @@
     }));
   }
 
+  /* ---------- schermo intero (dove il browser lo permette; su iPhone il pulsante non compare) ---------- */
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  const isFull = () => !!fsEl();
+  function toggleFull() {
+    const d = document.documentElement;
+    try {
+      if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
+    } catch (e) { /* non supportato */ }
+  }
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+    const b = $('#gFull');
+    if (!b) return;
+    b.innerHTML = isFull() ? ICON.unfull : ICON.full;
+    b.setAttribute('aria-label', isFull() ? lab('fullExit', 'Exit full screen') : lab('full', 'Full screen'));
+  }));
+
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
@@ -279,6 +299,7 @@
       <header class="g-head">
         <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
         <div class="g-title"><h2>${g.name}</h2>${g.endless ? '' : `<span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span>`}</div>
+        ${canFull() ? `<button class="icon-btn full" id="gFull" aria-label="${lab(isFull() ? 'fullExit' : 'full', isFull() ? 'Exit full screen' : 'Full screen')}">${isFull() ? ICON.unfull : ICON.full}</button>` : ''}
         ${g.tutorial ? `<button class="icon-btn help" id="gHelp" aria-label="${lab('help', 'How to play')}">?</button>` : ''}
       </header>
       <div class="hud"${g.endless ? ' id="hMeta"' : ''}>${g.endless ? '' : `
@@ -321,6 +342,8 @@
       },
     };
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
+    const fb = $('#gFull');
+    if (fb) fb.onclick = () => { sfx.tap(); toggleFull(); };
     if (push) {
       try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
       G.scrollTo(0, 0);

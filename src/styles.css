@@ -72,6 +72,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { min-height: 100%; }
+body { margin: 0; }
 body {
   background: var(--bg) linear-gradient(180deg, var(--sky-top) 0%, var(--bg) 60%) no-repeat fixed;
   color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -96,6 +97,8 @@ svg { display: block; }
 .hill.h2 { fill: var(--hill-1); }
 .hill.h1 { fill: var(--hill-2); height: 72%; animation-duration: 60s; animation-direction: reverse; }
 
+/* larghezza utile dei giochi: tutto lo schermo meno bordi sottili (su telefono ~10 px per lato) */
+:root { --game-w: calc(100vw - 48px); }
 .app {
   position: relative; z-index: 1; max-width: 1000px; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -313,7 +316,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 }
 
 /* ---------- Boba Sort ---------- */
-.bb-wrap { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 22px 14px; max-width: min(580px, calc(100vw - 76px)); padding-top: 34px; }
+.bb-wrap { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 22px 14px; max-width: min(580px, var(--game-w)); padding-top: 34px; }
 .bb-cup { position: relative; width: 62px; padding: 0; border: 0; background: none; border-radius: 12px; transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
 .bb-cup .bb-svg, .bb-fly .bb-svg { width: 100%; height: auto; overflow: visible; }
 .bb-cup::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6px; height: 8px; border-radius: 50%; background: var(--line-2); filter: blur(2px); transition: transform .3s, opacity .3s; }
@@ -352,7 +355,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .lose-moves b { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--bad); }
 
 /* ---------- Lantern Glow ---------- */
-.ln-grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; width: min(calc(100vw - 76px), 420px); }
+.ln-grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; width: min(var(--game-w), 420px); }
 .ln-cell { position: relative; aspect-ratio: 5 / 7; padding: 3%; border: 0; border-radius: 16px; background: transparent; }
 .ln-cell:hover { background: rgba(255, 255, 255, .06); }
 .ln-cell svg, .ln-art { overflow: visible; }
@@ -614,8 +617,13 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   .resume-text b { font-size: 17px; }
   .plate { padding: 12px; border-radius: 28px; }
   .plate::before { inset: 5px; border-radius: 23px; }
-  .ln-grid { width: min(calc(100vw - 64px), 460px); }
-  .bb-wrap { gap: 18px 8px; max-width: calc(100vw - 64px); }
+  /* in gioco: bordi laterali minimi per sfruttare lo schermo */
+  :root { --game-w: calc(100vw - 22px); }
+  .app:has(> #game:not([hidden])) { padding-left: max(5px, env(safe-area-inset-left, 0px)); padding-right: max(5px, env(safe-area-inset-right, 0px)); }
+  #game .plate { padding: 6px; border-radius: 22px; }
+  #game .plate::before { inset: 3px; border-radius: 19px; }
+  .ln-grid { width: min(var(--game-w), 460px); }
+  .bb-wrap { gap: 18px 8px; max-width: var(--game-w); }
   .bb-cup { width: 50px; }
   .tool { height: 44px; padding: 0 14px; }
   .tool span, .g-tools .candy span { font-size: 13px; }
@@ -642,3 +650,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   border-radius: 12px; background: var(--card-solid); box-shadow: -8px 4px 0 -3px var(--card-solid), 8px 4px 0 -4px var(--card-solid), 0 2px 0 var(--line-2);
   opacity: .9;
 }
+
+/* schermo intero */
+.icon-btn.full svg { width: 20px; height: 20px; }
+:fullscreen .app { padding-top: max(6px, env(safe-area-inset-top, 0px)); }
