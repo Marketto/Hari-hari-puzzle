@@ -50,6 +50,8 @@
     <path class="l" d="M12 9.2C10.4 9.3 8 8.7 7 7.2c1.7-.5 3.4-.1 4.6.8-.2-1.8.5-3.5 1.8-4.6.6 1.6.3 3.3-.6 4.6 1.3-.8 3.1-1.1 4.7-.5-1 1.5-3.4 1.9-5.5 1.7z"/>
   </svg>`;
   const stars = (n) => [0, 1, 2].map((i) => STAR(i < n)).join('');
+  // tempo lungo: "2 h 05 min", "12 min", "40 s"
+  const fmtLong = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return h ? `${h} h ${String(m).padStart(2, '0')} min` : m ? `${m} min` : `${sec} s`; };
   const fmt = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; };
   const nf = (n) => { try { return new Intl.NumberFormat(HH.i18n.code).format(n || 0); } catch (e) { return String(n || 0); } };
   const word = (w, cls) => `<span class="lw ${cls}">${[...w].map((ch, i) => `<span style="--k:${i}">${ch}</span>`).join('')}</span>`;
@@ -143,6 +145,7 @@
   setInterval(() => {
     if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden || !$('#tutDlg').hidden) return;
     S.elapsed++;
+    HH.usage.tick(S.game.id);
     const tm = $('#hTime');
     if (tm) tm.textContent = fmt(S.elapsed);
     if (S.elapsed % 5 === 0) persist();
@@ -242,6 +245,24 @@
       <section class="grid-cards small">${soon}</section>` : ''}`;
     markRemote();
     if (homeView() === 'carousel') coverFlow();
+    askConsent();
+  }
+
+  /* ---------- consenso alle statistiche anonime (solo se configurate; si chiede una volta, in home) ---------- */
+  let consentAsked = false;
+  function askConsent() {
+    if (consentAsked || !HH.usage.canAsk() || HH.usage.consent() !== null) return;
+    consentAsked = true;
+    setTimeout(() => {
+      if (S.game || HH.usage.consent() !== null) { consentAsked = false; return; }
+      const d = document.createElement('div');
+      d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
+        <h2>${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
+        <div class="win-actions"><button class="tool" data-an="0">${lab('an_no', 'No thanks')}</button><button class="candy" data-an="1">${ICON.sparkle}<span>${lab('an_yes', 'Yes, gladly')}</span></button></div></div>`;
+      document.body.appendChild(d);
+      d.onclick = (e) => { const b = e.target.closest('[data-an]'); if (!b) return; HH.usage.setConsent(b.dataset.an === '1'); sfx.tap(); d.remove(); };
+    }, 4000);
   }
 
   /* ---------- modalità di visualizzazione dei giochi: lista · icone 2 per riga · carosello (Cover Flow) ---------- */
@@ -461,6 +482,7 @@
     else begin();
 
     function begin() {
+    HH.usage.open(g.id);
     try {
       S.inst = g.create($('#board'), ctx, saved && saved.state);
     } catch (err) {
@@ -643,17 +665,18 @@
 
   /* ---------- Progressi ---------- */
   function openStats() {
+    const playT = (id) => `<span class="stat-play" title="${lab('st_play', 'Playing time')}">${ICON.clock}${fmtLong(HH.usage.get(id).sec)}</span>`;
     const rows = HH.catalog.map((g) => {
       const p = P.get(g.id);
       if (g.endless) {
         const sv = P.loadGame(g.id);
         return `<div class="stat-row" style="--tint:var(--tint-${g.id})"><span class="stat-art">${cardArt(g.id)}</span>
-          <div class="stat-main"><div class="stat-name"><b>${g.name}</b></div><span class="resume-meta">${sv ? metaHTML(sv.meta) : '—'}</span></div></div>`;
+          <div class="stat-main"><div class="stat-name"><b>${g.name}</b>${playT(g.id)}</div><span class="resume-meta">${sv ? metaHTML(sv.meta) : '—'}</span></div></div>`;
       }
       return `<div class="stat-row" style="--tint:var(--tint-${g.id})">
         <span class="stat-art">${cardArt(g.id)}</span>
         <div class="stat-main">
-          <div class="stat-name"><b>${g.name}</b><span class="stars">${stars(p.last)}</span></div>
+          <div class="stat-name"><b>${g.name}</b>${playT(g.id)}<span class="stars">${stars(p.last)}</span></div>
           <dl class="stat-grid">
             <div><dt>${t('level')}</dt><dd>${p.level}</dd></div>
             <div><dt>${t('wins')}</dt><dd>${nf(p.wins)}</dd></div>
@@ -667,7 +690,11 @@
     $('#statsTitle').textContent = t('stats');
     $('#statsBody').innerHTML = `
       <div class="stat-total">${ICON.acorn}<div><small>${t('score')}</small><b>${nf(P.totalScore())}</b></div><div class="stat-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div></div>
-      ${rows}`;
+      <div class="stat-time">${ICON.clock}<span>${lab('st_play', 'Playing time')}</span><b>${fmtLong(HH.usage.total(HH.catalog.map((g) => g.id)))}</b></div>
+      ${rows}
+      ${HH.usage.canAsk() ? `<label class="stat-consent"><input type="checkbox" id="anToggle"${HH.usage.enabled() ? ' checked' : ''}><span>${lab('an_toggle', 'Send anonymous statistics')}</span></label>` : ''}`;
+    const tg = $('#anToggle');
+    if (tg) tg.onchange = () => HH.usage.setConsent(tg.checked);
     $('#statsDlg').hidden = false;
     $('#statsClose').focus();
   }

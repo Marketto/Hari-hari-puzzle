@@ -7,12 +7,17 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Configurare il codice GoatCounter in `src/core/usage.js` (serve l'account dell'autore)
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.13.3)
+- [x] Tempo di gioco e partite per ogni gioco salvati sul telefono e mostrati in Progressi (totale + per gioco)
+- [x] Statistiche anonime facoltative con GoatCounter (`src/core/usage.js`): consenso opt-in chiesto una volta, revocabile in Progressi; solo eventi `open/<gioco>` e `minute/<gioco>`, senza cookie; coda offline. Spente finché `CODE` è vuoto (vedi `docs/privacy.md`)
 
 ## Fatto (v0.13.2)
 - [x] Hari Home: al rientro Hari entra e cammina fino al centro della stanza; se non ha bisogni gironzola per casa
@@ -149,6 +154,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.13.3 · `npm test` · tempo di gioco in Progressi; con codice simulato: consenso, eventi open/minute inviati, revoca
 - 2026-10-28 v0.13.2 · `npm test` · Hari Home: rientro dal parco (cammina nella stanza), scena del parco in tema scuro, lavoretti senza forno
 - 2026-10-28 v0.13.1 · `npm test` · schermo intero in Boba (scuro), Sushi e Hari Home: barra, menu, audio, ricomincia, esci, tutti i giochi; la barra indicatori torna al suo posto all'uscita
 - 2026-10-28 v0.13.0 · `npm test` · Hari Home: autonomia (4 giorni da solo su 3 semi), azioni rapide, coda, scene del quartiere in chiaro/scuro; testi in it/de/ar

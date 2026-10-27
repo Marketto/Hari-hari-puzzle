@@ -21,3 +21,4 @@
 | [games/snack.md](games/snack.md) | Hari Snack Rush: sentiero in prospettiva, merende, porte, animalone goloso, curva di difficoltà, bot di test |
 | [games/life.md](games/life.md) | Hari Home: simulazione di vita isometrica senza fine (bisogni, casa da ristrutturare, attività, quartiere, età, traguardi, scala del tempo, bilanciamento) |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |
+- [Privacy e statistiche](privacy.md): cosa resta sul telefono, statistiche anonime facoltative con consenso

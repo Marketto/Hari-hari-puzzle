@@ -4,7 +4,7 @@ PWA kawaii di puzzle logici, **100% offline**, installabile su Android, mascotte
 Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico che registra moduli su `window.HH`.
 
 ## Regole d'oro
-1. **Offline first + lazy load**: nessuna chiamata esterna a runtime. I giochi sono moduli scaricati solo quando li si apre: i loro file stanno in `src/games/catalog.js` (non in `index.html` né in `SHELL`), poi `npm run cards` rigenera `cards.js`/`tokens.css`. File del nucleo: in `SHELL` di `sw.js` e nello script-list di `index.html`.
+1. **Offline first + lazy load**: nessuna chiamata esterna a runtime, con UNA eccezione: le statistiche anonime facoltative di `src/core/usage.js` (GoatCounter, solo con codice configurato e consenso esplicito del giocatore; vedi `docs/privacy.md`). I giochi sono moduli scaricati solo quando li si apre: i loro file stanno in `src/games/catalog.js` (non in `index.html` né in `SHELL`), poi `npm run cards` rigenera `cards.js`/`tokens.css`. File del nucleo: in `SHELL` di `sw.js` e nello script-list di `index.html`.
 2. **Logica separata dalla UI**: `src/games/<id>-logic.js` è puro (niente DOM) e testabile da Node; `<id>-ui.js` disegna.
 3. **Ogni livello deve essere risolvibile** (e a soluzione unica dove il genere lo prevede), con unit test in `tests/<gioco>.test.mjs` che usano un oracolo indipendente dal generatore.
 4. **i18n completo**: ogni stringa visibile passa da `HH.i18n.t(key)`. Una chiave nuova va in tutte le 43 righe di `src/i18n/locales.js`.
@@ -39,6 +39,7 @@ manifest.webmanifest       PWA (installazione Android)
 src/app.js                 schermate: home, gioco, vittoria, lingue
 src/core/core.js           HH.store (localStorage) · HH.i18n
 src/core/fx.js             sfondo animato · coriandoli · suoni WebAudio
+src/core/usage.js          tempo di gioco locale + statistiche anonime facoltative (GoatCounter, con consenso)
 src/core/mascot.js         SVG di Hari (grande e mini)
 src/games/*-logic.js       logica pura dei giochi
 src/games/*-ui.js          interfaccia dei giochi, si registra in HH.games

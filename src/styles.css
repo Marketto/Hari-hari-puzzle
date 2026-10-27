@@ -784,3 +784,18 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .bb-dead p { margin: 0; font-weight: 700; font-size: 14px; line-height: 1.35; }
 .bb-dead-act { display: flex; gap: 8px; }
 .bb-dead-act .tool, .bb-dead-act .candy { height: 38px; padding: 0 16px; font-size: 14px; }
+
+/* tempo di gioco e consenso alle statistiche anonime */
+.stat-play { display: inline-flex; align-items: center; gap: 3px; margin-inline-start: auto; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; color: var(--ink-2); background: color-mix(in srgb, var(--mint) 22%, transparent); white-space: nowrap; }
+.stat-play svg { width: 13px; height: 13px; }
+.stat-name .stat-play + .stars { margin-inline-start: 6px; }
+.stat-time { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: 18px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); font-weight: 700; }
+.stat-time svg { width: 20px; height: 20px; color: var(--accent); }
+.stat-time b { margin-inline-start: auto; font-family: var(--font-display); font-weight: 400; font-size: 20px; }
+.stat-consent { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 14px; border-radius: 16px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); font-weight: 700; font-size: 14px; cursor: pointer; }
+.stat-consent input { width: 20px; height: 20px; accent-color: var(--accent); }
+.an-sheet { max-width: 420px; text-align: center; }
+.an-sheet .an-hari .hari { width: 110px; height: 110px; }
+.an-sheet h2 { margin: 4px 0 6px; font-family: var(--font-display); font-weight: 400; font-size: 22px; }
+.an-sheet p { margin: 0 0 14px; color: var(--ink-2); line-height: 1.45; }
+.an-sheet .win-actions { justify-content: center; }
