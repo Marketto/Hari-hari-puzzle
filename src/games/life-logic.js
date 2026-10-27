@@ -5,11 +5,17 @@
  *   HH.life.tick(s, min) -> eventi  avanza la simulazione (bisogni, attività, giorni, bollette, malanni, età)
  *   HH.life.rate(s)                 minuti di gioco per secondo reale (velocità ×1/×2/×3, il sonno accelera ×6)
  *   HH.life.options(s, target)      attività possibili su { hari } · { u } oggetto · { dmg } guasto · { place }
- *   HH.life.start(s, id, opt)       inizia un'attività -> { ok, why }; stop(s) la interrompe
+ *   HH.life.start(s, id, opt)       inizia un'attività subito -> { ok, why }; stop(s) la interrompe
+ *   HH.life.order(s, id, opt)       comando del giocatore: subito se Hari è libero (o fa da sé), altrimenti in coda (s.queue)
+ *   HH.life.cancel(s, i)            annulla l'azione in corso (i < 0) o la i-esima in coda
+ *   HH.life.quick(s, need)          azione rapida per un bisogno (tocco sugli indicatori): plan() + order()
+ *   HH.life.plan(s, need, auto)     la scelta migliore con quello che c'è in casa -> { id, u?, why? }
+ *   libero arbitrio (think, in tick): senza comandi e con un bisogno sotto la soglia D.FREE, Hari sceglie da solo
  *   costruzione: canPlace/buy/move/sell, canWall/buyWall/moveWall, setStyle, expand, repair (= start 'repair')
  *   attività: chooseBiz, upgradeBiz, hire, retire, newGeneration
  *   misure: beauty, age, phase, clock, maxHealth, earnPreview, progress, migrate
- * Eventi restituiti da tick/start: { type: 'need'|'done'|'earn'|'bills'|'sick'|'healed'|'faint'|'friend'|'goal'|'day'|'phase'|'retire' , … }
+ * Eventi restituiti da tick/start: { type: 'need'|'done'|'earn'|'bills'|'sick'|'healed'|'faint'|'friend'|'goal'|'day'|'phase'|'retire'
+ *   |'auto' (Hari fa da sé: id, k) |'hint' (non può: k = nofood|nowash) |'qfail' (comando in coda non riuscito: id, why) , … }
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -56,6 +62,7 @@
       goals: {},
       stats: { workouts: 0, meals: 0, shifts: 0, repairs: 0, visits: 0, cafes: 0, checkups: 0, earned: 0 },
       warn: {}, retired: false, worked: false, nu: 10, phase: 0,
+      queue: [], free: true, calm: 0, tips: {},
     };
     return s;
   }
@@ -324,12 +331,26 @@
       if (p === 'office') add('office', b || (s.retired ? 'retired' : !s.biz ? 'nobiz' : s.biz.level < 2 ? 'small' : ''), 0, { earn: earnPreview(s) });
       return out;
     }
-    // Hari stesso
+    // Hari stesso: tutti i comandi, ognuno con la scelta migliore di casa (dormire, mangiare, lavarsi, svago, amici, lavoro, città)
     if (s.act && !busy) add('stop');
-    add('call', busy ? 'busy' : '');
-    add('invite', busy ? 'busy' : s.away ? 'away' : !s.friends.length ? 'nofriend' : '');
-    if (!has(s, 'bed').length) add('nap', busy ? 'busy' : '');
+    for (const k of ['energy', 'food', 'hygiene', 'fun', 'social']) {
+      const p = plan(s, k);
+      add(p.id, busy ? 'busy' : p.why || '', p.id === 'jog' || p.id === 'cafe' ? ACTS[p.id].p || 0 : 0, { u: p.u, k });
+    }
+    const b = s.biz;
+    if (b && b.level >= 2) add('office', busy ? 'busy' : s.retired ? 'retired' : '', 0, { earn: earnPreview(s), k: 'work' });
+    else {
+      const st = b ? best(s, BIZ.types[b.type]) : null;
+      add('work', busy ? 'busy' : s.retired ? 'retired' : !b ? 'nobiz' : !st ? 'nostation' : '', 0, { u: st ? st.u : undefined, earn: st ? earnPreview(s) : 0, k: 'work' });
+    }
+    add('town', busy ? 'busy' : '', 0, { k: 'town' });
     return out;
+  }
+  // validità delle attività "su Hari" (telefonare, invitare, pisolino)
+  function hariWhy(s, id) {
+    if (s.act && s.act.id === 'faint') return 'busy';
+    if (id === 'invite') return s.away ? 'away' : !s.friends.length ? 'nofriend' : '';
+    return '';
   }
 
   function start(s, id, opt = {}) {
@@ -344,7 +365,10 @@
     } else if (A.at === 'dmg') tg = { dmg: opt.dmg };
     else if (A.at === 'hari') tg = {};
     else tg = { place: A.at };
-    if (id !== 'faint') {
+    if (id !== 'faint' && A.at === 'hari') {
+      const w = hariWhy(s, id);
+      if (w) return { ok: false, why: w };
+    } else if (id !== 'faint') {
       const o = options(s, tg).find((x) => x.id === id);
       if (!o) return { ok: false, why: 'none' };
       if (!o.ok) return { ok: false, why: o.why };
@@ -383,6 +407,8 @@
       } else act.f = -1;
       if (id === 'invite' && act.f < 0) return { ok: false, why: 'nofriend' };
     }
+    // al caffè si chiacchiera con un amico (se ce ne sono), e a volte se ne conosce uno nuovo a metà
+    if (id === 'cafe') act.f = s.friends.length && rnd(s) < 0.65 ? Math.floor(rnd(s) * s.friends.length) : -1;
     if (id === 'eat' || id === 'cook') {
       const q = [2, 1, 0].find((k) => s.fridge[k] > 0);
       if (q == null) return { ok: false, why: 'nofood' };
@@ -424,6 +450,7 @@
   function addFood(s, buy) { buy.forEach((n, q) => { s.fridge[q] += n; }); }
   function walk(s, x, y) {
     if (s.away || (s.act && s.act.id === 'faint')) return false;
+    s.queue = []; s.calm = s.t + D.FREE.CALM;
     const { c, r } = dims(s);
     if (x < 0 || y < 0 || x >= c || y >= r) return false;
     const g = grid(s);
@@ -486,14 +513,10 @@
         ev.push({ type: 'healed', sick: 'faint' });
         break;
       }
-      case 'gym': case 'jog': {
-        s.stats.workouts++;
-        if (a.id === 'jog' && s.friends.length < FRIENDS.length && rnd(s) < 0.15) meet(s, ev);
-        break;
-      }
+      case 'gym': case 'jog': s.stats.workouts++; break;
       case 'cafe': {
         s.stats.cafes++;
-        if (s.friends.length < FRIENDS.length && (s.friends.length === 0 || rnd(s) < 0.45)) meet(s, ev);
+        if (a.f >= 0 && s.friends[a.f]) s.friends[a.f].f = clamp(s.friends[a.f].f + 0.05);
         break;
       }
       case 'call': if (a.f >= 0 && s.friends[a.f]) s.friends[a.f].f = clamp(s.friends[a.f].f + 0.06); break;
@@ -513,9 +536,10 @@
     ev.push({ type: 'done', id: a.id });
     goals(s, ev);
   }
-  function meet(s, ev) {
+  function meet(s, ev, a) {
     const k = FRIENDS[s.friends.length];
     s.friends.push({ k, f: 0.3 });
+    if (a) { a.nf = s.friends.length - 1; if (a.f == null || a.f < 0) a.f = a.nf; }
     ev.push({ type: 'friend', k });
   }
   function clampNeeds(s) { for (const k of NEEDS) s.needs[k] = clamp(Number.isFinite(s.needs[k]) ? s.needs[k] : 0.5); }
@@ -571,6 +595,11 @@
     // fine o progresso dell'attività
     if (a) {
       a.left -= m;
+      // a metà del caffè (o della corsa al parco) si può fare amicizia: la scena lo mostra mentre succede
+      if ((a.id === 'cafe' || a.id === 'jog') && !a.met && a.left <= a.total * 0.5) {
+        a.met = 1;
+        if (s.friends.length < FRIENDS.length && (a.id === 'cafe' ? s.friends.length === 0 || rnd(s) < 0.45 : rnd(s) < 0.15)) meet(s, ev, a);
+      }
       // riposato: si sveglia, ma di notte (21–6) dorme fino al mattino come tutti
       const hr = (s.t % DAY) / 60;
       const full = (a.id === 'sleep' || a.id === 'nap') && n.energy >= 0.985 && hr >= 6 && hr < 21;
@@ -589,15 +618,153 @@
       const fee = Math.min(s.money, ACTS.doctor.p);
       s.money -= fee;
       s.act = { id: 'faint', left: ACTS.faint.dur, total: ACTS.faint.dur };
-      s.away = 'doctor';
+      s.away = 'doctor'; s.queue = [];
       ev.push({ type: 'faint', fee });
     }
     // sfinito: si addormenta da solo (nel letto se c'è)
     if (!s.act && n.energy < 0.04) {
       const r = has(s, 'bed').length ? start(s, 'sleep') : { ok: false };
       if (!r.ok) { s.act = { id: 'nap', left: ACTS.nap.dur, total: ACTS.nap.dur, q: sleepQ(s, null) }; if (s.away) comeHome(s); }
-      ev.push({ type: 'auto', id: 'sleep' });
+      ev.push({ type: 'auto', id: 'sleep', k: 'energy' });
     }
+    // libero: prima i comandi in coda, poi (se serve) ci pensa Hari da solo
+    if (!s.act) { next(s, ev); think(s, ev); }
+    // i suggerimenti si ripetono solo dopo che il problema si è risolto (isteresi)
+    if (s.warn.nofood && stock(s) > 0) delete s.warn.nofood;
+    if (s.warn.nowash && (has(s, 'shower').length || has(s, 'tub').length)) delete s.warn.nowash;
+  }
+
+  /* ---------- comandi del giocatore e coda delle azioni ---------- */
+  const QKEYS = ['u', 'dmg', 'buy', 'f'];
+  function order(s, id, opt = {}) {
+    const A = ACTS[id];
+    if (!A) return { ok: false, why: 'none' };
+    if (s.act && s.act.id === 'faint') return { ok: false, why: 'busy' };
+    s.calm = 0;
+    const cur = s.act;
+    // Hari è libero o sta facendo da sé: il comando del giocatore ha la precedenza
+    if (!cur || cur.auto) {
+      const r = start(s, id, opt);
+      if (r.ok && s.act) delete s.act.auto;
+      return r.ok ? Object.assign({ now: true }, r) : r;
+    }
+    if (cur.id === id && (opt.u == null || cur.u === opt.u) && id !== 'shop') return { ok: true, same: true };
+    // controllo subito quello che si può controllare (oggetto, soldi, amici), il resto quando tocca a lei
+    const w = A.at === 'hari' ? hariWhy(s, id) : A.at === 'obj' ? objWhy(s, id, opt) : A.at === 'dmg' ? (s.home.dmg.includes(opt.dmg) ? '' : 'none') : placeWhy(s, id);
+    if (w) return { ok: false, why: w };
+    if (s.queue.length >= D.QMAX) return { ok: false, why: 'queue' };
+    const q = { id };
+    for (const k of QKEYS) if (opt[k] != null) q[k] = Array.isArray(opt[k]) ? opt[k].slice() : opt[k];
+    s.queue.push(q);
+    return { ok: true, queued: true };
+  }
+  function objWhy(s, id, opt) {
+    const A = ACTS[id];
+    const it = opt.u != null ? findItem(s, opt.u) : A.kinds.map((k) => best(s, k)).find(Boolean);
+    if (!it || !A.kinds.includes(ITEMS[it.id].k)) return 'none';
+    const o = options(s, { u: it.u }).find((x) => x.id === id);
+    return !o ? 'none' : o.why === 'nofood' ? '' : o.why;     // il cibo può arrivare con una spesa già in coda
+  }
+  function placeWhy(s, id) {
+    const o = options(s, { place: ACTS[id].at }).find((x) => x.id === id);
+    return !o ? 'none' : o.why === 'money' ? '' : o.why;      // i soldi si controllano quando si parte
+  }
+  function cancel(s, i) {
+    const ev = [];
+    if (i == null || i < 0) {
+      if (!s.act || s.act.id === 'faint') return { ok: false, ev };
+      stop(s);
+      s.calm = s.t + D.FREE.CALM;
+      next(s, ev);
+      return { ok: true, ev };
+    }
+    if (i >= s.queue.length) return { ok: false, ev };
+    s.queue.splice(i, 1);
+    return { ok: true, ev };
+  }
+  function next(s, ev) {
+    while (!s.act && s.queue.length) {
+      const q = s.queue.shift();
+      const r = start(s, q.id, q);
+      if (!r.ok) ev.push({ type: 'qfail', id: q.id, why: r.why });
+    }
+  }
+
+  /* ---------- la scelta migliore per un bisogno, con quello che c'è in casa ---------- */
+  const FUN = { tv: 'watch', books: 'read', aquarium: 'fish', sofa: 'relax' };
+  const FUNR = { watch: 0.36, read: 0.26, fish: 0.2, relax: 0.06 };
+  const usable = (s, it, id) => { const o = options(s, { u: it.u }).find((x) => x.id === id); return !!o && (o.ok || o.why === 'nofood'); };
+  function plan(s, k, auto) {
+    const n = s.needs;
+    const obj = (id, kinds) => { for (const kk of kinds) { const it = best(s, kk); if (it && usable(s, it, id)) return { id, u: it.u }; } return null; };
+    switch (k) {
+      case 'energy': return obj('sleep', ['bed']) || { id: 'nap' };
+      case 'food': {
+        if (!fridgeCap(s)) return { id: 'eat', why: 'nofridge' };
+        if (!stock(s)) return { id: 'eat', why: 'nofood' };
+        const c = n.energy > 0.2 && n.food > 0.08 ? obj('cook', ['stove', 'oven']) : null;
+        return c || obj('eat', ['fridge']) || { id: 'eat', why: 'blocked' };
+      }
+      case 'hygiene': {
+        const tub = obj('bath', ['tub']), sh = obj('shower', ['shower']);
+        return (tub && (n.stress > 0.45 || !sh) ? tub : sh || tub) || { id: 'shower', why: 'nowash' };
+      }
+      case 'fun': {
+        let bestP = null, bv = -1;
+        for (const kk in FUN) for (const it of has(s, kk)) {
+          const id = FUN[kk];
+          if (!usable(s, it, id)) continue;
+          const v = FUNR[id] * (ITEMS[it.id].q || 1) + (auto ? rnd(s) * 0.12 : 0);
+          if (v > bv) { bv = v; bestP = { id, u: it.u }; }
+        }
+        return bestP || (auto ? { id: 'watch', why: 'nofun' } : { id: 'jog' });
+      }
+      case 'social': return s.friends.length && !s.away && !auto ? { id: 'invite' } : s.friends.length && !s.away && rnd(s) < 0.35 ? { id: 'invite' } : { id: 'call' };
+      case 'stress': {
+        const w = n.energy > 0.3 ? obj('workout', ['bike', 'mat']) : null;
+        return w || obj('bath', ['tub']) || obj('relax', ['sofa']) || obj('read', ['books']) || obj('fish', ['aquarium']) || (auto ? { id: 'relax', why: 'nofun' } : { id: 'jog' });
+      }
+      case 'health': return { id: 'doctor' };
+      default: {   // umore: il bisogno più urgente
+        let kk = 'fun', lo = 2;
+        for (const x of ['energy', 'food', 'hygiene', 'fun', 'social']) if (n[x] < lo) { lo = n[x]; kk = x; }
+        if (1 - n.stress < lo) kk = 'stress';
+        return plan(s, kk, auto);
+      }
+    }
+  }
+  function quick(s, k) {
+    const p = plan(s, k);
+    if (p.why) return { ok: false, why: p.why, id: p.id };
+    const r = order(s, p.id, p.u != null ? { u: p.u } : {});
+    return Object.assign({ id: p.id, u: p.u }, r);
+  }
+
+  /* ---------- libero arbitrio: Hari si prende cura di sé quando nessuno gli dice cosa fare ---------- */
+  function think(s, ev) {
+    if (s.free === false || s.act || s.away || s.queue.length || s.t < (s.calm || 0)) return;
+    const n = s.needs, F = D.FREE, hr = (s.t % DAY) / 60, night = hr >= 22 || hr < 5;
+    const want = [];
+    const need = (k, v, T, boost = 0) => { if (v < T) want.push({ k, u: (T - v) / T + boost }); };
+    need('energy', n.energy, night ? F.NIGHT : F.T.energy, night ? 0.6 : 0.15);
+    need('food', n.food, F.T.food, 0.1);
+    need('hygiene', n.hygiene, F.T.hygiene);
+    need('fun', n.fun, F.T.fun);
+    need('social', n.social, F.T.social);
+    need('stress', 1 - n.stress, F.T.stress);
+    if (!want.length) return;
+    for (const w of want) w.u += rnd(s) * 0.15;               // un pizzico di carattere
+    want.sort((a, b) => b.u - a.u);
+    for (const w of want) {
+      const p = plan(s, w.k, true);
+      if (p.why) {
+        if ((p.why === 'nofood' || p.why === 'nowash') && !s.warn[p.why]) { s.warn[p.why] = 1; ev.push({ type: 'hint', k: p.why }); }
+        continue;
+      }
+      const r = start(s, p.id, p.u != null ? { u: p.u } : {});
+      if (r.ok && s.act) { s.act.auto = 1; ev.push({ type: 'auto', id: p.id, k: w.k }); return; }
+    }
+    s.calm = s.t + F.RETRY;                                    // niente da fare per ora: riprova tra un po'
   }
 
   /* ---------- a mezzanotte ---------- */
@@ -815,7 +982,9 @@
     if (!saved || typeof saved !== 'object' || typeof saved.v !== 'number') return null;
     let s = JSON.parse(JSON.stringify(saved));
     // MIG[v] porta da v a v+1 (per le versioni future dello stato)
-    const MIG = {};
+    const MIG = {
+      1: (o) => { o.queue = []; o.free = true; o.calm = 0; o.tips = {}; o.v = 2; return o; },   // v2: coda, libero arbitrio
+    };
     while (s && s.v < D.SAVE_V) s = MIG[s.v] ? MIG[s.v](s) : null;
     if (!s || s.v !== D.SAVE_V) return null;
     if (!Number.isFinite(s.t) || !s.home || !Array.isArray(s.home.items) || !HOMES[s.home.tier]) return null;
@@ -832,6 +1001,9 @@
     for (const list of [s.home.items, s.home.walls]) for (let i = list.length - 1; i >= 0; i--) if (!ITEMS[list[i].id]) list.splice(i, 1);
     if (!Array.isArray(s.fridge) || s.fridge.length !== 3) s.fridge = [0, 0, 0];
     if (s.act && !ACTS[s.act.id]) s.act = null;
+    if (!Array.isArray(s.queue)) s.queue = [];
+    s.queue = s.queue.filter((q) => q && ACTS[q.id]).slice(0, D.QMAX);
+    if (!s.tips || typeof s.tips !== 'object') s.tips = {};
     s.money = Number.isFinite(s.money) ? Math.max(0, Math.round(s.money)) : 0;
     clampNeeds(s);
     return s;
@@ -840,7 +1012,7 @@
   const progress = (s) => clamp(0.08 + 0.85 * s.needs.mood, 0, 0.95);
 
   HH.life = {
-    create, tick, rate, options, start, stop, walk, path, access, near, dmgTile, door, dims, foot, grid,
+    create, tick, rate, options, start, stop, walk, order, cancel, quick, plan, path, access, near, dmgTile, door, dims, foot, grid,
     canPlace, buy, move, sell, refund, canWall, buyWall, moveWall, wallBusy, setStyle, stylePrice, expand,
     chooseBiz, upgradeBiz, hire, retire, newGeneration, earnPreview,
     beauty, age, phase, clock, daylight, maxHealth, sleeping, fridgeCap, stock, findItem, best, progress, migrate,

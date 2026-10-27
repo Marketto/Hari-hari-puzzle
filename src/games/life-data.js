@@ -114,6 +114,9 @@
     office: { dur: 180 + TRAVEL, at: 'office', r: { energy: -0.035, fun: -0.02, social: 0.03 } },
     faint: { dur: 360, at: 'doctor', r: { energy: 0.06, stress: -0.02 } },
   };
+  /* libero arbitrio: sotto la soglia T (0..1) Hari sceglie da solo; di notte (22–5) la soglia del sonno sale a NIGHT.
+   * Lo stress usa 1 − stress. Le azioni vanno fino in fondo (isteresi: si riparte solo quando il bisogno riscende). */
+  const FREE = { T: { energy: 0.25, food: 0.35, hygiene: 0.3, fun: 0.28, social: 0.25, stress: 0.3 }, NIGHT: 0.85, CALM: 40, RETRY: 30 };
   const PLACES = ['home', 'market', 'doctor', 'park', 'gym', 'cafe', 'shop', 'office'];
 
   /* attività: base = guadagno di un turno a livello n (prima di bravura/reputazione/umore), up = prezzo per arrivarci,
@@ -135,8 +138,8 @@
   };
 
   HH.lifeData = {
-    ITEMS, CATS, FLOORS, WALLS, HOMES, DAMAGES, FOODS, ACTS, PLACES, BIZ, FRIENDS, GOALS, TRAVEL,
+    ITEMS, CATS, FLOORS, WALLS, HOMES, DAMAGES, FOODS, ACTS, FREE, PLACES, BIZ, FRIENDS, GOALS, TRAVEL,
     DAY: 1440, YEAR_DAYS: 8, START_AGE: 20, RETIRE_AGE: 65, GEN_AGE: 75, PHASES: [20, 35, 50, 65],
-    START_MONEY: 300, MIN_PER_SEC: 4, SLEEP_FAST: 6, SAVE_V: 1,
+    START_MONEY: 300, MIN_PER_SEC: 4, SLEEP_FAST: 6, SAVE_V: 2, QMAX: 4,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
