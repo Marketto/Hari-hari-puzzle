@@ -7,7 +7,7 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
   // codice del sito GoatCounter (https://<CODE>.goatcounter.com). Vuoto = statistiche remote spente.
-  const CODE = '';
+  const CODE = 'harihari';
   const st = () => HH.store;
   const QMAX = 300;
   let busy = false;

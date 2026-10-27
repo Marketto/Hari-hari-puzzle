@@ -16,6 +16,9 @@
 
 Su GoatCounter: il numero di eventi `minute/<gioco>` = minuti di gioco totali; `open/<gioco>` = partite aperte.
 
+## Configurazione attuale
+Codice `harihari` → dati su https://harihari.goatcounter.com (si usa l'endpoint `/count` direttamente, senza caricare script esterni).
+
 ## Come attivarle
 1. Crea un account e un sito su goatcounter.com (es. codice `harihari`).
 2. Metti il codice in `CODE` dentro `src/core/usage.js`, incrementa la versione e pubblica.

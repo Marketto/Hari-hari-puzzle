@@ -24,11 +24,13 @@ test('tempo di gioco e partite restano sul telefono', () => {
 });
 
 test('senza codice GoatCounter non si chiede il consenso e non parte nulla', () => {
-  assert.equal(U.CODE, '', 'il codice nel repo pubblico resta vuoto finché non viene configurato');
+  assert.equal(U.CODE, 'harihari', 'codice del sito GoatCounter configurato');
+  U.CODE = '';
   assert.equal(U.canAsk(), false);
   U.setConsent(true);
   U.event('open/boba');
   assert.equal(sent.length, 0);
+  U.CODE = 'harihari';
 });
 
 test('con codice: solo dopo il sì, solo eventi anonimi, coda offline', async () => {
