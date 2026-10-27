@@ -47,6 +47,8 @@
   /* interfaccia */
   --lh-stage-1: #ffe9dc; --lh-stage-2: #ffd7e3; --lh-chip: #fffaf6; --lh-bar: rgba(75, 46, 40, .1);
   --lh-good: #5fd3a3; --lh-mid: #ffc34d; --lh-low: #ff6f86; --lh-veil: rgba(255, 250, 244, .7); --lh-panel: #fffaf6; --lh-money: #b86a2c;
+  /* scene del quartiere: velo per il tema scuro */
+  --lh-sc-dim: rgba(0, 0, 0, 0);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -54,7 +56,7 @@
     --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
     --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
     --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040;
+    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
   }
 }
 :root[data-theme="dark"] {
@@ -62,7 +64,7 @@
   --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
   --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
   --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
-  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040;
+  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040; --lh-sc-dim: rgba(24, 14, 52, .3);
 }
 
 /* il piatto del gioco si allarga un po' su telefono (la casa ha bisogno di spazio) */
@@ -80,7 +82,29 @@
 .lh-need i b { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--lh-good); transition: width .5s, background-color .5s; }
 .lh-need.mid i b { background: var(--lh-mid); }
 .lh-need.low i b { background: var(--lh-low); }
-.lh-need.low { animation: lh-pulse 1.1s ease-in-out infinite; color: var(--lh-low); }
+.lh-need.low { animation: lh-pulse 1.1s ease-in-out infinite; color: var(--lh-low); box-shadow: inset 0 0 0 2px var(--lh-low); }
+.lh-need:active { transform: translateY(1px) scale(.96); }
+.lh-need.hint { animation: lh-pulse 1.1s ease-in-out 3; box-shadow: inset 0 0 0 2px var(--accent); }
+/* suggerimento al primo avvio: "tocca un'icona" */
+.lh-coach { position: absolute; left: 8px; right: 8px; top: 8px; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; border-radius: 16px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--accent), var(--shadow-s); font-weight: 800; font-size: 12.5px; line-height: 1.3; animation: lh-pop2 .35s cubic-bezier(.3, 1.6, .5, 1) both; }
+.lh-coach::before { content: ""; position: absolute; top: -7px; left: 30%; width: 12px; height: 12px; background: var(--card-solid); box-shadow: -2px -2px 0 0 var(--accent); transform: rotate(45deg); }
+.lh-coach span { flex: 1; }
+.lh-coach .lh-x { width: 30px; height: 30px; }
+/* coda delle azioni (stile Sims): in corso + in attesa, tocca per annullare */
+.lh-queue { position: absolute; left: 8px; bottom: 8px; z-index: 5; display: flex; align-items: flex-end; gap: 4px; pointer-events: none; }
+.lh-queue[hidden] { display: none; }
+.lh-queue.map { bottom: 62px; }
+.lh-away .lh-grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lh-q { position: relative; display: grid; place-items: center; width: 34px; height: 34px; padding: 3px; border: 0; border-radius: 50%; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); color: var(--ink); cursor: pointer; pointer-events: auto; animation: lh-in .25s cubic-bezier(.3, 1.6, .5, 1) both; }
+.lh-q .lh-ic { width: 18px; height: 18px; }
+.lh-q.cur { width: 46px; height: 46px; background: conic-gradient(var(--accent) var(--p, 0deg), var(--lh-bar) 0); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); }
+.lh-q.cur > span { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--card-solid); }
+.lh-q.cur .lh-ic { width: 22px; height: 22px; }
+.lh-q.auto.cur { background: conic-gradient(var(--mint-2) var(--p, 0deg), var(--lh-bar) 0); }
+.lh-q i { position: absolute; top: -4px; inset-inline-end: -4px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--lh-low); color: var(--accent-ink); box-shadow: 0 0 0 1.5px var(--card-solid); }
+.lh-q i .lh-ic { width: 11px; height: 11px; }
+.lh-q em { position: absolute; bottom: -3px; inset-inline-start: -4px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--mint); color: var(--on-mint); box-shadow: 0 0 0 1.5px var(--card-solid); }
+.lh-q em .lh-ic { width: 11px; height: 11px; }
 
 /* ---------- riga orologio e velocità ---------- */
 .lh-row { display: flex; align-items: center; gap: 6px; }
@@ -125,6 +149,10 @@
 .lh-bubble { position: absolute; left: 0; top: 0; z-index: 4; width: 34px; height: 34px; padding: 3px; border-radius: 50%; background: conic-gradient(var(--accent) var(--p, 0deg), var(--lh-bar) 0); box-shadow: 0 0 0 1.5px var(--line-2), var(--shadow-s); pointer-events: none; }
 .lh-bub { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--card-solid); color: var(--ink); }
 .lh-bub .lh-ic { width: 18px; height: 18px; }
+/* bisogno critico: fumetto "pensiero" che pulsa sopra Hari (toccalo per l'azione rapida) */
+.lh-bubble.want { background: var(--lh-low); pointer-events: auto; cursor: pointer; animation: lh-want 1s ease-in-out infinite; }
+.lh-bubble.want .lh-bub { color: var(--lh-low); }
+.lh-bubble.want::after { content: ""; position: absolute; left: 6px; bottom: -7px; width: 8px; height: 8px; border-radius: 50%; background: var(--card-solid); box-shadow: 0 0 0 1.5px var(--lh-low); }
 
 /* menu radiale (stile Sims) */
 .lh-radial { position: absolute; inset: 0; z-index: 7; }
@@ -150,9 +178,87 @@
 .lh-place.here { animation: lh-bob 1.2s ease-in-out infinite; }
 .lh-map-label { font-family: var(--font-body); font-weight: 800; font-size: 10.5px; fill: var(--lh-label); paint-order: stroke; stroke: var(--lh-label-bg); cursor: pointer; stroke-width: 3.4px; stroke-linejoin: round; }
 .lh-map-hari { animation: lh-hop .5s ease-in-out infinite alternate; }
-.lh-away { position: absolute; left: 50%; bottom: 10px; z-index: 5; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 6px 5px 12px; border-radius: 20px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); font-weight: 800; font-size: 13px; white-space: nowrap; }
+.lh-away { position: absolute; left: 50%; bottom: 10px; z-index: 5; display: flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 5px 6px 5px 12px; border-radius: 20px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); font-weight: 800; font-size: 13px; white-space: nowrap; max-width: calc(100% - 16px); }
 .lh-prog { position: relative; width: 70px; height: 8px; border-radius: 4px; background: var(--lh-bar); overflow: hidden; }
 .lh-prog b { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px; }
+.lh-away .lh-x { width: 34px; height: 34px; }
+.lh-away .lh-x .lh-ic { width: 20px; height: 20px; }
+.lh-dbtn.nudge { animation: lh-pulse 1.1s ease-in-out infinite; box-shadow: inset 0 0 0 2px var(--accent), 0 3px 0 var(--line-2); }
+
+/* scene animate dei luoghi (vignette SVG, animazioni leggere solo CSS) */
+.lh-scene { position: absolute; inset: 0; overflow: hidden; }
+.lh-scene-svg { display: block; width: 100%; height: 100%; }
+.lh-scene-top { position: absolute; left: 50%; top: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%); max-width: calc(100% - 16px); padding: 4px 12px 4px 6px; border-radius: 16px; background: var(--card-solid); box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); font-weight: 800; font-size: 13px; white-space: nowrap; max-width: calc(100% - 16px); }
+.lh-scene-top .lh-ic { width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); }
+.lh-sc-text { font-family: var(--font-display); font-size: 13px; fill: var(--lh-ink); }
+.lh-scene [data-k] { opacity: 0; transition: opacity .5s; }
+.lh-scene [data-k].on { opacity: 1; animation: lh-popin .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.lh-scene g, .lh-scene path, .lh-scene circle, .lh-scene ellipse, .lh-scene text { transform-box: fill-box; transform-origin: 50% 100%; }
+.lh-a-bob { animation: lh-a-bob 1.4s ease-in-out infinite; }
+.lh-a-bob2 { animation: lh-a-bob 1.8s ease-in-out .4s infinite; }
+.lh-a-cart { animation: lh-a-cart 7s ease-in-out infinite; transform-origin: 0 0; }
+.lh-a-drop { animation: lh-a-drop 1.75s ease-in infinite; }
+.lh-a-beep { animation: lh-a-tw 1.2s ease-in-out infinite; transform-origin: 50% 50%; }
+.lh-a-tw { animation: lh-a-tw 1.6s ease-in-out infinite; transform-origin: 50% 50%; }
+.lh-a-lift { animation: lh-a-lift 1.3s ease-in-out infinite; }
+.lh-a-squash { animation: lh-a-squash 1.3s ease-in-out infinite; }
+.lh-a-sweat1, .lh-a-sweat2 { animation: lh-a-sweat1 1.3s ease-out infinite; transform-origin: 50% 50%; }
+.lh-a-sweat2 { animation-name: lh-a-sweat2; }
+.lh-a-cheer { animation: lh-a-cheer .65s ease-in-out infinite alternate; }
+.lh-a-scroll { animation: lh-a-scroll 5s linear infinite; transform-origin: 0 0; }
+.lh-a-scroll2 { animation: lh-a-scroll 2.6s linear infinite; transform-origin: 0 0; }
+.lh-a-run { animation: lh-a-run .36s ease-in-out infinite alternate; }
+.lh-a-fr0 { animation: lh-a-fr0 .36s steps(1) infinite; }
+.lh-a-fr1 { animation: lh-a-fr1 .36s steps(1) infinite; }
+.lh-a-fly { animation: lh-a-fly 6s ease-in-out infinite; transform-origin: 0 0; }
+.lh-a-cloud { animation: lh-a-cloud 14s ease-in-out infinite alternate; }
+.lh-a-steam { animation: lh-a-steam 2s ease-out infinite; }
+.lh-a-glow { animation: lh-a-glow 2.2s ease-in-out infinite; transform-origin: 50% 50%; }
+.lh-a-chat1, .lh-a-chat2, .lh-a-chat3, .lh-a-chat4 { opacity: 0; animation: lh-a-chat 6.4s ease-in-out infinite; }
+.lh-a-chat2 { animation-delay: 1.6s; } .lh-a-chat3 { animation-delay: 3.2s; } .lh-a-chat4 { animation-delay: 4.8s; }
+.lh-a-pop { animation: lh-popin .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+.lh-a-meet { animation: lh-a-meet 4s ease-in-out both; transform-origin: 50% 0; }
+.lh-a-steth { animation: lh-a-steth 1.6s ease-in-out infinite; transform-origin: 50% 50%; }
+.lh-a-float { animation: lh-a-float 2.4s ease-out infinite; }
+.lh-a-zzz { animation: lh-a-float 1.8s ease-out infinite; }
+.lh-a-tray { animation: lh-a-tray 2.4s ease-in-out infinite; }
+.lh-a-walk { animation: lh-a-walk 9s ease-in-out infinite; transform-origin: 0 0; }
+.lh-a-brush { animation: lh-a-brush .8s ease-in-out infinite alternate; transform-origin: 100% 100%; }
+.lh-a-water { animation: lh-a-water 2.4s ease-in-out infinite; transform-origin: 100% 100%; }
+.lh-a-drip { animation: lh-a-drip .9s ease-in infinite; transform-origin: 50% 50%; }
+.lh-a-bounce { animation: lh-a-bounce .9s ease-in-out infinite; }
+.lh-a-swing { animation: lh-a-swing 1.6s ease-in-out infinite alternate; transform-origin: 0 0; }
+.lh-sc-grow.on { animation: lh-grow .8s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes lh-a-bob { 50% { transform: translateY(-3px); } }
+@keyframes lh-a-cart { 0%, 8% { transform: translateX(0); } 42%, 58% { transform: translateX(118px); } 92%, 100% { transform: translateX(0); } }
+@keyframes lh-a-drop { 0% { transform: translateY(-46px); opacity: 0; } 25% { opacity: 1; } 60%, 85% { transform: translateY(6px); opacity: 1; } 100% { transform: translateY(6px); opacity: 0; } }
+@keyframes lh-a-tw { 0%, 100% { transform: scale(.4) rotate(0); opacity: .3; } 50% { transform: scale(1.1) rotate(45deg); opacity: 1; } }
+@keyframes lh-a-lift { 0%, 100% { transform: translateY(14px); } 45%, 60% { transform: translateY(-16px); } }
+@keyframes lh-a-squash { 0%, 100% { transform: scale(1.04, .95); } 45%, 60% { transform: scale(.97, 1.04); } }
+@keyframes lh-a-sweat1 { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(-14px, 18px); opacity: 0; } }
+@keyframes lh-a-sweat2 { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(14px, 18px); opacity: 0; } }
+@keyframes lh-a-cheer { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
+@keyframes lh-a-scroll { from { transform: translateX(0); } to { transform: translateX(-320px); } }
+@keyframes lh-a-run { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+@keyframes lh-a-fr0 { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes lh-a-fr1 { 0% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes lh-a-fly { 0% { transform: translate(0, 0); } 25% { transform: translate(60px, -20px); } 50% { transform: translate(140px, 10px); } 75% { transform: translate(60px, 30px); } 100% { transform: translate(0, 0); } }
+@keyframes lh-a-cloud { from { transform: translateX(-8px); } to { transform: translateX(14px); } }
+@keyframes lh-a-steam { 0% { transform: translateY(4px) scaleY(.6); opacity: 0; } 40% { opacity: .85; } 100% { transform: translateY(-10px) scaleY(1.1); opacity: 0; } }
+@keyframes lh-a-glow { 50% { opacity: .55; transform: scale(.92); } }
+@keyframes lh-a-chat { 0% { opacity: 0; transform: scale(.5); } 4%, 22% { opacity: 1; transform: scale(1); } 27%, 100% { opacity: 0; transform: scale(.8); } }
+@keyframes lh-popin { from { opacity: 0; transform: scale(.3); } }
+@keyframes lh-a-meet { 0% { opacity: 0; transform: translateY(-20px) scale(.6); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
+@keyframes lh-a-steth { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(-6px, -8px); } 66% { transform: translate(5px, -3px); } }
+@keyframes lh-a-float { 0% { transform: translateY(10px) scale(.6); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-34px) scale(1.1); opacity: 0; } }
+@keyframes lh-a-tray { 0%, 100% { transform: translateX(-36px); } 40%, 60% { transform: translateX(0); } }
+@keyframes lh-a-walk { 0% { transform: translateX(70px); opacity: 0; } 12%, 80% { transform: translateX(0); opacity: 1; } 92%, 100% { transform: translateX(70px); opacity: 0; } }
+@keyframes lh-a-brush { from { transform: rotate(-10deg); } to { transform: rotate(12deg); } }
+@keyframes lh-a-water { 0%, 100% { transform: rotate(0); } 40%, 70% { transform: rotate(-22deg); } }
+@keyframes lh-a-drip { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(-6px, 26px); opacity: 0; } }
+@keyframes lh-a-bounce { 0%, 100% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-10px) scale(.96, 1.04); } 55% { transform: translateY(0) scale(1.05, .95); } }
+@keyframes lh-a-swing { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+@keyframes lh-grow { from { transform: scale(.2); } }
 
 /* barra in basso */
 .lh-dock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
@@ -250,6 +356,8 @@
 .lh-tut-pop { animation: lh-pulse 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 
 @keyframes lh-pulse { 50% { transform: scale(1.08); } }
+@keyframes lh-want { 50% { transform: var(--tr, none) scale(1.12); } }
+@keyframes lh-pop2 { from { opacity: 0; transform: translateY(-8px) scale(.9); } }
 @keyframes lh-pop { from { opacity: 0; transform: translate(-50%, -100%) scale(.5); } }
 @keyframes lh-in { from { opacity: 0; transform: scale(.4); } }
 @keyframes lh-up { from { transform: translateY(40px); opacity: 0; } }
@@ -258,5 +366,8 @@
 @keyframes lh-bob { 50% { transform: translateY(-4px); } }
 @keyframes lh-hop { from { transform: translateY(0); } to { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) {
-  .lh-need.low, .lh-place.here, .lh-map-hari, .lh-tut-hari, .lh-tut-pop, .lh-rbtn, .lh-toast, .lh-say, .lh-float, .lh-sheet { animation: none !important; }
+  .lh-need.low, .lh-need.hint, .lh-place.here, .lh-map-hari, .lh-tut-hari, .lh-tut-pop, .lh-rbtn, .lh-toast, .lh-say, .lh-float, .lh-sheet,
+  .lh-bubble.want, .lh-q, .lh-coach, .lh-dbtn.nudge, .lh-scene * { animation: none !important; }
+  .lh-scene .lh-a-chat1, .lh-scene .lh-a-meet { opacity: 1; }
+  .lh-scene .lh-a-fr1, .lh-scene .lh-a-chat2, .lh-scene .lh-a-chat3, .lh-scene .lh-a-chat4, .lh-scene .lh-a-drop, .lh-scene [class^="lh-a-sweat"], .lh-scene .lh-a-drip { opacity: 0; }
 }

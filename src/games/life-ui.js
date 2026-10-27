@@ -1,7 +1,9 @@
 /* Hari Home — interfaccia (simulazione di vita isometrica, senza livelli né fine).
- * Palco: <canvas> con la casa (life-draw.js). In alto i bisogni e l'orologio con le velocità ×1/×2/×3 (il sonno accelera ×6),
- * in basso Costruisci · Quartiere · Attività · Vita. Tocca Hari, un mobile o un guasto (chiave inglese) per il menu
- * radiale; tocca il pavimento per far camminare Hari. In "Costruisci" il tempo si ferma: catalogo, pavimenti, pareti,
+ * Palco: <canvas> con la casa (life-draw.js). In alto i bisogni (toccali: azione rapida per quel bisogno) e l'orologio con
+ * le velocità ×1/×2/×3 (il sonno accelera ×6), in basso Costruisci · Quartiere · Attività · Vita. Tocca Hari (tutti i
+ * comandi), un mobile o un guasto (chiave inglese) per il menu radiale; tocca il pavimento per far camminare Hari.
+ * I comandi vanno in una coda visibile in basso a sinistra (tocca per annullare); senza comandi Hari fa da sé (libero
+ * arbitrio, in life-logic.js). Fuori casa una scena animata del luogo (life-art.js scene) con la barra di avanzamento. In "Costruisci" il tempo si ferma: catalogo, pavimenti, pareti,
  * riparazioni e trasloco. Fuori casa: mappa del quartiere (spesa, dottore, parco, palestra, caffè, mobili, negozio).
  *
  * Contratto con l'app: endless = true (niente livelli/fragoline/cuori), meta(s) per l'header e la card in home,
@@ -41,6 +43,9 @@
     lf_w_money: 'Not enough acorns', lf_w_nofood: 'The fridge is empty: go to the market!', lf_w_blocked: 'Hari can’t get there', lf_w_full: 'No room in the fridge',
     lf_w_nobiz: 'Pick a business first', lf_w_wrongbiz: 'Not for your business', lf_w_office: 'Your shop is in town now', lf_w_small: 'Grow your business first',
     lf_w_nofriend: 'Make friends at the café!', lf_w_cant: 'It doesn’t fit here',
+    lf_tip_needs: 'Tap an icon up here and Hari takes care of it: moon = sleep, tummy = eat, drop = wash. Tap Hari for everything else!',
+    lf_w_nowash: 'No shower or bath: get one in Build!', lf_w_nostation: 'Buy a work station first', lf_w_queue: 'The to-do list is full',
+    lf_queued: 'Added to the list', lf_free: 'Free will',
     lf_restartQ: 'Start a whole new life? This one will be lost.', lf_cancel: 'Cancel', lf_rent: 'Rent / week', lf_board: 'Hari’s home: tap Hari, the furniture or the floor',
     // già tradotte
     pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', restart: 'Restart',
@@ -50,14 +55,16 @@
   const acorn = (n) => `<span class="lh-acorn">${ic('acorn')}${nf(n)}</span>`;
   const dur = (m) => { const h = Math.floor(m / 60), mm = Math.round(m % 60); return h ? `${h}h${mm ? String(mm).padStart(2, '0') : ''}` : `${mm}′`; };
   const NEED_IC = { mood: 'mood', health: 'health', energy: 'energy', food: 'food', stress: 'stress', social: 'social', fun: 'fun', hygiene: 'hygiene' };
-  const ACT_IC = { sleep: 'sleep', nap: 'sleep', eat: 'eat', cook: 'cook', shower: 'shower', bath: 'bath', relax: 'relax', watch: 'watch', read: 'read', fish: 'fish', workout: 'workout', work: 'work', call: 'call', invite: 'invite', repair: 'repair', stop: 'stop', shop: 'market', doctor: 'doctor', jog: 'park', gym: 'workout', cafe: 'cafe', office: 'office', faint: 'doctor' };
-  const ACT_KEY = { bath: 'lf_k_tub', nap: 'lf_sleep', fish: 'lf_relax', shop: 'lf_p_market', doctor: 'lf_p_doctor', jog: 'lf_p_park', gym: 'lf_p_gym', cafe: 'lf_p_cafe', office: 'lf_p_office', faint: 'lf_p_doctor' };
+  const ACT_IC = { town: 'town', sleep: 'sleep', nap: 'sleep', eat: 'eat', cook: 'cook', shower: 'shower', bath: 'bath', relax: 'relax', watch: 'watch', read: 'read', fish: 'fish', workout: 'workout', work: 'work', call: 'call', invite: 'invite', repair: 'repair', stop: 'stop', shop: 'market', doctor: 'doctor', jog: 'park', gym: 'workout', cafe: 'cafe', office: 'office', faint: 'doctor' };
+  const ACT_KEY = { town: 'lf_town', bath: 'lf_k_tub', nap: 'lf_sleep', fish: 'lf_relax', shop: 'lf_p_market', doctor: 'lf_p_doctor', jog: 'lf_p_park', gym: 'lf_p_gym', cafe: 'lf_p_cafe', office: 'lf_p_office', faint: 'lf_p_doctor' };
   const actName = (id) => T(ACT_KEY[id] || 'lf_' + id);
   const KIND_KEY = { shower: 'lf_shower', shelf: 'lf_k_books', mat: 'lf_k_sport', bike: 'lf_k_sport', poster: 'lf_k_art', flowers: 'lf_k_plant' };
   const kindName = (k) => T(KIND_KEY[k] || 'lf_k_' + k);
   const TAB_IC = { fix: 'repair', rest: 'sleep', kitchen: 'cook', living: 'relax', work: 'work', deco: 'beauty', style: 'wall', house: 'house' };
   const TAB_KEY = { fix: 'lf_repair', rest: 'lf_k_bed', kitchen: 'lf_k_stove', living: 'lf_k_sofa', work: 'lf_k_desk', deco: 'lf_k_plant', style: 'lf_wall', house: 'lf_g_move' };
   const PLACE_ACT = { doctor: 'doctor', park: 'jog', gym: 'gym', cafe: 'cafe', office: 'office' };
+  const ACT_PLACE = { shop: 'market', doctor: 'doctor', faint: 'doctor', jog: 'park', gym: 'gym', cafe: 'cafe', office: 'office' };
+  const ACT_SCENE = { shop: 'market', doctor: 'doctor', faint: 'faint', jog: 'park', gym: 'gym', cafe: 'cafe' };
   const reduce = () => !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   function create(el, ctx, saved) {
@@ -65,6 +72,7 @@
     if (saved && !s) throw new Error('life: salvataggio non leggibile');   // l'app ne tiene una copia e riparte
     if (!s) s = L.create((Math.random() * 4294967296) >>> 0);
     let paused = false, mode = 'home', raf = 0, last = 0, lastDraw = 0, lastSave = 0, lastUI = 0, themeAt = 0, timers = [];
+    let queueEl, coachEl = null, mapView = false, shopScene = false, qKey = '';
     let wrap, stage, cv, g, needsEl, clockEl, moneyEl, speedEl, dockEl, toastsEl, sayEl, bubbleEl, layerEl, buildEl, pauseEl;
     let C = null, V = null, dpr = 1, W = 300, H = 330, IMG = {}, imgKey = '';
     // animazioni di Hari e dell'amico in visita
@@ -82,6 +90,7 @@
           <div class="lh-layer"></div>
           <div class="lh-toasts" aria-live="polite"></div>
           <div class="lh-bubble" hidden></div>
+          <div class="lh-queue" role="group" aria-label="${T('lf_life')}"></div>
           <div class="lh-pause" hidden><span class="lh-playb">${ic('play')}</span><b>${T('pa_paused')}</b><small>${T('pa_tap')}</small></div>
         </div>
         <div class="lh-build" hidden></div>
@@ -95,7 +104,7 @@
       const $ = (q) => el.querySelector(q);
       wrap = $('.lh-wrap'); stage = $('.lh-stage'); cv = $('.lh-cv'); g = cv.getContext('2d');
       needsEl = $('.lh-needs'); clockEl = $('.lh-clock'); moneyEl = $('.lh-money'); speedEl = $('.lh-speed'); dockEl = $('.lh-dock');
-      toastsEl = $('.lh-toasts'); bubbleEl = $('.lh-bubble'); layerEl = $('.lh-layer'); buildEl = $('.lh-build'); pauseEl = $('.lh-pause');
+      toastsEl = $('.lh-toasts'); queueEl = $('.lh-queue'); bubbleEl = $('.lh-bubble'); layerEl = $('.lh-layer'); buildEl = $('.lh-build'); pauseEl = $('.lh-pause');
       needsEl.innerHTML = L.NEEDS.map((k) => `<button class="lh-need" data-need="${k}" aria-label="${T('lf_' + k)}">${ic(NEED_IC[k])}<i><b></b></i></button>`).join('');
       speedEl.innerHTML = `<button data-speed="0" aria-label="${T('pa_pause')}">${ic('pause')}</button>${[1, 2, 3].map((n) => `<button data-speed="${n}">×${n}</button>`).join('')}`;
       theme(true);
@@ -107,6 +116,21 @@
       }
       ui(true);
       if (s.away) openMap(true);
+      if (!s.tips.needs) coach();
+    }
+    // primo avvio: un fumetto sotto gli indicatori spiega che si toccano
+    function coach() {
+      coachEl = document.createElement('div');
+      coachEl.className = 'lh-coach';
+      coachEl.innerHTML = `<span>${T('lf_tip_needs')}</span><button class="lh-x" data-coach="x" aria-label="${T('lf_cancel')}">${ic('check')}</button>`;
+      stage.appendChild(coachEl);
+      needsEl.querySelectorAll('[data-need="energy"], [data-need="food"], [data-need="hygiene"]').forEach((b) => b.classList.add('hint'));
+    }
+    function dismissCoach() {
+      if (!coachEl) return;
+      coachEl.remove(); coachEl = null;
+      needsEl.querySelectorAll('.hint').forEach((b) => b.classList.remove('hint'));
+      s.tips.needs = 1; ctx.changed();
     }
     function theme(force) {
       const nc = R.tokens(wrap);
@@ -163,6 +187,23 @@
       speedEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', paused ? b.dataset.speed === '0' : +b.dataset.speed === s.speed));
       dockEl.querySelectorAll('.lh-dbtn').forEach((b) => b.classList.toggle('on', (b.dataset.dock === 'build' && mode === 'build') || (b.dataset.dock === 'town' && mode === 'map') || (sheet && sheet.kind === b.dataset.dock)));
       if (mode === 'map') updateAway();
+      queueUI();
+    }
+    /* ---------- coda delle azioni (in corso + in attesa): tocca per annullare ---------- */
+    function queueUI() {
+      if (!queueEl) return;
+      const a = s.act;
+      const key = `${mode}|${a ? `${a.id}:${a.u}:${a.auto ? 1 : 0}` : ''}|${s.queue.map((q) => `${q.id}:${q.u}`).join(',')}`;
+      if (key !== qKey) {
+        qKey = key;
+        queueEl.hidden = mode === 'build' || (!a && !s.queue.length);
+        queueEl.classList.toggle('map', mode === 'map');
+        const x = `<i>${ic('close')}</i>`;
+        queueEl.innerHTML = (a ? `<button class="lh-q cur${a.auto ? ' auto' : ''}" data-q="-1" aria-label="${T('lf_stop')}: ${actName(a.id)}"><span>${ic(ACT_IC[a.id] || 'fun')}</span>${a.id === 'faint' ? '' : x}${a.auto ? `<em>${ic('life')}</em>` : ''}</button>` : '')
+          + s.queue.map((q, i) => `<button class="lh-q" data-q="${i}" aria-label="${T('lf_stop')}: ${actName(q.id)}">${ic(ACT_IC[q.id] || 'fun')}${x}</button>`).join('');
+      }
+      const cur = queueEl.querySelector('.cur');
+      if (cur && a) cur.style.setProperty('--p', `${Math.round((1 - Math.max(0, a.left) / a.total) * 360)}deg`);
     }
 
     /* ---------- messaggi ---------- */
@@ -199,12 +240,14 @@
       stage.appendChild(f);
       later(() => f.remove(), 1700);
     }
-    const why = (w) => ({ money: 'lf_w_money', nofood: 'lf_w_nofood', blocked: 'lf_w_blocked', full: 'lf_w_full', nofridge: 'lf_w_full', nobiz: 'lf_w_nobiz', wrongbiz: 'lf_w_wrongbiz', office: 'lf_w_office', small: 'lf_w_small', nofriend: 'lf_w_nofriend', retired: 'lf_retire' }[w] || 'lf_w_cant');
+    const why = (w) => ({ money: 'lf_w_money', nofood: 'lf_w_nofood', blocked: 'lf_w_blocked', full: 'lf_w_full', nofridge: 'lf_w_full', nobiz: 'lf_w_nobiz', wrongbiz: 'lf_w_wrongbiz', office: 'lf_w_office', small: 'lf_w_small', nofriend: 'lf_w_nofriend', retired: 'lf_retire', nowash: 'lf_w_nowash', nostation: 'lf_w_nostation', queue: 'lf_w_queue' }[w] || 'lf_w_cant');
     function refuse(w) {
       ctx.sfx.bad();
-      toast(T(why(w)), w === 'money' ? 'acorn' : 'stop');
-      if (w === 'nobiz') later(() => openBiz(), 400);
+      toast(T(why(w)), w === 'money' ? 'acorn' : w === 'nowash' ? 'shower' : w === 'nofood' ? 'fridge' : 'stop');
+      if (w === 'nobiz' || w === 'nostation') later(() => openBiz(), 400);
       if (w === 'office' || w === 'nofood') later(() => openMap(false), 500);
+      if (w === 'nowash') later(() => enterBuild('rest'), 600);
+      if (w === 'nofridge') later(() => enterBuild('kitchen'), 600);
     }
 
     /* ---------- eventi della simulazione ---------- */
@@ -225,11 +268,16 @@
           case 'fixed': ctx.sfx.place(); sparkle(); break;
           case 'done': if (e.id === 'shower' || e.id === 'bath') ctx.sfx.pour(300); if (e.id === 'cook' || e.id === 'eat') hv.joy = 1.2; break;
           case 'day': ctx.changed(); break;
+          case 'auto': if (e.k && !s.away) say(T('lf_m_' + e.k)); break;
+          case 'hint': say(T(e.k === 'nofood' ? 'lf_w_nofood' : 'lf_w_nowash')); nudge(e.k === 'nofood' ? 'town' : 'build'); ctx.react('oops'); break;
+          case 'qfail': toast(`${actName(e.id)}: ${T(why(e.why))}`, e.why === 'money' ? 'acorn' : 'stop'); break;
           default: break;
         }
       }
       if (ev.length) ui();
     }
+    function nudge(k) { const b = dockEl.querySelector(`[data-dock="${k}"]`); if (b) b.classList.add('nudge'); }
+    function unnudge(k) { const b = dockEl.querySelector(`[data-dock="${k}"]`); if (b) b.classList.remove('nudge'); }
 
     /* ---------- particelle (zzz, cuori, note, scintille) sul canvas ---------- */
     function heartsAt() { for (let k = 0; k < 5; k++) parts.push({ t: 'heart', x: (hv.sx || W / 2) + (Math.random() - 0.5) * 30, y: (hv.sy || H / 2) + 10, vx: (Math.random() - 0.5) * 30, vy: -40 - Math.random() * 30, t0: performance.now() / 1000 + k * 0.08, life: 1.4 }); }
@@ -333,16 +381,29 @@
       return null;
     }
     // fumetto dell'attività sopra la testa con l'anello del tempo che manca
+    // senza attività e con un bisogno critico: fumetto "pensiero" con l'icona del bisogno (toccalo = azione rapida)
     let bubKey = '';
+    function critical() {
+      const n = s.needs;
+      let k = null, lo = 0.18;
+      for (const x of ['energy', 'food', 'hygiene', 'health', 'social', 'fun']) if (n[x] < lo) { lo = n[x]; k = x; }
+      return k || (n.stress > 0.82 ? 'stress' : null);
+    }
     function bubble() {
-      const a = s.act;
-      if (!a || hv.hide || hv.sx == null || mode === 'map' || (a.id === 'sleep' && false)) { if (!bubbleEl.hidden) bubbleEl.hidden = true; return; }
-      const p = 1 - Math.max(0, a.left) / a.total;
-      const key = a.id;
-      if (bubKey !== key) { bubbleEl.innerHTML = `<span class="lh-bub">${ic(ACT_IC[a.id] || 'fun')}</span>`; bubKey = key; }
+      const a = s.act, want = !a && !s.queue.length ? critical() : null;
+      if ((!a && !want) || hv.hide || hv.sx == null || mode === 'map') { if (!bubbleEl.hidden) bubbleEl.hidden = true; return; }
+      const key = a ? a.id : 'want:' + want;
+      if (bubKey !== key) {
+        bubbleEl.innerHTML = `<span class="lh-bub">${ic(a ? ACT_IC[a.id] || 'fun' : NEED_IC[want])}</span>`;
+        bubbleEl.className = `lh-bubble${a ? '' : ' want'}`;
+        if (want) { bubbleEl.dataset.need = want; bubbleEl.setAttribute('role', 'button'); bubbleEl.setAttribute('aria-label', T('lf_' + want)); } else { delete bubbleEl.dataset.need; bubbleEl.removeAttribute('role'); }
+        bubKey = key;
+      }
       bubbleEl.hidden = false;
-      bubbleEl.style.transform = `translate(${Math.round(hv.sx - 17)}px, ${Math.round(hv.sy - 40)}px)`;
-      bubbleEl.style.setProperty('--p', `${Math.round(p * 360)}deg`);
+      const tr = `translate(${Math.round(hv.sx - 17)}px, ${Math.round(hv.sy - 40)}px)`;
+      bubbleEl.style.transform = tr;
+      bubbleEl.style.setProperty('--tr', tr);
+      bubbleEl.style.setProperty('--p', a ? `${Math.round((1 - Math.max(0, a.left) / a.total) * 360)}deg` : '360deg');
     }
 
     /* ---------- ciclo ---------- */
@@ -388,7 +449,7 @@
     function radial(px, py, opts, onPick) {
       if (!opts.length) return;
       ctx.sfx.pick();
-      const n = opts.length, R0 = n > 3 ? 72 : 64;
+      const n = opts.length, R0 = n > 6 ? 88 : n > 3 ? 72 : 64;
       const span = n > 4 ? Math.PI * 2 : Math.PI * 0.95, a0 = n > 4 ? -Math.PI / 2 : -Math.PI / 2 - span / 2;
       const cx = Math.max(R0 + 36, Math.min(W - R0 - 36, px)), cy = Math.max(n > 4 ? R0 + 30 : R0 + 34, Math.min(H - (n > 4 ? R0 + 40 : 40), py));
       layerEl.className = 'lh-layer lh-radial';
@@ -405,20 +466,40 @@
         if (o) onPick(o);
       };
     }
+    // comando del giocatore: subito se Hari è libero (o fa da sé), altrimenti in coda
     function doStart(id, opt) {
-      const r = L.start(s, id, opt);
+      const r = L.order(s, id, opt);
       if (!r.ok) { refuse(r.why); return false; }
+      afterOrder(r, id);
+      return r;
+    }
+    function afterOrder(r, id, k) {
       ctx.sfx.tap();
       friendV = null;
       if (paused) resume();
+      if (r.queued) toast(`${actName(id)} · ${T('lf_queued')}`, ACT_IC[id] || 'fun');
+      else if (k) toast(`${T('lf_' + k)} → ${actName(id)}`, ACT_IC[id] || NEED_IC[k], 'good');
       ui(); ctx.changed();
-      return true;
+    }
+    // tocco su un indicatore: la cosa giusta per quel bisogno, con l'oggetto migliore di casa
+    function quickNeed(k) {
+      dismissCoach();
+      const r = L.quick(s, k);
+      if (!r.ok) {
+        if (r.why === 'nofood') say(T('lf_w_nofood'));
+        refuse(r.why);
+        return;
+      }
+      afterOrder(r, r.id, k);
+      if (r.now && !s.away) hv.joy = 0.6;
     }
     function lowestFriend() { let k = 0; s.friends.forEach((f, i) => { if (f.f < s.friends[k].f) k = i; }); return k; }
     function pickOption(o, base) {
       if (!o.ok) { refuse(o.why); return; }
-      if (o.id === 'stop') { L.stop(s); ctx.sfx.set(); ui(); ctx.changed(); return; }
+      if (o.id === 'stop') { onEvents(L.cancel(s, -1).ev); ctx.sfx.set(); ui(); ctx.changed(); return; }
+      if (o.id === 'town') { openMap(false); return; }
       const opt = Object.assign({}, base);
+      if (o.u != null) opt.u = o.u;
       if (o.id === 'call' || o.id === 'invite') opt.f = lowestFriend();
       doStart(o.id, opt);
     }
@@ -427,7 +508,7 @@
     let down = null;
     function pos(e) { const r = stage.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     function onDown(e) {
-      if (e.target.closest('.lh-rbtn, .lh-sheet, .lh-place-bar, .lh-map, .lh-toast')) return;
+      if (e.target.closest('.lh-rbtn, .lh-sheet, .lh-place-bar, .lh-map, .lh-toast, .lh-queue, .lh-bubble.want, .lh-coach')) return;
       if (e.target.closest('.lh-pause')) { e.preventDefault(); resume(); return; }
       if (layerEl.classList.contains('lh-radial') && !e.target.closest('.lh-rbtn')) { closeLayer(); return; }
       if (!e.target.closest('.lh-stage')) return;
@@ -680,45 +761,75 @@
     function openMap(auto) {
       if (mode === 'build') exitBuild();
       closeSheet(); closeLayer();
+      unnudge('town');
+      if (mode !== 'map') { mapView = !s.away; shopScene = false; }
+      if (auto) mapView = false;
       mode = 'map'; mapAuto = !!auto;
       let m = stage.querySelector('.lh-map');
       if (!m) { m = document.createElement('div'); m.className = 'lh-map'; stage.insertBefore(m, layerEl); }
       renderMap();
       ui();
     }
+    // scena animata del luogo dove si trova Hari (o il negozio di mobili)
+    function sceneKind() {
+      if (shopScene) return 'shop';
+      const a = s.act;
+      if (!s.away || !a || mapView) return null;
+      if (a.id === 'office') return s.biz ? s.biz.type : 'bakery';
+      return ACT_SCENE[a.id] || null;
+    }
+    function sceneKey() { const a = s.act; return `${sceneKind()}|${a ? `${a.f}|${a.nf}` : ''}|${s.friends.length}|${L.phase(s)}`; }
     function renderMap() {
       const m = stage.querySelector('.lh-map');
       if (!m) return;
+      const sk = sceneKind();
+      if (sk) {
+        const a = s.act, fr = a && a.f >= 0 && s.friends[a.f] ? s.friends[a.f].k : null, nf = a && a.nf != null && s.friends[a.nf] ? s.friends[a.nf].k : null;
+        const place = sk === 'shop' ? 'shop' : ACT_PLACE[a.id];
+        m.innerHTML = `<div class="lh-scene" data-scene="${sk}">${ART.scene(sk, { ph: L.phase(s), night: 1 - L.daylight(s), season: L.clock(s).season, friend: fr, nf, label: T('lf_m_friend') })}
+          <div class="lh-scene-top">${ic(ART.PLACE_IC[place])}<span>${T('lf_p_' + place)}</span></div></div><div class="lh-away" hidden></div>`;
+        mapKey = mapStateKey();
+        updateAway();
+        return;
+      }
       const names = {};
       D.PLACES.forEach((p) => { names[p] = T('lf_p_' + p); });
       const here = s.away || null;
       m.innerHTML = ART.map({ season: L.clock(s).season, biz: s.biz ? s.biz.level : 0, night: 1 - L.daylight(s), names, here, hari: here ? ART.hari(L.phase(s), s.act && s.act.id === 'faint' ? 'sleep' : 'joy', 0) : null }) + '<div class="lh-away" hidden></div>';
-      mapKey = `${here}|${L.clock(s).season}|${L.daylight(s) > 0.5}|${s.biz ? s.biz.level : 0}`;
+      mapKey = mapStateKey();
       updateAway();
     }
     let mapKey = '';
+    const mapStateKey = () => `${s.away}|${L.clock(s).season}|${L.daylight(s) > 0.5}|${s.biz ? s.biz.level : 0}|${mapView}|${sceneKey()}`;
     function updateAway() {
       const m = stage.querySelector('.lh-map');
       if (!m) return;
-      const key = `${s.away}|${L.clock(s).season}|${L.daylight(s) > 0.5}|${s.biz ? s.biz.level : 0}`;
-      if (key !== mapKey) { renderMap(); return; }
+      if (mapStateKey() !== mapKey) { renderMap(); return; }
       const box = m.querySelector('.lh-away');
-      if (s.away && s.act) {
+      if (shopScene) {
+        box.hidden = false;
+        if (!box.firstChild) box.innerHTML = `${ic('relax')}<span class="lh-grow">${T('lf_p_shop')}</span><button class="lh-btn" data-catalog="1">${ic('build')}${T('lf_build')}</button><button class="lh-x" data-mapview="1" aria-label="${T('lf_town')}">${ic('town')}</button>`;
+      } else if (s.away && s.act) {
         const p = 1 - Math.max(0, s.act.left) / s.act.total;
         box.hidden = false;
-        if (!box.firstChild) box.innerHTML = `${ic(ACT_IC[s.act.id] || 'go')}<span>${actName(s.act.id)}</span><span class="lh-prog"><b></b></span>${s.act.id === 'faint' ? '' : `<button class="lh-x" data-stop="1" aria-label="${T('lf_stop')}">${ic('home')}</button>`}`;
+        if (!box.firstChild) box.innerHTML = `${ic(ACT_IC[s.act.id] || 'go')}<span class="lh-grow">${actName(s.act.id)}</span><span class="lh-prog"><b></b></span>${s.act.id === 'faint' ? '' : `<button class="lh-x" data-mapview="1" aria-label="${T('lf_town')}">${ic(mapView ? 'play' : 'town')}</button><button class="lh-x" data-stop="1" aria-label="${T('lf_stop')}">${ic('home')}</button>`}`;
         box.querySelector('.lh-prog b').style.width = `${Math.round(p * 100)}%`;
+        // nella scena le cose compaiono man mano (frutta nel carrello, cerotto, pane in vetrina…)
+        const st = Math.floor(p * 5);
+        m.querySelectorAll('.lh-scene [data-k]').forEach((x) => x.classList.toggle('on', +x.dataset.k <= st));
       } else { box.hidden = true; box.innerHTML = ''; }
     }
-    function closeMap() { const m = stage.querySelector('.lh-map'); if (m) m.remove(); if (mode === 'map') mode = 'home'; mapAuto = false; ui(); }
+    function closeMap() { const m = stage.querySelector('.lh-map'); if (m) m.remove(); if (mode === 'map') mode = 'home'; mapAuto = false; mapView = false; shopScene = false; ui(); }
     function onMapClick(e) {
-      if (e.target.closest('[data-stop]')) { L.stop(s); ctx.sfx.set(); closeMap(); ctx.changed(); return; }
+      if (e.target.closest('[data-stop]')) { onEvents(L.cancel(s, -1).ev); ctx.sfx.set(); closeMap(); ctx.changed(); return; }
+      if (e.target.closest('[data-mapview]')) { ctx.sfx.tap(); if (shopScene) shopScene = false; else mapView = !mapView; renderMap(); ui(); return; }
+      if (e.target.closest('[data-catalog]')) { shopScene = false; enterBuild('rest'); return; }
       const pl = e.target.closest('[data-place]');
       if (!pl) return;
       const id = pl.dataset.place;
       ctx.sfx.tap();
       if (id === 'home') { if (s.away && s.act && s.act.id !== 'faint') L.stop(s); closeMap(); return; }
-      if (id === 'shop') { enterBuild('rest'); return; }
+      if (id === 'shop') { shopScene = true; renderMap(); ui(); return; }
       if (id === 'market') { openMarket(); return; }
       const act = PLACE_ACT[id], o = L.options(s, { place: id })[0];
       const A0 = ACTS[act];
@@ -743,7 +854,7 @@
       d.onclick = (e) => {
         const b = e.target.closest('[data-q]');
         if (b) { const q = +b.dataset.q, dd = +b.dataset.d, n = qty[0] + qty[1] + qty[2]; if (dd > 0 && n >= free) { refuse('full'); return; } qty[q] = Math.max(0, qty[q] + dd); ctx.sfx.tap(); upd(); return; }
-        if (e.target.closest('[data-buyfood]')) { if (doStart('shop', { buy: qty.slice() })) { closeSheet(); openMap(true); } return; }
+        if (e.target.closest('[data-buyfood]')) { const r = doStart('shop', { buy: qty.slice() }); if (r) { closeSheet(); unnudge('town'); if (r.now) openMap(true); } return; }
         if (e.target.closest('[data-sh="close"]')) closeSheet();
       };
       if (!cap) toast(T('lf_w_full'), 'fridge');
@@ -777,6 +888,7 @@
           <div><b>${ic('cake')} ${ag}</b><p>${T('lf_ph' + ph)}${s.gen > 1 ? ` · ${ic('life')}×${s.gen}` : ''}</p><p>${ic('sun')} ${ck.day} · ${ic(['beauty', 'sun', 'leaf', 'snow'][ck.season])}</p>
           <p>${ic('beauty')} <span class="lh-meter" style="display:inline-block;width:96px;margin:0 0 0 2px;vertical-align:middle"><b style="width:${Math.round(L.beauty(s) * 100)}%"></b></span></p></div></div>
         ${friends ? `<div class="lh-li">${ic('social')}<span class="lh-grow">${friends}</span></div>` : ''}
+        <div class="lh-li">${ic('life')}<span class="lh-grow">${T('lf_free')}</span><button class="lh-btn${s.free ? '' : ' ghost'}" data-free="1" aria-pressed="${s.free ? 'true' : 'false'}">${ic(s.free ? 'check' : 'close')}</button></div>
         <h3 class="lh-h">${ic('trophy')} ${T('lf_goals')}</h3><div class="lh-list">${goals}</div>
         <div class="lh-foot">${ag >= D.RETIRE_AGE && !s.retired ? `<button class="lh-btn" data-retire="1">${ic('life')}${T('lf_retire')}</button>` : ''}${ag >= D.GEN_AGE ? `<button class="lh-btn ghost" data-newgen="1">${ic('cake')}${T('lf_newgen')}</button>` : ''}</div>`, { full: true });
     }
@@ -789,10 +901,11 @@
       if (!sh) return;
       if (e.target.closest('[data-sh="close"]')) { closeSheet(); ctx.sfx.set(); return; }
       const go = e.target.closest('[data-go]');
-      if (go) { if (go.dataset.no) { refuse(go.dataset.no); return; } if (doStart(go.dataset.go)) { closeSheet(); renderMap(); } return; }
+      if (go) { if (go.dataset.no) { refuse(go.dataset.no); return; } const r = doStart(go.dataset.go); if (r) { closeSheet(); if (r.now) { mapView = false; mapAuto = true; } renderMap(); } return; }
       const pk = e.target.closest('[data-pick]');
       if (pk) { L.chooseBiz(s, pk.dataset.pick); ctx.sfx.milestone(); openBiz(); ctx.changed(); return; }
-      if (e.target.closest('[data-work]')) { const b = s.biz; const ok = b.level >= 2 ? doStart('office') : doStart('work'); if (ok) { closeSheet(); if (b.level >= 2) openMap(true); } return; }
+      if (e.target.closest('[data-work]')) { const b = s.biz; const ok = b.level >= 2 ? doStart('office') : doStart('work'); if (ok) { closeSheet(); if (b.level >= 2 && ok.now) openMap(true); } return; }
+      if (e.target.closest('[data-free]')) { s.free = !s.free; s.calm = 0; ctx.sfx.tap(); openLife(); ctx.changed(); return; }
       const stn = e.target.closest('[data-station]');
       if (stn) { const id = stn.dataset.station; if (s.money < ITEMS[id].p) { refuse('money'); return; } closeSheet(); enterBuild('work'); startGhost(id); return; }
       if (e.target.closest('[data-hire]')) { if (L.hire(s).ok) { ctx.sfx.place(); openBiz(); ctx.changed(); } return; }
@@ -813,14 +926,23 @@
       if (t.closest('.lh-sheet')) { onSheetClick(e); return; }
       const sp = t.closest('[data-speed]');
       if (sp) { const n = +sp.dataset.speed; if (!n) { paused ? resume() : pause(); } else { s.speed = n; if (paused) resume(); ctx.sfx.tap(); } ui(); return; }
+      if (t.closest('[data-coach]')) { dismissCoach(); ctx.sfx.tap(); return; }
+      const qb = t.closest('[data-q]');
+      if (qb && t.closest('.lh-queue')) {
+        const i = +qb.dataset.q, away = !!s.away;
+        const r = L.cancel(s, i);
+        if (r.ok) { ctx.sfx.set(); onEvents(r.ev); if (i < 0 && away && !s.away && mode === 'map') closeMap(); ui(); ctx.changed(); }
+        return;
+      }
       const nd = t.closest('[data-need]');
-      if (nd) { const k = nd.dataset.need; toast(`${T('lf_' + k)} ${Math.round(s.needs[k] * 100)}%`, NEED_IC[k]); ctx.sfx.tap(); return; }
+      if (nd && mode !== 'build') { quickNeed(nd.dataset.need); return; }
       const dk = t.closest('[data-dock]');
       if (dk) {
         const k = dk.dataset.dock;
         ctx.sfx.tap();
+        unnudge(k);
         if (k === 'build') { if (mode === 'build') exitBuild(); else enterBuild(); }
-        else if (k === 'town') { if (mode === 'map' && !s.away) closeMap(); else openMap(false); }
+        else if (k === 'town') { if (mode === 'map' && !s.away && !shopScene) closeMap(); else if (mode === 'map') { shopScene = false; mapView = s.away ? !mapView : true; renderMap(); ui(); } else openMap(false); }
         else if (sheet && sheet.kind === k) closeSheet();
         else if (k === 'biz') openBiz();
         else if (k === 'life') openLife();
@@ -851,6 +973,7 @@
     }
     if (el._lhDetach) el._lhDetach();
     el._lhDetach = detach;
+    el._lhState = () => s;   // per i test end-to-end (Playwright): lo stato vivo della partita
     G.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onVis);
 
@@ -859,6 +982,7 @@
       stop();
       s = state;
       Object.assign(hv, { x: s.hx, y: s.hy, tx: s.hx, ty: s.hy, path: [], hide: !!s.away, joy: 0 });
+      coachEl = null; qKey = ''; mapView = false; shopScene = false;
       paused = false; mode = 'home'; sheet = null; ghost = wallGhost = preview = null; sel = null; parts = [];
       build();
       if (startPaused) { paused = true; pauseEl.hidden = false; ui(); }
@@ -878,10 +1002,10 @@
 
   /* ---------- tutorial ---------- */
   const TUT = [
-    { key: 'tu_life_1', en: 'Hari has just moved into a shabby little studio. Tap Hari, the furniture or the floor to choose what to do.',
+    { key: 'tu_life_1', en: 'Hari has just moved into a shabby little studio. Tap the icons at the top to tell him what to do: moon = sleep, tummy = eat, drop = wash, star = fun, friends = call. Tap Hari or the furniture for more!',
       art: `<svg viewBox="0 0 120 90" aria-hidden="true">${ART.room({ ox: 60, oy: 30, hw: 12.5, old: true, hariCls: 'lh-tut-hari' })}${HH.tutHand ? HH.tutHand(74, 58) : ''}</svg>` },
-    { key: 'tu_life_2', en: 'Watch the bars: tummy, energy, clean, fun, friends and health. Sport, rest and a pretty home keep stress low!',
-      art: `<svg viewBox="0 0 120 90" aria-hidden="true">${['food', 'energy', 'hygiene', 'fun', 'social', 'stress'].map((k, i) => `<g transform="translate(${8 + (i % 3) * 36} ${10 + Math.floor(i / 3) * 38})"><rect width="32" height="32" rx="9" fill="var(--card-solid)" stroke="var(--line-2)" stroke-width="2"/><g transform="translate(6 3) scale(.84)" style="color:var(--ink)">${ART.icon(NEED_IC[k]).replace('class="lh-ic"', 'width="24" height="24"')}</g><rect x="5" y="25" width="22" height="4" rx="2" fill="var(--lh-bar)"/><rect class="${i === 5 ? 'lh-tut-pop' : ''}" x="5" y="25" width="${[18, 9, 14, 20, 6, 15][i]}" height="4" rx="2" fill="${[18, 9, 14, 20, 6, 15][i] < 8 ? 'var(--lh-low)' : 'var(--lh-good)'}"/></g>`).join('')}</svg>` },
+    { key: 'tu_life_2', en: 'Hari also looks after himself when a need runs low; a blinking red icon means he really needs it. Your orders wait in the list at the bottom: tap one to cancel it.',
+      art: `<svg viewBox="0 0 120 90" aria-hidden="true">${['food', 'energy', 'hygiene', 'fun', 'social', 'stress'].map((k, i) => `<g transform="translate(${8 + (i % 3) * 36} ${10 + Math.floor(i / 3) * 38})"><rect width="32" height="32" rx="9" fill="var(--card-solid)" stroke="var(--line-2)" stroke-width="2"/><g transform="translate(6 3) scale(.84)" style="color:var(--ink)">${ART.icon(NEED_IC[k]).replace('class="lh-ic"', 'width="24" height="24"')}</g><rect x="5" y="25" width="22" height="4" rx="2" fill="var(--lh-bar)"/><rect class="${i === 5 ? 'lh-tut-pop' : ''}" x="5" y="25" width="${[18, 9, 14, 20, 6, 15][i]}" height="4" rx="2" fill="${[18, 9, 14, 20, 6, 15][i] < 8 ? 'var(--lh-low)' : 'var(--lh-good)'}"/></g>`).join('')}${HH.tutHand ? HH.tutHand(62, 30) : ''}</svg>` },
     { key: 'tu_life_3', en: 'Build: fix the damage (tap the wrenches), buy furniture, floors and wallpaper. A beautiful home puts Hari in a good mood.',
       art: `<svg viewBox="0 0 120 90" aria-hidden="true">${ART.room({ ox: 60, oy: 30, hw: 12.5, hari: false })}<g class="lh-tut-pop"><circle cx="34" cy="26" r="8" fill="var(--lh-sign)" stroke="var(--lh-ink)" stroke-width="1.4"/><g transform="translate(28 20) scale(.5)" style="color:var(--lh-sel)">${ART.icon('repair').replace('class="lh-ic"', 'width="24" height="24"')}</g></g>${HH.tutHand ? HH.tutHand(40, 36) : ''}</svg>` },
     { key: 'tu_life_4', en: 'In town: market, doctor, park, café and your business. Work to earn acorns and grow from a home stall to a chain. Life goes on, year after year!',
