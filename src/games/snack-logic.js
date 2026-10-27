@@ -75,25 +75,25 @@
   function config(level) {
     const L = Math.max(1, level | 0);
     const tier = L <= 2 ? 0 : L <= 5 ? 1 : L <= 9 ? 2 : L <= 14 ? 3 : 4;
-    const waves = Math.min(12, 4 + Math.ceil(L / 2));                // 5 · 5 · 6 · 6 · 7 … 12
+    const waves = Math.min(13, 5 + Math.ceil(L / 2));                // 6 · 6 · 7 · 7 · 8 … 13
     return {
       level: L, tier, waves,
-      speed: +Math.min(5.2, 2.8 + 0.16 * (L - 1)).toFixed(2),        // metri/s degli animali (e del sentiero)
-      waveGap: +Math.max(5.2, 9.6 - 0.3 * (L - 1)).toFixed(2),        // secondi tra un'ondata e l'altra
-      pressure: +Math.min(0.32, 0.11 + 0.016 * (L - 1)).toFixed(3),  // quanto "pesa" un'ondata rispetto al potere garantito
-      maxCount: Math.min(16, 3 + L),                                  // animali per ondata, al massimo
-      needMul: +(1 + 0.06 * (L - 1)).toFixed(2),                      // fame degli animali grandi
+      speed: +Math.min(6.4, 3.4 + 0.2 * (L - 1)).toFixed(2),        // metri/s degli animali (e del sentiero)
+      waveGap: +Math.max(4.4, 8.2 - 0.3 * (L - 1)).toFixed(2),        // secondi tra un'ondata e l'altra
+      pressure: +Math.min(0.54, 0.36 + 0.025 * (L - 1)).toFixed(3),   // quanto "pesa" un'ondata rispetto al potere garantito: chi sbaglia porta resta indietro
+      maxCount: Math.min(22, 6 + L),                                  // animali per ondata, al massimo
+      needMul: +(1 + 0.08 * (L - 1)).toFixed(2),                      // fame degli animali grandi
       gates: Math.min(waves - 1, 3 + Math.floor(L / 3)),             // porte (singole o in coppia)
-      negatives: L >= 4,                                              // porte "cattive" (−1, −2) in coppia con una buona
-      halve: L >= 8,                                                  // anche ÷2
+      negatives: L >= 2,                                              // porte "cattive" (−1, −2) in coppia con una buona
+      halve: L >= 6,                                                  // anche ÷2
       boss: BOSSES[(L - 1) % BOSSES.length],
-      bossNeed: Math.min(450, 150 + 20 * (L - 1)),                   // bocconi per riempire l'animalone
-      bossV: +Math.min(1.1, 0.42 + 0.045 * (L - 1)).toFixed(3),       // velocità laterale del boss
+      bossNeed: Math.min(560, 200 + 22 * (L - 1)),                   // bocconi per riempire l'animalone
+      bossV: +Math.min(1.3, 0.5 + 0.055 * (L - 1)).toFixed(3),       // velocità laterale del boss
       // un soffio alla volta in aria (volo ≈ 1,3 s): c'è sempre una via di fuga
-      blowIv: +Math.max(2, 2.9 - 0.07 * (L - 1)).toFixed(2),         // secondi tra un lancio e l'altro
-      blowN: L < 4 ? 1 : L < 10 ? 2 : 3,                              // oggetti per soffio
+      blowIv: +Math.max(1.8, 2.6 - 0.07 * (L - 1)).toFixed(2),         // secondi tra un lancio e l'altro
+      blowN: L < 3 ? 1 : L < 8 ? 2 : 3,                              // oggetti per soffio
       powerMax: Math.min(POWER_MAX, 4 + L),                           // merende per lancio al massimo: 5 al livello 1, 10 dal 6
-      call: L >= 6 ? +Math.max(5, 9 - 0.25 * (L - 6)).toFixed(2) : 0,   // l'animalone chiama amici affamati ogni tot secondi
+      call: L >= 4 ? +Math.max(4.5, 8.5 - 0.3 * (L - 4)).toFixed(2) : 0,   // l'animalone chiama amici affamati ogni tot secondi
       kinds: KINDS.filter((k) => ANIMALS[k].from <= L),
     };
   }
@@ -120,14 +120,14 @@
   function makeGate(cfg, rnd, idx) {
     const L = cfg.level;
     const good = GOOD.filter((op) => (op === '+3' || op === 'x2' ? L >= 3 : op === 'x3' ? L >= 6 : true));
-    const bad = BAD.filter((op) => (op === '/2' ? cfg.halve : op === '-2' ? L >= 6 : cfg.negatives));
+    const bad = BAD.filter((op) => (op === '/2' ? cfg.halve : op === '-2' ? L >= 4 : cfg.negatives));
     const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
     // la prima porta è sempre buona e singola: si impara a passarci in mezzo
     const pairChance = idx === 0 ? 0 : Math.min(0.85, 0.45 + 0.03 * L);
     const a = pick(good);
     let b = null;
     if (rnd() < pairChance) {
-      if (bad.length && rnd() < Math.min(0.75, 0.3 + 0.04 * L)) b = pick(bad);
+      if (bad.length && rnd() < Math.min(0.85, 0.5 + 0.04 * L)) b = pick(bad);
       else { b = pick(good); if (b === a) b = good[(good.indexOf(a) + 1) % good.length]; }
     }
     const left = rnd() < 0.5;

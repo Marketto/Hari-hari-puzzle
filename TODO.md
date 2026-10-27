@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.10.1)
+- [x] Hari Snack Rush più sfidante: animali più veloci e numerosi, ondate più fitte, porte cattive dal livello 2 (−2 dal 4, ÷2 dal 6) e più frequenti, animalone più goloso che chiama amici dal livello 4 e soffia di più; le porte contano (chi sceglie a caso perde spesso dal livello 5)
+
 ## Fatto (v0.10.0)
 - [x] Nuovo gioco **Hari Snack Rush** (azione stile mob control, senza violenza): sentiero in pseudo-prospettiva su canvas, Hari lancia semi e frutta a ventaglio, animali affamati che tornano a casa felici, porte ×/+/−/÷, animalone goloso a rotazione (scoiattolo, orso polare, gufo, gattino) che soffia gusci/bolle/foglie/petali; brano `snack`, tutorial, test con bot
 - [x] Traduzioni delle 11 chiavi nuove (`r11`, `sr_*`, `tu_snack_*`) in 43 lingue
@@ -109,6 +112,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.10.1 · `npm test` · Snack Rush: bot attento/lento/impreciso e bot con porte a caso, livelli 1–15
 - 2026-10-27 v0.10.0 · `npm test` · Hari Snack Rush: ondate, porte, animalone, vittoria, sconfitta; temi chiaro/scuro; testi in it/ja/ar
 - 2026-10-27 v0.9.3 · `npm test` · Sushi Bar: galleria di ingredienti e piatti, bot cuoco su livelli 1–15
 - 2026-10-27 v0.9.2 · `npm test` · Hari Knots: livelli 1/6/22 risolti, tocco su corda bloccata, sconfitta per mosse finite; testi in 43 lingue

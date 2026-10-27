@@ -41,7 +41,7 @@ col bavaglino: quando la sua pancia è piena si addormenta felice (Zzz) e il liv
   (rimbalza ai lati e ogni tanto cambia idea). Soffia cose **innocue e buffe** che arrivano ad arco: gusci di noce
   (scoiattolo), bolle (orso polare), foglie (gufo), petali (gattino). Dove cadranno c'è un **cerchietto tratteggiato**
   che pulsa sul sentiero. Se finiscono sul naso di Hari ("Boop!") la merenda cade → −1 cuore.
-  Dal livello 6 chiama 3 amichetti affamati (piccoli) ogni 5–9 s. La sua barra è la **pancia che si riempie**
+  Dal livello 4 chiama 3 amichetti affamati (piccoli) ogni 4,5–8,5 s. La sua barra è la **pancia che si riempie**
   (non energia che cala); piena = si addormenta = `ctx.win()`.
 
 ## Fragoline e punteggio
@@ -54,20 +54,24 @@ Gradini (`tier`): 0 = livelli 1–2 · 1 = 3–5 · 2 = 6–9 · 3 = 10–14 · 
 
 | | L1 | L3 | L6 | L10 | L15+ |
 |---|---|---|---|---|---|
-| Ondate | 5 | 6 | 7 | 9 | 12 (max) |
-| Velocità (m/s) | 2,8 | 3,12 | 3,6 | 4,24 | 5,04 (max 5,2) |
-| Secondi tra ondate | 9,6 | 9,0 | 8,1 | 6,9 | 5,4 (min 5,2) |
-| Pressione (fame/ondata ÷ potere garantito) | 0,11 | 0,14 | 0,19 | 0,25 | 0,32 (max) |
-| Animali per ondata (max) | 4 | 6 | 9 | 13 | 16 |
+| Ondate | 6 | 7 | 8 | 10 | 13 (max) |
+| Velocità (m/s) | 3,4 | 3,8 | 4,4 | 5,2 | 6,2 (max 6,4) |
+| Secondi tra ondate | 8,2 | 7,6 | 6,7 | 5,5 | 4,4 (min) |
+| Pressione (fame/ondata ÷ potere garantito) | 0,36 | 0,41 | 0,485 | 0,54 (max) | 0,54 |
+| Animali per ondata (max) | 7 | 9 | 12 | 16 | 21 |
 | Porte | 3 | 4 | 5 | 6 | 8 |
-| Porte cattive | no | no | −1 −2 | −1 −2 | −1 −2 ÷2 (dal L8) |
+| Porte cattive | no | −1 | −1 −2 ÷2 | −1 −2 ÷2 | −1 −2 ÷2 |
 | Merende per lancio (max) | 5 | 7 | 10 | 10 | 10 |
 | Animalone | scoiattolo | gufo | orso polare | orso polare | gufo (rotazione di 4) |
-| Bocconi animalone | 150 | 190 | 250 | 330 | 430 (max 450) |
-| Soffi | 1 ogni 2,9 s | 1 ogni 2,76 s | 2 ogni 2,55 s | 3 ogni 2,27 s | 3 ogni 2,0 s |
-| Amici chiamati | no | no | ogni 9 s | ogni 8 s | ogni 6,75 s |
+| Bocconi animalone | 200 | 244 | 310 | 398 | 508 (max 560) |
+| Soffi | 1 ogni 2,6 s | 2 ogni 2,46 s | 2 ogni 2,25 s | 3 ogni 1,97 s | 3 ogni 1,8 s |
+| Amici chiamati | no | no (dal L4) | ogni 7,9 s | ogni 6,7 s | ogni 5,2 s |
 
-Livello 1: circa 55 s per il bot, 60–90 s per un bambino (5 ondate da pulcini, 3 porte buone, scoiattolo).
+La pressione alta fa sì che **le porte contino**: chi sceglie il lato a caso perde spesso dal livello 5 (test dedicato).
+Misure con bot (4 semi per livello): il bot attento (reazione 0,3 s) vince tutto fino all'11 e quasi sempre dal 12 al 15;
+chi sceglie le porte a caso perde la maggior parte delle partite dal livello 5.
+
+Livello 1: circa 62 s per il bot (6 ondate, 3 porte buone, scoiattolo).
 
 ## Algoritmo
 `newLevel(level, rnd)` genera un **copione** (JSON) di eventi a tempo: animali (`a`, tipo, x, distanza oltre l'orizzonte),
@@ -75,7 +79,7 @@ porte (`g`, operazione a sinistra/destra) e inizio ondata (`w`). Poi tutto è de
 (`step` accumula il tempo reale, `tick` fa un passo) e generatore interno nello stato (`rs`, mulberry32).
 
 - **Porte**: a metà tra un'ondata e l'altra, distribuite su tutto il livello. In coppia con probabilità
-  `min(0,85; 0,45 + 0,03·L)`; la seconda è cattiva con probabilità `min(0,75; 0,3 + 0,04·L)` (dal livello 4),
+  `min(0,85; 0,45 + 0,03·L)`; la seconda è cattiva con probabilità `min(0,85; 0,5 + 0,04·L)` (dal livello 2; −2 dal 4, ÷2 dal 6),
   altrimenti un'altra buona diversa. **Ogni porta ha sempre almeno un lato buono.**
 - **Potere garantito** `gp`: il potere che si ha scegliendo sempre il lato migliore. Ogni ondata ha una fame totale
   `≈ pressione · gp · (secondi tra ondate / 0,3 s)`: le ondate crescono solo quanto le porte permettono.
@@ -105,7 +109,7 @@ insegue l'animale più vicino, schiva i soffi) con un po' di imprecisione:
 - vince i livelli 1–15 su 4 semi con al più una merenda rubata; nessun animale nutrito "sparisce" senza saziarsi;
 - livello 1 tra 40 e 75 s, senza porte cattive; un bot più lento (0,45 s) e impreciso vince i livelli 1–6;
 - determinismo (stessi input = stessa partita, ripresa da JSON a metà, passi di durata diversa);
-- porte (operazioni, massimo per livello, sempre un lato buono, negative dal 4, ÷2 dall'8, lato sinistro/destro);
+- porte (operazioni, massimo per livello, sempre un lato buono, negative dal 2, −2 dal 4, ÷2 dal 6, lato sinistro/destro);
 - ventaglio e merende; fame e sazietà; merenda rubata, grazia, condivisione e sconfitta; animalone che si riempie e rotazione;
 - via di fuga dai soffi; difficoltà monotona con ≥ 4 gradini; `newLevel` < 10 ms (in pratica < 0,3 ms).
 `tools/selftest.mjs` (`npm run bench`) controlla 5 gradini.

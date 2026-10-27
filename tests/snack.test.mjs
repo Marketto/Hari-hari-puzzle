@@ -64,13 +64,15 @@ function play(s, { react = 0.3, noise = 0.06, seed = 1, limit = 400 } = {}) {
 }
 const fresh = (level, seed) => { const s = S.newLevel(level, HH.rng(seed)); s.ready = 0; return s; };
 
-test('il bot (reazione 0,3 s) vince i livelli 1–15 su 4 semi', () => {
+test('il bot (reazione 0,3 s) vince i livelli 1–11 su 4 semi; dal 12 al 15 al massimo 2 sconfitte su 16', () => {
+  let hardLost = 0;
   for (let level = 1; level <= 15; level++) {
     for (let k = 0; k < 4; k++) {
       const s = fresh(level, level * 1000 + k);
       const ev = play(s, { seed: level * 7 + k });
+      if (level >= 12 && !S.isWon(s)) { hardLost++; continue; }
       assert.ok(S.isWon(s), `livello ${level} seme ${k}: perso (${s.oops} merende rubate, pancia ${s.bossFed}/${s.bossMax})`);
-      assert.ok(s.oops <= 1, `livello ${level} seme ${k}: ${s.oops} merende rubate`);
+      if (level <= 11) assert.ok(s.oops <= 1, `livello ${level} seme ${k}: ${s.oops} merende rubate`);
       assert.equal(S.progress(s), 1);
       assert.ok(ev.some((e) => e.type === 'boss') && ev.some((e) => e.type === 'win'));
       // ogni animale arrivato è stato saziato o è tornato a casa: nessuno "sparisce"
@@ -80,6 +82,7 @@ test('il bot (reazione 0,3 s) vince i livelli 1–15 su 4 semi', () => {
       for (const id of born) assert.ok(gone.has(id), `animale ${id} mai saziato`);
     }
   }
+  assert.ok(hardLost <= 2, `livelli 12–15: ${hardLost} sconfitte`);
 });
 
 test('livello 1: facile e breve (60–90 s per un giocatore, < 75 s per il bot) senza porte negative', () => {
@@ -100,6 +103,30 @@ test('anche un bot più lento (0,45 s) e impreciso vince i primi livelli', () =>
   }
 });
 
+test('le porte contano: chi le sceglie a caso perde spesso dal livello 5 in su', () => {
+  let lost = 0, games = 0;
+  for (let level = 5; level <= 15; level++) {
+    for (let k = 0; k < 3; k++) {
+      const s = fresh(level, level * 333 + k);
+      const rnd = HH.rng(level * 11 + k);
+      const pick = new Map();
+      let t = 0, next = 0, target = 0;
+      for (let f = 0; f < 400 * 60 && !S.isOver(s); f++) {
+        t += DT;
+        if (t >= next) {
+          next = t + 0.3;
+          const g = s.gates.filter((x) => x.z < 9).sort((a, b) => a.z - b.z)[0];
+          if (g) { const key = `${g.l}|${g.r}|${g.id ?? g.z0 ?? ''}`; if (!pick.has(g)) pick.set(g, rnd() < 0.5 ? -0.42 : 0.42); target = pick.get(g); }
+          else target = decide(s, rnd, 0.06);
+        }
+        S.step(s, DT, { x: target });
+      }
+      games++; if (!S.isWon(s)) lost++;
+    }
+  }
+  assert.ok(lost / games >= 0.5, `perse solo ${lost}/${games}`);
+});
+
 test('determinismo: stesso seme e stessi input = stessa partita; ripresa da JSON a metà', () => {
   const a = fresh(6, 77), b = fresh(6, 77);
   assert.deepEqual(a, b);
@@ -118,7 +145,7 @@ test('determinismo: stesso seme e stessi input = stessa partita; ripresa da JSON
   assert.equal(d.ticks, e.ticks);
 });
 
-test('porte: operazioni, massimo per livello, sempre una scelta buona, negative solo dal livello 4, ÷2 dall’8', () => {
+test('porte: operazioni, massimo per livello, sempre una scelta buona, negative dal livello 2, −2 dal 4, ÷2 dal 6', () => {
   assert.equal(S.applyGate(3, 'x2', 10), 6);
   assert.equal(S.applyGate(4, 'x3', 10), 10);
   assert.equal(S.applyGate(1, '-2', 10), 1);
@@ -134,8 +161,9 @@ test('porte: operazioni, massimo per livello, sempre una scelta buona, negative 
         const ops = [g.l, g.r].filter(Boolean);
         assert.ok(ops.length >= 1 && ops.some(goodOp), `livello ${level}: coppia senza scelta buona ${g.l}/${g.r}`);
         for (const op of ops) {
-          if (!goodOp(op)) assert.ok(level >= 4, `porta negativa al livello ${level}`);
-          if (op[0] === '/') assert.ok(level >= 8, `÷2 al livello ${level}`);
+          if (!goodOp(op)) assert.ok(level >= 2, `porta negativa al livello ${level}`);
+          if (op === '-2') assert.ok(level >= 4, `−2 al livello ${level}`);
+          if (op[0] === '/') assert.ok(level >= 6, `÷2 al livello ${level}`);
         }
       }
       assert.ok(s.pmax === Math.min(10, 4 + level));
