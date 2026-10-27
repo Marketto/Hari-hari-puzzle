@@ -14,6 +14,11 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.13.0)
+- [x] Hari Home: Hari fa da solo (libero arbitrio attivabile): va a letto la sera, mangia, si lava, si diverte, chiama gli amici; avvisa se il frigo è vuoto o manca dove lavarsi
+- [x] Hari Home: comandi chiari: gli indicatori in alto sono azioni rapide (luna = dormi, pancia = mangia, goccia = lavati…), coda delle azioni come in The Sims, indicatore rosso lampeggiante e fumetto quando un bisogno è critico, menu su Hari sempre completo, suggerimento al primo avvio
+- [x] Hari Home: scene animate nel quartiere (spesa col carrello, parco, palestra, caffè con nuovi amici, dottore, negozio di mobili, la propria attività: forno, bottega d'arte, piante); salvataggi v1 → v2
+
 ## Fatto (v0.12.4)
 - [x] Boba Sort: il vicolo cieco non chiude più la partita: banner "Vicolo cieco" con Annulla/Ricomincia e si può continuare a versare; la finestra di fine partita solo a mosse finite (tolto lo "0" fuorviante); verificato che il risolutore non segnala falsi vicoli ciechi (oracolo BFS su partite casuali)
 - [x] Schermo intero solo sul riquadro di gioco, con il pulsante per tornare alla vista classica dentro il riquadro; si esce da soli a vittoria, sconfitta, tutorial o ritorno alla home
@@ -136,6 +141,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.13.0 · `npm test` · Hari Home: autonomia (4 giorni da solo su 3 semi), azioni rapide, coda, scene del quartiere in chiaro/scuro; testi in it/de/ar
 - 2026-10-28 v0.12.4 · `npm test` · Boba: vicolo cieco con versate possibili → banner, Annulla e Ricomincia; schermo intero del riquadro in 3 giochi (chiaro/scuro)
 - 2026-10-27 v0.12.3 · `npm test` · lista/icone/carosello a 360 px (chiaro e scuro) e a 1100 px, carosello: scorrimento, card centrale, apertura del gioco
 - 2026-10-27 v0.12.2 · `npm test` · ciclo audio a 3 stati e preferenze salvate, condivisione (copia link) nel browser, home chiara/scura a 360 px
