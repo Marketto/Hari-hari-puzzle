@@ -19,18 +19,23 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
 
-  const INGREDIENTS = ['rice', 'nori', 'salmon', 'tuna', 'cucumber', 'egg', 'shrimp', 'avocado'];
-  // ricette in ordine di sblocco
+  const INGREDIENTS = ['rice', 'nori', 'salmon', 'tuna', 'shrimp', 'octopus', 'crab', 'seabass', 'cucumber', 'egg', 'avocado', 'sesame'];
+  // ricette in ordine di sblocco: prima i nigiri (un pesce diverso ciascuno), poi maki e uramaki
   const RECIPES = [
     { id: 'onigiri', ing: ['rice', 'nori'] },
     { id: 'sake', ing: ['rice', 'salmon'] },
     { id: 'maguro', ing: ['rice', 'tuna'] },
     { id: 'ebi', ing: ['rice', 'shrimp'] },
+    { id: 'tako', ing: ['rice', 'octopus'] },
+    { id: 'kani', ing: ['rice', 'crab'] },
+    { id: 'suzuki', ing: ['rice', 'seabass'] },
+    { id: 'avomaki', ing: ['nori', 'rice', 'avocado'] },
     { id: 'tamago', ing: ['rice', 'egg', 'nori'] },
     { id: 'kappa', ing: ['nori', 'rice', 'cucumber'] },
-    { id: 'sakemaki', ing: ['nori', 'rice', 'salmon'] },
-    { id: 'california', ing: ['nori', 'rice', 'avocado', 'cucumber'] },
+    { id: 'goma', ing: ['nori', 'rice', 'salmon', 'sesame'] },
+    { id: 'california', ing: ['nori', 'rice', 'crab', 'avocado'] },
     { id: 'temaki', ing: ['nori', 'rice', 'tuna', 'avocado'] },
+    { id: 'dragon', ing: ['nori', 'rice', 'shrimp', 'sesame'] },
   ];
   const ANIMALS = ['bunny', 'cat', 'panda', 'frog', 'fox', 'bear', 'chick', 'penguin'];
   const PLATE_MAX = 4;
@@ -42,7 +47,7 @@
     return {
       goal: Math.min(14, 4 + L),                            // clienti da servire
       seats: L <= 2 ? 2 : 3,                                // posti al bancone
-      recipes: Math.min(RECIPES.length, 4 + Math.floor((L - 1) / 2)),   // liv. 1: 4 ricette a 2 ingredienti, poi una nuova ogni 2 livelli
+      recipes: Math.min(RECIPES.length, L <= 4 ? 3 + L : 7 + Math.floor((L - 4) / 2)),   // liv. 1: 4 nigiri, poi un pesce nuovo a ogni livello fino al 4°, poi una ricetta ogni 2 livelli
       patience: Math.max(26, 54 - L * 2.2),                 // secondi (più tempo: i piattini sono più distanziati)
       speed: Math.min(0.3, 0.14 + L * 0.0075),             // giri di nastro al secondo: 4 posti per giro, un piattino ogni ~1,7 s
       gap: Math.max(2.5, 6 - L * 0.3),                      // secondi tra un cliente e l'altro

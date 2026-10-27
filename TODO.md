@@ -13,6 +13,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.9.3)
+- [x] Sushi Bar: 12 ingredienti (nuovi polpo, granchio, branzino, sesamo) e 14 ricette (tako, kani, suzuki, avocado maki, uramaki al sesamo, dragon roll); dal livello 1 salmone, tonno e gambero, entro il 4 tutti i pesci; le partite salvate prendono le ricette nuove
+
 ## Fatto (v0.9.2)
 - [x] Hari Knots stile Shanghai: si sposta solo una corda senza niente sopra (le altre hanno il lucchettino); la corda spostata si posa sopra quelle che incrocia; vola via solo quando non incrocia nessuna corda (niente sopra, niente sotto); limite di mosse come Boba Sort; minimi da 2 a ~10 mosse; niente più avvolgimenti
 
@@ -102,6 +105,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-27 v0.9.3 · `npm test` · Sushi Bar: galleria di ingredienti e piatti, bot cuoco su livelli 1–15
 - 2026-10-27 v0.9.2 · `npm test` · Hari Knots: livelli 1/6/22 risolti, tocco su corda bloccata, sconfitta per mosse finite; testi in 43 lingue
 - 2026-10-27 v0.9.1 · `npm test` · Hari Knots: mossa che avvolge trascinata nel browser → anteprima rossa e avvolgimento, livelli 1/8/22 risolti fino alla vittoria
 - 2026-10-27 v0.9.0 · `npm test` 176/176 · 10 giochi × it/ja/ar × chiaro/scuro a 360 px: nessun errore, nessuna chiave non tradotta · Hari Knots risolto fino alla vittoria (livelli 1, 3, 8) a 360/390 px

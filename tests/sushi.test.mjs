@@ -22,6 +22,13 @@ test('ricette: ingredienti validi, al massimo 4, sblocco progressivo', () => {
   assert.ok(first.every((r) => r.ing.length === 2));
 });
 
+test('ingredienti: tutti usati da qualche ricetta; entro il livello 4 ci sono tutti i pesci dei nigiri', () => {
+  S.INGREDIENTS.forEach((k) => assert.ok(S.RECIPES.some((r) => r.ing.includes(k)), k));
+  const L4 = new Set(S.RECIPES.slice(0, S.config(4).recipes).flatMap((r) => r.ing));
+  ['salmon', 'tuna', 'shrimp', 'octopus', 'crab', 'seabass'].forEach((k) => assert.ok(L4.has(k), k));
+  assert.ok(S.config(20).recipes === S.RECIPES.length);
+});
+
 test('matches: conta gli ingredienti, non l’ordine', () => {
   assert.ok(S.matches(['nori', 'rice'], ['rice', 'nori']));
   assert.ok(!S.matches(['rice', 'rice'], ['rice', 'nori']));

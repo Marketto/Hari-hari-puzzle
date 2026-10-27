@@ -37,6 +37,21 @@
       <path d="M20 8c5.8 0 10 7.6 10 14.4a10 10 0 0 1-20 0C10 15.6 14.2 8 20 8z" fill="var(--su-avo)"/>
       <path d="M20 11c4.4 0 7.6 6 7.6 11.4a7.6 7.6 0 0 1-15.2 0C12.4 17 15.6 11 20 11z" fill="var(--su-avo-in)"/>
       <circle cx="20" cy="24" r="5.2" fill="var(--su-pit)" ${o(1.4)}/><path d="M20 29.2a5.2 5.2 0 0 0 5.2-5.2 6 6 0 0 1-5.2 3.6z" fill="var(--su-pit-2)"/><circle cx="18.2" cy="22" r="1.4" fill="var(--su-hi)" opacity=".85"/>${hi('M13.5 15q2-5 5-6.5', 1.8)}`,
+    octopus: `<path d="M5 27c1-11 15-19 29-14-4 1-7 4-7 8 0 6-7 11-15 11-4 0-7-2-7-5z" fill="var(--su-tako)" ${o()}/>
+      <path d="M6.5 28.5c2 2.6 8 3 13 .8 4-1.8 7-5 7.5-8.5 1 5-4 10-12 10.5-4 .2-7-.8-8.5-2.8z" fill="var(--su-tako-in)"/>
+      ${[[10, 29.5, 1.5], [15, 30.4, 1.6], [20, 29.4, 1.5], [24, 26.6, 1.3]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="var(--su-tako-cup)" stroke="var(--su-tako-2)" stroke-width=".8"/>`).join('')}
+      <path d="M10 22q6-6 15-8" fill="none" stroke="var(--su-tako-2)" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>${hi('M9 21.5q3-4 8-6', 1.8)}`,
+    crab: `<rect x="5" y="13" width="30" height="14" rx="7" fill="var(--su-crab-in)" ${o()}/>
+      <path d="M5.6 18c1-3 3.6-5 6.4-5h16c2.8 0 5.4 2 6.4 5z" fill="var(--su-crab-2)"/><path d="M5.6 18c1-3 3.6-5 6.4-5h16c2.8 0 5.4 2 6.4 5" fill="none" ${o(1.4)}/>
+      <path d="M10 21.5h20M12 24.5h14" stroke="var(--su-crab)" stroke-width="1.3" stroke-linecap="round"/><path d="M14 15v3M20 15v3M26 15v3" stroke="var(--su-crab)" stroke-width="1" stroke-linecap="round" opacity=".8"/>${hi('M9.5 16q2-1.8 5-2', 1.6)}`,
+    seabass: `<path d="M5 25c5-11 23-15 30-7-5 9-24 13-30 7z" fill="var(--su-bass)" ${o()}/>
+      <path d="M6 23.6c6-9 21-12 28-5.6l1 .1c-6-2.6-20 0-29 5.5z" fill="var(--su-bass-skin)"/>
+      <path d="M7 26.5c9 2.5 20-1 27-8.2-3 6-15 12-27 8.2z" fill="var(--su-bass-2)"/>
+      <path d="M13 25.5c3-4 6-6.5 10-7.6M19 27c3-3.4 6.5-5.6 11-6.8" fill="none" stroke="var(--su-bass-line)" stroke-width="1.4" stroke-linecap="round"/>${hi('M11 21.5q4-3.4 9-4.4', 1.8)}`,
+    sesame: `<path d="M5 20h30c0 8-6.5 13-15 13S5 28 5 20z" fill="var(--su-bowl)" ${o()}/><path d="M7 24c3 5 8 7 13 7s10-2 13-7c-2 7-7.5 9-13 9S9 31 7 24z" fill="var(--su-bowl-2)"/>
+      <ellipse cx="20" cy="20" rx="15" ry="4.4" fill="var(--su-sesame)" ${o(1.6)}/>
+      ${[[11, 19.4, 20, 'var(--su-sesame-2)'], [15, 18, -30, 'var(--su-sesame-3)'], [19, 20.6, 40, 'var(--su-sesame-3)'], [23, 18.4, -10, 'var(--su-sesame-2)'], [27, 20.2, 30, 'var(--su-sesame-3)'], [30, 18.6, -40, 'var(--su-sesame-2)'], [17, 15, 10, 'var(--su-sesame)'], [22.5, 13.5, -25, 'var(--su-sesame-2)'], [20, 10.5, 35, 'var(--su-sesame)']].map(([x, y, r, c]) => `<ellipse cx="${x}" cy="${y}" rx="1.9" ry="1" transform="rotate(${r} ${x} ${y})" fill="${c}" stroke="var(--su-ink)" stroke-width=".5"/>`).join('')}
+      ${hi('M9 25q2 3 5 4.4', 1.6, 0.5)}`,
   };
   const ingSVG = (k, cls = '') => `<svg class="su-ing ${cls}" viewBox="0 0 40 40" aria-hidden="true">${ING[k]}</svg>`;
 
@@ -47,6 +62,8 @@
   const roll = (side, top, inner, fill) => `<path d="M9 18v7c0 5.5 6.7 10 15 10s15-4.5 15-10v-7" fill="${side}" ${o()}/>
     <ellipse cx="24" cy="18" rx="15" ry="9.5" fill="${top}" ${o()}/>${inner}${fill}${hi('M12 27q2 3.5 6 5', 1.8, 0.45)}`;
   const riceRing = `<ellipse cx="24" cy="18" rx="11.6" ry="7.2" fill="var(--su-rice)"/>${grains([[16, 17, -30], [20, 13, 0], [29, 13, 20], [32, 19, -20], [27, 23, 10], [18, 22, 30]])}`;
+  const SEEDS = (pts) => pts.map(([x, y, r], i) => `<ellipse cx="${x}" cy="${y}" rx="1.3" ry=".7" transform="rotate(${r} ${x} ${y})" fill="${i % 2 ? 'var(--su-sesame-3)' : 'var(--su-sesame-2)'}"/>`).join('');
+  const UPTS = [[13, 16, 20], [17, 11.5, -30], [24, 10, 10], [31, 11.5, 40], [35.5, 16, -20], [33, 22, 30], [15, 22, -40], [24, 25, 0], [13, 30, 30], [24, 33.5, -20], [35, 30, 10], [19, 31, 50], [29, 32, -45]];
   const DISH = {
     onigiri: `<path d="M24 5c5 0 16 18 16 24 0 3.5-3.5 6-16 6S8 32.5 8 29C8 23 19 5 24 5z" fill="var(--su-rice)" ${o()}/>
       <path d="M38.5 27c1 4-4 6.5-14.5 6.5S8.5 31 9.5 27c2.5 2 7 3 14.5 3s12-1 14.5-3z" fill="var(--su-rice-2)"/>
@@ -68,6 +85,22 @@
     temaki: `<path d="M9 11l30 2-13 25z" fill="var(--su-nori)" ${o()}/><path d="M24 12.2l15 .8-13 25z" fill="var(--su-nori-2)"/>
       <ellipse cx="24" cy="11.6" rx="15" ry="5" fill="var(--su-rice)" ${o()}/><path d="M14 9c3-6 9-6 11 0z" fill="var(--su-tuna)" ${o(1.4)}/><path d="M24.5 9c2-6 8-6 10 0z" fill="var(--su-avo)" ${o(1.4)}/>
       <path d="M19 9.5l-2-4" stroke="var(--su-cuke)" stroke-width="2.2" stroke-linecap="round"/><path d="M16 20l3 6" stroke="var(--su-nori-3)" stroke-width="1.4" stroke-linecap="round"/>${hi('M16.5 8q1.5-2.5 4-3', 1.4)}`,
+    tako: nigiri(`<path d="M7 22c5-8 26-10 33-3-4 5-27 8-33 3z" fill="var(--su-tako-in)" ${o()}/><path d="M7.4 21.4c5-7.6 25.6-9.6 32.6-2.4-6-3-26-2-32.6 2.4z" fill="var(--su-tako)"/>
+      <path d="M8 21.4q4-1.6 6 0t6 0 6 0 6 0 7-1.8" fill="none" stroke="var(--su-tako-2)" stroke-width="1.4" stroke-linecap="round"/>
+      ${[[14, 24.6], [21, 25], [28, 24.4], [34, 22.8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.1" fill="var(--su-tako-cup)" stroke="var(--su-tako-2)" stroke-width=".7"/>`).join('')}
+      <rect x="20" y="15" width="8" height="20" rx="1.5" fill="var(--su-nori)" ${o(1.5)}/>${hi('M11 19q4-3 9-3.6', 1.6)}`),
+    kani: nigiri(`<rect x="8" y="15" width="32" height="9" rx="4.5" fill="var(--su-crab-in)" ${o()}/><path d="M8.6 18.5c.8-2 2.6-3.5 4.9-3.5h21c2.3 0 4.1 1.5 4.9 3.5z" fill="var(--su-crab-2)"/>
+      <rect x="10" y="11" width="28" height="7" rx="3.5" fill="var(--su-crab-in)" ${o(1.6)}/><path d="M10.6 13.8c.7-1.7 2-2.8 3.9-2.8h19c1.9 0 3.2 1.1 3.9 2.8z" fill="var(--su-crab-2)"/>
+      <path d="M13 21.5h18" stroke="var(--su-crab)" stroke-width="1.2" stroke-linecap="round"/>${hi('M13 13h6', 1.4)}`),
+    suzuki: nigiri(`<path d="M7 22c6-9 27-11 33-3-5 6-28 8-33 3z" fill="var(--su-bass)" ${o()}/><path d="M7.6 21c6-7.6 25.4-9.6 32-2.4-7-4-25-3-32 2.4z" fill="var(--su-bass-skin)"/>
+      <path d="M9 23.5c9 2 22 0 30-4.2-6 5-21 7.2-30 4.2z" fill="var(--su-bass-2)"/><path d="M16 22.4c3-2.6 6-3.8 9-4.2M23 23.2c3-2.6 6.5-3.8 9.5-4" stroke="var(--su-bass-line)" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <circle cx="31" cy="15.4" r="1.6" fill="var(--su-cuke)" ${o(1)}/>${hi('M12 20q4-3 9-3.6', 1.6)}`),
+    avomaki: roll('var(--su-nori-2)', 'var(--su-nori)', riceRing, `<path d="M19.4 18.6a4.6 3.2 0 0 1 9.2 0z" fill="var(--su-avo)" ${o(1.2)}/><path d="M19.4 18.6a4.6 2.4 0 0 0 9.2 0z" fill="var(--su-avo-in)" ${o(1.2)}/>`),
+    goma: roll('var(--su-rice-2)', 'var(--su-rice)', `<g>${SEEDS(UPTS)}</g><ellipse cx="24" cy="18" rx="7.6" ry="4.9" fill="var(--su-nori)"/>`,
+      `<ellipse cx="24" cy="18" rx="5.4" ry="3.3" fill="var(--su-rice)"/><ellipse cx="24" cy="18" rx="3.2" ry="2" fill="var(--su-salmon)"/><path d="M22.4 18.5q1.6-1.4 3.4-1" stroke="var(--su-salmon-fat)" stroke-width="1" fill="none" stroke-linecap="round"/>`),
+    dragon: roll('var(--su-rice-2)', 'var(--su-rice)', `<g>${SEEDS(UPTS)}</g><ellipse cx="24" cy="18" rx="7.6" ry="4.9" fill="var(--su-nori)"/>`,
+      `<ellipse cx="24" cy="18" rx="5.4" ry="3.3" fill="var(--su-rice)"/><path d="M20 19.5c1-3 6-4 8.5-1.5" fill="none" stroke="var(--su-shrimp)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M27 17l6-7 2 4.5z" fill="var(--su-shrimp-tail)" ${o(1.2)}/>`),
   };
   const dishSVG = (id) => `<svg class="su-dish" viewBox="0 0 48 40" aria-hidden="true">${DISH[id]}</svg>`;
 
@@ -396,6 +429,11 @@
     const ok = saved && saved.cfg && Array.isArray(saved.seats) && Array.isArray(saved.belt) && saved.goal > 0;
     if (ok && !S.isOver(saved)) {
       s = Object.assign({ moves: 0, mistakes: saved.lost || 0 }, saved);
+      // partite salvate con una versione precedente: ricette e ingredienti aggiornati al livello
+      s.cfg = Object.assign({}, s.cfg, { recipes: S.config(s.level).recipes });
+      s.seats = s.seats.map((c) => (c && c.recipe && DISH[c.recipe.id] ? c : null));
+      s.belt = s.belt.filter((it) => ING[it.ing]);
+      s.plate = (s.plate || []).filter((k) => ING[k]);
       build();
       start();
     } else fresh();

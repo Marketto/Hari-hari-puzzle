@@ -13,17 +13,25 @@ e Hari cuoco lo prepara sul tagliere.
 - Vinci servendo tutti i clienti del livello.
 
 ## Ricette (in ordine di sblocco)
-| Piatto | Ingredienti |
-|---|---|
-| Onigiri | riso, alga |
-| Nigiri al salmone | riso, salmone |
-| Kappa maki | alga, riso, cetriolo |
-| Nigiri al tonno | riso, tonno |
-| Tamago | riso, uovo, alga |
-| Ebi | riso, gambero |
-| Sake maki | alga, riso, salmone |
-| California | alga, riso, avocado, cetriolo |
-| Temaki | alga, riso, tonno, avocado |
+| Piatto | Ingredienti | Livello |
+|---|---|---|
+| Onigiri | riso, alga | 1 |
+| Nigiri al salmone (sake) | riso, salmone | 1 |
+| Nigiri al tonno (maguro) | riso, tonno | 1 |
+| Nigiri al gambero (ebi) | riso, gambero | 1 |
+| Nigiri al polpo (tako) | riso, polpo | 2 |
+| Nigiri al granchio (kani) | riso, granchio | 3 |
+| Nigiri al branzino (suzuki) | riso, branzino | 4 |
+| Avocado maki | alga, riso, avocado | 6 |
+| Tamago | riso, uovo, alga | 8 |
+| Kappa maki | alga, riso, cetriolo | 10 |
+| Uramaki al sesamo | alga, riso, salmone, sesamo | 12 |
+| California | alga, riso, granchio, avocado | 14 |
+| Temaki | alga, riso, tonno, avocado | 16 |
+| Dragon roll | alga, riso, gambero, sesamo | 18 |
+
+12 ingredienti: riso, alga nori, salmone, tonno, gambero, polpo, granchio, branzino, cetriolo, uovo, avocado, sesamo.
+Le partite salvate con una versione precedente ricevono le ricette aggiornate al loro livello.
 
 Clienti: coniglietto, gatto, panda, rana, volpe, orsetto, pulcino, pinguino (mai due uguali al bancone).
 
@@ -32,7 +40,7 @@ Clienti: coniglietto, gatto, panda, rana, volpe, orsetto, pulcino, pinguino (mai
 |---|---|---|---|
 | Clienti da servire | 5 | 14 | 14 |
 | Posti al bancone | 2 | 3 | 3 |
-| Ricette | 4 | 8 | 9 |
+| Ricette | 4 | 10 | 12 |
 | Pazienza | 52 s | 32 s | 26 s |
 | Velocità nastro | lenta | media | veloce |
 
