@@ -14,6 +14,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.13.1)
+- [x] Schermo intero: barra in alto alta quanto il pulsante con logo di Hari, nome del gioco e livello; toccando il logo si apre il menu con le azioni della vista normale (tutti i giochi, annulla, ricomincia, nuovo puzzle, come si gioca, audio, esci); indicatori (tempo, mosse, fragoline, cuori) in una barra compatta
+
 ## Fatto (v0.13.0)
 - [x] Hari Home: Hari fa da solo (libero arbitrio attivabile): va a letto la sera, mangia, si lava, si diverte, chiama gli amici; avvisa se il frigo è vuoto o manca dove lavarsi
 - [x] Hari Home: comandi chiari: gli indicatori in alto sono azioni rapide (luna = dormi, pancia = mangia, goccia = lavati…), coda delle azioni come in The Sims, indicatore rosso lampeggiante e fumetto quando un bisogno è critico, menu su Hari sempre completo, suggerimento al primo avvio
@@ -141,6 +144,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.13.1 · `npm test` · schermo intero in Boba (scuro), Sushi e Hari Home: barra, menu, audio, ricomincia, esci, tutti i giochi; la barra indicatori torna al suo posto all'uscita
 - 2026-10-28 v0.13.0 · `npm test` · Hari Home: autonomia (4 giorni da solo su 3 semi), azioni rapide, coda, scene del quartiere in chiaro/scuro; testi in it/de/ar
 - 2026-10-28 v0.12.4 · `npm test` · Boba: vicolo cieco con versate possibili → banner, Annulla e Ricomincia; schermo intero del riquadro in 3 giochi (chiaro/scuro)
 - 2026-10-27 v0.12.3 · `npm test` · lista/icone/carosello a 360 px (chiaro e scuro) e a 1100 px, carosello: scorrimento, card centrale, apertura del gioco

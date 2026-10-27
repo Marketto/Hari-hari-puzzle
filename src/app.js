@@ -11,6 +11,7 @@
   const P = HH.progress;
 
   const ICON = {
+    chev: '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     vList: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx="1.5" fill="currentColor"/><rect x="3" y="15" width="5" height="5" rx="1.5" fill="currentColor"/><path d="M11 6.5h10M11 17.5h10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
     vGrid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2.4" fill="currentColor"/></svg>',
     vCarousel: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4" width="10" height="16" rx="2.4" fill="currentColor"/><path d="M4.5 7v10M19.5 7v10M1.8 9v6M22.2 9v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
@@ -310,7 +311,37 @@
       else { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
     } catch (e) { /* non supportato */ }
   }
+  // a schermo intero la barra degli indicatori entra nel riquadro (compatta), all'uscita torna al suo posto
+  function placeHud() {
+    const hud = document.querySelector('#game .hud'), slot = $('#gFsHud'), plate = $('#gPlate');
+    if (!hud || !slot || !plate) return;
+    if (isFull()) { if (hud.parentElement !== slot) slot.appendChild(hud); }
+    else if (hud.parentElement === slot) plate.before(hud);
+    fsMenu(false);
+  }
+  // menu del logo (solo a schermo intero): le azioni della vista normale
+  function fsMenu(open) {
+    const box = $('#gFsMenuBox'), btn = $('#gFsMenu');
+    if (!box || !btn) return;
+    if (open === undefined) open = box.hidden;
+    if (open) {
+      const items = [
+        ['home', ICON.home, lab('goHome', 'All games'), '#gBack'],
+        ['undo', ICON.undo, t('undo'), '#gUndo'],
+        ['restart', ICON.restart, t('restart'), '#gRestart'],
+        ['new', ICON.sparkle, t('newg'), '#gNew'],
+        ['help', '<b class="q">?</b>', lab('help', 'How to play'), '#gHelp'],
+        ['audio', ICON.audio, audioLabel(), '#audioBtn'],
+        ['exit', ICON.unfull, lab('fullExit', 'Exit full screen'), null],
+      ].filter(([, , , sel]) => !sel || $(sel));
+      box.innerHTML = items.map(([id, ic, label]) => `<button role="menuitem" data-fs="${id}">${ic}<span>${label}</span></button>`).join('');
+      box.querySelectorAll('[data-fs="audio"]').forEach((b) => { b.dataset.state = audioState(); });
+    }
+    box.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
   ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+    placeHud();
     const b = $('#gFull');
     if (!b) return;
     b.innerHTML = isFull() ? ICON.unfull : ICON.full;
@@ -363,7 +394,15 @@
         ${g.lives ? `<span class="chip lives" id="hLives" aria-label="${t('lives')}"></span>` : ''}
         <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>`}
       </div>
-      <div class="plate ${g.plate || ''}" id="gPlate"><button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('fullExit', 'Exit full screen')}">${ICON.unfull}</button><div class="board" id="board"></div></div>
+      <div class="plate ${g.plate || ''}" id="gPlate">
+        <div class="fs-bar">
+          <button class="fs-logo" id="gFsMenu" aria-haspopup="menu" aria-expanded="false" aria-label="${lab('fsMenu', 'Menu')}">${HH.mascot.mini()}<b>${g.name}</b>${g.endless ? '' : `<span class="fs-lv">${p.level}</span>`}${ICON.chev}</button>
+          <button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('fullExit', 'Exit full screen')}">${ICON.unfull}</button>
+        </div>
+        <div class="fs-menu" id="gFsMenuBox" role="menu" hidden></div>
+        <div class="fs-hud" id="gFsHud"></div>
+        <div class="board" id="board"></div>
+      </div>
       <div class="g-tools">
         ${g.endless ? '' : `<button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>`}
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
@@ -399,6 +438,19 @@
     const fb = $('#gFull');
     if (fb) fb.onclick = () => { sfx.tap(); toggleFull(); };
     $('#gFsExit').onclick = () => { sfx.tap(); exitFull(); };
+    $('#gFsMenu').onclick = (e) => { e.stopPropagation(); sfx.tap(); fsMenu(); };
+    $('#gFsMenuBox').onclick = (e) => {
+      const it = e.target.closest('[data-fs]');
+      if (!it) return;
+      const act = it.dataset.fs;
+      const map = { home: '#gBack', undo: '#gUndo', restart: '#gRestart', new: '#gNew', help: '#gHelp', audio: '#audioBtn' };
+      if (act === 'exit') { exitFull(); return; }
+      const target = $(map[act]);
+      if (act === 'audio') { target.click(); fsMenu(true); return; }   // resta aperto per vedere lo stato
+      fsMenu(false);
+      if (target) target.click();
+    };
+    $('#gPlate').addEventListener('pointerdown', (e) => { if (!e.target.closest('#gFsMenuBox, #gFsMenu')) fsMenu(false); });
     if (push) {
       try { history.pushState({ game: id }, ''); S.pushed = true; } catch (e) { S.pushed = false; }
       G.scrollTo(0, 0);
