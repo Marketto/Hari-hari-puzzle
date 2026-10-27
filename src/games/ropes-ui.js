@@ -5,8 +5,12 @@
  *
  * Ordine di disegno: si segue la relazione logica "sopra" (anche ciclica): le corde vengono disegnate in ordine
  * topologico e, dove l'ordine non basta (cicli), la corda di sopra viene ridisegnata in un piccolo cerchio attorno al
- * punto d'incrocio reale delle due curve. Le coppie attorcigliate mostrano due giri di corda avvolti nell'incrocio.
- * Durante il trascinamento la relazione è calcolata "in anteprima" con la posizione del dito (stesse regole della mossa).
+ * punto d'incrocio reale delle due curve.
+ * Regole del modello 2: il capo preso viaggia IN ARIA (disegnato sopra tutto, con ombra lunga); se passa sopra una corda
+ * che copriva la sua, ci si avvolge. Avvolgimento = "gancio": un punto H sulla corda B (l'incrocio, o il punto di B più
+ * vicino ad A se non si incrociano più) dove sono fissate una particella di A e una di B; A fa un'ansa fino a H e lì due
+ * giri del suo colore stringono B. Il gancio entra e si scioglie con un'animazione (grow 0↔1).
+ * Durante il trascinamento, sul foro sotto il dito si vede in anteprima dove la corda si avvolgerebbe (anello che pulsa).
  *
  * Comandi: trascina un nodino in un foro libero (i fori liberi si illuminano) · oppure tocca un nodino e poi un foro ·
  *   tastiera: frecce = scegli nodino/foro · Invio/Spazio = prendi/aggancia · Esc = lascia.
@@ -22,6 +26,7 @@
     rk_ropes: 'Ropes', rk_plates: 'Plates', rk_hint: 'Drag a knot into a glowing hole',
     rk_stuck: 'All tangled up! Tap Undo.', rk_free: 'All free!', rk_picked: 'Knot picked up: choose a free hole',
     rk_board: 'Rope board: arrow keys choose a knot or a hole, Enter picks up or hooks, Escape lets go',
+    rk_wrap: 'Oh no, wrapped!', rk_unwrap: 'Unwrapped!',
   };
   const L = (k) => label(k, EN[k]);
   const reduce = () => !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -64,6 +69,9 @@
     <g class="rk-art-spark"><path d="M108 70l1.6 3.4 3.4 1.6-3.4 1.6-1.6 3.4-1.6-3.4-3.4-1.6 3.4-1.6z" fill="var(--rk-spark)"/></g></svg>`;
 
   const hand = (...a) => (HH.tutHand ? HH.tutHand(...a) : '');
+  const loops = (x, y, k, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})">
+    <path d="M-5-4.5q3 4.5 0 9M0-5q3 5 0 10M5-4.5q3 4.5 0 9" fill="none" stroke="var(--rk-line)" stroke-width="4.6" stroke-linecap="round"/>
+    <path d="M-5-4.5q3 4.5 0 9M0-5q3 5 0 10M5-4.5q3 4.5 0 9" fill="none" stroke="var(--rk-c${k})" stroke-width="2.8" stroke-linecap="round"/></g>`;
   const TUT = [
     { key: 'tu_ropes_1', en: 'Drag a rope\'s knot into a free hole.',
       art: `<svg class="rk-art" viewBox="0 0 120 90">${plateSVG(10, 10, 100, 70, 0)}
@@ -71,19 +79,22 @@
         <g class="rk-tu-swing">${ropeSVG('M24 66L96 66', 2)}<g class="rk-tu-knot">${knotSVG(96, 66, 2)}</g></g>${knotSVG(24, 66, 2)}
         <circle class="rk-tu-glow" cx="86" cy="30" r="7" fill="none" stroke="var(--rk-glow)" stroke-width="2.4"/>
         ${hand(97, 68, 'tut-go', '--dx:-11px;--dy:-38px')}</svg>` },
-    { key: 'tu_ropes_2', en: 'A rope with nothing on top of it, and not twisted, flies away!',
+    // la corda rosa è sotto la verde: il suo capo passa sopra la verde e ci si avvolge
+    { key: 'tu_ropes_4', en: 'If the knot passes over a rope lying on top of it, it wraps around it!',
       art: `<svg class="rk-art" viewBox="0 0 120 90">${plateSVG(10, 10, 100, 70, 1)}
+        ${[[20, 45], [100, 45], [60, 72], [60, 18], [88, 18]].map(([x, y]) => holeSVG(x, y)).join('')}
+        <g class="rk-tu-rope1">${ropeSVG('M60 72L60 18', 0)}${knotSVG(60, 18, 0)}</g>
+        <g class="rk-tu-rope2">${ropeSVG('M60 72L60 46L88 18', 0)}${knotSVG(88, 18, 0)}</g>
+        ${knotSVG(60, 72, 0)}
+        ${ropeSVG('M20 45L100 45', 1)}${knotSVG(20, 45, 1)}${knotSVG(100, 45, 1)}
+        ${loops(60, 45, 0, 'rk-tu-loops')}
+        <g class="rk-tu-oops"><circle cx="60" cy="45" r="11" fill="none" stroke="var(--rk-warn)" stroke-width="2.4"/></g>
+        ${hand(61, 20, 'tut-go', '--dx:27px;--dy:0px')}</svg>` },
+    { key: 'tu_ropes_5', en: 'Free the ropes on top first: a rope with nothing on it flies away!',
+      art: `<svg class="rk-art" viewBox="0 0 120 90"><g class="rk-tu-plate">${plateSVG(10, 10, 100, 70, 2)}</g>
         ${[[24, 24], [96, 66], [24, 66], [96, 24]].map(([x, y]) => holeSVG(x, y)).join('')}
         <g class="rk-tu-fly2">${ropeSVG('M24 24L96 66', 4)}${knotSVG(24, 24, 4)}${knotSVG(96, 66, 4)}</g>
-        <g class="rk-tu-fly1">${ropeSVG('M24 66L96 24', 0)}${knotSVG(24, 66, 0)}${knotSVG(96, 24, 0)}</g>
-        <g class="tut-pulse"><path d="M60 8l2 4.2 4.6.6-3.4 3.2.9 4.6-4.1-2.3-4.1 2.3.9-4.6-3.4-3.2 4.6-.6z" fill="var(--rk-spark)"/></g></svg>` },
-    { key: 'tu_ropes_3', en: 'Twisted ropes stay put until they stop crossing. Free every plate!',
-      art: `<svg class="rk-art" viewBox="0 0 120 90"><g class="rk-tu-plate">${plateSVG(10, 10, 100, 70, 2)}</g>
-        ${[[24, 24], [96, 66], [24, 66], [96, 24], [60, 70]].map(([x, y]) => holeSVG(x, y)).join('')}
-        ${ropeSVG('M24 24L96 66', 1)}${knotSVG(24, 24, 1)}${knotSVG(96, 66, 1)}
-        ${ropeSVG('M24 66L96 24', 5)}${knotSVG(24, 66, 5)}${knotSVG(96, 24, 5)}
-        <path d="M55 42.5l4.6-4.4M60.4 47.9l4.6-4.4" stroke="var(--rk-c1)" stroke-width="3.2" stroke-linecap="round"/>
-        <path d="M55 42.5l4.6-4.4M60.4 47.9l4.6-4.4" stroke="var(--rk-line)" stroke-width="0.8" stroke-linecap="round" opacity=".5"/>
+        <g class="rk-tu-fly1">${ropeSVG('M24 66L96 24', 5)}${knotSVG(24, 66, 5)}${knotSVG(96, 24, 5)}</g>
         <g class="tut-pulse"><path d="M60 8l2 4.2 4.6.6-3.4 3.2.9 4.6-4.1-2.3-4.1 2.3.9-4.6-3.4-3.2 4.6-.6z" fill="var(--rk-spark)"/></g></svg>` },
   ];
 
@@ -95,7 +106,8 @@
     let sp = 50, W = 300, H = 300, dpr = 1;
     let view = [];                 // corde disegnate: { r, k, pts, old, n, len, pins:[{x,y,tx,ty}], mode:'live'|'fly', alpha, vy }
     let rel = new Map();           // "i,j" → chi sta sopra (relazione mostrata)
-    let twists = new Set();        // "i,j" attorcigliate (mostrate)
+    let hooks = new Map();         // "a>b" → gancio { a, b, x, y, grow, on } (a avvolta attorno a b)
+    let floats = [];               // scritte che salgono { text, x, y, life }
     let fx = [];                   // scintille { x, y, vx, vy, life, c }
     let grab = null, sel = null, hover = -1, kb = null, kcur = 0;
     let raf = 0, still = 0, timers = [], won = false, colors = null, sym = null, ro = null, mo = null;
@@ -106,7 +118,7 @@
 
     function fresh() {
       const lv = R.generate(ctx.level, Math.random);
-      s = { v: 1, L: lv, st: R.initial(lv), hist: [], moves: 0 };
+      s = { v: 2, L: lv, st: R.initial(lv), hist: [], moves: 0 };
       build();
       ctx.changed({ reset: true });
     }
@@ -141,7 +153,7 @@
 
     function build() {
       clearTimers();
-      won = false; grab = null; sel = null; hover = -1; fx = [];
+      won = false; grab = null; sel = null; hover = -1; fx = []; floats = []; hooks = new Map();
       el.innerHTML = `<div class="rk-wrap">
         <div class="rk-stage" dir="ltr" style="aspect-ratio:${vbW()} / ${vbH()}">
           <svg class="rk-plates" viewBox="0 0 ${vbW()} ${vbH()}" aria-hidden="true">
@@ -201,7 +213,7 @@
       colors = {
         c: [...Array(NC)].map((_, i) => v('--rk-c' + i)), line: v('--rk-line'), shadow: v('--rk-shadow'), hi: v('--rk-hi'),
         pat: v('--rk-pat'), face: v('--rk-face'), blush: v('--rk-blush'), sym: v('--rk-sym'), glow: v('--rk-glow'),
-        spark: v('--rk-spark'), cursor: v('--rk-cursor'),
+        spark: v('--rk-spark'), cursor: v('--rk-cursor'), warn: v('--rk-warn'), ink: v('--rk-float'), inkLine: v('--rk-float-line'),
       };
       if (!sym && typeof Path2D !== 'undefined') sym = SYM.map((d) => new Path2D(d));
     }
@@ -233,13 +245,75 @@
       view.filter((v) => v.mode === 'fly').forEach((v) => next.push(v));
       view = next;
       rel = new Map(s.st.over.map(([i, j]) => [pk(i, j), i]));
-      twists = new Set(s.st.twists.map(([i, j]) => pk(i, j)));
+      syncHooks(reset);
       if (reset) { for (let i = 0; i < 160; i++) step(true); }
+    }
+
+    // ganci = coppie avvolte dello stato; quelli nuovi entrano (grow 0→1), quelli sciolti escono (1→0)
+    function syncHooks(instant) {
+      const want = new Set(s.st.twists.map(([a, b]) => `${a}>${b}`));
+      hooks.forEach((hk, key) => { if (!want.has(key)) hk.on = false; });
+      s.st.twists.forEach(([a, b]) => {
+        const key = `${a}>${b}`;
+        let hk = hooks.get(key);
+        if (!hk) {
+          const va = view.find((v) => v.r === a);
+          const mid = va ? va.n >> 1 : 0;
+          hk = { a, b, x: va ? va.pts[2 * mid] : 0, y: va ? va.pts[2 * mid + 1] : 0, grow: instant ? 1 : 0, on: true, ia: mid, ib: 0 };
+          hooks.set(key, hk);
+        }
+        hk.on = true;
+        if (instant) hk.grow = 1;
+      });
+    }
+    // punto del gancio: incrocio dei segmenti tra i capi, oppure il punto di B più vicino al segmento di A
+    function hookTarget(hk) {
+      const va = view.find((v) => v.r === hk.a), vb = view.find((v) => v.r === hk.b);
+      if (!va || !vb) return null;
+      const [A0, A1] = va.pins, [B0, B1] = vb.pins;
+      const bx = B1.x - B0.x, by = B1.y - B0.y, bl2 = bx * bx + by * by || 1;
+      const ax = A1.x - A0.x, ay = A1.y - A0.y;
+      const den = ax * by - ay * bx;
+      if (den) {
+        const t = ((B0.x - A0.x) * by - (B0.y - A0.y) * bx) / den, u = ((B0.x - A0.x) * ay - (B0.y - A0.y) * ax) / den;
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return { x: B0.x + bx * u, y: B0.y + by * u, u, va, vb };
+      }
+      // il punto di B più vicino al segmento di A (si provano i capi di A e le proiezioni dei capi di B)
+      let best = null, bd = 1e18;
+      const tryU = (u) => {
+        u = Math.max(0.06, Math.min(0.94, u));
+        const px = B0.x + bx * u, py = B0.y + by * u;
+        const al2 = ax * ax + ay * ay || 1;
+        const t = Math.max(0, Math.min(1, ((px - A0.x) * ax + (py - A0.y) * ay) / al2));
+        const d = Math.hypot(A0.x + ax * t - px, A0.y + ay * t - py);
+        if (d < bd) { bd = d; best = { x: px, y: py, u, va, vb }; }
+      };
+      tryU(((A0.x - B0.x) * bx + (A0.y - B0.y) * by) / bl2);
+      tryU(((A1.x - B0.x) * bx + (A1.y - B0.y) * by) / bl2);
+      for (let q = 1; q < 8; q++) tryU(q / 8);
+      return best;
+    }
+    function updateHooks() {
+      let moving = 0;
+      hooks.forEach((hk, key) => {
+        hk.grow += ((hk.on ? 1 : 0) - hk.grow) * 0.14;
+        const T = hookTarget(hk);
+        if (!T || (!hk.on && hk.grow < 0.02)) { hooks.delete(key); return; }
+        hk.x += (T.x - hk.x) * 0.3; hk.y += (T.y - hk.y) * 0.3;
+        moving = Math.max(moving, Math.abs(T.x - hk.x) + Math.abs(T.y - hk.y) + Math.abs((hk.on ? 1 : 0) - hk.grow) * 10);
+        const { va, vb } = T;
+        const [A0, A1] = va.pins;
+        const d0 = Math.hypot(hk.x - A0.x, hk.y - A0.y), d1 = Math.hypot(A1.x - hk.x, A1.y - hk.y);
+        hk.ia = Math.max(1, Math.min(va.n - 1, Math.round((va.n * d0) / (d0 + d1 || 1))));
+        hk.ib = Math.max(1, Math.min(vb.n - 1, Math.round(vb.n * T.u)));
+        hk.bent = d0 + d1;
+      });
+      return moving;
     }
 
     function step(quiet) {
       const g = sp * 0.003;
-      let moving = 0;
+      let moving = updateHooks();
       for (const v of view) {
         const { pts, old, n } = v;
         const fly = v.mode === 'fly';
@@ -250,8 +324,15 @@
           moving = Math.max(moving, Math.abs(p.tx - p.x) + Math.abs(p.ty - p.y));
         }
         const A = v.pins[0], B = v.pins[1];
+        // particelle interne fissate dai ganci (A fa l'ansa fino al gancio, B passa per il gancio)
+        const inner = [];
+        let bent = 0;
+        if (!fly) hooks.forEach((hk) => {
+          if (hk.a === v.r) { inner.push([hk.ia, hk, hk.grow]); bent = Math.max(bent, hk.grow * (hk.bent - Math.hypot(B.x - A.x, B.y - A.y))); }
+          else if (hk.b === v.r) inner.push([hk.ib, hk, hk.grow * 0.8]);
+        });
         if (!fly) {
-          const target = Math.hypot(B.x - A.x, B.y - A.y) * (1 + SLACK);
+          const target = (Math.hypot(B.x - A.x, B.y - A.y) + bent) * (1 + SLACK);
           v.len += (target - v.len) * (target < v.len ? 0.6 : 0.1);
         }
         const damp = fly ? 0.985 : 0.955, gy = fly ? -g * 1.6 : g;
@@ -276,13 +357,17 @@
             pts[2 * i] += dx * diff * w1; pts[2 * i + 1] += dy * diff * w1;
             pts[2 * i + 2] -= dx * diff * w2; pts[2 * i + 3] -= dy * diff * w2;
           }
+          for (const [i, hk, w] of inner) { pts[2 * i] += (hk.x - pts[2 * i]) * w; pts[2 * i + 1] += (hk.y - pts[2 * i + 1]) * w; }
         }
+        if (v.air) v.air--;
         if (!fly) { pts[0] = A.x; pts[1] = A.y; pts[2 * n] = B.x; pts[2 * n + 1] = B.y; }
         else { v.t++; v.alpha = Math.max(0, Math.min(1, 1.6 - v.t / 70)); }
       }
       view = view.filter((v) => v.mode !== 'fly' || v.alpha > 0);
       for (const f of fx) { f.x += f.vx; f.y += f.vy; f.vy += 0.08; f.vx *= 0.97; f.life -= 1 / 36; }
       fx = fx.filter((f) => f.life > 0);
+      for (const f of floats) { f.y -= sp * 0.006; f.life -= 1 / 130; }
+      floats = floats.filter((f) => f.life > 0);
       return moving;
     }
 
@@ -298,12 +383,14 @@
       g2.lineTo(pts[2 * n], pts[2 * n + 1]);
     }
     const RW = () => sp * 0.15;
-    function drawBody(v, withShadow = true) {
+    function drawBody(v, withShadow = true, lifted = false) {
       const w = RW(), col = colors.c[v.k];
       g2.lineCap = 'round'; g2.lineJoin = 'round';
       trace(v);
       if (withShadow) {
-        g2.save(); g2.translate(0, w * 0.45); g2.strokeStyle = colors.shadow; g2.lineWidth = w * 1.5; g2.stroke(); g2.restore();
+        // corda sollevata dalla mano: ombra più lontana e più morbida
+        const o = lifted ? w * 1.6 : w * 0.45;
+        g2.save(); g2.translate(o * 0.4, o); g2.strokeStyle = colors.shadow; g2.lineWidth = w * (lifted ? 2.1 : 1.5); g2.stroke(); g2.restore();
       }
       g2.strokeStyle = colors.line; g2.lineWidth = w * 1.32; g2.stroke();
       g2.strokeStyle = col; g2.lineWidth = w; g2.stroke();
@@ -388,41 +475,27 @@
       return out;
     }
 
-    // relazione "sopra" da mostrare: quella logica, o l'anteprima durante il trascinamento
-    function liveRel() {
-      if (!grab) return rel;
-      const out = new Map(rel);
-      const lv = s.L, st = s.st, r = grab.r;
-      const fixed = st.ends[r][1 - grab.end];
-      const fxp = lv.holes[fixed];
-      const fin = [grab.px / sp - M, grab.py / sp - M];
-      st.ends.forEach((e, j) => {
-        if (!e || j === r) return;
-        const A = lv.holes[e[0]], B = lv.holes[e[1]];
-        const hit = R.segHit(fxp[0], fxp[1], fin[0], fin[1], A[0], A[1], B[0], B[1]);
-        const k = pk(r, j);
-        if (!hit) out.delete(k);
-        else if (!rel.has(k)) out.set(k, r);
-      });
-      return out;
-    }
+    // corda "in aria": presa in mano o appena posata (il capo arriva dall'alto)
+    const airborne = () => (grab ? grab.r : sel ? sel.r : -1);
 
     function draw() {
       if (!colors) readColors();
       g2.setTransform(dpr, 0, 0, dpr, 0, 0);
       g2.clearRect(0, 0, W, H);
-      const shown = liveRel();
+      const shown = rel;
+      const up = airborne();
       const live = view.filter((v) => v.mode === 'live');
       const byR = new Map(live.map((v) => [v.r, v]));
+      const onTop = live.filter((v) => v.r === up || v.air);
       // ordine topologico (chi sta sotto prima); nei cicli si sceglie la corda con meno corde sopra
-      const left = new Set(live.map((v) => v.r)), order = [];
+      const left = new Set(live.filter((v) => !onTop.includes(v)).map((v) => v.r)), order = [];
       while (left.size) {
         let best = -1, bc = 1e9;
         for (const r of left) {
           let c = 0;
           for (const j of left) if (j !== r && shown.get(pk(r, j)) === j) c++;
-          if (c < bc || (c === bc && grab && r === grab.r)) { bc = c; best = r; }
-          if (!c && !(grab && r === grab.r)) break;
+          if (c < bc) { bc = c; best = r; }
+          if (!c) break;
         }
         order.push(best); left.delete(best);
       }
@@ -433,30 +506,42 @@
         const [i, j] = key.split(',').map(Number);
         const lo = top === i ? j : i;
         const a = byR.get(top), b = byR.get(lo);
-        if (!a || !b || pos.get(top) > pos.get(lo)) return;
+        if (!a || !b || !pos.has(top) || !pos.has(lo) || pos.get(top) > pos.get(lo)) return;
         for (const p of curveHits(a, b)) {
           g2.save(); g2.beginPath(); g2.arc(p.x, p.y, RW() * 2.1, 0, 7); g2.clip();
           drawBody(a); drawKnots(a);
           g2.restore();
         }
       });
-      // attorcigliate: due giri della corda di sotto avvolti attorno a quella di sopra
-      twists.forEach((key) => {
-        const [i, j] = key.split(',').map(Number);
-        const a = byR.get(i), b = byR.get(j);
-        if (!a || !b) return;
-        const top = shown.get(key) === j ? b : a, low = top === a ? b : a;
-        for (const p of curveHits(top, low)) wraps(p, top, low);
+      // avvolgimenti: giri della corda A stretti attorno a B nel punto del gancio
+      hooks.forEach((hk) => {
+        const va = byR.get(hk.a), vb = byR.get(hk.b);
+        if (!va || !vb || hk.grow < 0.05 || onTop.includes(va)) return;
+        wraps(hk, vb, va, hk.grow);
       });
+      // la corda in mano (o appena posata) passa sopra tutto
+      for (const v of onTop) {
+        drawBody(v, true, true); drawKnots(v);
+        hooks.forEach((hk) => { if (hk.a === v.r && hk.grow > 0.05 && byR.get(hk.b)) wraps(hk, byR.get(hk.b), v, hk.grow); });
+      }
       for (const v of view) if (v.mode === 'fly') { g2.globalAlpha = v.alpha; drawBody(v, false); drawKnots(v); g2.globalAlpha = 1; }
-      // fori: evidenzia la destinazione durante la presa
+      // fori: evidenzia la destinazione durante la presa; anteprima degli avvolgimenti
       if ((grab || sel) && hover >= 0) {
         g2.strokeStyle = colors.glow; g2.lineWidth = RW() * 0.5;
         g2.beginPath(); g2.arc(hx(hover), hy(hover), sp * 0.3, 0, 7); g2.stroke();
+        preview();
       }
       for (const f of fx) {
         g2.globalAlpha = Math.max(0, f.life);
         g2.fillStyle = f.c; g2.save(); g2.translate(f.x, f.y); g2.rotate(f.life * 4); star(f.r * (0.6 + f.life * 0.5)); g2.restore();
+      }
+      g2.globalAlpha = 1;
+      for (const f of floats) {
+        g2.globalAlpha = Math.min(1, f.life * 3);
+        g2.font = `${Math.round(sp * 0.3)}px ${getComputedStyle(stage).getPropertyValue('--font-display') || 'sans-serif'}`;
+        g2.textAlign = 'center'; g2.lineJoin = 'round';
+        g2.strokeStyle = colors.inkLine; g2.lineWidth = sp * 0.08; g2.strokeText(f.text, f.x, f.y);
+        g2.fillStyle = colors.ink; g2.fillText(f.text, f.x, f.y);
       }
       g2.globalAlpha = 1;
       if (kb !== null) {
@@ -464,23 +549,48 @@
         if (t) { g2.strokeStyle = colors.cursor; g2.lineWidth = 3; g2.setLineDash([6, 5]); g2.beginPath(); g2.arc(t.x, t.y, sp * 0.36, 0, 7); g2.stroke(); g2.setLineDash([]); }
       }
     }
+    // anteprima: se il capo finisse nel foro "hover", attorno a quali corde si avvolgerebbe?
+    function preview() {
+      const t = grab || sel;
+      if (!t || !s.st.ends[t.r]) return;
+      const m = R.move(s.L, s.st, t.r, t.end, hover);
+      if (!m || !m.wrapped.length) return;
+      const h0 = s.st.ends[t.r][t.end];
+      const x0 = hx(h0), y0 = hy(h0), x1 = hx(hover), y1 = hy(hover);
+      const pulse = 0.75 + 0.25 * Math.sin(Date.now() / 140);
+      m.wrapped.forEach((j) => {
+        const e = s.st.ends[j];
+        const x3 = hx(e[0]), y3 = hy(e[0]), x4 = hx(e[1]), y4 = hy(e[1]);
+        const den = (x1 - x0) * (y4 - y3) - (y1 - y0) * (x4 - x3);
+        let px = (x0 + x1) / 2, py = (y0 + y1) / 2;
+        if (den) { const u = ((x3 - x0) * (y1 - y0) - (y3 - y0) * (x1 - x0)) / den; px = x3 + (x4 - x3) * u; py = y3 + (y4 - y3) * u; }
+        g2.strokeStyle = colors.warn; g2.lineWidth = RW() * 0.45; g2.setLineDash([RW() * 0.6, RW() * 0.5]);
+        g2.beginPath(); g2.arc(px, py, sp * 0.2 * pulse + RW(), 0, 7); g2.stroke(); g2.setLineDash([]);
+      });
+    }
     function star(r) {
       g2.beginPath();
       for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2, q = i % 2 ? r * 0.4 : r; g2.lineTo(Math.cos(a) * q, Math.sin(a) * q); }
       g2.closePath(); g2.fill();
     }
-    function wraps(p, top, low) {
+    // giri della corda va (colore di A) stretti attorno a vb nel punto del gancio; grow 0..1 per l'animazione
+    function wraps(hk, vb, va, grow) {
       const w = RW();
-      const la = Math.hypot(p.ax, p.ay) || 1, ux = p.ax / la, uy = p.ay / la;      // direzione della corda di sopra
+      const B0 = vb.pins[0], B1 = vb.pins[1];
+      const la = Math.hypot(B1.x - B0.x, B1.y - B0.y) || 1, ux = (B1.x - B0.x) / la, uy = (B1.y - B0.y) / la;
       const nx = -uy, ny = ux;
       g2.lineCap = 'round';
-      [-0.62, 0.62].forEach((o) => {
-        const cx = p.x + ux * o * w * 1.25, cy = p.y + uy * o * w * 1.25;
-        const x1 = cx - nx * w * 0.95 - ux * w * 0.35, y1 = cy - ny * w * 0.95 - uy * w * 0.35;
-        const x2 = cx + nx * w * 0.95 + ux * w * 0.35, y2 = cy + ny * w * 0.95 + uy * w * 0.35;
-        g2.beginPath(); g2.moveTo(x1, y1); g2.quadraticCurveTo(cx + ux * w * 0.4, cy + uy * w * 0.4, x2, y2);
-        g2.strokeStyle = colors.line; g2.lineWidth = w * 0.78; g2.stroke();
-        g2.strokeStyle = colors.c[low.k]; g2.lineWidth = w * 0.5; g2.stroke();
+      const turns = [-1, 0, 1];
+      turns.forEach((q, idx) => {
+        const g = Math.max(0, Math.min(1, grow * 3 - idx));
+        if (g <= 0) return;
+        const o = q * w * 0.85, cx = hk.x + ux * o, cy = hk.y + uy * o;
+        const r0 = w * 1.05 * g;
+        const x1 = cx - nx * r0 - ux * w * 0.3, y1 = cy - ny * r0 - uy * w * 0.3;
+        const x2 = cx + nx * r0 + ux * w * 0.3, y2 = cy + ny * r0 + uy * w * 0.3;
+        g2.beginPath(); g2.moveTo(x1, y1); g2.quadraticCurveTo(cx + ux * w * 0.45, cy + uy * w * 0.45, x2, y2);
+        g2.strokeStyle = colors.line; g2.lineWidth = w * 0.8; g2.stroke();
+        g2.strokeStyle = colors.c[va.k]; g2.lineWidth = w * 0.52; g2.stroke();
         g2.strokeStyle = colors.hi; g2.lineWidth = w * 0.12; g2.stroke();
       });
     }
@@ -497,8 +607,11 @@
         // niente simulazione lunga: corde subito a riposo, le corde che volano spariscono
         view = view.filter((v) => v.mode !== 'fly');
         fx = [];
-        for (const v of view) for (const p of v.pins) { p.x = p.tx; p.y = p.ty; }
+        floats = [];
+        for (const v of view) { v.air = 0; for (const p of v.pins) { p.x = p.tx; p.y = p.ty; } }
+        hooks.forEach((hk, key) => { if (hk.on) hk.grow = 1; else hooks.delete(key); });
         for (let i = 0; i < 120; i++) step(true);
+        hooks.forEach((hk, key) => { if (hk.on) hk.grow = 1; else hooks.delete(key); });
         draw();
         return;
       }
@@ -509,7 +622,9 @@
         if (v.blink) v.blink--;
       }
       draw();
-      const busy = grab || fx.length || view.some((v) => v.mode === 'fly' || v.blink);
+      let hookAnim = false;
+      hooks.forEach((hk) => { if (Math.abs((hk.on ? 1 : 0) - hk.grow) > 0.01) hookAnim = true; });
+      const busy = grab || (sel && hover >= 0) || fx.length || floats.length || hookAnim || view.some((v) => v.mode === 'fly' || v.blink || v.air);
       still = m < 0.03 && !busy ? still + 1 : 0;
       if (still < 20) raf = requestAnimationFrame(tick);
       else { for (const v of view) for (const p of v.pins) { p.x = p.tx; p.y = p.ty; } draw(); }
@@ -546,15 +661,27 @@
       // le corde che spariranno restano disegnate (con la relazione di prima) fino al loro turno
       const v = view.find((x) => x.r === r);
       if (v) { v.pins[end].tx = hx(h); v.pins[end].ty = hy(h); v.pins[end].snap = false; v.dash = (v.dash || 0) + RW() * 3; }
+      if (v) v.air = 22;                      // il capo arriva dall'alto: per un attimo la corda resta sopra tutto
       // relazione mostrata: quella subito dopo la mossa (incluse le corde che stanno per volare via)
       rel = new Map(res.pre.over.map(([i, j]) => [pk(i, j), i]));
-      twists = new Set(res.state.twists.map(([i, j]) => pk(i, j)));
-      // scintille dove si scioglie un attorcigliamento
-      res.untwisted.forEach((j) => {
-        const a = view.find((x) => x.r === r), b = view.find((x) => x.r === j);
-        if (a && b) { const p = curveHits(a, b)[0]; if (p) burst(p.x, p.y, a.k, 6); }
-        ctx.sfx.tap && ctx.sfx.tap();
+      syncHooks(false);
+      // si è avvolta: "oh no!" — si è srotolata: scintille
+      if (res.wrapped.length) {
+        later(() => {
+          ctx.react && ctx.react('oops');
+          ctx.sfx.bad ? ctx.sfx.bad() : ctx.sfx.tap();
+          const hk = hooks.get(`${r}>${res.wrapped[0]}`);
+          if (hk) floats.push({ text: L('rk_wrap'), x: Math.min(W - sp * 1.6, Math.max(sp * 1.6, hk.x)), y: Math.max(sp * 0.5, hk.y - sp * 0.45), life: 1 });
+          wake();
+        }, 200);
+      }
+      res.unwound.forEach((j, q) => {
+        const hk = hooks.get(`${r}>${j}`) || hooks.get(`${j}>${r}`);
+        if (!hk) return;
+        burst(hk.x, hk.y, view.find((x) => x.r === r) ? view.find((x) => x.r === r).k : 0, 8);
+        if (!q) floats.push({ text: L('rk_unwrap'), x: Math.min(W - sp * 1.6, Math.max(sp * 1.6, hk.x)), y: Math.max(sp * 0.5, hk.y - sp * 0.45) + (res.wrapped.length ? sp * 0.6 : 0), life: 1 });
       });
+      if (res.unwound.length) ctx.sfx.tap && ctx.sfx.tap();
       const T = reduce() ? 60 : 300;
       let tEnd = 0;
       const rounds = Math.max(-1, ...res.gone.map(([, q]) => q));
@@ -582,7 +709,7 @@
         later(() => ctx.win(), tEnd + 1100);
       } else {
         later(() => {
-          const sol = R.solve(s.L, s.st, { nodeLimit: 3000 });
+          const sol = R.solve(s.L, s.st, { nodeLimit: 400 });
           if (sol.unsolvable) { hintEl.textContent = L('rk_stuck'); hintEl.classList.add('warn'); ctx.react && ctx.react('oops'); ctx.sfx.bad && ctx.sfx.bad(); }
         }, tEnd + 300);
       }
@@ -776,9 +903,9 @@
       ctx.changed({ reset: true });
     }
     function load(sv) {
-      if (!sv || sv.v !== 1 || !R.validLevel(sv.L) || !R.validState(sv.L, sv.st)) return false;
+      if (!sv || sv.v !== 2 || !R.validLevel(sv.L) || !R.validState(sv.L, sv.st)) return false;
       if (!R.stableStart(sv.L)) return false;
-      s = { v: 1, L: sv.L, st: sv.st, hist: Array.isArray(sv.hist) ? sv.hist.filter((h) => R.validState(sv.L, h)).slice(-80) : [], moves: +sv.moves || 0 };
+      s = { v: 2, L: sv.L, st: sv.st, hist: Array.isArray(sv.hist) ? sv.hist.filter((h) => R.validState(sv.L, h)).slice(-80) : [], moves: +sv.moves || 0 };
       return true;
     }
     if (load(saved)) build(); else fresh();
@@ -800,7 +927,7 @@
   }
 
   HH.games.push({
-    id: 'ropes', name: 'Hari Knots', rules: 'r10', art, create,
+    id: 'ropes', name: 'Hari Knots', rules: 'r10b', art, create,
     tutorial: TUT,
     // fragoline: 3 col minimo esatto (A*), 2 se usi al massimo il 70% delle mosse in più "concesse" (15% del minimo, 2..6), 1 oltre
     rate: (s) => HH.ropes.rate(s.moves, s.L.min),

@@ -12,45 +12,56 @@
  *   Passare sopra un foro VUOTO non conta nulla.
  * Strati: per ogni coppia che si incrocia si sa chi sta SOPRA (relazione a coppie, può anche essere ciclica:
  *   A sopra B, B sopra C, C sopra A, come nelle corde vere).
- * Attorcigliate: alcune coppie partono avvolte una sull'altra (si incrociano sempre); restano attorcigliate finché si
- *   incrociano. Appena smettono di incrociarsi lo restano per sempre sciolte.
+ * Attorcigliate: coppie avvolte una sull'altra. È un avvolgimento fisico: NON si scioglie da solo quando i segmenti
+ *   smettono di incrociarsi; si scioglie solo ripassando il capo di una delle due sopra l'altra. Nello stato pubblico la
+ *   coppia è ordinata [a, b] = "a è avvolta attorno a b" (serve solo al disegno: per le regole è simmetrica).
+ *   Una coppia attorcigliata non ha una relazione "sopra".
  *
- * Mossa: un'estremità di una corda va in un foro LIBERO (foro presente, senza corde). L'altra estremità resta ferma.
- *   - con le corde che incrociava e incrocia ancora: l'ordine resta com'era (chi le stava sopra continua a coprirla);
- *   - con le corde che incrocia ora per la prima volta: la corda spostata è SOPRA (l'estremità viene sollevata);
- *   - con le corde che non incrocia più: relazione (e attorcigliamento) sciolti.
+ * Mossa (modello 2, "la mano che solleva il capo"): il capo E della corda A va dal foro h0 a un foro LIBERO h1
+ * viaggiando IN ARIA sopra tutto (percorso = segmento h0→h1); l'altro capo F resta fermo. Per ogni altra corda B:
+ *   p  = il percorso h0→h1 interseca B · c1 = il nuovo segmento F→h1 interseca B
+ *   prima A sopra B           → dopo A sopra B se c1, altrimenti niente
+ *   prima nessuna relazione    → dopo A sopra B se c1 (arriva dall'alto), altrimenti niente
+ *   prima B sopra A            → se p: A si AVVOLGE attorno a B (attorcigliate); altrimenti B sopra A se c1, o niente
+ *   prima attorcigliate        → se p: il capo ripassa sopra B e si srotola → B sopra A se c1, o niente;
+ *                                 altrimenti restano attorcigliate
+ *   (simmetrico: vale lo stesso spostando il capo di B attorno ad A.)
  * Poi, a cascata: ogni corda NON coperta da nessun'altra e NON attorcigliata sparisce (libera i suoi fori).
+ * Un nodino coperto (una corda che passa sopra il foro del capo) si può comunque sollevare: la corda di sopra conta già
+ *   come incrocio, quindi la coerenza è data dalle regole p/c1 (nessun divieto in più).
  * Lastre: una corda agganciata in un foro tiene tutte le lastre che contengono quel punto. Una lastra senza corde
  *   che la tengono e senza lastre presenti SOPRA di sé che la sovrappongono cade (a cascata, dall'alto); i suoi fori
  *   spariscono (un foro esiste finché almeno una lastra presente lo contiene).
  * Obiettivo: far sparire tutte le corde (allora cadono tutte le lastre).
  *
  * Risolutore (A*, minimo esatto): stato = estremità + relazione "sopra" + attorcigliamenti + lastre presenti.
- *   Euristica ammissibile e consistente: le corde MAI spostate mantengono tra loro incroci, strati e attorcigliamenti;
- *   per sparire tutte devono formare un insieme senza coppie attorcigliate e senza cicli di copertura.
- *   h = minimo numero di corde da togliere per ottenere un insieme così (ricerca sui sottoinsiemi, tetto 4).
+ *   Euristica ammissibile e consistente: le corde MAI spostate mantengono tra loro strati e attorcigliamenti (solo una
+ *   mossa di una delle due li cambia); per sparire tutte devono formare un insieme senza coppie attorcigliate e senza
+ *   cicli di copertura. h = minimo numero di corde da togliere per ottenere un insieme così (tetto 6).
  *   Una mossa cambia solo le relazioni della corda spostata, quindi h scende al massimo di 1 per mossa.
  * Generatore: fori casuali sulle lastre, corde lunghe che si incrociano, strati casuali, attorcigliamenti; si ripara
- *   finché nessuna corda sparirebbe subito; si accetta se A* trova il minimo nella fascia del livello.
+ *   finché nessuna corda sparirebbe subito; si accetta se A* trova il minimo nella fascia del livello e se una
+ *   giocata "ingenua" (golosa) non lo risolve nel minimo.
  *
  * Esporta HH.ropes = { config, generate, initial, move, legalMoves, freeHoles, solve, crosses, ... }.
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
   const MAX_ROPES = 10;
+  const RULE = 2;                      // versione delle regole (i salvataggi del modello 1 vengono scartati)
 
   /* ---------- curva di difficoltà ---------- */
   // c×r = griglia di punti · K corde · P lastre · F fori liberi · T coppie attorcigliate · [lo, hi] mosse minime
-  // pick = candidati validi tra cui si sceglie il più "furbo" (meno prime mosse giuste)
+  // pick = candidati validi tra cui si sceglie quello con più mosse minime (poi meno prime mosse giuste)
+  // loose = probabilità di avvolgere anche coppie che non si incrociano (ansa)
   const TABLE = [
-    [1, { cols: 4, rows: 4, K: 3, P: 1, F: 3, T: 1, lo: 1, hi: 1, pick: 1 }],
-    [2, { cols: 4, rows: 4, K: 3, P: 1, F: 2, T: 1, lo: 1, hi: 2, pick: 3 }],
-    [4, { cols: 5, rows: 5, K: 4, P: 2, F: 2, T: 2, lo: 2, hi: 2, pick: 4 }],
-    [7, { cols: 5, rows: 5, K: 5, P: 2, F: 2, T: 2, lo: 2, hi: 3, pick: 5 }],
-    [11, { cols: 5, rows: 5, K: 6, P: 2, F: 2, T: 2, lo: 2, hi: 3, pick: 6 }],
-    [15, { cols: 5, rows: 6, K: 7, P: 3, F: 2, T: 3, lo: 3, hi: 4, pick: 6 }],
-    [20, { cols: 5, rows: 6, K: 8, P: 3, F: 2, T: 3, lo: 3, hi: 4, pick: 6 }],
-    [1e9, { cols: 5, rows: 6, K: 9, P: 3, F: 2, T: 4, lo: 4, hi: 5, pick: 6 }],
+    [1, { cols: 4, rows: 4, K: 3, P: 1, F: 2, T: 1, loose: 0.5, lo: 2, hi: 2, pick: 1 }],
+    [3, { cols: 4, rows: 5, K: 4, P: 1, F: 2, T: 1, loose: 0.4, lo: 2, hi: 3, pick: 3 }],
+    [6, { cols: 5, rows: 5, K: 5, P: 2, F: 2, T: 2, loose: 0.3, lo: 2, hi: 4, pick: 4 }],
+    [10, { cols: 5, rows: 5, K: 6, P: 2, F: 2, T: 2, loose: 0.3, lo: 3, hi: 5, pick: 3 }],
+    [15, { cols: 5, rows: 6, K: 7, P: 3, F: 2, T: 3, loose: 0.3, lo: 4, hi: 5, pick: 2 }],
+    [20, { cols: 5, rows: 6, K: 8, P: 3, F: 1, T: 3, loose: 0.3, lo: 4, hi: 6, pick: 2 }],
+    [1e9, { cols: 5, rows: 6, K: 9, P: 3, F: 1, T: 4, loose: 0.3, lo: 5, hi: 7, pick: 1 }],
   ];
   function config(level) {
     const lv = Math.max(1, level | 0);
@@ -97,21 +108,28 @@
     for (let p = 0; p < P; p++) for (let q = p + 1; q < P; q++) if (rectsOverlap(L.plates[p], L.plates[q])) above[p] |= 1 << q;
     const X = new Int32Array(H), Y = new Int32Array(H);
     L.holes.forEach(([x, y], h) => { X[h] = x; Y[h] = y; });
-    const cr = (a, b, c, d) => segHit(X[a], Y[a], X[b], Y[b], X[c], Y[c], X[d], Y[d]);
+    // tabella pigra degli incroci tra segmenti di fori (0 = da calcolare, 1 = no, 2 = sì)
+    const CT = new Uint8Array(H * H * H * H);
+    const cr = (a, b, c, d) => {
+      const q = ((a * H + b) * H + c) * H + d;
+      let v = CT[q];
+      if (!v) { v = segHit(X[a], Y[a], X[b], Y[b], X[c], Y[c], X[d], Y[d]) ? 2 : 1; CT[q] = v; }
+      return v === 2;
+    };
     Object.defineProperty(L, '_p', { value: { H, P, K: L.ropes.length, pins, above, cr }, enumerable: false, configurable: true });
     return L._p;
   }
 
   /* ---------- stato compatto (usato dal risolutore e dalla UI) ----------
    * e[2r], e[2r+1] = fori delle estremità (-1 se la corda è sparita) · ov[r] = maschera delle corde che r copre
-   * tw[r] = maschera delle corde attorcigliate con r · pl = maschera delle lastre presenti · alive = corde presenti */
+   * tw[r] = maschera delle corde attorno a cui r è avvolta (direzione solo per il disegno) · pl = maschera delle lastre presenti · alive = corde presenti */
   function packState(L, st) {
     const K = L.ropes.length;
     const e = new Int8Array(2 * K), ov = new Int32Array(K), tw = new Int32Array(K);
     let alive = 0;
     st.ends.forEach((x, r) => { if (x) { e[2 * r] = x[0]; e[2 * r + 1] = x[1]; alive |= 1 << r; } else { e[2 * r] = e[2 * r + 1] = -1; } });
     st.over.forEach(([i, j]) => { ov[i] |= 1 << j; });
-    st.twists.forEach(([i, j]) => { tw[i] |= 1 << j; tw[j] |= 1 << i; });
+    st.twists.forEach(([i, j]) => { tw[i] |= 1 << j; });
     let pl = 0;
     st.plates.forEach((on, p) => { if (on) pl |= 1 << p; });
     return { e, ov, tw, pl, alive };
@@ -121,16 +139,30 @@
     for (let r = 0; r < K; r++) ends.push(S.alive >> r & 1 ? [S.e[2 * r], S.e[2 * r + 1]] : null);
     for (let i = 0; i < K; i++) for (let j = 0; j < K; j++) {
       if (S.ov[i] >> j & 1) over.push([i, j]);
-      if (j > i && S.tw[i] >> j & 1) twists.push([i, j]);
+      if (S.tw[i] >> j & 1) twists.push([i, j]);
     }
     for (let p = 0; p < L.plates.length; p++) plates.push(!!(S.pl >> p & 1));
     return { ends, over, twists, plates };
   }
+  // maschere simmetriche degli attorcigliamenti (per le regole la direzione non conta)
+  function twSym(S, out) {
+    const K = S.tw.length;
+    for (let i = 0; i < K; i++) out[i] = S.tw[i];
+    for (let i = 0; i < K; i++) for (let j = 0; j < K; j++) if (S.tw[i] >> j & 1) out[j] |= 1 << i;
+    return out;
+  }
+  const KBUF = [];
   const keyOf = (S) => {
-    let k = String.fromCharCode(S.pl + 1);
-    for (let i = 0; i < S.e.length; i++) k += String.fromCharCode(S.e[i] + 2);
-    for (let i = 0; i < S.ov.length; i++) k += String.fromCharCode(S.ov[i] + 1, S.tw[i] + 1);
-    return k;
+    const K = S.ov.length;
+    KBUF.length = 0;
+    KBUF.push(S.pl + 1);
+    for (let i = 0; i < S.e.length; i++) KBUF.push(S.e[i] + 2);
+    for (let i = 0; i < K; i++) {
+      let t = S.tw[i];
+      for (let j = 0; j < K; j++) if (S.tw[j] >> i & 1) t |= 1 << j;
+      KBUF.push(S.ov[i] + 1, t + 1);
+    }
+    return String.fromCharCode.apply(null, KBUF);
   };
 
   // fori liberi: presenti (contenuti da almeno una lastra presente) e senza corde
@@ -151,8 +183,10 @@
     for (let round = 0; ; round++) {
       let covered = 0;
       for (let j = 0; j < K; j++) if (S.alive >> j & 1) covered |= S.ov[j];
+      let twisted = 0;
+      for (let j = 0; j < K; j++) if (S.tw[j]) twisted |= S.tw[j] | (1 << j);
       let free = 0;
-      for (let r = 0; r < K; r++) if ((S.alive >> r & 1) && !(covered >> r & 1) && !S.tw[r]) free |= 1 << r;
+      for (let r = 0; r < K; r++) if ((S.alive >> r & 1) && !(covered >> r & 1) && !(twisted >> r & 1)) free |= 1 << r;
       if (!free) break;
       for (let r = 0; r < K; r++) {
         if (!(free >> r & 1)) continue;
@@ -172,64 +206,91 @@
     return { gone, fell };
   }
 
-  /* applica la mossa (corda r, estremità end 0/1, foro h) allo stato compatto S (copiato).
-   * Ritorna null se illegale, altrimenti { S, gone, fell, lifted:[corde che ora r copre per prime], untwisted:[corde sciolte da r] } */
-  function applyMove(L, S, r, end, h) {
+  /* applica la mossa (corda r, estremità end 0/1, foro h) allo stato compatto S (copiato), regole del modello 2.
+   * Ritorna null se illegale, altrimenti
+   * { S, pre, gone, fell, lifted:[corde che r ora copre], wrapped:[corde attorno a cui r si è avvolta], unwound:[corde da cui r si è srotolata] } */
+  function applyMove(L, S, r, end, h, fast, into) {
     const p = prep(L);
     if (!(S.alive >> r & 1) || (end !== 0 && end !== 1) || !(h >= 0 && h < p.H)) return null;
     if (!(p.pins[h] & S.pl)) return null;
     for (let i = 0; i < S.e.length; i++) if (S.e[i] === h) return null;
-    const N = { e: S.e.slice(), ov: S.ov.slice(), tw: S.tw.slice(), pl: S.pl, alive: S.alive };
+    let N;
+    if (into) { N = into; N.e.set(S.e); N.ov.set(S.ov); N.tw.set(S.tw); N.pl = S.pl; N.alive = S.alive; }
+    else N = { e: S.e.slice(), ov: S.ov.slice(), tw: S.tw.slice(), pl: S.pl, alive: S.alive };
+    const h0 = N.e[2 * r + end], F = N.e[2 * r + 1 - end];
     N.e[2 * r + end] = h;
-    const a = N.e[2 * r], b = N.e[2 * r + 1], bit = 1 << r;
-    const lifted = [], untwisted = [];
+    const bit = 1 << r;
+    const lifted = fast ? null : [], wrapped = fast ? null : [], unwound = fast ? null : [];
     for (let j = 0; j < p.K; j++) {
       if (j === r || !(N.alive >> j & 1)) continue;
-      const jb = 1 << j;
-      if (p.cr(a, b, N.e[2 * j], N.e[2 * j + 1])) {
-        if (!(N.ov[j] & bit) && !(N.ov[r] & jb)) { N.ov[r] |= jb; lifted.push(j); }
-      } else {
-        N.ov[r] &= ~jb; N.ov[j] &= ~bit;
-        if (N.tw[r] & jb) { N.tw[r] &= ~jb; N.tw[j] &= ~bit; untwisted.push(j); }
+      const jb = 1 << j, b0 = N.e[2 * j], b1 = N.e[2 * j + 1];
+      const path = p.cr(h0, h, b0, b1), c1 = p.cr(F, h, b0, b1);
+      const aOver = N.ov[r] & jb, bOver = N.ov[j] & bit, tw = (N.tw[r] & jb) || (N.tw[j] & bit);
+      N.ov[r] &= ~jb; N.ov[j] &= ~bit;
+      if (tw) {
+        if (path) {                                   // il capo ripassa sopra B: si srotola
+          N.tw[r] &= ~jb; N.tw[j] &= ~bit; if (!fast) unwound.push(j);
+          if (c1) N.ov[j] |= bit;
+        }
+      } else if (bOver) {
+        if (path) { N.tw[r] |= jb; if (!fast) wrapped.push(j); } // passa sopra chi la copriva: ci si avvolge
+        else if (c1) N.ov[j] |= bit;
+      } else if (c1) {
+        N.ov[r] |= jb;
+        if (!aOver && !fast) lifted.push(j);
       }
     }
-    const pre = { e: N.e.slice(), ov: N.ov.slice(), tw: N.tw.slice(), pl: N.pl, alive: N.alive };
+    const pre = fast ? null : { e: N.e.slice(), ov: N.ov.slice(), tw: N.tw.slice(), pl: N.pl, alive: N.alive };
     const fx = settle(L, N);
-    return { S: N, pre, gone: fx.gone, fell: fx.fell, lifted, untwisted };
+    return { S: N, pre, gone: fx.gone, fell: fx.fell, lifted, wrapped, unwound };
   }
 
-  /* ---------- euristica: minimo numero di corde da spostare (vedi intestazione) ---------- */
-  const SUBS = {};
-  function subsets(K) {
-    if (SUBS[K]) return SUBS[K];
-    const all = [];
-    for (let m = 0; m < 1 << K; m++) all.push(m);
-    all.sort((x, y) => pop(x) - pop(y) || x - y);
-    return (SUBS[K] = Int32Array.from(all));
-  }
-  function peels(K, U, cin, tw) {
-    let rem = U;
-    for (;;) {
-      let out = 0;
-      for (let i = 0; i < K; i++) if ((rem >> i & 1) && !(cin[i] & rem) && !(tw[i] & rem)) out |= 1 << i;
-      if (!out) return rem === 0;
-      rem &= ~out;
-    }
-  }
-  const HCAP = 4;
+  /* ---------- euristica: minimo numero di corde da spostare (vedi intestazione) ----------
+   * Programmazione dinamica sui sottoinsiemi delle corde presenti: ok[U] = le corde di U, mai spostate, possono sparire
+   * tutte (si "sbucciano" una alla volta: ognuna senza corde di U sopra e senza attorcigliamenti dentro U).
+   * Le corde che si sbucciano subito non bloccano mai il "nocciolo" rimasto, quindi basta il nocciolo:
+   * h = |nocciolo| − |U| massimo con ok[U], U ⊆ nocciolo. Esatta per il rilassamento. */
+  const OKBUF = {}, TWBUF = {}, HMEMO = new Map();
   function heuristic(K, S, cin) {
     const A = S.alive;
     if (!A) return 0;
+    const tws = TWBUF[K] || (TWBUF[K] = new Int32Array(K));
+    twSym(S, tws);
     cin.fill(0);
-    for (let j = 0; j < K; j++) if (A >> j & 1) for (let i = 0; i < K; i++) if (S.ov[j] >> i & 1) cin[i] |= 1 << j;
-    const subs = subsets(K);
-    for (let q = 0; q < subs.length; q++) {
-      const M = subs[q], c = pop(M);
-      if (c >= HCAP) return HCAP;
-      if ((M & A) !== M) continue;
-      if (peels(K, A & ~M, cin, S.tw)) return c;
+    for (let j = 0; j < K; j++) if (A >> j & 1) { let m = S.ov[j]; while (m) { const i = 31 - Math.clz32(m & -m); cin[i] |= 1 << j; m &= m - 1; } }
+    // blocco[i] = corde che impediscono a i di sparire per prima
+    for (let i = 0; i < K; i++) cin[i] |= tws[i];
+    // prima si sbucciano le corde libere (non cambia il risultato): resta il "nocciolo" bloccato
+    let C = A;
+    for (;;) {
+      let out = 0, m = C;
+      while (m) { const lb = m & -m, i = 31 - Math.clz32(lb); if (!(cin[i] & C)) out |= lb; m ^= lb; }
+      if (!out) break;
+      C &= ~out;
     }
-    return HCAP;
+    if (!C) return 0;
+    // memo sul nocciolo (stessi blocchi → stesso risultato)
+    let key = String.fromCharCode(C + 1), m0 = C;
+    while (m0) { const lb = m0 & -m0, i = 31 - Math.clz32(lb); key += String.fromCharCode((cin[i] & C) + 1); m0 ^= lb; }
+    const memo = HMEMO.get(key);
+    if (memo !== undefined) return memo;
+    if (HMEMO.size > 50000) HMEMO.clear();
+    const ok = OKBUF[K] || (OKBUF[K] = new Uint8Array(1 << K));
+    let best = 0;
+    ok[0] = 1;
+    // sottoinsiemi del nocciolo in ordine crescente (ogni U viene dopo i suoi sottoinsiemi)
+    for (let U = (0 - C) & C; U; U = (U - C) & C) {
+      let v = 0, m = U;
+      while (m) {
+        const lb = m & -m, i = 31 - Math.clz32(lb);
+        if (!(cin[i] & U) && ok[U ^ lb]) { v = 1; break; }
+        m ^= lb;
+      }
+      ok[U] = v;
+      if (v) { const c = pop(U); if (c > best) best = c; }
+    }
+    HMEMO.set(key, pop(C) - best);
+    return pop(C) - best;
   }
 
   /* ---------- A* ----------
@@ -239,17 +300,25 @@
     const nodeLimit = opts.nodeLimit || 20000;
     const S0 = packState(L, st || initial(L));
     const cin = new Int32Array(K);
-    const best = new Map();
+    const best = new Map(), hc = new Map();
+    const tmp = { e: new Int8Array(2 * K), ov: new Int32Array(K), tw: new Int32Array(K), pl: 0, alive: 0 };
     const buckets = [];
-    const push = (node, f) => { (buckets[f] || (buckets[f] = [])).push(node); };
+    // code a due livelli: f crescente e, a parità di f, g più alto prima (si va in profondità verso la soluzione)
+    const push = (node, f) => { const b = buckets[f] || (buckets[f] = []); (b[node.g] || (b[node.g] = [])).push(node); };
+    const popF = (f) => {
+      const b = buckets[f];
+      if (!b) return null;
+      for (let g = b.length - 1; g >= 0; g--) if (b[g] && b[g].length) return b[g].pop();
+      return null;
+    };
     const k0 = keyOf(S0);
     best.set(k0, 0);
     push({ S: S0, g: 0, par: null, mv: null, k: k0 }, heuristic(K, S0, cin));
     let nodes = 0, f = 0;
     for (;;) {
-      while (f < buckets.length && !(buckets[f] && buckets[f].length)) f++;
-      if (f >= buckets.length) return { min: -1, path: null, nodes, aborted: false, unsolvable: true };
-      const n = buckets[f].pop();
+      let n = null;
+      while (f < buckets.length && !(n = popF(f))) f++;
+      if (!n) return { min: -1, path: null, nodes, aborted: false, unsolvable: true };
       if (best.get(n.k) < n.g) continue;
       if (!n.S.alive) {
         const path = [];
@@ -262,12 +331,15 @@
         if (!(n.S.alive >> r & 1)) continue;
         for (let end = 0; end < 2; end++) {
           for (const h of free) {
-            const m = applyMove(L, n.S, r, end, h);
-            const k = keyOf(m.S), g = n.g + 1;
+            applyMove(L, n.S, r, end, h, true, tmp);
+            const k = keyOf(tmp), g = n.g + 1;
             const old = best.get(k);
             if (old !== undefined && old <= g) continue;
             best.set(k, g);
-            push({ S: m.S, g, par: n, mv: [r, end, h], k }, g + heuristic(K, m.S, cin));
+            const S2 = { e: tmp.e.slice(), ov: tmp.ov.slice(), tw: tmp.tw.slice(), pl: tmp.pl, alive: tmp.alive };
+            let hv = hc.get(k);
+            if (hv === undefined) { hv = heuristic(K, S2, cin); hc.set(k, hv); }
+            push({ S: S2, g, par: n, mv: [r, end, h], k }, g + hv);
           }
         }
       }
@@ -284,11 +356,11 @@
     };
   }
   // mossa sullo stato pubblico: null se illegale, altrimenti
-  // { state, pre (stato subito dopo la mossa, prima delle sparizioni), gone, fell, lifted, untwisted }
+  // { state, pre (stato subito dopo la mossa, prima delle sparizioni), gone, fell, lifted, wrapped, unwound }
   function move(L, st, r, end, h) {
     const m = applyMove(L, packState(L, st), r, end, h);
     if (!m) return null;
-    return { state: unpackState(L, m.S), pre: unpackState(L, m.pre), gone: m.gone, fell: m.fell, lifted: m.lifted, untwisted: m.untwisted };
+    return { state: unpackState(L, m.S), pre: unpackState(L, m.pre), gone: m.gone, fell: m.fell, lifted: m.lifted, wrapped: m.wrapped, unwound: m.unwound };
   }
   const freeHoles = (L, st) => freeMask(L, packState(L, st));
   function legalMoves(L, st) {
@@ -371,7 +443,8 @@
     return null;
   }
 
-  // strati casuali + attorcigliamenti + riparazione: nessuna corda deve sparire all'inizio
+  // strati casuali + attorcigliamenti + riparazione: nessuna corda deve sparire all'inizio.
+  // Le coppie attorcigliate (avvolte) si scelgono tra quelle che si incrociano e non hanno strato.
   function dress(c, base, rnd) {
     const { holes, ropes } = base, K = ropes.length;
     const X = [];
@@ -379,28 +452,48 @@
     const deg = new Array(K).fill(0);
     X.forEach(([i, j]) => { deg[i]++; deg[j]++; });
     if (deg.some((d) => !d)) return null;
-    const top = {};                                       // top[i*16+j] (i<j) = chi sta sopra
-    X.forEach(([i, j]) => { top[i * 16 + j] = rnd() < 0.5 ? i : j; });
     const tw = new Array(K).fill(-1);
     const twists = [];
-    shuffle(X.slice(), rnd).forEach(([i, j]) => {
-      if (twists.length < c.T && tw[i] < 0 && tw[j] < 0) { tw[i] = j; tw[j] = i; twists.push([i, j]); }
+    // candidati: coppie che si incrociano e (se c.loose) anche coppie separate, avvolte da un'ansa
+    const cand = X.slice();
+    if (c.loose) for (let i = 0; i < K; i++) for (let j = i + 1; j < K; j++) if (!X.some(([a, b]) => a === i && b === j) && rnd() < c.loose) cand.push([i, j]);
+    shuffle(cand, rnd).forEach(([i, j]) => {
+      if (twists.length < c.T && tw[i] < 0 && tw[j] < 0) { tw[i] = j; tw[j] = i; twists.push(rnd() < 0.5 ? [i, j] : [j, i]); }
     });
-    if (twists.length < Math.min(c.T, 1)) return null;
-    const isCovered = (r) => X.some(([i, j]) => (i === r || j === r) && top[i * 16 + j] !== r);
+    if (twists.length < c.T) return null;
+    const L = X.filter(([i, j]) => tw[i] !== j);          // coppie con uno strato (le attorcigliate non ne hanno)
+    const top = {};                                       // top[i*16+j] (i<j) = chi sta sopra
+    L.forEach(([i, j]) => { top[i * 16 + j] = rnd() < 0.5 ? i : j; });
+    const isCovered = (r) => L.some(([i, j]) => (i === r || j === r) && top[i * 16 + j] !== r);
     for (let it = 0; it < 6 * K; it++) {
       const bad = [];
       for (let r = 0; r < K; r++) if (tw[r] < 0 && !isCovered(r)) bad.push(r);
       if (!bad.length) {
-        const over = X.map(([i, j]) => (top[i * 16 + j] === i ? [i, j] : [j, i]));
+        const over = L.map(([i, j]) => (top[i * 16 + j] === i ? [i, j] : [j, i]));
         return { over, twists };
       }
       const r = bad[ri(rnd, bad.length)];
-      const opts = X.filter(([i, j]) => i === r || j === r);
+      const opts = L.filter(([i, j]) => i === r || j === r);
+      if (!opts.length) return null;
       const [i, j] = opts[ri(rnd, opts.length)];
       top[i * 16 + j] = i === r ? j : i;
     }
     return null;
+  }
+
+  /* ricerca locale sugli strati: si girano coppie a caso finché l'euristica iniziale (minimo garantito) arriva a "target",
+   * accettando solo stati stabili (nessuna corda sparirebbe) e mai peggiori. Modifica L.over. Ritorna h0. */
+  function deepen(L, target, rnd, iters = 60) {
+    const K = L.ropes.length, cin = new Int32Array(K);
+    const h = () => heuristic(K, packState(L, initial(L)), cin);
+    let cur = h();
+    for (let it = 0; it < iters && cur < target && L.over.length; it++) {
+      const q = ri(rnd, L.over.length), [i, j] = L.over[q];
+      L.over[q] = [j, i];
+      const ok = stableStart(L) ? h() : -1;
+      if (ok >= cur) cur = ok; else L.over[q] = [i, j];
+    }
+    return cur;
   }
 
   function stableStart(L) {
@@ -409,8 +502,6 @@
     return !fx.gone.length && !fx.fell.length;
   }
 
-  /* generate(level | cfg, rnd) → livello JSON:
-   * { cols, rows, holes:[[x,y]…], plates:[[x0,y0,x1,y1]…], ropes:[[a,b]…], over:[[i,j]…], twists:[[i,j]…], min, solution, nodes } */
   // quota delle prime mosse che abbassano l'euristica (stima rapida di quante mosse iniziali sono "giuste")
   function goodFirst(L, h0) {
     const K = L.ropes.length, cin = new Int32Array(K), S = packState(L, initial(L)), free = freeMask(L, S);
@@ -422,52 +513,85 @@
     return tot ? good / tot : 1;
   }
 
+  /* giocata "ingenua": a ogni passo la mossa che fa sparire più corde (a parità, quella che lascia l'euristica più bassa).
+   * Ritorna il numero di mosse con cui risolve, o -1 se non ci riesce entro maxMoves. */
+  function naive(L, maxMoves) {
+    const K = L.ropes.length, cin = new Int32Array(K);
+    let S = packState(L, initial(L));
+    for (let m = 1; m <= maxMoves; m++) {
+      let best = null, bs = -1e9;
+      const free = freeMask(L, S);
+      for (let r = 0; r < K; r++) {
+        if (!(S.alive >> r & 1)) continue;
+        for (let end = 0; end < 2; end++) for (const h of free) {
+          const x = applyMove(L, S, r, end, h);
+          const sc = 100 * x.gone.length - heuristic(K, x.S, cin);
+          if (sc > bs) { bs = sc; best = x; }
+        }
+      }
+      if (!best) return -1;
+      S = best.S;
+      if (!S.alive) return m;
+    }
+    return -1;
+  }
+
+  /* generate(level | cfg, rnd) → livello JSON:
+   * { rule, cols, rows, holes:[[x,y]…], plates:[[x0,y0,x1,y1]…], ropes:[[a,b]…], over:[[i,j]…], twists:[[a,b]…],
+   *   min, solution, nodes, opt } */
   function generate(arg, rnd = Math.random) {
     const c = typeof arg === 'number' ? config(arg) : Object.assign(config(1), arg);
-    const nodeLimit = c.nodeLimit || 1500, pick = c.pick || 1;
+    const nodeLimit = c.nodeLimit || 500, pick = c.pick || 1;
     let best = null, found = 0, fallback = null, fbScore = 1e9;
-    for (let t = 0; t < 800 && found < pick; t++) {
+    const t0 = Date.now();
+    for (let t = 0; t < 600 && found < pick; t++) {
+      const el = Date.now() - t0;
+      if ((found && el > 30) || (fallback && el > 150)) break;   // tetti di tempo: basta un candidato valido (o il migliore trovato)
       const base = layout(c, rnd);
       if (!base) continue;
       const d = dress(c, base, rnd);
       if (!d) continue;
-      const L = { cols: c.cols, rows: c.rows, holes: base.holes, plates: base.plates, ropes: base.ropes, over: d.over, twists: d.twists };
+      const L = { rule: RULE, cols: c.cols, rows: c.rows, holes: base.holes, plates: base.plates, ropes: base.ropes, over: d.over, twists: d.twists };
       if (!stableStart(L)) continue;
-      // l'euristica è già un minimo garantito: scarta subito i livelli fuori fascia
-      const S = packState(L, initial(L));
-      const h0 = heuristic(L.ropes.length, S, new Int32Array(L.ropes.length));
-      if (h0 < 1 || h0 > c.hi) continue;
-      const inBand = h0 >= c.lo;
-      if (!inBand && fallback) continue;
+      const h0 = deepen(L, c.lo, rnd);
+      // l'euristica è un minimo garantito; le trappole di avvolgimento aggiungono di rado più di 1 mossa
+      if (h0 < 1 || h0 > c.hi || (h0 < c.lo - 1 && (found || fallback))) continue;
       const r = solve(L, null, { nodeLimit });
       if (r.aborted || r.unsolvable) continue;
+      const inBand = r.min >= c.lo && r.min <= c.hi;
+      // scarta i livelli che una giocata ingenua risolve nel minimo (tranne il primissimo)
+      const nv = inBand && c.lo > 2 ? naive(L, r.min) : -1;
       const opt = goodFirst(L, h0);
       const out = Object.assign(L, { min: r.min, solution: r.path, nodes: r.nodes, opt: Math.round(opt * 100) / 100 });
-      if (inBand && r.min <= c.hi) {
+      if (inBand && nv < 0) {
         found++;
-        if (!best || opt < best.opt) best = out;
+        // tra i candidati validi: più mosse minime, poi meno prime mosse giuste
+        if (!best || out.min > best.min || (out.min === best.min && opt < best.opt)) best = out;
         continue;
       }
-      // riserva: il più vicino alla fascia richiesta
-      const sc = Math.max(0, c.lo - r.min) + Math.max(0, r.min - c.hi);
+      const sc = Math.max(0, c.lo - r.min) + Math.max(0, r.min - c.hi) + (nv > 0 ? 0.5 : 0);
       if (sc < fbScore) { fbScore = sc; fallback = out; }
     }
     return best || fallback || FALLBACK();
   }
 
-  // livello di riserva (verificato nei test): due corde attorcigliate sopra una terza
+  // livello di riserva (verificato nei test): A avvolta attorno a B (senza incrociarla), C sotto A
   function FALLBACK() {
     const L = {
-      cols: 4, rows: 4, holes: [[0, 0], [3, 0], [0, 1], [3, 3], [0, 3], [1, 3], [3, 1], [2, 2], [2, 0]],
-      plates: [[0, 0, 3, 3]], ropes: [[2, 1], [0, 3], [4, 6]], over: [[0, 1], [1, 2]], twists: [[0, 1]],
+      rule: RULE, cols: 5, rows: 5, holes: [[0, 2], [4, 2], [1, 0], [3, 0], [3, 4], [4, 4], [2, 0], [0, 0], [2, 1], [4, 0]],
+      plates: [[0, 0, 4, 4]], ropes: [[0, 1], [3, 2], [6, 4]], over: [], twists: [[1, 0]],
     };
+    // C = (2,0)-(3,4) sta sotto B e sotto A (che tocca in (2,0))
+    const p = prep(L);
+    L.over = [];
+    for (let j = 0; j < 2; j++) if (p.cr(6, 4, L.ropes[j][0], L.ropes[j][1])) L.over.push([j, 2]);
     const r = solve(L, null, { nodeLimit: 20000 });
     return Object.assign(L, { min: r.min, solution: r.path, nodes: r.nodes });
   }
 
   /* ---------- salvataggi ---------- */
   function validLevel(L) {
-    if (!L || !Number.isInteger(L.cols) || !Number.isInteger(L.rows) || L.cols < 2 || L.rows < 2 || L.cols > 8 || L.rows > 9) return false;
+    if (!L || L.rule !== RULE || !Number.isInteger(L.cols) || !Number.isInteger(L.rows) || L.cols < 2 || L.rows < 2 || L.cols > 8 || L.rows > 9) return false;
     if (!Array.isArray(L.holes) || !Array.isArray(L.plates) || !Array.isArray(L.ropes) || !Array.isArray(L.over) || !Array.isArray(L.twists)) return false;
     if (L.ropes.length < 1 || L.ropes.length > MAX_ROPES || L.plates.length < 1 || L.plates.length > 5 || L.holes.length > 40) return false;
     const seen = new Set();
@@ -488,7 +612,7 @@
     const pair = (x) => Array.isArray(x) && x.length === 2 && x.every((r) => Number.isInteger(r) && r >= 0 && r < K) && x[0] !== x[1];
     return L.over.every(pair) && L.twists.every(pair) && Number.isInteger(L.min) && L.min >= 0;
   }
-  // stato salvato coerente: estremità in fori distinti e presenti, relazioni solo tra corde che si incrociano
+  // stato salvato coerente: estremità in fori distinti e presenti, strati solo tra corde che si incrociano
   function validState(L, st) {
     if (!st || !Array.isArray(st.ends) || st.ends.length !== L.ropes.length || !Array.isArray(st.over) || !Array.isArray(st.twists)) return false;
     if (!Array.isArray(st.plates) || st.plates.length !== L.plates.length) return false;
@@ -505,13 +629,14 @@
     }
     const K = L.ropes.length, alive = (r) => Number.isInteger(r) && r >= 0 && r < K && st.ends[r];
     const cross = (i, j) => p.cr(st.ends[i][0], st.ends[i][1], st.ends[j][0], st.ends[j][1]);
-    const okPair = (x) => Array.isArray(x) && x.length === 2 && alive(x[0]) && alive(x[1]) && x[0] !== x[1] && cross(x[0], x[1]);
-    if (!st.over.every(okPair) || !st.twists.every(okPair)) return false;
-    // ogni coppia che si incrocia ha un ordine (o è attorcigliata)
+    const okPair = (x) => Array.isArray(x) && x.length === 2 && alive(x[0]) && alive(x[1]) && x[0] !== x[1];
+    if (!st.over.every((x) => okPair(x) && cross(x[0], x[1])) || !st.twists.every(okPair)) return false;
+    // ogni coppia che si incrocia ha esattamente uno strato oppure è attorcigliata (mai entrambe le cose)
+    const same = (x, i, j) => (x[0] === i && x[1] === j) || (x[0] === j && x[1] === i);
     for (let i = 0; i < K; i++) for (let j = i + 1; j < K; j++) {
-      if (!st.ends[i] || !st.ends[j] || !cross(i, j)) continue;
-      const o = st.over.filter(([a, b]) => (a === i && b === j) || (a === j && b === i)).length;
-      if (o !== 1) return false;
+      if (!st.ends[i] || !st.ends[j]) continue;
+      const o = st.over.filter((x) => same(x, i, j)).length, t = st.twists.filter((x) => same(x, i, j)).length;
+      if (t > 1 || o > 1 || (t && o) || (cross(i, j) && !t && !o)) return false;
     }
     return true;
   }
@@ -533,9 +658,9 @@
   }
 
   HH.ropes = {
-    MAX_ROPES, TABLE, config, segHit, crosses, passesHole, inRect, rectsOverlap, prep,
+    MAX_ROPES, RULE, TABLE, config, segHit, crosses, passesHole, inRect, rectsOverlap, prep,
     packState, unpackState, keyOf, settle, applyMove, heuristic, solve,
     initial, move, freeHoles, legalMoves, isSolved, ropesLeft, coverers, twinsOf,
-    platesFor, layout, dress, stableStart, goodFirst, generate, FALLBACK, validLevel, validState, rate, progress,
+    platesFor, layout, dress, deepen, stableStart, goodFirst, naive, generate, FALLBACK, validLevel, validState, rate, progress,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

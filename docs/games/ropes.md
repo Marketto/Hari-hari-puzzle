@@ -4,124 +4,121 @@ Corde colorate intrecciate su lastre pastello: riaggancia i capi nei fori liberi
 File: `src/games/ropes-logic.js` (logica pura, `HH.ropes`), `src/games/ropes-ui.js` (UI), `src/games/ropes.css` (stile, token `--rk-*`),
 test: `tests/ropes.test.mjs`, blocco in `tools/selftest.mjs`.
 
-## Regole (chiave `r10`)
-- **Campo**: griglia di punti `cols × rows`. Le **lastre** sono rettangoli di punti `[x0, y0, x1, y1]`; indice più alto = più in alto.
-  Possono sovrapporsi in parte. I **fori** sono alcuni punti della griglia, forati attraverso tutte le lastre che li coprono.
-- **Corde**: collegano due fori; un foro tiene al massimo un capo. La **traccia logica** è il segmento chiuso tra i due fori
-  (il disegno è una curva morbida con pochissima pendenza, ma le regole usano solo il segmento).
-- **Incrocio** (geometria esatta su coordinate intere): due corde si incrociano se i segmenti chiusi hanno almeno un punto comune.
-  Non hanno mai capi in comune (fori distinti), quindi i casi sono:
-  - incrocio vero;
-  - una corda che passa esattamente sopra il foro in cui è agganciata l'altra (**conta come incrocio**: ci passa sopra);
-  - tratti collineari sovrapposti (**conta come incrocio**);
-  - passare sopra un foro **vuoto** non conta nulla. Il generatore evita all'inizio le corde che passano sopra un foro.
-- **Strati**: per ogni coppia che si incrocia si sa quale corda sta sopra. È una relazione a coppie e può essere ciclica
-  (A sopra B, B sopra C, C sopra A), come con le corde vere.
-- **Attorcigliate**: alcune coppie partono avvolte (si incrociano sempre). Restano attorcigliate finché si incrociano; appena una mossa le
-  separa, lo scioglimento è definitivo.
-- **Mossa**: un capo di una corda va in un foro **libero** (foro presente e vuoto); l'altro capo resta fermo.
-  - con le corde che incrociava e incrocia ancora: l'ordine non cambia (chi la copriva continua a coprirla);
-  - con le corde che incrocia ora per la prima volta: la corda spostata va **sopra** (il capo viene sollevato);
-  - con le corde che non incrocia più: strato e attorcigliamento si sciolgono.
-- **Sparizione a cascata**: dopo ogni mossa, ogni corda **non coperta** da nessun'altra e **non attorcigliata** sparisce (libera i fori);
-  si ripete a turni finché succede qualcosa. All'inizio nessuna corda sparisce (garantito dal generatore).
-- **Lastre**: una corda agganciata in un foro tiene **tutte** le lastre che contengono quel punto. Una lastra cade quando nessuna corda la tiene
-  **e** nessuna lastra presente sopra di lei la sovrappone (quella sotto aspetta che cada quella sopra); cascata dall'alto, a turni.
-  Un foro esiste finché almeno una lastra presente lo contiene: con la lastra spariscono i suoi fori (sono sempre vuoti, perché era libera).
-- **Obiettivo**: far sparire tutte le corde → cadono tutte le lastre. Nessuna sconfitta: se lo stato diventa davvero irrisolvibile
-  (A* esplora tutto senza soluzione, limite 3000 nodi) compare "All tangled up! Tap Undo." e Hari fa "oops". Nelle misure non è mai successo
-  partendo da livelli generati, ma con poche mosse sbagliate è possibile (es. una lastra che cade portandosi via gli unici fori liberi).
+## Regole — modello 2, "la mano che solleva il capo" (chiave `r10b`)
+Il modello 1 (v0.9.0: la corda spostata finiva sopra o sotto da sola) era troppo semplice. Nel modello 2 il capo viene tirato su
+dalla mano e attraversa il tavolo IN ARIA: se passa sopra una corda che copriva la sua, ci si avvolge.
+
+- **Campo**: griglia di punti `cols × rows`. Le **lastre** sono rettangoli di punti `[x0, y0, x1, y1]` (indice più alto = più in alto),
+  anche sovrapposte. I **fori** sono punti forati attraverso tutte le lastre che li coprono.
+- **Corde**: collegano due fori (un capo per foro). La **traccia logica** è il segmento chiuso tra i due fori.
+- **Incrocio** (geometria esatta, coordinate intere): due segmenti chiusi con almeno un punto in comune. Conta anche una corda che passa
+  esattamente sopra il foro dove è agganciata l'altra, e conta un tratto collineare sovrapposto. Passare sopra un foro vuoto non conta.
+- **Strati**: per ogni coppia che si incrocia si sa chi sta sopra (relazione a coppie, anche ciclica).
+- **Avvolte** (attorcigliate): coppie in cui una corda è avvolta attorno all'altra. È un nodo fisico: **non** si scioglie quando i segmenti
+  smettono di incrociarsi, solo ripassando un capo (di una delle due) sopra l'altra. Una coppia avvolta non ha strato.
+  Nello stato pubblico la coppia è ordinata `[a, b]` = "a avvolta attorno a b" (serve solo al disegno: le regole sono simmetriche).
+- **Mossa**: il capo E della corda A va dal foro h0 a un foro **libero** h1 seguendo in aria il segmento h0→h1; l'altro capo F resta fermo.
+  Per ogni altra corda B: `p` = il percorso h0→h1 interseca B; `c1` = il nuovo segmento F→h1 interseca B.
+
+  | Prima | Dopo |
+  |---|---|
+  | A sopra B | A sopra B se `c1`, altrimenti niente |
+  | nessuna relazione | A sopra B se `c1` (arriva dall'alto), altrimenti niente |
+  | B sopra A | se `p`: **A si avvolge attorno a B**; altrimenti B sopra A se `c1`, o niente |
+  | avvolte | se `p` (il capo ripassa sopra B): si srotolano → B sopra A se `c1`, o niente; altrimenti restano avvolte |
+
+  Vale lo stesso spostando il capo di B (regola simmetrica).
+- **Sparizione a cascata**: dopo ogni mossa sparisce, a turni, ogni corda senza corde sopra e non avvolta.
+- **Nodino coperto**: un capo su cui passa un'altra corda **si può** sollevare. Non serve un divieto: quella corda conta già come incrocio
+  (sta sopra), quindi se il capo la attraversa in aria vale la regola "B sopra A" → avvolgimento. È coerente con la fisica (la mano tira il
+  capo da sotto e la corda ci resta impigliata).
+- **Lastre**: una corda in un foro tiene tutte le lastre che contengono quel punto. Una lastra cade quando nessuna corda la tiene e nessuna
+  lastra presente sopra di lei la sovrappone; i suoi fori spariscono con lei.
+- **Obiettivo**: far sparire tutte le corde. Nessuna sconfitta: se lo stato è davvero irrisolvibile (A* esaurisce lo spazio entro 400 nodi)
+  compare "All tangled up! Tap Undo." e Hari fa "oops".
+
+La sfida: una corda che sta sotto non si libera portando il capo sopra chi la copre (ci si avvolgerebbe). Bisogna scegliere percorsi
+(fori) che girano intorno, oppure togliere prima chi sta sopra, con pochi fori liberi.
 
 ## Comandi
 | Gesto | Effetto |
 |---|---|
-| Trascina un nodino (o il fiocchetto) | il capo segue il dito, la corda si tende; i fori liberi si illuminano; vicino a un foro il capo ci scivola (calamita) |
+| Trascina un nodino o un fiocchetto | il capo sale in aria (ombra lunga, corda sopra tutto) e segue il dito; i fori liberi si illuminano; calamita vicino ai fori |
+| Sopra un foro, prima di rilasciare | anteprima: un anello rosso tratteggiato pulsa dove la corda si avvolgerebbe |
 | Rilascia su un foro libero | mossa; altrove il capo torna al suo foro |
-| Tocca un nodino, poi un foro libero | stessa mossa senza trascinare (il capo resta sollevato finché scegli) |
-| Tastiera | frecce = scegli nodino (o foro, se ne hai preso uno) · Invio/Spazio = prendi/aggancia · Esc = lascia |
-| Annulla | torna allo stato prima della mossa; **la mossa resta contata** (come Boba Sort) |
+| Tocca un nodino, poi un foro | stessa mossa senza trascinare |
+| Tastiera | frecce = nodino/foro · Invio/Spazio = prendi/aggancia · Esc = lascia |
+| Annulla | torna allo stato prima; **la mossa resta contata** |
 
 ## Curva di difficoltà (`config(level)`)
-| Livelli | Griglia | Corde | Lastre | Fori liberi | Coppie attorcigliate | Minimo richiesto | Candidati |
-|---|---|---|---|---|---|---|---|
-| 1 | 4×4 | 3 | 1 | 3 | 1 | 1 | 1 |
-| 2 | 4×4 | 3 | 1 | 2 | 1 | 1–2 | 3 |
-| 3–4 | 5×5 | 4 | 2 | 2 | 2 | 2 | 4 |
-| 5–7 | 5×5 | 5 | 2 | 2 | 2 | 2–3 | 5 |
-| 8–11 | 5×5 | 6 | 2 | 2 | 2 | 2–3 | 6 |
-| 12–15 | 5×6 | 7 | 3 | 2 | 3 | 3–4 | 6 |
-| 16–20 | 5×6 | 8 | 3 | 2 | 3 | 3–4 | 6 |
-| 21+ | 5×6 | 9 | 3 | 2 | 4 | 4–5 | 6 |
+| Livelli | Griglia | Corde | Lastre | Fori liberi | Coppie avvolte | Minimo richiesto |
+|---|---|---|---|---|---|---|
+| 1 | 4×4 | 3 | 1 | 2 | 1 | 2 |
+| 2–3 | 4×5 | 4 | 1 | 2 | 1 | 2–3 |
+| 4–6 | 5×5 | 5 | 2 | 2 | 2 | 2–4 |
+| 7–10 | 5×5 | 6 | 2 | 2 | 2 | 3–5 |
+| 11–15 | 5×6 | 7 | 3 | 2 | 3 | 4–5 |
+| 16–20 | 5×6 | 8 | 3 | 1 | 3 | 4–6 |
+| 21+ | 5×6 | 9 | 3 | 1 | 4 | 5–7 |
 
-Tra i candidati validi si sceglie quello con la quota più bassa di "prime mosse giuste" (mosse iniziali che abbassano l'euristica):
-meno mosse giuste = più bisogna leggere sopra/sotto prima di muovere.
+Una parte delle coppie avvolte può non incrociarsi (`loose`: anse). Dal livello 4 un livello è scartato se la **giocata ingenua**
+(golosa: ogni volta la mossa che fa sparire più corde) lo risolve nel minimo. Tra i candidati validi vince quello con più mosse minime.
 
-Misure (40 semi, Node):
+Misure (`node tools/selftest.mjs`, 12 semi, Node):
 
-| Livello | Corde | Lastre | Incroci medi | Minimo medio | Prime mosse giuste | Nodi A* | ms medi | ms peggiore |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 3 | 1 | 2.5 | 1.0 | 35% | 1 | 0.6 | 6 |
-| 3 | 4 | 2 | 3.6 | 2.0 | 51% | 2 | 1.3 | 6 |
-| 5 | 5 | 2 | 6.1 | 2.0 | 41% | 2 | 1.0 | 2 |
-| 8 | 6 | 2 | 9.7 | 2.0 | 26% | 2 | 1.7 | 5 |
-| 12 | 7 | 3 | 13.4 | 3.0 | 41% | 3 | 3.2 | 7 |
-| 16 | 8 | 3 | 17.1 | 3.0 | 30% | 3 | 4.4 | 6 |
-| 21 | 9 | 3 | 24.0 | 4.05 | 37% | 4 | 7.6 | 9 |
+| Livello | Corde | Minimo medio | Mosse oltre l'euristica | ms medi |
+|---|---|---|---|---|
+| 1 | 3 | 2.0 | +1.0 | 17 |
+| 3 | 4 | 2.0 | +0.9 | 4 |
+| 6 | 5 | 2.1 | +0.1 | 1.5 |
+| 10 | 6 | 3.1 | +0.7 | 14 |
+| 14 | 7 | 4.0 | +1.0 | 20 |
+| 18 | 8 | 4.6 | +1.2 | 15 |
+| 24 | 9 | 5.2 | +0.8 | 40 |
+
+"Mosse oltre l'euristica" ≈ quante mosse in più costano le trappole di avvolgimento rispetto al conteggio di nodi e cicli.
+Il generatore resta sotto i 50 ms medi della specifica, non sotto i 10 ms: la ricerca A* è più profonda che nel modello 1
+(~100 nodi × ~150 figli a 9 corde). Livelli con minimo 7–9 richiederebbero più corde o più fori e una ricerca molto più costosa: per ora il massimo è 6–7.
 
 ## Generatore
-1. **Lastre** (`platesFor`): 1 lastra = tutto il campo; 2 lastre affiancate (o una sopra l'altra) con una colonna/riga in comune e un piccolo
-   sfalsamento; 3 lastre = due bande (alto/basso) e una centrale sopra che le sovrappone entrambe.
-2. **Fori** (`layout`): almeno 2 per lastra, poi a caso fino a `2K + F`. **Corde**: 2K fori a caso accoppiati scegliendo per ogni capo il
-   partner con punteggio `0.55·lunghezza + 0.7·incroci già creati + rumore`; vietate corde più corte di 2 passi e corde che passano sopra un foro.
-3. **Strati e attorcigliamenti** (`dress`): ogni coppia che si incrocia riceve uno strato a caso; si scelgono `T` coppie disgiunte da attorcigliare.
-   **Riparazione**: finché esiste una corda scoperta e non attorcigliata, una coppia a caso in cui è coinvolta viene girata in modo che sia coperta.
-   Si scartano le corde senza incroci e le riparazioni che non convergono.
-4. **Stabilità**: all'inizio non sparisce nessuna corda e non cade nessuna lastra (`stableStart`).
-5. **Euristica prima della ricerca**: `h0` è già un minimo garantito; si scarta subito se `h0` supera la fascia.
-6. **A\*** (`solve`, limite 1500 nodi in generazione): minimo esatto e soluzione. Il livello salva `min`, `solution`, `nodes`, `opt`.
-7. Fallback: il candidato più vicino alla fascia, poi un livello fisso a mano (`FALLBACK`, minimo 1, verificato nei test).
+1. Lastre (`platesFor`), fori e corde (`layout`): corde lunghe che si incrociano, mai sopra un foro.
+2. `dress`: sceglie `T` coppie avvolte (tra quelle che si incrociano e, con probabilità `loose`, anche coppie separate), poi uno strato a caso
+   per le altre coppie che si incrociano; ripara finché ogni corda non avvolta è coperta.
+3. `deepen`: ricerca locale che gira strati per alzare l'euristica iniziale (solo stati stabili).
+4. A* (`solve`, 500 nodi) → minimo e soluzione; scarto se fuori fascia o se `naive` risolve nel minimo.
+5. Tetti di tempo (30 ms dopo il primo valido, 150 ms con un fallback) → `FALLBACK` fisso solo se non c'è nulla.
 
-## Risolutore e prova del minimo
-- Stato compatto: capi (`Int8Array`), maschere "copre" e "attorcigliata con" per corda, maschera delle lastre presenti; chiave stringa.
-- **Euristica ammissibile e consistente**: le corde mai spostate mantengono tra loro incroci, strati e attorcigliamenti; per sparire tutte
-  devono formare un insieme senza coppie attorcigliate e senza cicli di copertura (si "sbucciano" dall'alto). `h` = minimo numero di corde da
-  togliere per ottenere un insieme così (sottoinsiemi in ordine di grandezza, tetto 4). Una mossa cambia solo le relazioni della corda spostata,
-  quindi `h` scende al massimo di 1 per mossa (consistente → A* con insieme chiuso è ottimo). In pratica `h0` coincide quasi sempre con il minimo,
-  per questo A* espande pochissimi nodi.
-- Mosse equivalenti: tutti i fori che fanno sparire la corda spostata portano allo stesso stato e vengono fusi dalla chiave.
+## Risolutore
+- Stato: capi, maschere "copre", maschere "avvolta attorno a", lastre presenti. La chiave usa gli avvolgimenti simmetrici.
+- **Euristica ammissibile e consistente**: le corde mai spostate mantengono tra loro strati e avvolgimenti (solo spostare una delle due li
+  cambia). Per sparire devono formare un insieme senza coppie avvolte e senza cicli di copertura. `h` = corde da togliere per ottenerlo.
+  Calcolo esatto: si sbucciano le corde libere, poi programmazione dinamica sui sottoinsiemi del "nocciolo" bloccato (memo per struttura).
+- A* con code a due livelli (f crescente, a parità g più alto), tabella pigra degli incroci, figli calcolati in un buffer riusato.
 
-### Oracolo nei test (`tests/ropes.test.mjs`)
-Indipendente dalla logica: simulatore riscritto da zero dalle regole (incroci con la **formula parametrica di Cramer** e casi paralleli/collineari
-per proiezione, strati in una `Map` di coppie, attorcigliamenti in un `Set`, lastre in un array) e **BFS esaustiva** con chiavi JSON, senza euristica.
-- geometria: casi a mano (X, T sopra un foro, collineari sovrapposte/disgiunte, parallele) e 20 000 casi casuali confrontati con l'oracolo;
-- regole a mano: copertura, attorcigliamento che resta o si scioglie, corda sollevata sopra le nuove, cascata, mosse illegali, lastre sovrapposte
-  (quella sotto cade al turno dopo), fori condivisi che tengono due lastre;
-- livelli 1–24 (12/6/4 semi): validi, stabili, ogni corda coperta o attorcigliata, strati solo tra corde che si incrociano, la soluzione dichiarata
-  libera tutto nell'oracolo;
-- livelli 1–14: **minimo A\* = BFS dell'oracolo**; anche da stati intermedi dopo mosse casuali (e "irrisolvibile" solo se la BFS lo conferma);
-- mosse casuali: logica e oracolo producono sempre lo stesso stato (capi, strati, attorcigliamenti, lastre, fori liberi);
-- determinismo, salvataggio JSON (livello + stato + ripresa del risolutore, stati rotti scartati), fragoline, avanzamento, tempo < 10 ms.
+## Oracolo nei test (`tests/ropes.test.mjs`)
+Indipendente: simulatore riscritto dalla tabella delle regole (incroci con la formula di Cramer, `Map` strati, `Map` avvolgimenti con
+direzione, lastre in array) e BFS esaustiva con chiavi JSON.
+- i 4 casi della tabella su un livello a mano, simmetria (spostando A o B), avvolgimento che resta senza incrocio, scioglimento, cascata;
+- livelli 1–24: validi, stabili, ogni corda coperta o avvolta, soluzione dichiarata che libera tutto nell'oracolo;
+- livelli 1–10: minimo A* = BFS; anche da stati intermedi;
+- mosse casuali: logica e oracolo identici (inclusa la direzione degli avvolgimenti);
+- difficoltà crescente e giocata ingenua insufficiente; determinismo; salvataggi (i livelli del modello 1 sono scartati: `rule: 2`).
 
 ## Disegno e fisica
-- Lastre e fori in SVG (vassoio a pois, venature, linguetta con faccina che diventa felice e poi la lastra cade ruotando).
-- Corde su canvas: particelle Verlet (8–22 per corda), vincoli di lunghezza (12 iterazioni), gravità leggera, smorzamento, lunghezza a riposo =
-  distanza tra i capi + 0,6%; i capi inseguono il bersaglio (foro o dito) e la lunghezza si adatta con ritardo, così la corda si tende e si assesta.
-  Una corda che sparisce si sfila dai fori con uno strattone, sale fluttuando e svanisce, con scintille; i turni della cascata sono distanziati.
-- Ordine di disegno = relazione logica: ordinamento topologico; nei cicli la corda di sopra viene ridisegnata in un cerchietto attorno al punto
-  d'incrocio reale delle due curve. Le coppie attorcigliate mostrano due giri della corda di sotto avvolti su quella di sopra. Durante il
-  trascinamento l'ordine è un'anteprima calcolata con il dito come capo (stesse regole della mossa).
-- Accessibilità colori: ogni corda ha un motivo diverso sul corpo (6 motivi) e un simbolo sul fiocchetto (10 simboli), più la faccina sul nodino.
-- Prestazioni: rAF solo finché qualcosa si muove (si ferma dopo 20 fotogrammi fermi) e mai se il canvas non è nel DOM; ResizeObserver e
-  MutationObserver (tema) si scollegano da soli. `prefers-reduced-motion`: corde subito a riposo, niente volo né cadute animate.
+- Corde: particelle Verlet, vincoli di lunghezza, gravità leggera; i capi inseguono foro o dito.
+- **Capo in aria**: la corda presa (o appena posata, per ~20 fotogrammi) è disegnata sopra tutte, con ombra lunga.
+- **Avvolgimento = gancio**: punto H sulla corda B (incrocio dei segmenti, oppure il punto di B più vicino al segmento di A).
+  Una particella di A e una di B sono fissate in H; A fa un'ansa fino a H (la sua lunghezza cresce di conseguenza) e lì tre giri del suo
+  colore stringono B. Entrata e uscita animate (`grow` 0↔1). All'avvolgimento compaiono "Oh no, wrapped!" e `ctx.react('oops')`;
+  allo scioglimento scintille e "Unwrapped!".
+  Nota: quando l'ansa è lunga, la curva disegnata di A può passare sopra corde che logicamente non incrocia (l'ordine di disegno lì non ha significato).
+- Ordine di disegno = relazione logica (topologico + ridisegno locale nei cicli). rAF solo finché qualcosa si muove; `prefers-reduced-motion`:
+  tutto subito a riposo, ganci già stretti, niente voli.
 
 ## Fragoline
-`HH.rules.rateMoves(mosse, minimo)`: 3 col minimo esatto, 2 se le mosse in più sono al massimo il 70% (per difetto) di `extraMoves(minimo)`
-(15% del minimo, da 2 a 6), 1 oltre. Es. minimo 3: 3 mosse → 3, 4 → 2, 5+ → 1. L'Annulla non restituisce la mossa.
+`HH.rules.rateMoves(mosse, minimo)`: 3 col minimo esatto, 2 entro il 70% delle mosse in più concesse, 1 oltre. L'Annulla non restituisce la mossa.
 
-## Avanzamento
-`progress = 0,85 × corde sparite + 0,15 × lastre cadute` (massimo 0,99), 1 solo a livello risolto.
-
-## Tutorial (`tu_ropes_1..3`)
-1. La manina trascina un capo: la corda ruota attorno al nodino fermo fino al foro che brilla.
-2. La corda di sopra vola via, poi quella che era sotto.
-3. Coppia attorcigliata con i giri visibili; la lastra cade.
+## Tutorial
+1. `tu_ropes_1` — la manina trascina un capo in un foro libero.
+2. `tu_ropes_4` — il capo della corda di sotto passa sopra la corda di sopra: compaiono i giri e l'anello rosso.
+3. `tu_ropes_5` — la corda di sopra vola via, poi quella che era sotto; la lastra cade.
