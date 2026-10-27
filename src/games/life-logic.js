@@ -571,7 +571,9 @@
     // fine o progresso dell'attività
     if (a) {
       a.left -= m;
-      const full = (a.id === 'sleep' || a.id === 'nap') && n.energy >= 0.985;
+      // riposato: si sveglia, ma di notte (21–6) dorme fino al mattino come tutti
+      const hr = (s.t % DAY) / 60;
+      const full = (a.id === 'sleep' || a.id === 'nap') && n.energy >= 0.985 && hr >= 6 && hr < 21;
       if (a.left <= 0 || full) finish(s, ev);
     }
     // avvisi sui bisogni critici (una volta, finché non si riprendono)

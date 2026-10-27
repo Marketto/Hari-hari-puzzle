@@ -189,7 +189,7 @@
       if (!sayEl) return;
       const x = hv.sx != null && !hv.hide && mode !== 'map' ? hv.sx : W / 2, y = hv.sy != null && !hv.hide && mode !== 'map' ? hv.sy - 6 : 70;
       sayEl.style.left = `${Math.max(70, Math.min(W - 70, x))}px`;
-      sayEl.style.top = `${Math.max(46, y)}px`;
+      sayEl.style.top = `${Math.max((sayEl.offsetHeight || 40) + 8, y)}px`;
     }
     function floatAt(x, y, html) {
       const f = document.createElement('div');
