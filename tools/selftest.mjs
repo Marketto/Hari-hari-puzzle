@@ -157,6 +157,26 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Home (simulazione senza livelli): 4 fasi della vita, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
+{
+  for (const f of ['life-data.js', 'life-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });
+  const life = globalThis.HH.life, LD = globalThis.HH.lifeData;
+  const stages = {
+    'monolocale decadente': () => life.create(1),
+    'casa ristrutturata': () => { const st = life.create(2); st.money = 9000; st.home.dmg = []; for (const id of ['bed2', 'sofa1', 'plant2', 'lamp1']) for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) if (!life.canPlace(st, id, x, y, 0) && life.buy(st, id, x, y, 0).ok) { y = 9; break; } return st; },
+    'casa grande': () => { const st = life.create(3); st.money = 99999; life.expand(st); life.expand(st); life.expand(st); life.chooseBiz(st, 'bakery'); st.biz.level = 4; st.biz.helpers = 3; return st; },
+    'nonno in pensione': () => { const st = life.create(4); st.born = st.t - LD.DAY * LD.YEAR_DAYS * 50; life.retire(st); return st; },
+  };
+  for (const [name, mk] of Object.entries(stages)) {
+    const st = mk(), T = 20;
+    const t = performance.now();
+    for (let d = 0; d < T; d++) { if (!st.act && st.needs.energy < 0.3) life.start(st, 'sleep'); life.tick(st, LD.DAY); }
+    const ms = (performance.now() - t) / T;
+    const fine = life.NEEDS.every((k) => st.needs[k] >= 0 && st.needs[k] <= 1) && Number.isInteger(st.money) && st.money >= 0;
+    ok(fine && ms < 10, `Hari Home, ${name}: età ${life.age(st).toFixed(1)}, bellezza ${life.beauty(st).toFixed(2)}, ${T} giorni, media ${ms.toFixed(2)} ms/giorno`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

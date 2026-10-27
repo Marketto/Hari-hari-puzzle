@@ -5,6 +5,11 @@
 - [x] GitHub Pages attivo: https://marketto.github.io/Hari-hari-puzzle/ (deploy automatico a ogni push su `main`)
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 
+## In revisione (prossima versione)
+- [ ] Nuovo gioco **Hari Home** (`life`, simulazione di vita isometrica stile Sims, senza livelli né fine): monolocale decadente con 8 guasti, costruisci (37 oggetti, 5 pavimenti, 5 carte da parati, 3 traslochi), 8 bisogni con umore/stress legati alla bellezza della casa, quartiere (spesa, dottore, parco, palestra, caffè, mobili, negozio), attività in 3 tipi e 4 livelli con aiutanti, malanni e check-up, 4 età fino a nonno, pensione e nuova generazione, 11 traguardi; brano `life`, tutorial, supporto `endless` in `app.js` (chip età/giorno/ghiande in header, card e Progressi)
+- [ ] Traduzioni delle 125 chiavi nuove (`r12`, `tu_life_1..4`, `lf_*`) in 43 lingue (EN/IT pronte)
+- [ ] Prova su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
+
 ## Prossimo
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio

@@ -625,3 +625,65 @@
   --sr-fog: rgba(120, 90, 170, .35); --sr-shadow: rgba(0, 0, 0, .32); --sr-veil: rgba(28, 21, 48, .66);
   --sr-bar-1: #2a2356; --sr-bar-2: #463a82; --sr-night: 1;
 }
+/* life */
+:root {
+  --tint-life: #ffe3cf;
+  
+  --lh-ink: #4a2c22; --lh-line: rgba(74, 44, 34, .62); --lh-shade: rgba(74, 34, 44, .13); --lh-shade-2: rgba(74, 34, 44, .26); --lh-hi: #ffffff;
+  --lh-ground: rgba(120, 70, 80, .16); --lh-slab-1: #e9c39f; --lh-slab-2: #d5a984; --lh-cap: #fff4ea; --lh-cap-side: #f0d9c8; --lh-base: #f3e1d3;
+  --lh-grid: rgba(74, 44, 34, .22); --lh-ok: rgba(80, 210, 150, .45); --lh-bad: rgba(255, 90, 120, .5); --lh-sel: #ff6f9c;
+  
+  --lh-fl-worn-1: #c9a88a; --lh-fl-worn-2: #9e7c62; --lh-fl-wood-1: #f1c995; --lh-fl-wood-2: #d9a874;
+  --lh-fl-tatami-1: #dfe3a6; --lh-fl-tatami-2: #a6ad6c; --lh-fl-tiles-1: #fff3f6; --lh-fl-tiles-2: #ffd6e2; --lh-fl-parquet-1: #d9a06a; --lh-fl-parquet-2: #b77c4b;
+  
+  --lh-wl-peel-1: #c7c3ad; --lh-wl-peel-2: #a8a48b; --lh-wl-paint-1: #fff1e4; --lh-wl-paint-2: #ffd8c4;
+  --lh-wl-stripes-1: #ffe4ec; --lh-wl-stripes-2: #ffd0de; --lh-wl-dots-1: #e3f4ff; --lh-wl-dots-2: #b9e0ff; --lh-wl-sakura-1: #fff0f5; --lh-wl-sakura-2: #ffb3c9;
+  
+  --lh-crack: #6b4c3c; --lh-mold: #9cc47d; --lh-mold-2: #7fae6a; --lh-web: rgba(255, 255, 255, .85); --lh-water: rgba(120, 190, 255, .55); --lh-water-2: #8fd0ff;
+  --lh-hole: #5a3b2c; --lh-peel-back: #efe6cf; --lh-tape: rgba(255, 236, 170, .9); --lh-stain: rgba(110, 80, 50, .25);
+  
+  --lh-frame: #ffffff; --lh-glass: rgba(255, 255, 255, .18); --lh-curtain: #ffc2d4; --lh-curtain-2: #ff9fbf;
+  --lh-sky-night: #2a2559; --lh-sky-dawn: #ffb08a; --lh-sky-day: #9fdcff; --lh-star: #fff7c2; --lh-snow: #ffffff; --lh-leaf-au: #f2994a; --lh-petal: #ffc2d4;
+  --lh-night: #1d1a4a; --lh-dusk: #ff9a5e; --lh-sun-beam: rgba(255, 238, 180, .7); --lh-dusk-beam: rgba(255, 170, 110, .6); --lh-moon-beam: rgba(150, 170, 255, .35);
+  --lh-lamp-glow: rgba(255, 196, 120, .7); --lh-bulb: #fff3b0; --lh-tv-glow: rgba(120, 190, 255, .6); --lh-fire: #ffb04a;
+  --lh-door: #e8a978; --lh-door-2: #f3c49c; --lh-gold: #ffd24d; --lh-mat: #9fd3a6;
+  
+  --lh-wood-1: #f4cf9c; --lh-wood-2: #d9a06a; --lh-wood-3: #b77c4b; --lh-white: #fffaf6; --lh-white-2: #f1e7f0; --lh-metal: #c9cfdc; --lh-metal-2: #9ba3b8;
+  --lh-old: #b3a58f; --lh-old-2: #958671; --lh-pink: #ffb3c8; --lh-pink-2: #ff8fb0; --lh-mint: #9fe3c9; --lh-mint-2: #6fcfab;
+  --lh-blue: #9cc8ff; --lh-blue-2: #74aef5; --lh-yellow: #ffe17a; --lh-lilac: #cdb6ff; --lh-lilac-2: #b09af0; --lh-leaf: #8fd16a; --lh-leaf-2: #5fae4b;
+  --lh-pot: #e98b6a; --lh-pot-2: #c96d50; --lh-screen: #4d4f72; --lh-screen-on: #a9e4ff; --lh-brick: #e39a7a; --lh-fish: #ff8a5c; --lh-drape: #ffe6f4;
+  --lh-flower: #ff7fa3; --lh-flower-2: #fff1a8; --lh-paper: #fffdf4; --lh-red: #ff7a7a;
+  
+  --lh-eye: #2a160e; --lh-iris: #9a5a34; --lh-nose: #3a1e14; --lh-mouth: #ff7f98; --lh-blush: rgba(255, 130, 165, .72);
+  --lh-quill: #9a6342; --lh-quill-2: #714330; --lh-quill-3: #b97d58; --lh-quill-m: #a58a7c; --lh-quill-m2: #7c6459;
+  --lh-quill-g: #d6d0d6; --lh-quill-g2: #aaa1ab; --lh-quill-g3: #e9e4ea;
+  --lh-face: #fff1e2; --lh-face-shade: rgba(74, 44, 34, .12); --lh-ear: #ffe4cc; --lh-ear-in: #ffadc0; --lh-sakura: #ffc2d4; --lh-sakura-in: #ff7fa3;
+  --lh-scarf: #63acff; --lh-glasses: #7a4a2c; --lh-glass-tint: rgba(200, 230, 255, .35); --lh-brow: #ffffff; --lh-cardigan: #c79be6; --lh-cardigan-2: #8e62b5; --lh-cane: #b77c4b; --lh-sweat: #a8dcff;
+  --lh-bunny: #fffaf6; --lh-bunny-2: #e6d8ea; --lh-bunny-in: #ffb3c8; --lh-bow: #ff7fa3; --lh-bear: #c48a5f; --lh-bear-2: #96603f; --lh-muzzle: #f6dcbc;
+  --lh-chick: #ffdc55; --lh-chick-2: #f2b62a; --lh-beak: #ff9a3d; --lh-cat: #cbc4da; --lh-cat-2: #9d95b5; --lh-pig: #ffbccb; --lh-pig-2: #f390a8; --lh-snout: #ff9ab2;
+  
+  --lh-grass: #b5e58f; --lh-grass-2: #8fcf6c; --lh-grass-3: #9fd97a; --lh-road: #f6e0bd; --lh-road-line: rgba(255, 255, 255, .9); --lh-park: #9fdc7d; --lh-trunk: #9a6342;
+  --lh-tree-sp: #ffc2d4; --lh-tree-su: #7fcf65; --lh-tree-au: #f6a04d; --lh-tree-wi: #f2f6ff;
+  --lh-house-1: #fff1e4; --lh-house-2: #fff3c4; --lh-house-3: #ffe0ea; --lh-house-4: #e8f6ff; --lh-house-5: #e7ffe9; --lh-house-6: #f2e8ff; --lh-house-7: #ffe9d6; --lh-house-shade: #e9d7cd;
+  --lh-roof-1: #ff8fb0; --lh-roof-2: #ffb84d; --lh-roof-3: #c79be6; --lh-roof-4: #74aef5; --lh-roof-5: #6fcfab; --lh-roof-6: #b09af0; --lh-roof-7: #ff9a6e;
+  --lh-awning: #ff8f8f; --lh-win-on: #ffe39a; --lh-sign: #fffaf6; --lh-label: #4a2c22; --lh-label-bg: #fffaf6;
+  
+  --lh-stage-1: #ffe9dc; --lh-stage-2: #ffd7e3; --lh-chip: #fffaf6; --lh-bar: rgba(75, 46, 40, .1);
+  --lh-good: #5fd3a3; --lh-mid: #ffc34d; --lh-low: #ff6f86; --lh-veil: rgba(255, 250, 244, .7); --lh-panel: #fffaf6; --lh-money: #b86a2c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-life: #3f2c46;
+    --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
+    --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
+    --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
+    --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-life: #3f2c46;
+  --lh-ground: rgba(0, 0, 0, .35); --lh-grid: rgba(255, 240, 230, .3);
+  --lh-stage-1: #2c2346; --lh-stage-2: #3a2a52; --lh-chip: #352a4c; --lh-bar: rgba(255, 230, 240, .14); --lh-veil: rgba(28, 21, 48, .72); --lh-panel: #2e2242; --lh-money: #ffc98a;
+  --lh-grass: #4f7d5a; --lh-grass-2: #3d6748; --lh-grass-3: #466f50; --lh-road: #8f7da6; --lh-road-line: rgba(255, 240, 200, .5); --lh-park: #4f8a5c;
+  --lh-house-shade: #b8a9b8; --lh-night: #120f33; --lh-label: #fff4ee; --lh-label-bg: #2a2040;
+}

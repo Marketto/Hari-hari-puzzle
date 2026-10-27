@@ -99,7 +99,6 @@
     bath: { dur: 45, at: 'obj', kinds: ['tub'], r: { hygiene: 1.25, stress: -0.22, fun: 0.1 } },
     relax: { dur: 60, at: 'obj', kinds: ['sofa'], r: { stress: -0.12, energy: 0.06, fun: 0.06 } },
     watch: { dur: 60, at: 'obj', kinds: ['tv'], r: { fun: 0.36, stress: -0.04 } },
-    play: { dur: 60, at: 'obj', kinds: ['tv'], r: { fun: 0.48, stress: -0.02, energy: -0.02 } },
     read: { dur: 60, at: 'obj', kinds: ['books'], r: { fun: 0.26, stress: -0.1 } },
     fish: { dur: 40, at: 'obj', kinds: ['aquarium'], r: { fun: 0.2, stress: -0.16 } },
     workout: { dur: 60, at: 'obj', kinds: ['bike', 'mat'], r: { stress: -0.2, health: 0.03, energy: -0.08, hygiene: -0.14, food: -0.03 } },
@@ -131,8 +130,8 @@
 
   /* traguardi: premio in ghiande */
   const GOALS = {
-    fix1: 20, fixall: 60, friend1: 20, friends3: 50, biz1: 20, biz2: 100, biz3: 250, biz4: 500,
-    cozy: 50, dream: 200, move: 100, house: 300, fit: 40, chef: 40,
+    fix1: 20, fixall: 60, friend1: 20, friends3: 50, biz1: 20, biz2: 100, biz4: 500,
+    cozy: 50, dream: 200, move: 100, house: 300,
   };
 
   HH.lifeData = {

@@ -296,7 +296,7 @@
       if (k === 'shower') add('shower', blk);
       if (k === 'tub') add('bath', blk);
       if (k === 'sofa') add('relax', blk);
-      if (k === 'tv') { add('watch', blk); add('play', blk); }
+      if (k === 'tv') add('watch', blk);
       if (k === 'books') add('read', blk);
       if (k === 'aquarium') add('fish', blk);
       if (k === 'bike' || k === 'mat') add('workout', blk);
@@ -657,8 +657,8 @@
     const g = s.goals, bt = beauty(s), lv = s.biz ? s.biz.level : 0, st = s.stats;
     const check = {
       fix1: st.repairs >= 1, fixall: s.home.dmg.length === 0, friend1: s.friends.length >= 1, friends3: s.friends.length >= 3,
-      biz1: st.shifts >= 1, biz2: lv >= 2, biz3: lv >= 3, biz4: lv >= 4, cozy: bt >= 0.5, dream: bt >= 0.85,
-      move: s.home.tier >= 1, house: s.home.tier >= 3, fit: st.workouts >= 20, chef: st.meals >= 30,
+      biz1: st.shifts >= 1, biz2: lv >= 2, biz4: lv >= 4, cozy: bt >= 0.5, dream: bt >= 0.85,
+      move: s.home.tier >= 1, house: s.home.tier >= 3,
     };
     for (const k in check) if (check[k] && !g[k]) { g[k] = Math.floor(s.t / DAY) + 1; gain(s, GOALS[k]); ev.push({ type: 'goal', id: k, n: GOALS[k] }); }
   }

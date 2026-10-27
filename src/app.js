@@ -27,7 +27,12 @@
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg>',
     heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15.5 2 12 2 8.2 2 5.3 4.3 3 7.2 3c1.9 0 3.6 1 4.8 2.6C13.2 4 14.9 3 16.8 3 19.7 3 22 5.3 22 8.2 22 12 19 15.5 12 21z"/></svg>',
     music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="6.5" cy="17.5" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="17.5" cy="15" rx="3" ry="2.5" fill="currentColor"/><path class="mute" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    // giochi senza fine (endless): età e giorno al posto di livello, tempo e mosse
+    cake: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.4 12.8h15.2v7.4H4.4zM4.4 16.4c1.5 1 2.6 1 3.8 0s2.5-1 3.8 0 2.6 1 3.8 0 2.3-1 3.8 0M12 12.8V9.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4.2c1.1 1.3 1.1 2.7 0 3.3-1.1-.6-1.1-2 0-3.3z" fill="currentColor"/></svg>',
+    sun: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>',
   };
+  // meta dei giochi endless ([{ i: icona, v: testo }], da game.meta o dal salvataggio): chip dell'header e righe della home
+  const metaHTML = (m, chip) => (m || []).map((x) => (chip ? `<span class="chip">${ICON[x.i] || ''}<b>${x.v}</b></span>` : `<span>${ICON[x.i] || ''}${x.v}</span>`)).join('');
   // valutazione a fragoline: lo spuntino preferito di Hari (accesa = guadagnata)
   const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true">
     <path class="b" d="M12 22c-4.8-2-7.6-6.2-7-10.3.3-2.1 2-3.5 3.8-3.5 1 0 2 .3 3.2.3s2.2-.3 3.2-.3c1.8 0 3.5 1.4 3.8 3.5.6 4.1-2.2 8.3-7 10.3z"/>
@@ -92,6 +97,7 @@
     const p = S.game.progress(S.inst.snapshot());
     HH.music.setIntensity(p);
     S.lastMove = Date.now(); S.idleSaid = false;
+    if (S.game.endless) return;          // niente "a metà!"/"quasi fatto!": non c'è una fine
     if (reset) { S.best = p; S.ms = { half: p >= 0.5, almost: p >= 0.85 }; return; }
     if (p >= 1) return;
     if (p >= 0.85 && !S.ms.almost) { S.ms.almost = S.ms.half = true; say('almost', true); sfx.milestone(); }
@@ -105,11 +111,13 @@
 
   function persist() {
     if (!S.game || !S.inst || S.won) return;
-    P.saveGame(S.game.id, { level: P.get(S.game.id).level, elapsed: S.elapsed, state: S.inst.snapshot() });
+    const state = S.inst.snapshot();
+    P.saveGame(S.game.id, { level: P.get(S.game.id).level, elapsed: S.elapsed, state, meta: S.game.meta ? S.game.meta(state) : undefined });
   }
   function hud() {
     if (!S.inst) return;
     const snap = S.inst.snapshot();
+    if (S.game.endless) { const h = $('#hMeta'); if (h && S.game.meta) h.innerHTML = metaHTML(S.game.meta(snap), true); return; }
     const m = $('#hMoves'), tm = $('#hTime'), st = $('#hStars');
     if (m) m.textContent = nf(snap.moves);
     if (tm) tm.textContent = fmt(S.elapsed);
@@ -179,7 +187,7 @@
         <span class="resume-text">
           <small><i class="dot"></i>${t('paused')}</small>
           <b>${r.g.name}</b>
-          <span class="resume-meta"><span>${t('level')} ${r.s.level}</span><span>${ICON.clock}${fmt(r.s.elapsed)}</span><span>${ICON.paw}${nf(r.s.state.moves)}</span></span>
+          <span class="resume-meta">${r.g.endless ? metaHTML(r.s.meta) : `<span>${t('level')} ${r.s.level}</span><span>${ICON.clock}${fmt(r.s.elapsed)}</span><span>${ICON.paw}${nf(r.s.state.moves)}</span>`}</span>
         </span>
         <span class="candy">${ICON.play}<span>${t('resume')}</span></span>
       </button>` : '';
@@ -187,15 +195,15 @@
       const p = P.get(g.id), s = P.loadGame(g.id);
       return `<button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id});--i:${idx}">
         <span class="card-art">
-          <span class="ribbon-tag">${t('level')} ${p.level}</span>
+          ${g.endless ? '' : `<span class="ribbon-tag">${t('level')} ${p.level}</span>`}
           ${s ? `<span class="pause-tag">${ICON.pause}${fmt(s.elapsed)}</span>` : ''}
           ${cardArt(g.id)}
         </span>
         <span class="card-body">
           <span class="card-title">${g.name}</span>
           <span class="card-rule">${lab(g.rules, g.rulesEn || g.rules)}</span>
-          <span class="card-stats"><span class="stars" aria-hidden="true">${stars(p.last)}</span><span class="best" title="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span></span>
-          <span class="card-foot"><span class="wins">${t('wins')} <b>${nf(p.wins)}</b></span><span class="candy">${ICON.play}<span>${t(s ? 'resume' : 'play')}</span></span></span>
+          ${g.endless ? `<span class="card-stats resume-meta">${s ? metaHTML(s.meta) : ''}</span>` : `<span class="card-stats"><span class="stars" aria-hidden="true">${stars(p.last)}</span><span class="best" title="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span></span>`}
+          <span class="card-foot">${g.endless ? '<span></span>' : `<span class="wins">${t('wins')} <b>${nf(p.wins)}</b></span>`}<span class="candy">${ICON.play}<span>${t(s ? 'resume' : 'play')}</span></span></span>
         </span>
       </button>`;
     }).join('');
@@ -270,21 +278,21 @@
     scr.innerHTML = `
       <header class="g-head">
         <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
-        <div class="g-title"><h2>${g.name}</h2><span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span></div>
+        <div class="g-title"><h2>${g.name}</h2>${g.endless ? '' : `<span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span>`}</div>
         ${g.tutorial ? `<button class="icon-btn help" id="gHelp" aria-label="${lab('help', 'How to play')}">?</button>` : ''}
       </header>
-      <div class="hud">
+      <div class="hud"${g.endless ? ' id="hMeta"' : ''}>${g.endless ? '' : `
         <span class="chip" aria-label="${t('time')}">${ICON.clock}<b id="hTime">${fmt(S.elapsed)}</b></span>
         <span class="chip" aria-label="${t('moves')}">${ICON.paw}<b id="hMoves">0</b></span>
         <span class="chip stars" id="hStars" aria-hidden="true"></span>
         ${g.lives ? `<span class="chip lives" id="hLives" aria-label="${t('lives')}"></span>` : ''}
-        <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>
+        <span class="chip best" aria-label="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span>`}
       </div>
       <div class="plate ${g.plate || ''}"><div class="board" id="board"></div></div>
       <div class="g-tools">
-        <button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>
+        ${g.endless ? '' : `<button class="tool" id="gUndo">${ICON.undo}<span>${t('undo')}</span></button>`}
         <button class="tool" id="gRestart">${ICON.restart}<span>${t('restart')}</span></button>
-        <button class="candy" id="gNew">${ICON.sparkle}<span>${t('newg')}</span></button>
+        ${g.endless ? '' : `<button class="candy" id="gNew">${ICON.sparkle}<span>${t('newg')}</span></button>`}
       </div>
       <aside class="rules"><div class="rules-hari">${HH.mascot.svg({ cls: 'hari' })}</div><p>${lab(g.rules, g.rulesEn || g.rules)}</p></aside>`;
     const ctx = {
@@ -339,9 +347,9 @@
     HH.music.duck(false);
     sfx.open();
     if (push) setTimeout(() => say('start', true), 650);
-    $('#gUndo').onclick = () => S.inst && S.inst.undo();
+    if ($('#gUndo')) $('#gUndo').onclick = () => S.inst && S.inst.undo();
     $('#gRestart').onclick = () => S.inst && S.inst.restart();
-    $('#gNew').onclick = () => { if (S.inst) { S.inst.fresh(); sfx.blip(); } };
+    if ($('#gNew')) $('#gNew').onclick = () => { if (S.inst) { S.inst.fresh(); sfx.blip(); } };
     const help = $('#gHelp');
     if (help) help.onclick = () => {
       if (S.inst && S.inst.pause) S.inst.pause();
@@ -503,6 +511,11 @@
   function openStats() {
     const rows = HH.catalog.map((g) => {
       const p = P.get(g.id);
+      if (g.endless) {
+        const sv = P.loadGame(g.id);
+        return `<div class="stat-row" style="--tint:var(--tint-${g.id})"><span class="stat-art">${cardArt(g.id)}</span>
+          <div class="stat-main"><div class="stat-name"><b>${g.name}</b></div><span class="resume-meta">${sv ? metaHTML(sv.meta) : '—'}</span></div></div>`;
+      }
       return `<div class="stat-row" style="--tint:var(--tint-${g.id})">
         <span class="stat-art">${cardArt(g.id)}</span>
         <div class="stat-main">
