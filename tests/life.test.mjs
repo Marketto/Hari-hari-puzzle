@@ -86,7 +86,7 @@ test('casa bella → umore più alto e stress più basso', () => {
   L.setStyle(nice, 'floor', 'parquet'); L.setStyle(nice, 'wall', 'sakura');
   for (const id of ['plant2', 'flowers', 'lamp2', 'art2', 'shelf', 'clock', 'rug2', 'books', 'aquarium']) buyItem(nice, id, 0);
   assert.ok(L.beauty(nice) > L.beauty(ugly) + 0.5, `bellezza ${L.beauty(ugly).toFixed(2)} vs ${L.beauty(nice).toFixed(2)}`);
-  for (const s of [ugly, nice]) { s.needs.stress = 0.5; s.needs.mood = 0.5; }
+  for (const s of [ugly, nice]) { s.needs.stress = 0.5; s.needs.mood = 0.5; s.free = false; }
   // stessa giornata tranquilla (senza attività) per entrambi
   for (let i = 0; i < 16; i++) { L.tick(ugly, 30); L.tick(nice, 30); }
   assert.ok(nice.needs.mood > ugly.needs.mood + 0.05, `umore ${ugly.needs.mood.toFixed(2)} vs ${nice.needs.mood.toFixed(2)}`);
@@ -96,7 +96,7 @@ test('casa bella → umore più alto e stress più basso', () => {
 test('sport → stress giù (in casa e al parco)', () => {
   for (const where of ['home', 'park']) {
     const a = L.create(5), b = L.create(5);
-    for (const s of [a, b]) { s.needs.stress = 0.7; s.needs.energy = 0.9; }
+    for (const s of [a, b]) { s.needs.stress = 0.7; s.needs.energy = 0.9; s.free = false; }
     if (where === 'home') { a.money = 500; buyItem(a, 'mat', 0); assert.ok(L.start(a, 'workout').ok); }
     else assert.ok(L.start(a, 'jog').ok);
     const dur = a.act.total;
@@ -109,7 +109,8 @@ test('sport → stress giù (in casa e al parco)', () => {
 test('amici: al caffè si conosce qualcuno, visite e telefonate alzano la socialità', () => {
   const s = L.create(2);
   s.needs.social = 0.2;
-  assert.equal(L.options(s, {}).find((o) => o.id === 'invite').why, 'nofriend');
+  assert.equal(L.start(s, 'invite').why, 'nofriend');
+  assert.equal(L.options(s, {}).find((o) => o.k === 'social').id, 'call', 'senza amici: telefona');
   assert.ok(L.start(s, 'cafe').ok);
   const ev = L.tick(s, s.act.total);
   assert.ok(ev.some((e) => e.type === 'friend'), 'primo amico al caffè');
@@ -118,6 +119,7 @@ test('amici: al caffè si conosce qualcuno, visite e telefonate alzano la social
   // visita a casa
   const a = JSON.parse(JSON.stringify(s)), b = JSON.parse(JSON.stringify(s));
   a.needs.social = b.needs.social = 0.25;
+  a.free = b.free = false;   // confronto pulito: niente libero arbitrio
   assert.ok(L.start(a, 'invite').ok);
   L.tick(a, 120); L.tick(b, 120);
   assert.ok(a.needs.social > b.needs.social + 0.3, `visita: ${b.needs.social.toFixed(2)} → ${a.needs.social.toFixed(2)}`);
@@ -283,4 +285,107 @@ test('prestazioni: un giorno di simulazione in pochi millisecondi', () => {
   const t1 = performance.now();
   for (let i = 0; i < 600; i++) L.tick(s, L.rate(s) * 0.016);
   assert.ok((performance.now() - t1) / 600 < 0.5);
+});
+
+test('libero arbitrio: lasciato da solo per giorni con frigo pieno e letto si prende cura di sé', () => {
+  for (const seed of [1, 5, 21]) {
+    const s = L.create(seed);
+    s.money = 1000;
+    L.sell(s, s.home.items.find((i) => i.id === 'fridge0').u);
+    assert.ok(L.buy(s, 'fridge2', 5, 0, 0).ok);
+    s.fridge = [14, 0, 0];
+    const m0 = s.money, auto = {}, nightSleep = [];
+    let min = { energy: 1, food: 1, hygiene: 1 }, perDay = 0, maxPerDay = 0, day = L.clock(s).day;
+    for (let i = 0; i < 4 * 96; i++) {
+      // ogni mattina il frigo torna pieno (qualcuno fa la spesa per lui)
+      if (L.clock(s).hour === 7 && L.stock(s) < 6) s.fridge[0] = 14 - s.fridge[1] - s.fridge[2];
+      for (const e of L.tick(s, 15)) if (e.type === 'auto') {
+        auto[e.id] = (auto[e.id] || 0) + 1; perDay++;
+        if (e.id === 'sleep') nightSleep.push(L.clock(s).hour);
+      }
+      if (L.clock(s).day !== day) { maxPerDay = Math.max(maxPerDay, perDay); perDay = 0; day = L.clock(s).day; }
+      invariants(s);
+      if (i > 48) for (const k in min) min[k] = Math.min(min[k], s.needs[k]);
+    }
+    assert.ok(min.energy > 0.15 && min.food > 0.15 && min.hygiene > 0.15, `seme ${seed}: minimi ${JSON.stringify(min)}`);
+    assert.ok(auto.sleep >= 3, `seme ${seed}: dorme da solo (${auto.sleep})`);
+    assert.ok((auto.eat || 0) + (auto.cook || 0) >= 6, `seme ${seed}: mangia da solo`);
+    assert.ok(auto.shower >= 2, `seme ${seed}: si lava da solo`);
+    assert.ok(nightSleep.some((h) => h >= 21 || h < 5), `seme ${seed}: va a letto la sera (${nightSleep})`);
+    assert.ok(maxPerDay <= 14, `seme ${seed}: niente oscillazioni (${maxPerDay} scelte in un giorno)`);
+    assert.equal(s.money, m0, 'da solo non spende ghiande');
+  }
+});
+
+test('libero arbitrio: col frigo vuoto lo dice una volta (e suggerisce la spesa), poi si riprende dopo la spesa', () => {
+  const s = L.create(3);
+  s.fridge = [0, 0, 0]; s.needs.food = 0.3;
+  let hints = 0;
+  for (let i = 0; i < 48; i++) for (const e of L.tick(s, 15)) if (e.type === 'hint' && e.k === 'nofood') hints++;
+  assert.equal(hints, 1, 'un solo avviso finché il frigo resta vuoto');
+  assert.equal(L.quick(s, 'food').why, 'nofood');
+  s.fridge = [2, 0, 0];
+  L.tick(s, 15);
+  s.fridge = [0, 0, 0]; s.needs.food = 0.3; s.act = null;
+  let again = 0;
+  for (let i = 0; i < 8; i++) for (const e of L.tick(s, 15)) if (e.type === 'hint') again++;
+  assert.equal(again, 1, 'dopo una spesa l’avviso può tornare');
+  s.free = false; s.needs.food = 0.2; s.fridge = [3, 0, 0];
+  assert.ok(!L.tick(s, 60).some((e) => e.type === 'auto'), 'libero arbitrio spento: niente scelte da solo');
+});
+
+test('comandi: il giocatore ha la precedenza, coda visibile, annulla, azioni rapide dagli indicatori', () => {
+  const s = L.create(4);
+  s.needs.energy = 0.1; s.needs.hygiene = 0.9; s.needs.food = 0.9;
+  L.tick(s, 5);
+  assert.equal(s.act.id, 'sleep');
+  assert.ok(s.act.auto, 'si è messo a dormire da solo');
+  // un comando interrompe subito l'azione "di sua iniziativa"
+  const r = L.quick(s, 'hygiene');
+  assert.ok(r.ok && r.now && s.act.id === 'shower' && !s.act.auto);
+  // mentre fa una cosa chiesta dal giocatore, le altre vanno in coda
+  assert.ok(L.order(s, 'watch').queued);
+  assert.ok(L.quick(s, 'energy').queued);
+  assert.deepEqual(s.queue.map((q) => q.id), ['watch', 'sleep']);
+  assert.ok(L.cancel(s, 0).ok);
+  assert.deepEqual(s.queue.map((q) => q.id), ['sleep']);
+  for (let i = 0; i < D.QMAX; i++) L.order(s, 'call');
+  assert.equal(L.order(s, 'call').why, 'queue');
+  s.queue = [{ id: 'sleep', u: 1 }];
+  L.tick(s, 25);
+  assert.equal(s.act.id, 'sleep', 'finita la doccia parte la prossima della coda');
+  // annullare l'azione in corso fa partire la successiva, e Hari non riparte da solo per un po'
+  L.order(s, 'call');
+  assert.ok(L.cancel(s, -1).ok);
+  assert.equal(s.act.id, 'call');
+  L.tick(s, 20);
+  assert.equal(s.act, null);
+  L.tick(s, 10);
+  assert.equal(s.act, null, 'dopo un annullamento Hari aspetta un po’ prima di decidere da solo');
+  // una cosa in coda che non si può più fare viene saltata con un avviso
+  s.money = 0;
+  L.order(s, 'shower');
+  L.order(s, 'gym');
+  const ev = L.tick(s, 25);
+  assert.ok(ev.some((e) => e.type === 'qfail' && e.id === 'gym' && e.why === 'money'));
+  // il menu di Hari offre sempre dormire, mangiare, lavarsi, svago, amici, lavoro e città
+  const ks = L.options(L.create(1), {}).map((o) => o.k);
+  for (const k of ['energy', 'food', 'hygiene', 'fun', 'social', 'work', 'town']) assert.ok(ks.includes(k), k);
+  const t = L.create(1);
+  assert.equal(L.quick(t, 'energy').id, 'sleep');
+  assert.equal(L.plan(t, 'hygiene').id, 'shower');
+  assert.equal(L.plan(t, 'fun').id, 'watch');
+  assert.equal(L.plan(t, 'health').id, 'doctor');
+});
+
+test('migrazione v1 → v2: coda e libero arbitrio aggiunti', () => {
+  const s = L.create(3);
+  const old = JSON.parse(JSON.stringify(s));
+  old.v = 1; delete old.queue; delete old.free; delete old.calm; delete old.tips;
+  const m = L.migrate(old);
+  assert.equal(m.v, D.SAVE_V);
+  assert.deepEqual(m.queue, []);
+  assert.equal(m.free, true);
+  L.tick(m, 120);
+  invariants(m);
 });
