@@ -18,6 +18,9 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Yarn Link** | collega i gomitoli dello stesso colore riempiendo tutta la griglia (stile Flow) |
 | **Hari Snack Rush** | corri lungo il sentiero e lancia semi e frutta agli animaletti affamati; scegli le porte giuste e riempi la pancia dell'animalone goloso (azione stile mob control, senza violenza) |
 | **Hari Taxi** | guida per la città vista dall'alto: porta i passeggeri col taxi, il cibo caldo con lo scooter e i pacchi col furgone prima che scada il tempo, schivando auto, autobus, bici e pedoni (senza violenza) |
+| **Hari Rally** | rally 3D in prima persona nel bosco: Hari accelera da solo, tu sterzi (inclinando il telefono a schermo intero, o col tocco) e freni seguendo le note del navigatore; arriva tra i primi 3 contro coniglietta, volpe e panda (senza violenza) |
+| **Hari Memory** | memory con gli animali e i tesori del bosco (semi, frutta secca, bacche, alberi, foglie, funghi): dai livelli alti soggetti simili, coppie a tema (animale ↔ il suo cibo) e carte che scivolano; niente sconfitta, fragoline in base alle mosse |
+| **Hari Spot** | trova le differenze fra due illustrazioni di città o di bosco generate da seme (stagioni, giorno/tramonto/notte): da 3 a 10 differenze sempre visibili e mai sovrapposte, lente per gli aiuti, zoom col pizzico |
 | **Hari Home** | simulazione di vita isometrica senza livelli: ristruttura il monolocale decadente di Hari, arredalo, avvia un'attività, fai la spesa, vai dal dottore, fai sport e invita gli amici; Hari cresce fino a diventare nonno |
 
 ## Provalo

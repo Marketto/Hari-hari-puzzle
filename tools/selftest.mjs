@@ -115,6 +115,26 @@ for (const level of [1, 4, 8, 16]) {
   ok(pixel.PICS.length >= 40, `Pixel Mochi: ${pixel.PICS.length} disegni`);
 }
 
+// Hari Spot (trova le differenze): 3 → 10 differenze, città/foresta alternate; esattamente N differenze con zone
+// che non si toccano, ognuna toccabile al centro; media < 10 ms per livello
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/spot-logic.js'), 'utf8'), { filename: 'spot-logic.js' });
+  const { spot } = globalThis.HH;
+  for (const level of [1, 2, 5, 9, 14, 20]) {
+    let ms = 0, good = 0, objs = 0;
+    const T = 20, P = spot.paramsFor(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const p = spot.generate(level, globalThis.HH.rng(level * 811 + k));
+      ms += performance.now() - t;
+      objs += p.a.length;
+      const apart = p.diffs.every((d, i) => p.diffs.every((e, j) => j <= i || Math.hypot(d.zone.x - e.zone.x, d.zone.y - e.zone.y) >= d.zone.r + e.zone.r));
+      if (p.diffs.length === P.n && apart && p.diffs.every((d, i) => spot.hitTest(p, d.zone.x, d.zone.y) === i)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Spot livello ${level} (${P.theme === 'city' ? 'città' : 'foresta'}): ${P.n} differenze, ${(objs / T).toFixed(1)} oggetti, ${good}/${T} valide, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 // Hari Knots (regole modello 3, "Mikado con le corde"): 3 → 9 corde, 1 → 3 lastre; minimo esatto con A* (riverificato con un
 // nodeLimit alto), la giocata golosa non basta (dal livello 2); generazione media < 50 ms
 {
@@ -138,12 +158,13 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
-// Hari Snack Rush: 4 gradini (tier 0 → 4), copione < 10 ms, sempre una porta buona, fame per ondata proporzionata al potere
+// Hari Snack Rush: 5 gradini (tier 0 → 4), copione < 10 ms, sempre una porta buona, fame per ondata proporzionata al potere,
+// ogni fila di ostacoli lascia un varco, le porte presidiate hanno ostacoli solo sulla corsia migliore
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/snack-logic.js'), 'utf8'), { filename: 'snack-logic.js' });
   const { snack } = globalThis.HH;
   for (const level of [1, 4, 8, 12, 16]) {
-    let ms = 0, good = 0, animals = 0;
+    let ms = 0, good = 0, animals = 0, obst = 0, guards = 0, pus = 0;
     const T = 20, c = snack.config(level);
     for (let k = 0; k < T; k++) {
       const t = performance.now();
@@ -151,9 +172,17 @@ for (const level of [1, 4, 8, 16]) {
       ms += performance.now() - t;
       const gates = s.script.filter((e) => e.k === 'g');
       animals += s.script.filter((e) => e.k === 'a').length;
-      if (gates.length === c.gates && gates.every((g) => [g.l, g.r].some((op) => op && (op[0] === 'x' || op[0] === '+')))) good++;
+      const os = s.script.filter((e) => e.k === 'o');
+      obst += os.filter((o) => !o.guard).length; guards += os.filter((o) => o.guard).length;
+      pus += s.script.filter((e) => e.k === 'p').length;
+      const gap = os.filter((o) => !o.guard).every((o) => {
+        const row = os.filter((q) => !q.guard && q.t === o.t);
+        for (let x = -snack.X_MAX; x <= snack.X_MAX; x += 0.01) if (row.every((q) => Math.abs(q.x - x) >= snack.OBST[q.kind].r + snack.HARI_R)) return true;
+        return false;
+      });
+      if (gap && gates.length === c.gates && gates.every((g) => [g.l, g.r].some((op) => op && (op[0] === 'x' || op[0] === '+')))) good++;
     }
-    ok(good === T && ms / T < 10, `Snack Rush livello ${level} (gradino ${c.tier}): ${c.waves} ondate, ${(animals / T).toFixed(0)} animali, ${c.gates} porte, animalone ${c.boss.kind} da ${c.bossNeed} bocconi: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+    ok(good === T && ms / T < 10, `Snack Rush livello ${level} (gradino ${c.tier}): ${c.waves} ondate, ${(animals / T).toFixed(0)} animali, ${c.gates} porte (${(guards / T).toFixed(1)} ostacoli di guardia), ${(obst / T).toFixed(1)} ostacoli, ${(pus / T).toFixed(1)} power-up, animalone ${c.boss.kind} da ${c.bossNeed} bocconi: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
   }
 }
 
@@ -182,6 +211,34 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Rally: 5 gradini di tappa (1,3 → 4,3 km), generazione < 10 ms, curve mai sotto i 14 m di raggio, nessun tratto che
+// si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota, simulazione < 0,1 ms a fotogramma
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/rally-logic.js'), 'utf8'), { filename: 'rally-logic.js' });
+  const { rally } = globalThis.HH;
+  for (const level of [1, 3, 6, 9, 13]) {
+    let ms = 0, good = 0, sim = 0, notes = 0, tight = 0;
+    const T = 12, c = rally.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const g = rally.track(level * 977 + k, level);
+      ms += performance.now() - t;
+      let minR = 1e9, near = 1e9, covered = true;
+      for (let i = 1; i < g.N; i++) {
+        const R = 1 / Math.max(1e-9, Math.abs(g.k[i]));
+        minR = Math.min(minR, R);
+        if (R < 130 && i >= rally.PREROLL && i <= rally.PREROLL + c.len && !g.notes.some((n) => n.kind === 'curve' && n.at <= i && n.end >= i)) covered = false;
+      }
+      for (let i = 0; i <= g.N; i += 8) for (let j = i + 168; j <= g.N; j += 8) near = Math.min(near, Math.hypot(g.x[i] - g.x[j], g.y[i] - g.y[j]));
+      const cs = g.notes.filter((n) => n.kind === 'curve');
+      notes += cs.length; tight += cs.filter((n) => n.g <= 2).length;
+      if (minR >= 14 && near >= 30 && covered) good++;
+      if (k < 3) { const s = rally.newLevel(level, globalThis.HH.rng(level * 31 + k)); s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) rally.step(s, 1 / 60, { steer: 0.05, brake: 0 }); sim += performance.now() - t2; }
+    }
+    ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Rally livello ${level} (gradino ${c.tier}, ${c.stage}): ${c.len} m, ${(notes / T).toFixed(1)} curve di cui ${(tight / T).toFixed(1)} strette, avversari ${c.ai.join('/')}: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
+  }
+}
+
 // Hari Home (simulazione senza livelli): 4 fasi della vita + Hari da solo col libero arbitrio, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
 {
   for (const f of ['life-data.js', 'life-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });
@@ -200,6 +257,26 @@ for (const level of [1, 4, 8, 16]) {
     const ms = (performance.now() - t) / T;
     const fine = life.NEEDS.every((k) => st.needs[k] >= 0 && st.needs[k] <= 1) && Number.isInteger(st.money) && st.money >= 0;
     ok(fine && ms < 10, `Hari Home, ${name}: età ${life.age(st).toFixed(1)}, bellezza ${life.beauty(st).toFixed(2)}, ${T} giorni, media ${ms.toFixed(2)} ms/giorno`);
+  }
+}
+
+// Hari Memory: 4+ taglie (3×4 → 6×6), ogni mazzo con esattamente n coppie di soggetti distinti, generazione < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/memory-logic.js'), 'utf8'), { filename: 'memory-logic.js' });
+  const { memory } = globalThis.HH;
+  for (const level of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+    let ms = 0, good = 0;
+    const T = 50, t0 = memory.tierFor(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const s = memory.newGame(level, level * 733 + k);
+      ms += performance.now() - t;
+      const cnt = {};
+      s.key.forEach((x) => { cnt[x] = (cnt[x] || 0) + 1; });
+      if (s.deck.length === t0.cols * t0.rows && Object.values(cnt).length === t0.pairs && Object.values(cnt).every((c) => c === 2)
+        && new Set(s.deck).size === (s.mode === 'themed' ? s.deck.length : t0.pairs)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Memory livello ${level}: ${t0.cols}×${t0.rows}, ${t0.pairs} coppie, ${t0.mode}${t0.swap ? ' + swap' : ''}: ${good}/${T} ok, media ${(ms / T).toFixed(3)} ms`);
   }
 }
 
