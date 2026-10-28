@@ -14,10 +14,22 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Prossimo
+- [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
+- [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
+- [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
+- [ ] Boba Sort: "+1 bicchiere" una volta per livello
+- [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
+- [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
 ## In revisione (prossima versione)
 - [x] Nuovo gioco **Hari Taxi** (guida vista dall'alto, senza violenza): città a griglia generata da seme con isolati, parchi, semafori, strisce e marciapiedi; tre mestieri a rotazione (taxi coi passeggeri, scooter del cibo che si raffredda, furgone coi pacchi a più tappe) con tempo limite; traffico (auto, autobus, bici) e pedoni con IA; incidenti = −1 cuore con "bonk" e salto spaventato, muri morbidi; levetta a un pollice + frecce/WASD, freccia di percorso e minimappa, tema notte con lampioni e fari; brano `drive`, effetti `honk`/`boing`, tutorial, test con bot
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
+
+## Fatto (v0.14.0)
+- [x] Nuovo gioco **Hari Taxi** (guida vista dall'alto, senza violenza): città a griglia generata da seme con isolati, parchi, semafori, strisce e marciapiedi; tre mestieri a rotazione (taxi coi passeggeri, scooter del cibo che si raffredda, furgone coi pacchi a più tappe) con tempo limite; traffico (auto, autobus, bici) e pedoni con IA; incidenti = −1 cuore con "bonk" e salto spaventato, muri morbidi; levetta a un pollice + frecce/WASD, freccia di percorso e minimappa, tema notte con lampioni e fari; brano `drive`, effetti `honk`/`boing`, tutorial, test con bot
+- [x] Traduzioni delle 12 chiavi di Hari Taxi in 43 lingue
 
 ## Fatto (v0.13.4)
 - [x] Statistiche anonime attive su https://harihari.goatcounter.com (sempre con consenso opt-in)
@@ -161,6 +173,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.14.0 · `npm test` · Hari Taxi: tre mestieri, incidenti, scadenze, vittoria/sconfitta, chiaro/scuro, schermo intero; testi it/es/pl/ja senza chiavi mancanti né sbordamenti
 - 2026-10-28 v0.13.4 · `npm test` · evento di prova inviato a harihari.goatcounter.com
 - 2026-10-28 v0.13.3 · `npm test` · tempo di gioco in Progressi; con codice simulato: consenso, eventi open/minute inviati, revoca
 - 2026-10-28 v0.13.2 · `npm test` · Hari Home: rientro dal parco (cammina nella stanza), scena del parco in tema scuro, lavoretti senza forno
