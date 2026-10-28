@@ -282,13 +282,14 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
-// Hari Rally: 5 gradini di tappa (1,3 → 4,3 km), generazione < 10 ms, curve mai sotto i 14 m di raggio, nessun tratto che
-// si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota, simulazione < 0,1 ms a fotogramma
+// Hari Rally: 5 gradini di tappa (1,3 → 4,3 km) in 4 ambientazioni, generazione (con traiettoria ideale) < 10 ms, curve mai
+// sotto i 14 m di raggio, nessun tratto che si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota,
+// note per ponti e gallerie, scatole-sorpresa presenti, simulazione (4 auto, power-up, collisioni) < 0,1 ms a fotogramma
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/rally-logic.js'), 'utf8'), { filename: 'rally-logic.js' });
   const { rally } = globalThis.HH;
-  for (const level of [1, 3, 6, 9, 13]) {
-    let ms = 0, good = 0, sim = 0, notes = 0, tight = 0;
+  for (const level of [1, 2, 3, 6, 9, 13]) {
+    let ms = 0, good = 0, sim = 0, notes = 0, tight = 0, tun = 0, box = 0;
     const T = 12, c = rally.config(level);
     for (let k = 0; k < T; k++) {
       const t = performance.now();
@@ -302,11 +303,12 @@ for (const level of [1, 4, 8, 16]) {
       }
       for (let i = 0; i <= g.N; i += 8) for (let j = i + 168; j <= g.N; j += 8) near = Math.min(near, Math.hypot(g.x[i] - g.x[j], g.y[i] - g.y[j]));
       const cs = g.notes.filter((n) => n.kind === 'curve');
-      notes += cs.length; tight += cs.filter((n) => n.g <= 2).length;
-      if (minR >= 14 && near >= 30 && covered) good++;
+      notes += cs.length; tight += cs.filter((n) => n.g <= 2).length; tun += g.tunnels.length; box += g.boxes.length;
+      const spans = g.notes.filter((n) => n.kind === 'tunnel' || n.kind === 'bridge').length === g.tunnels.length + g.bridges.length;
+      if (minR >= 14 && near >= 30 && covered && spans && g.boxes.length > 0) good++;
       if (k < 3) { const s = rally.newLevel(level, globalThis.HH.rng(level * 31 + k)); s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) rally.step(s, 1 / 60, { steer: 0.05, brake: 0 }); sim += performance.now() - t2; }
     }
-    ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Rally livello ${level} (gradino ${c.tier}, ${c.stage}): ${c.len} m, ${(notes / T).toFixed(1)} curve di cui ${(tight / T).toFixed(1)} strette, avversari ${c.ai.join('/')}: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
+    ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Rally livello ${level} (gradino ${c.tier}, ${c.theme}/${c.time}): ${c.len} m, ${(notes / T).toFixed(1)} curve di cui ${(tight / T).toFixed(1)} strette, ${(tun / T).toFixed(1)} gallerie, ${(box / T).toFixed(1)} file di scatole, avversari ${c.ai.join('/')}: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
   }
 }
 

@@ -1,7 +1,8 @@
 /* Hari Rally — stile.
  * La scena 3D (three.js) legge questi token con getComputedStyle e li converte in colori dei materiali "toon":
- * nessun colore nel JavaScript. Varianti di tappa su .ry-wrap[data-stage] (primavera, autunno, neve, tramonto);
- * tema scuro = notte (cielo --ry-nsky-*, luci basse, fari accesi). I colori 3D sono esadecimali (#rrggbb).
+ * nessun colore nel JavaScript. Ambientazione su .ry-wrap[data-stage] (bosco di primavera/autunno, città, mare, neve)
+ * e ora su .ry-wrap[data-time] (giorno, tramonto, notte); tema scuro = sempre notte (cielo --ry-nsky-*, luci basse,
+ * fari, lampioni e finestre accese). I colori 3D sono esadecimali (#rrggbb).
  */
 :root {
   --tint-rally: #d8f3c8;
@@ -26,7 +27,29 @@
   --ry-rock: #b7b3c9; --ry-rock-2: #9a96b8; --ry-cap: #ff6b6b; --ry-cap-dot: #fff6ee; --ry-stem: #fff1dc;
   --ry-flower-1: #ff9fbf; --ry-flower-2: #fff2a0; --ry-flower-3: #c8b8f0; --ry-bush: #7fcf6f; --ry-shaft: #fff8d6;
   --ry-chevron: #fffaf0; --ry-chevron-2: #ff6f8e; --ry-check-1: #fffaf0; --ry-check-2: #4a3a52; --ry-pole: #ff8fa8; --ry-flag: #ffd84a;
-  --ry-amb: 1.6; --ry-sunI: 1.9; --ry-night: 0; --ry-shafts: 1;
+  --ry-amb: 1.6; --ry-sunI: 1.9; --ry-night: 0; --ry-shafts: 1; --ry-sunH: .9;
+  /* power-up e oggetti in pista */
+  --ry-gift-1: #ff8fb8; --ry-gift-2: #8fd8ff; --ry-gift-3: #ffe27a; --ry-gift-4: #b8f0a0; --ry-ribbon: #fffaf0;
+  --ry-acorn: #d09050; --ry-acorn-cap: #8a5a34; --ry-banana: #ffe066; --ry-banana-2: #c9a43a; --ry-honey: #ffb52e; --ry-honey-2: #ffd77a;
+  --ry-bubble: #bfe8ff; --ry-petal: #ffb8d9; --ry-petal-2: #fff3fa; --ry-carrot: #ff8a3d; --ry-carrot-leaf: #6fcf6a;
+  --ry-spring: #c7cbe0; --ry-magnet: #ff5f7a; --ry-magnet-2: #d9dbe8;
+  --ry-fx-honey: rgba(255, 176, 30, .72); --ry-fx-petal: rgba(255, 160, 205, .7); --ry-fx-bubble: rgba(170, 225, 255, .75); --ry-fx-zoom: rgba(255, 250, 240, .6);
+  /* città */
+  --ry-road: #77738a; --ry-road-2: #6c687f; --ry-paint: #fffaf0; --ry-paint-2: #ffd84a; --ry-curb: #f0ebf6; --ry-curb-2: #ff9fbf;
+  --ry-walk: #ddd5ea; --ry-walk-2: #d0c7df; --ry-plaza: #c9e6b5;
+  --ry-bld-1: #ffc4d6; --ry-bld-2: #c9e0ff; --ry-bld-3: #fff0b8; --ry-bld-4: #c8f0d8; --ry-bld-5: #e3d0ff; --ry-bld-6: #ffd9b8;
+  --ry-roof: #9a7fae; --ry-roof-2: #ff8f8f; --ry-win: #a9dcf7; --ry-win-on: #ffe39a; --ry-win-off: #5d5680;
+  --ry-awn-1: #ff8fa8; --ry-awn-2: #fffaf0; --ry-awn-3: #8fd8ff; --ry-sign: #fff6e8;
+  --ry-barrier-1: #ff9fbf; --ry-barrier-2: #fffaf0; --ry-lamp: #5a4f70; --ry-bulb: #fff3c4; --ry-glow: #ffe2a0;
+  --ry-tl-red: #ff6f8e; --ry-tl-amber: #ffd84a; --ry-tl-green: #48d18a;
+  /* mare */
+  --ry-sand: #f7e2b0; --ry-sand-2: #eed39a; --ry-sea: #5fc8e6; --ry-sea-2: #a8ecf5; --ry-foam: #ffffff; --ry-cliff: #d1b08f; --ry-cliff-2: #b8967a;
+  --ry-palm: #c09062; --ry-palm-leaf: #5fcf8a; --ry-umb-1: #ff8fa8; --ry-umb-2: #8fd8ff; --ry-umb-3: #ffe27a;
+  --ry-boat: #fffaf0; --ry-boat-2: #7fc8ff; --ry-sail: #ffffff; --ry-light-1: #fffaf0; --ry-light-2: #ff6f8e; --ry-gull: #ffffff;
+  /* neve, folla, animaletti */
+  --ry-snowbank: #f4f8ff; --ry-chalet: #d09a68; --ry-chalet-roof: #9a5f66; --ry-scarf: #ff6f8e;
+  --ry-fur-1: #e8955a; --ry-fur-2: #fffaf6; --ry-fur-3: #b9a0e0; --ry-fur-4: #c99a72; --ry-stand: #e9d6ff; --ry-stand-2: #d4bff0;
+  --ry-flag-1: #ff8fa8; --ry-flag-2: #8fd8ff; --ry-flag-3: #ffe27a; --ry-flag-4: #b8f0a0;
   /* notte (tema scuro e, attenuata, al tramonto) */
   --ry-nsky-1: #141235; --ry-nsky-2: #3a3170; --ry-nsun: #fff6d8; --ry-nhill: #2a2756; --ry-namb: .85; --ry-nsunI: .7;
 }
@@ -41,11 +64,21 @@
   --ry-pine: #4f9a7a; --ry-pine-2: #3f8268; --ry-snow-cap: #ffffff; --ry-bush: #d9e6f7; --ry-flower-1: #ff9fbf; --ry-flower-2: #bfe6ff; --ry-flower-3: #ffffff;
   --ry-water: #a9d8f5; --ry-water-2: #e6f6ff; --ry-dust: #ffffff; --ry-leafp: #ffffff; --ry-amb: 1.8; --ry-sunI: 1.5; --ry-shafts: 0;
 }
-.ry-wrap[data-stage="dusk"] {
-  --ry-sky-1: #7a6cc9; --ry-sky-2: #ffbf9a; --ry-sun: #ffcf8a; --ry-cloud: #ffd6e0; --ry-hill: #b58fb8;
-  --ry-grass: #8fbf7a; --ry-grass-2: #7fae6e; --ry-verge: #b9c98a; --ry-leaf-1: #5fae7a; --ry-leaf-2: #8fc98a; --ry-leaf-3: #ff9fbf;
-  --ry-amb: 1.3; --ry-sunI: 1.6; --ry-night: .5; --ry-shafts: 0;
+.ry-wrap[data-stage="city"] {
+  --ry-sky-1: #9cc8ff; --ry-sky-2: #eef4ff; --ry-hill: #c9d0ee; --ry-grass: #c9e6b5; --ry-grass-2: #bddba8; --ry-verge: #ddd5ea;
+  --ry-dust: #e6e0ee; --ry-leafp: #ffb8d9; --ry-shafts: 0;
 }
+.ry-wrap[data-stage="sea"] {
+  --ry-sky-1: #7fd0ff; --ry-sky-2: #ecfbff; --ry-hill: #a9dde6; --ry-grass: #a8de88; --ry-grass-2: #98d27a; --ry-verge: #f2dcaa;
+  --ry-dust: #f7e8c4; --ry-leafp: #fff3fa; --ry-shafts: 0;
+}
+/* ora del giorno: tramonto (luce calda e bassa, fari e lampioni accesi) e notte */
+.ry-wrap[data-time="dusk"] {
+  --ry-sky-1: #7a6cc9; --ry-sky-2: #ffbf9a; --ry-sun: #ffcf8a; --ry-cloud: #ffd6e0; --ry-hill: #b58fb8;
+  --ry-amb: 1.25; --ry-sunI: 1.6; --ry-night: .5; --ry-shafts: 0; --ry-sunH: .16;
+}
+.ry-wrap[data-stage="sea"][data-time="dusk"] { --ry-sky-1: #6f6fd0; --ry-sky-2: #ffb08f; --ry-sea: #8f8fd8; --ry-sea-2: #ffc2a8; --ry-hill: #a87fb8; }
+.ry-wrap[data-time="night"] { --ry-night: 1; --ry-shafts: 0; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --tint-rally: #2f4a40;
@@ -53,6 +86,7 @@
     --ry-night: 1; --ry-shafts: 0;
   }
   :root:not([data-theme="light"]) .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+  :root:not([data-theme="light"]) .ry-wrap[data-stage="sea"] { --ry-sea: #5fc8e6; }
 }
 :root[data-theme="dark"] {
   --tint-rally: #2f4a40;
@@ -60,6 +94,7 @@
   --ry-night: 1; --ry-shafts: 0;
 }
 :root[data-theme="dark"] .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+:root[data-theme="dark"] .ry-wrap[data-stage="sea"] { --ry-sea: #5fc8e6; }
 
 .ry-wrap { position: relative; width: min(var(--game-w), 520px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .ry-stage {
@@ -114,6 +149,32 @@
 .ry-dist i { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--ry-arrow); }
 .ry-note.warn { box-shadow: inset 0 0 0 2.5px var(--ry-note-line), 0 4px 0 var(--ry-warn-2); }
 .ry-note.warn .ry-g { color: var(--ry-warn-2); }
+
+/* power-up tenuto: pulsante grande (tocco, clic o tasto ↑/W/Invio) e ghiande raccolte */
+.ry-item {
+  position: absolute; z-index: 5; right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(30% + 10px); display: grid; place-items: center; width: 70px; height: 70px;
+  padding: 0; border: 0; border-radius: 50%; background: var(--ry-ui); box-shadow: inset 0 0 0 3px var(--ry-ui-line), 0 5px 0 var(--ry-ui-line); color: var(--ry-ui-ink);
+  cursor: pointer; pointer-events: auto; touch-action: none; transition: transform .12s, opacity .2s;
+}
+.ry-item svg { width: 50px; height: 50px; }
+.ry-item.empty { opacity: .45; }
+.ry-item.full { animation: ry-ready 1.2s ease-in-out infinite; }
+.ry-item.roll svg { animation: ry-roll .12s steps(1) infinite; }
+.ry-item:active, .ry-item.press { transform: translateY(3px) scale(.95); box-shadow: inset 0 0 0 3px var(--ry-ui-line), 0 2px 0 var(--ry-ui-line); }
+.ry-item:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ry-acorn { display: flex; align-items: center; gap: 2px; padding: 2px 9px 2px 4px; border-radius: 14px; background: var(--ry-ui); box-shadow: inset 0 0 0 2px var(--ry-ui-line); color: var(--ry-ui-ink); font: 800 14px/1.2 var(--font-body); font-variant-numeric: tabular-nums; }
+.ry-acorn svg { width: 20px; height: 20px; }
+.ry-acorn.pop { animation: ry-pop .35s cubic-bezier(.3, 1.8, .5, 1); }
+.ry-acorn.max b { color: var(--ry-warn-2); }
+/* effetti a schermo intorno ai bordi: miele, petali, bolla, turbo */
+.ry-fxo { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .25s; }
+.ry-fxo.honey { opacity: 1; background: radial-gradient(closest-side at 50% 45%, transparent 62%, var(--ry-fx-honey) 140%); }
+.ry-fxo.petals { opacity: 1; background: radial-gradient(closest-side at 50% 45%, transparent 58%, var(--ry-fx-petal) 140%); }
+.ry-fxo.bubble { opacity: 1; background: radial-gradient(closest-side at 50% 45%, transparent 78%, var(--ry-fx-bubble) 96%, transparent 120%); }
+.ry-fxo.zoom { opacity: 1; background: repeating-conic-gradient(from 0deg at 50% 42%, transparent 0deg 7deg, var(--ry-fx-zoom) 7deg 8deg); -webkit-mask: radial-gradient(ellipse at 50% 42%, transparent 38%, #000 80%); mask: radial-gradient(ellipse at 50% 42%, transparent 38%, #000 80%); }
+.ry-msg b.pu { font-size: clamp(18px, 5.4vw, 26px); -webkit-text-stroke-width: 5px; color: var(--ry-gold); }
+.ry-msg .ry-cp { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 18px; background: var(--ry-ui); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 4px 0 var(--ry-ui-line); color: var(--ry-ui-ink); font: 800 18px/1 var(--font-body); font-variant-numeric: tabular-nums; animation: ry-msg 1.6s both; }
+.ry-msg .ry-cp svg { width: 24px; height: 24px; }
 
 /* barra della tappa */
 .ry-prog { position: absolute; left: 16%; right: 16%; bottom: 20%; height: 8px; z-index: 3; border-radius: 4px; background: var(--ry-ui-2); box-shadow: inset 0 0 0 1.5px var(--ry-ui-line); pointer-events: none; }
@@ -201,7 +262,11 @@
   .plate:fullscreen .ry-note { width: 66px; }
   .plate:fullscreen .ry-note > svg { width: 46px; height: 36px; }
   .plate:fullscreen .ry-rank i { width: 20px; height: 20px; }
+  .plate:fullscreen .ry-item { width: 60px; height: 60px; bottom: calc(34% + 8px); }
+  .plate:fullscreen .ry-item svg { width: 42px; height: 42px; }
 }
+/* a schermo intero l'uscita galleggia in basso a destra: il pulsante del power-up resta sopra */
+.plate:fullscreen .ry-item { bottom: max(calc(30% + 10px), 64px); }
 
 /* tutorial e card */
 .ry-tut-wheel { animation: ry-steer 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
@@ -217,7 +282,12 @@
 @keyframes ry-steer { 0%, 100% { transform: rotate(-22deg); } 50% { transform: rotate(22deg); } }
 @keyframes ry-bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
 @keyframes ry-sway { 0%, 100% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
+@keyframes ry-ready { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes ry-roll { 0% { transform: rotate(-8deg) scale(.9); } 50% { transform: rotate(8deg) scale(1.05); } }
+@keyframes ry-gift { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-3px) rotate(4deg); } }
+.ry-tut-gift { animation: ry-gift 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: reduce) {
-  .ry-tut-wheel, .ry-tut-note, .ry-tut-car, .ry-play, .ry-turn svg { animation: none; }
+  .ry-tut-wheel, .ry-tut-note, .ry-tut-car, .ry-play, .ry-turn svg, .ry-tut-gift, .ry-item.full, .ry-item.roll svg, .ry-acorn.pop { animation: none; }
+  .ry-fxo.zoom { opacity: 0; }
   .ry-stage.bump { animation: none; }
 }

@@ -19,6 +19,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.19.1)
+- [x] **Hari Rally 2**: collisioni vere tra auto (rettangoli orientati, niente compenetrazioni né salti indietro) e con bordi/ostacoli allineati alla grafica; power-up kawaii in scatole-regalo (turbo carota, scudo-bolla, buccia di banana, pozza di miele, nuvoletta di fiori, calamita, salto a molla) e ghiande bonus; avversari con traiettoria ideale, frenata, sorpasso e scia; 12 livelli a rotazione tra bosco, città, mare e neve di giorno, al tramonto e di notte, con gallerie, ponti, chicane, curve paraboliche e molti più dettagli; salvataggi v1 → v2
+- [x] Testi nuovi e aggiornati di Hari Rally in 43 lingue (13 chiavi)
+
 ## Fatto (v0.19.0)
 - [x] Nuovo gioco **Hari Sudoku** (`since: '0.19.0'`): sudoku classico 9×9 coi numeri; 30 livelli curati da facile (soli single nascosti) a esperto (X-wing, swordfish, XY-wing), poi senza fine; soluzione unica verificata da oracolo indipendente; matita con note automatiche, gomma, annulla, evidenziazioni, contatori sui tasti, aiuto che spiega la tecnica, 3 cuori; Hari (riccio animato condiviso con Hedgedoku, `hog-kit.js`) reagisce a ogni mossa; brano `sudoku`; tutorial in 3 schede
 - [x] Nuovo gioco **Hari Escape** (escape room kawaii, `since: '0.19.0'`): 1–3 stanze e 3–10 enigmi per livello generati da seme con un grafo di dipendenze (porta = radice, ogni enigma contiene il pezzo per il successivo), 18 tipi visivi e senza parole sbloccati coi livelli, nascondigli (tappeto, vaso, quadro, poltrona), oggetti da combinare (canna da pesca, torcia), stanze buie, temi casetta/castello/nave/laboratorio, aiuti a due livelli con la lampadina, uscita festosa di Hari; brano `escape`, effetto `unlock`, tutorial, test con bot esploratore indipendente

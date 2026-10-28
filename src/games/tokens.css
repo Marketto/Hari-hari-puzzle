@@ -1012,7 +1012,29 @@
   --ry-rock: #b7b3c9; --ry-rock-2: #9a96b8; --ry-cap: #ff6b6b; --ry-cap-dot: #fff6ee; --ry-stem: #fff1dc;
   --ry-flower-1: #ff9fbf; --ry-flower-2: #fff2a0; --ry-flower-3: #c8b8f0; --ry-bush: #7fcf6f; --ry-shaft: #fff8d6;
   --ry-chevron: #fffaf0; --ry-chevron-2: #ff6f8e; --ry-check-1: #fffaf0; --ry-check-2: #4a3a52; --ry-pole: #ff8fa8; --ry-flag: #ffd84a;
-  --ry-amb: 1.6; --ry-sunI: 1.9; --ry-night: 0; --ry-shafts: 1;
+  --ry-amb: 1.6; --ry-sunI: 1.9; --ry-night: 0; --ry-shafts: 1; --ry-sunH: .9;
+  
+  --ry-gift-1: #ff8fb8; --ry-gift-2: #8fd8ff; --ry-gift-3: #ffe27a; --ry-gift-4: #b8f0a0; --ry-ribbon: #fffaf0;
+  --ry-acorn: #d09050; --ry-acorn-cap: #8a5a34; --ry-banana: #ffe066; --ry-banana-2: #c9a43a; --ry-honey: #ffb52e; --ry-honey-2: #ffd77a;
+  --ry-bubble: #bfe8ff; --ry-petal: #ffb8d9; --ry-petal-2: #fff3fa; --ry-carrot: #ff8a3d; --ry-carrot-leaf: #6fcf6a;
+  --ry-spring: #c7cbe0; --ry-magnet: #ff5f7a; --ry-magnet-2: #d9dbe8;
+  --ry-fx-honey: rgba(255, 176, 30, .72); --ry-fx-petal: rgba(255, 160, 205, .7); --ry-fx-bubble: rgba(170, 225, 255, .75); --ry-fx-zoom: rgba(255, 250, 240, .6);
+  
+  --ry-road: #77738a; --ry-road-2: #6c687f; --ry-paint: #fffaf0; --ry-paint-2: #ffd84a; --ry-curb: #f0ebf6; --ry-curb-2: #ff9fbf;
+  --ry-walk: #ddd5ea; --ry-walk-2: #d0c7df; --ry-plaza: #c9e6b5;
+  --ry-bld-1: #ffc4d6; --ry-bld-2: #c9e0ff; --ry-bld-3: #fff0b8; --ry-bld-4: #c8f0d8; --ry-bld-5: #e3d0ff; --ry-bld-6: #ffd9b8;
+  --ry-roof: #9a7fae; --ry-roof-2: #ff8f8f; --ry-win: #a9dcf7; --ry-win-on: #ffe39a; --ry-win-off: #5d5680;
+  --ry-awn-1: #ff8fa8; --ry-awn-2: #fffaf0; --ry-awn-3: #8fd8ff; --ry-sign: #fff6e8;
+  --ry-barrier-1: #ff9fbf; --ry-barrier-2: #fffaf0; --ry-lamp: #5a4f70; --ry-bulb: #fff3c4; --ry-glow: #ffe2a0;
+  --ry-tl-red: #ff6f8e; --ry-tl-amber: #ffd84a; --ry-tl-green: #48d18a;
+  
+  --ry-sand: #f7e2b0; --ry-sand-2: #eed39a; --ry-sea: #5fc8e6; --ry-sea-2: #a8ecf5; --ry-foam: #ffffff; --ry-cliff: #d1b08f; --ry-cliff-2: #b8967a;
+  --ry-palm: #c09062; --ry-palm-leaf: #5fcf8a; --ry-umb-1: #ff8fa8; --ry-umb-2: #8fd8ff; --ry-umb-3: #ffe27a;
+  --ry-boat: #fffaf0; --ry-boat-2: #7fc8ff; --ry-sail: #ffffff; --ry-light-1: #fffaf0; --ry-light-2: #ff6f8e; --ry-gull: #ffffff;
+  
+  --ry-snowbank: #f4f8ff; --ry-chalet: #d09a68; --ry-chalet-roof: #9a5f66; --ry-scarf: #ff6f8e;
+  --ry-fur-1: #e8955a; --ry-fur-2: #fffaf6; --ry-fur-3: #b9a0e0; --ry-fur-4: #c99a72; --ry-stand: #e9d6ff; --ry-stand-2: #d4bff0;
+  --ry-flag-1: #ff8fa8; --ry-flag-2: #8fd8ff; --ry-flag-3: #ffe27a; --ry-flag-4: #b8f0a0;
   
   --ry-nsky-1: #141235; --ry-nsky-2: #3a3170; --ry-nsun: #fff6d8; --ry-nhill: #2a2756; --ry-namb: .85; --ry-nsunI: .7;
 }
@@ -1023,6 +1045,7 @@
     --ry-night: 1; --ry-shafts: 0;
   }
   :root:not([data-theme="light"]) .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+  :root:not([data-theme="light"]) .ry-wrap[data-stage="sea"] { --ry-sea: #5fc8e6; }
 }
 :root[data-theme="dark"] {
   --tint-rally: #2f4a40;
@@ -1030,6 +1053,7 @@
   --ry-night: 1; --ry-shafts: 0;
 }
 :root[data-theme="dark"] .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+:root[data-theme="dark"] .ry-wrap[data-stage="sea"] { --ry-sea: #5fc8e6; }
 /* memory */
 :root {
   --tint-memory: #dff0d2;
