@@ -1,10 +1,5 @@
 # TODO
 
-## In revisione (prossima versione)
-- [ ] Nuovo gioco **Hari Sudoku** (`since: '0.19.0'`): sudoku classico 9×9 coi numeri; 30 livelli curati da facile (soli single nascosti) a esperto (X-wing, swordfish, XY-wing), poi senza fine; soluzione unica verificata da oracolo indipendente; matita con note automatiche, gomma, annulla, evidenziazioni, contatori sui tasti, aiuto che spiega la tecnica, 3 cuori; Hari (riccio animato condiviso con Hedgedoku, `hog-kit.js`) reagisce a ogni mossa; brano `sudoku`; tutorial in 3 schede
-- [ ] Hari Sudoku: tradurre le 45 chiavi nuove (`r19`, `tu_sudoku_1..3`, `sk_*`) nelle 43 lingue (ora c'è il testo inglese di riserva)
-- [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
-
 ## In corso
 - [x] Repo pubblico collegato: https://github.com/Marketto/Hari-hari-puzzle (autori commit anonimizzati con noreply GitHub)
 - [x] GitHub Pages attivo: https://marketto.github.io/Hari-hari-puzzle/ (deploy automatico a ogni push su `main`)
@@ -12,6 +7,8 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
+- [ ] Hari Escape su telefono vero: comodità dei tocchi su oggetti piccoli (quadri e indizi appesi) e leggibilità degli indizi in miniatura
 - [ ] Hari Airlines su telefono: comodità del trascinamento dei bagagli e altezza della cabina a 6 file nella fase bagagli
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 - [ ] Hari Rally su telefono vero: fluidità (pixel ratio adattivo), taratura dei sensori in orizzontale
@@ -22,13 +19,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
-## Prossimo
-- [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
-- [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
-- [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
-- [ ] Boba Sort: "+1 bicchiere" una volta per livello
-- [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
-- [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+## Fatto (v0.19.0)
+- [x] Nuovo gioco **Hari Sudoku** (`since: '0.19.0'`): sudoku classico 9×9 coi numeri; 30 livelli curati da facile (soli single nascosti) a esperto (X-wing, swordfish, XY-wing), poi senza fine; soluzione unica verificata da oracolo indipendente; matita con note automatiche, gomma, annulla, evidenziazioni, contatori sui tasti, aiuto che spiega la tecnica, 3 cuori; Hari (riccio animato condiviso con Hedgedoku, `hog-kit.js`) reagisce a ogni mossa; brano `sudoku`; tutorial in 3 schede
+- [x] Nuovo gioco **Hari Escape** (escape room kawaii, `since: '0.19.0'`): 1–3 stanze e 3–10 enigmi per livello generati da seme con un grafo di dipendenze (porta = radice, ogni enigma contiene il pezzo per il successivo), 18 tipi visivi e senza parole sbloccati coi livelli, nascondigli (tappeto, vaso, quadro, poltrona), oggetti da combinare (canna da pesca, torcia), stanze buie, temi casetta/castello/nave/laboratorio, aiuti a due livelli con la lampadina, uscita festosa di Hari; brano `escape`, effetto `unlock`, tutorial, test con bot esploratore indipendente
+- [x] Testi di Hari Sudoku (45 chiavi) e Hari Escape (11 chiavi) in 43 lingue
 
 ## Fatto (v0.18.0)
 - [x] Nuovo gioco **Hari Airlines** (Hari assistente di volo, capitano gufo, passeggeri animaletti): ogni livello è un volo a fasi — imbarco da contare (gruppi, nascosti, chi torna indietro, lista del capitano), bagagli nelle cappelliere a capienza (risolutore nei test), cinture con testardi, ribelli e sobbalzo buffo, cucina (ricetta del capitano + fornetti con zona verde), servizio col carrello e pazienza, rifiuti differenziati (1 → 3 sacchi); fasi sbloccate gradualmente con "Nuovo!", tratte mare/montagne/città/notte, tema scuro = volo notturno; niente sconfitta (errori leggeri e passeggeri tristi = meno fragoline); brano `flight`, effetto `chime`, tutorial, test con bot

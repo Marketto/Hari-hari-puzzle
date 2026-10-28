@@ -13,6 +13,7 @@ Pulsanti separati in alto per **musica** e **effetti**, ricordati tra le session
 | lantern | notte giapponese, pentatonica | koto + campanelle | 76 | Re |
 | drive | giro in città con lo shuffle, basso che cammina | synth pizzicato + marimba | 128 | Mi |
 | rally | galoppo energico nel bosco con le sincopi, basso sulle ottave | synth pizzicato + marimba | 138 | Re |
+| escape | mistero allegro: parte sul VI grado (minore che sorride) e risolve in maggiore, swing curioso | marimba + carillon | 104 | Re |
 
 ## Musica dinamica
 Il gioco calcola `progress` (0 → 1) a ogni mossa e la musica aggiunge strati man mano:
@@ -34,7 +35,7 @@ cuore perso (campanelle discendenti), bicchiere scelto (din), travaso (gorgoglio
 lanterna accesa (campanella che sale con il numero di lanterne accese), stelle, record, fanfara di vittoria, risatina di Hari,
 clacson "bip bip" (`honk`, il traffico di Hari Taxi) e "bonk" di gomma (`boing`), bip del navigatore di Hari Rally
 (`pace(dir, g)`: nell'orecchio del verso della curva, più gravi per le curve strette) e motore continuo
-(`HH.audio.engine(on, rpm, grit)`: ronzio leggero che segue i giri, ghiaia quando si scivola; spento in pausa e all'uscita), e "ding-dong" di cabina (`chime`, segnale delle cinture di Hari Airlines).
+(`HH.audio.engine(on, rpm, grit)`: ronzio leggero che segue i giri, ghiaia quando si scivola; spento in pausa e all'uscita), "ding-dong" di cabina (`chime`, segnale delle cinture di Hari Airlines) e "clic-clac" di serratura che si apre con due campanelle (`unlock`, Hari Escape).
 
 ## Messaggi di Hari
 Fumetto con Hari animato in basso: all'inizio, a metà, quando manca poco, dopo un errore, dopo 30 s senza mosse,

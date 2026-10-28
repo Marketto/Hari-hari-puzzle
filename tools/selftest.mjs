@@ -331,6 +331,28 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Escape: 1 → 3 stanze, 3 → 10 enigmi (≥ 4 gradini); grafo risolvibile (simulazione), tipi tutti diversi nel livello,
+// sotto-puzzle mai già risolti; generazione < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/escape-logic.js'), 'utf8'), { filename: 'escape-logic.js' });
+  const X = globalThis.HH.escape;
+  for (const level of [1, 3, 5, 8, 12, 20]) {
+    let ms = 0, good = 0, types = 0;
+    const T = 30, c = X.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const L = X.generate(level, globalThis.HH.rng(level * 977 + k));
+      ms += performance.now() - t;
+      const P = Object.values(L.p), ty = new Set(P.map((p) => p.type));
+      types += ty.size;
+      const fresh = X.newGame(level, level * 977 + k);
+      const notSolved = Object.values(X.levelOf(fresh).p).every((p) => !fresh.solved[p.id]);
+      if (L.n === c.n && L.rooms.length === c.rooms && ty.size === P.length && X.simulate(L) && notSolved) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Escape livello ${level}: ${c.rooms} stanze, ${c.n} enigmi (${(types / T).toFixed(1)} tipi diversi): ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);
