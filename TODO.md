@@ -7,6 +7,8 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Hari Airlines su telefono: comodità del trascinamento dei bagagli e altezza della cabina a 6 file nella fase bagagli
+- [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 - [ ] Hari Rally su telefono vero: fluidità (pixel ratio adattivo), taratura dei sensori in orizzontale
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
@@ -23,13 +25,10 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
-## In revisione (prossima versione)
+## Fatto (v0.18.0)
 - [x] Nuovo gioco **Hari Airlines** (Hari assistente di volo, capitano gufo, passeggeri animaletti): ogni livello è un volo a fasi — imbarco da contare (gruppi, nascosti, chi torna indietro, lista del capitano), bagagli nelle cappelliere a capienza (risolutore nei test), cinture con testardi, ribelli e sobbalzo buffo, cucina (ricetta del capitano + fornetti con zona verde), servizio col carrello e pazienza, rifiuti differenziati (1 → 3 sacchi); fasi sbloccate gradualmente con "Nuovo!", tratte mare/montagne/città/notte, tema scuro = volo notturno; niente sconfitta (errori leggeri e passeggeri tristi = meno fragoline); brano `flight`, effetto `chime`, tutorial, test con bot
-- [ ] Traduzioni delle chiavi nuove di Hari Airlines (`r17`, `fl_*`, `tu_flight_1..4`) in 43 lingue (oggi fallback inglese)
-- [ ] Hari Airlines su telefono: comodità del trascinamento dei bagagli e altezza della cabina a 6 file nella fase bagagli
-- [x] Nuovo gioco **Hari Taxi** (guida vista dall'alto, senza violenza): città a griglia generata da seme con isolati, parchi, semafori, strisce e marciapiedi; tre mestieri a rotazione (taxi coi passeggeri, scooter del cibo che si raffredda, furgone coi pacchi a più tappe) con tempo limite; traffico (auto, autobus, bici) e pedoni con IA; incidenti = −1 cuore con "bonk" e salto spaventato, muri morbidi; levetta a un pollice + frecce/WASD, freccia di percorso e minimappa, tema notte con lampioni e fari; brano `drive`, effetti `honk`/`boing`, tutorial, test con bot
-- [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
-- [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
+- [x] Testi di Hari Airlines in 43 lingue (42 chiavi)
+
 
 ## Fatto (v0.17.0)
 - [x] Nuovo gioco **Hari Rally**: rally 3D in prima persona nel bosco (three.js in locale, solo nei file del gioco), grafica cartoon con contorni, accelerazione automatica, sterzo coi sensori a schermo intero col telefono girato (taratura, permesso iOS) o col tocco/tastiera, freno, note del navigatore 1–6 dedotte dalla curvatura con bip nell'orecchio giusto, 3 avversari (coniglietta, volpe, panda), tappe primavera/autunno/neve/tramonto, arrivare tra i primi 3; testi in 43 lingue
@@ -195,6 +194,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.18.0 · `CI=1 npm test` · Hari Airlines: tutte le fasi, vittoria, schermo intero, chiaro/scuro; testi it/de/ja
 - 2026-10-28 v0.17.0 · `CI=1 npm test` · Hari Rally: bot tra i primi 3 nei livelli 1–10, note coerenti con la curvatura, sensori simulati, file unico
 - 2026-10-28 v0.16.2 · `CI=1 npm test` · Snack Rush: bot attento 88/88 fino all'11, pigro perde dal 2; porte, novità, boss con merende da rimandare, power-up, chiaro/scuro
 - 2026-10-28 v0.16.1 · `npm test` · avviso giochi nuovi: utente da versione vecchia (messaggio + etichette), seconda apertura (niente avviso), installazione nuova (niente avviso)
