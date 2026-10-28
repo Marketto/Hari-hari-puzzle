@@ -244,6 +244,35 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Airlines: volo diviso in fasi; 4+ gradini (3 → 6 file, fasi che si sbloccano); imbarco con conteggio coerente,
+// bagagli che entrano nelle cappelliere (risolutore a backtracking), richieste soddisfacibili; generazione < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/flight-logic.js'), 'utf8'), { filename: 'flight-logic.js' });
+  const F = globalThis.HH.flight;
+  const pack = (caps, sizes) => {
+    const fr = caps.slice(), ord = sizes.map((x, i) => i).sort((a, b) => sizes[b] - sizes[a]);
+    const go = (k) => k === ord.length || fr.some((c, b) => { if (c < sizes[ord[k]]) return false; fr[b] -= sizes[ord[k]]; const ok = go(k + 1); fr[b] += sizes[ord[k]]; return ok; });
+    return go(0);
+  };
+  for (const level of [1, 2, 3, 4, 6, 8, 12]) {
+    let ms = 0, good = 0;
+    const T = 40, c = F.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const s = F.newGame(level, level * 977 + k);
+      ms += performance.now() - t;
+      const B = s.plan.board;
+      let n = 0;
+      B.steps.forEach((st) => { n += st.k === 'in' ? st.ids.length : -st.ids.length; });
+      const want = B.ask === 'missing' ? B.booked - n : n;
+      const bagsOk = !s.plan.bags || pack(s.plan.bags.bins.map((b) => F.BIN_CAP - b.fill.reduce((a, x) => a + x, 0)), s.plan.bags.bags.map((b) => b.size));
+      const meals = s.plan.serve.reqs.reduce((m, r) => m + r.items.filter((x) => x === 'meal').length, 0);
+      if (want === B.ans && B.opts.includes(want) && bagsOk && meals === (s.plan.galley ? s.plan.galley.meals : 0)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Airlines livello ${level}: ${c.rows} file, ${c.pax} passeggeri, fasi ${c.phases.join('·')}: ${good}/${T} ok, media ${(ms / T).toFixed(3)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

@@ -1,0 +1,344 @@
+/* Hari Airlines — stile.
+ * Cabina di sbieco (coda e cucina in alto, muso col capitano in basso), sedili 2+2, cappelliere che si aprono
+ * nella fase dei bagagli, finestrini con la tratta (mare, montagne, città, notte); tema scuro = volo notturno
+ * con i finestrini stellati. Prefisso fl-, token --fl-*, tinta card --tint-flight.
+ */
+:root {
+  --tint-flight: #d6ecff;
+  --fl-ink: #4a2c2a; --fl-eye: #2a1814; --fl-hi: #ffffff; --fl-blush: #ff9fb8; --fl-mouth: #e86a7e; --fl-tear: #8fd0ff; --fl-nose: #3a2018;
+  --fl-ear-in: #ffbfd0; --fl-dark: #3e3346; --fl-cream: #fff4e2; --fl-beak: #ffb43c;
+  --fl-cat: #ffc27a; --fl-cat-2: #f09a48; --fl-bunny: #fff8f4; --fl-bunny-2: #ffd3df; --fl-bear: #c58b5c; --fl-bear-2: #8e5a36;
+  --fl-fox: #ff9a54; --fl-fox-2: #d8682a; --fl-panda: #fffaf6; --fl-panda-2: #3e3346; --fl-frog: #9ad86e; --fl-frog-2: #5fa846;
+  --fl-mouse: #c9c3d2; --fl-mouse-2: #9a93a8; --fl-pig: #ffc3cf; --fl-pig-2: #f59aae; --fl-chick: #ffe36a; --fl-chick-2: #f5b82e;
+  --fl-koala: #b7bfcf; --fl-koala-2: #fff1f4; --fl-dog: #f0cf9a; --fl-dog-2: #b98652; --fl-raccoon: #b4adbd; --fl-raccoon-2: #7f778c;
+  --fl-owl: #b88158; --fl-owl-2: #8a5a38; --fl-crew: #3f5fb8; --fl-crew-2: #2c4590; --fl-gold: #ffcf4a; --fl-scarf: #ff6f9c; --fl-scarf-2: #e24f80;
+  --fl-glass: #e9f6ff; --fl-water: #8fd0ff; --fl-straw: #ff6f9c; --fl-juice: #ffa53c; --fl-juice-2: #ffcf4a; --fl-steam: #b9a8c6;
+  --fl-cup: #fffaf3; --fl-tea: #c27a46; --fl-cookie: #e2a866; --fl-choc: #6a3a22; --fl-tray: #9aa4c4; --fl-dome: #e3e8f4;
+  --fl-blanket: #9cc8ff; --fl-blanket-2: #6c9cf0; --fl-pillow: #fff3c4;
+  --fl-bread: #e8a85c; --fl-bread-2: #ffe2b2; --fl-white: #fffdf8; --fl-yolk: #ffc73a; --fl-leaf: #8fd46a; --fl-leaf-2: #4f9a3e;
+  --fl-tomato: #f2575c; --fl-tomato-2: #ff8a84; --fl-seed: #fff2c2; --fl-seed-2: #ffe58a; --fl-cheese: #ffd65a; --fl-cheese-2: #f2b73a;
+  --fl-nori: #3c4a3a; --fl-fish: #ff9f8a; --fl-fish-2: #ffd3c8; --fl-carrot: #ff9a3c; --fl-carrot-2: #d86e1e; --fl-berry: #f24f6a;
+  --fl-plastic-c: #dff2ff; --fl-plastic: #ffd23f; --fl-paper-c: #f3efe2; --fl-banana: #ffe066; --fl-apple-in: #fff3d6; --fl-apple: #f05a5a;
+  --fl-sack-paper: #6fa8ff; --fl-sack-plastic: #ffd23f; --fl-sack-food: #a8cf6a; --fl-sack-all: #b8c2d6;
+  --fl-bag-0: #ff8fb3; --fl-bag-0-2: #d9497a; --fl-bag-1: #7fcfb6; --fl-bag-1-2: #3f9a7e; --fl-bag-2: #a99cf2; --fl-bag-2-2: #6c5ccf;
+  --fl-belt: #6f7a9a; --fl-buckle: #dfe4ee; --fl-pot: #c8cede; --fl-cart: #e7ecf6; --fl-cart-2: #b8c2d6; --fl-sign: #3b3550; --fl-sign-ic: #ffd84a;
+  --fl-sky-d: #bfe4ff; --fl-moon: #ffe58a; --fl-star: #ffe58a;
+  --fl-text: #6a3f38; --fl-text-2: #9a7468;
+  --fl-cabin: #fff6ee; --fl-cabin-2: #f5e6da; --fl-wall: #ffffff; --fl-wall-line: #e2cfc2; --fl-floor: #efe0d4; --fl-aisle: #f2c9d4; --fl-aisle-2: #e8b2c2;
+  --fl-seat: #6f8ce8; --fl-seat-2: #4f6cc8; --fl-seat-hi: #ffffff; --fl-arm: #3f58a8;
+  --fl-bin: #f4ecf6; --fl-bin-2: #e3d6ea; --fl-bin-in: #d8cbe2; --fl-bin-line: #b9a6c8;
+  --fl-sky-sea: #9fd8ff; --fl-sky-mountain: #c4e6ff; --fl-sky-city: #ffd9c4; --fl-sky-n: #2c3470; --fl-star-op: 0;
+  --fl-sea: #4fa8e8; --fl-mount: #8fa6c8; --fl-snow: #ffffff; --fl-city: #b48fb8; --fl-lamp: #fff3a8; --fl-cloud: #ffffff; --fl-cloud-n: #4a5290;
+  --fl-card: #fffaf6; --fl-card-line: #e2cfc2; --fl-bubble: #ffffff; --fl-track: #f3e6dc;
+  --fl-jet: #c9d2e6; --fl-jet-2: #aeb9d2; --fl-door: #e7ecf6; --fl-door-2: #c8d0e2; --fl-jetlight: #fff6c4;
+  --fl-nose: #ffffff; --fl-cp: #bfe4ff; --fl-plane: #ffffff; --fl-tail: #6f8ce8; --fl-wing: #dfe4ee; --fl-stripe: #ff6f9c;
+  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
+  --fl-oven: #dfe4ee; --fl-oven-2: #b8c2d6; --fl-ovwin: #4a3a48;
+  --fl-ok: #6fcf7a; --fl-mid: #ffc23d; --fl-low: #ff6f6f; --fl-zone: #7fdc86; --fl-cold: #9cd4ff; --fl-hot: #ff8a6a;
+  --fl-exit: #3fbf6a; --fl-exit-ic: #ffffff; --fl-sel: #ff6f9c; --fl-good: #6fcf7a; --fl-bad: #ff6f6f;
+  --fl-new: #ff7fa3; --fl-new-text: #ffffff; --fl-shadow: 0 4px 10px -5px rgba(80, 40, 50, .45);
+  --fl-shirt-0: #ffd0dc; --fl-shirt-1: #c9ecd8; --fl-shirt-2: #ffe7a8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-flight: #263a5c;
+    --fl-ink: #2b1b2e; --fl-text: #f3e6ff; --fl-text-2: #c9b8dc;
+    --fl-cabin: #3a3058; --fl-cabin-2: #2d2547; --fl-wall: #4c4170; --fl-wall-line: #6a5c96; --fl-floor: #2a2240; --fl-aisle: #5b3d64; --fl-aisle-2: #4a3154;
+    --fl-seat: #4f63b8; --fl-seat-2: #3a4a92; --fl-seat-hi: #d8dcf2; --fl-arm: #2e3a78;
+    --fl-bin: #5a5084; --fl-bin-2: #463d6c; --fl-bin-in: #2b2445; --fl-bin-line: #7d70ad;
+    --fl-sky-sea: #1b2552; --fl-sky-mountain: #1b2552; --fl-sky-city: #1b2552; --fl-sky-n: #141a3f; --fl-star-op: 1;
+    --fl-sea: #24407a; --fl-mount: #3b3f78; --fl-snow: #9aa6d8; --fl-city: #2b2f60; --fl-lamp: #ffd76a; --fl-cloud: #4a4f86; --fl-cloud-n: #2f3466;
+    --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
+    --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
+    --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
+  }
+}
+:root[data-theme="dark"] {
+    --tint-flight: #263a5c;
+    --fl-ink: #2b1b2e; --fl-text: #f3e6ff; --fl-text-2: #c9b8dc;
+    --fl-cabin: #3a3058; --fl-cabin-2: #2d2547; --fl-wall: #4c4170; --fl-wall-line: #6a5c96; --fl-floor: #2a2240; --fl-aisle: #5b3d64; --fl-aisle-2: #4a3154;
+    --fl-seat: #4f63b8; --fl-seat-2: #3a4a92; --fl-seat-hi: #d8dcf2; --fl-arm: #2e3a78;
+    --fl-bin: #5a5084; --fl-bin-2: #463d6c; --fl-bin-in: #2b2445; --fl-bin-line: #7d70ad;
+    --fl-sky-sea: #1b2552; --fl-sky-mountain: #1b2552; --fl-sky-city: #1b2552; --fl-sky-n: #141a3f; --fl-star-op: 1;
+    --fl-sea: #24407a; --fl-mount: #3b3f78; --fl-snow: #9aa6d8; --fl-city: #2b2f60; --fl-lamp: #ffd76a; --fl-cloud: #4a4f86; --fl-cloud-n: #2f3466;
+    --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
+    --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
+    --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
+}
+
+/* ---------- card ---------- */
+.fl-a-plane { animation: fl-float 3.2s ease-in-out infinite; transform-box: fill-box; }
+.fl-a-cloud { animation: fl-drift 6s ease-in-out infinite alternate; }
+.fl-a-cloud.b { animation-delay: -3s; }
+@keyframes fl-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+@keyframes fl-drift { from { transform: translateX(-4px); } to { transform: translateX(6px); } }
+
+/* ---------- tutorial ---------- */
+.fl-tu-walk { animation: fl-tuwalk 3s linear infinite; }
+.fl-tu-walk.b { animation-delay: .25s; }
+@keyframes fl-tuwalk { 0% { transform: translateX(-30px); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateX(60px); opacity: 0; } }
+.fl-tu-belt { animation: fl-blink 1.6s steps(2) infinite; }
+.fl-tu-sign { animation: fl-blink 1.2s ease-in-out infinite; }
+.fl-tu-bag { animation: tut-go 2.6s ease-in-out infinite; --dx: -2px; --dy: -44px; }
+.fl-tu-num { font: 14px 'Mochiy Pop One', system-ui, sans-serif; fill: var(--fl-text); }
+@keyframes fl-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* ---------- struttura ---------- */
+.fl-wrap {
+  --gw: min(var(--game-w), var(--game-max, 460px)); --rh: calc(var(--gw) * .175);
+  position: relative; width: var(--gw); display: flex; flex-direction: column; gap: 6px; user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none; color: var(--fl-text); }
+.fl-wrap svg { display: block; }
+.fl-bar { display: flex; align-items: center; justify-content: center; gap: 0; margin: 0; padding: 4px 6px; list-style: none; border-radius: 999px;
+  background: var(--fl-card); box-shadow: inset 0 0 0 2px var(--fl-card-line); }
+.fl-bar li { position: relative; flex: none; width: 28px; height: 28px; padding: 3px; border-radius: 50%; opacity: .45; transition: transform .3s, opacity .3s; }
+.fl-bar li.cur { opacity: 1; background: var(--fl-bubble); box-shadow: 0 0 0 2px var(--fl-sel); transform: scale(1.15); }
+.fl-bar li.done { opacity: 1; }
+.fl-bar li.fl-dash { flex: 1; max-width: 22px; width: auto; height: 3px; padding: 0; border-radius: 2px; background: var(--fl-card-line); opacity: 1; }
+.fl-tick { position: absolute; right: -3px; bottom: -3px; width: 13px; height: 13px; border-radius: 50%; background: var(--fl-good); box-shadow: 0 0 0 2px var(--fl-card); }
+.fl-tick::after { content: ""; position: absolute; left: 4px; top: 2px; width: 3px; height: 6px; border: solid var(--fl-hi); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.fl-stage { position: relative; }
+.fl-panel { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.fl-tip { margin: 0; font-size: 12.5px; text-align: center; color: var(--fl-text-2); }
+
+/* ---------- cabina ---------- */
+.fl-cabin { position: relative; border-radius: 46% 46% 0 0 / 7% 7% 0 0; background: var(--fl-wall); box-shadow: inset 0 0 0 2px var(--fl-wall-line), var(--shadow-s); overflow: hidden; }
+.fl-cabin.bump { animation: fl-bump .5s ease-out; }
+@keyframes fl-bump { 0%, 100% { transform: translateY(0); } 20% { transform: translateY(-6px) rotate(-.6deg); } 45% { transform: translateY(3px) rotate(.5deg); } 70% { transform: translateY(-2px); } }
+.fl-tail { display: flex; align-items: center; justify-content: center; gap: 8px; height: calc(var(--gw) * .1); background: linear-gradient(180deg, var(--fl-galley-2), var(--fl-galley)); }
+.fl-galleyic { width: 26px; height: 26px; }
+.fl-curtain { width: 22%; height: 70%; margin-top: 12%; border-radius: 0 0 10px 10px; background: repeating-linear-gradient(90deg, var(--fl-aisle), var(--fl-aisle) 6px, var(--fl-aisle-2) 6px, var(--fl-aisle-2) 12px); }
+.fl-rows { position: relative; background: var(--fl-cabin); }
+.fl-row { position: relative; display: grid; grid-template-columns: 5% 19.5% 19.5% 12% 19.5% 19.5% 5%; height: var(--rh); }
+.fl-row + .fl-row { box-shadow: 0 -1px 0 var(--fl-cabin-2); }
+.fl-win { grid-row: 1; align-self: end; height: var(--sh, calc(var(--gw) * .175)); display: flex; align-items: center; justify-content: center; position: relative; background: var(--fl-wall); }
+.fl-win.l { grid-column: 1; } .fl-win.r { grid-column: 7; }
+.fl-view { width: 70%; border-radius: 40%; box-shadow: 0 0 0 2px var(--fl-wall-line); overflow: hidden; }
+.fl-sky { fill: var(--fl-sky-sea); }
+.fl-sky.mountain { fill: var(--fl-sky-mountain); } .fl-sky.city { fill: var(--fl-sky-city); } .fl-sky.night { fill: var(--fl-sky-n); }
+.fl-stars { fill: var(--fl-star); opacity: var(--fl-star-op); }
+.fl-view.night .fl-stars { opacity: 1; }
+.fl-view.night .fl-wcloud { opacity: 0; }
+.fl-exit { position: absolute; top: 4%; left: 50%; transform: translateX(-50%); width: 80%; height: 12%; border-radius: 3px; background: var(--fl-exit); }
+.fl-row.exit .fl-aisle { background: repeating-linear-gradient(0deg, var(--fl-aisle), var(--fl-aisle) 6px, var(--fl-exit) 6px, var(--fl-exit) 8px); }
+.fl-aisle { grid-row: 1; grid-column: 4; position: relative; display: flex; align-items: center; justify-content: center; background: var(--fl-aisle); }
+
+/* sedili */
+.fl-wrap[data-phase="bags"] { --rh: calc(var(--gw) * .23); --sh: calc(var(--gw) * .135); }
+.fl-wrap[data-phase="bags"] .fl-nose { height: calc(var(--gw) * .1); }
+.fl-wrap[data-phase="bags"] .fl-cockpit { width: calc(var(--gw) * .09); }
+.fl-wrap[data-phase="bags"] .fl-aisle { align-items: flex-end; padding-bottom: 6%; }
+.fl-seat { grid-row: 1; align-self: end; height: var(--sh, calc(var(--gw) * .175)); position: relative; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.fl-seat:focus-visible { outline: 3px solid var(--fl-sel); outline-offset: -3px; border-radius: 12px; }
+.fl-chair { position: absolute; inset: 7% 9% 5%; border-radius: 12px 12px 7px 7px; background: linear-gradient(180deg, var(--fl-seat), var(--fl-seat-2)); box-shadow: inset 0 -5px 0 var(--fl-arm); }
+.fl-chair::before { content: ""; position: absolute; left: 18%; right: 18%; top: 6%; height: 24%; border-radius: 6px; background: var(--fl-seat-hi); opacity: .9; }
+.fl-pax { position: absolute; left: 50%; top: 0; width: 60%; transform: translateX(-50%); z-index: 1; }
+.fl-wrap[data-phase="bags"] .fl-pax { width: 46%; }
+.fl-body { position: absolute; left: 25%; right: 25%; bottom: 6%; height: 30%; border-radius: 45% 45% 18% 18%; background: var(--fl-shirt-0); box-shadow: inset 0 0 0 1.5px var(--fl-ink); }
+.fl-body.t1, .fl-wbody.t1 { background: var(--fl-shirt-1); } .fl-body.t2, .fl-wbody.t2 { background: var(--fl-shirt-2); }
+.fl-beltw { position: absolute; left: 18%; right: 18%; bottom: 13%; z-index: 2; }
+.fl-seat.unb .fl-beltw { animation: fl-blink 1s ease-in-out infinite; }
+.fl-seat.unb .fl-chair { box-shadow: inset 0 -5px 0 var(--fl-arm), 0 0 0 3px var(--fl-mid); }
+.fl-need { position: absolute; right: 6%; top: 8%; display: flex; flex-direction: column; gap: 2px; z-index: 3; }
+.fl-need i { width: 6px; height: 6px; border-radius: 50%; background: var(--fl-low); box-shadow: 0 0 0 1.5px var(--fl-card); }
+.fl-seat.nope .fl-pax { animation: fl-nope .4s ease-in-out; }
+.fl-seat.click .fl-beltw, .fl-seat.pop .fl-pax { animation: fl-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.fl-seat.hop .fl-pax { animation: fl-hop .35s ease-out; }
+@keyframes fl-nope { 0%, 100% { transform: translateX(-50%) rotate(0); } 25% { transform: translateX(-50%) rotate(-12deg); } 75% { transform: translateX(-50%) rotate(12deg); } }
+@keyframes fl-pop { 0% { scale: .8; } 60% { scale: 1.15; } 100% { scale: 1; } }
+@keyframes fl-hop { 0%, 100% { translate: 0 0; } 40% { translate: 0 -4px; } }
+
+/* fumetti delle richieste */
+.fl-bub { position: absolute; bottom: 74%; left: 50%; z-index: 4; transform: translateX(-50%); display: flex; flex-wrap: nowrap; align-items: center; gap: 1px;
+  padding: 3px 4px 7px; border-radius: 10px; background: var(--fl-bubble); box-shadow: 0 0 0 1.5px var(--fl-ink), var(--fl-shadow); animation: fl-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.fl-bub::after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; background: var(--fl-bubble); transform: translateX(-50%) rotate(45deg); box-shadow: 1.5px 1.5px 0 var(--fl-ink); }
+.fl-bub svg { width: calc(var(--gw) * .075); height: calc(var(--gw) * .075); }
+.fl-bub.sad { box-shadow: 0 0 0 2px var(--fl-low), var(--fl-shadow); }
+.fl-pat { position: absolute; left: 5px; right: 5px; bottom: 2px; height: 3px; border-radius: 2px; background: var(--fl-track); overflow: hidden; z-index: 1; }
+.fl-pat i { display: block; height: 100%; background: var(--fl-ok); transition: width .2s linear; }
+.fl-seat.asks .fl-chair { box-shadow: inset 0 -5px 0 var(--fl-arm), 0 0 0 2px var(--fl-bubble); }
+
+/* rifiuti sul tavolino */
+.fl-lap { position: absolute; right: 4%; bottom: 2%; width: 42%; z-index: 3; filter: drop-shadow(0 2px 0 var(--fl-wall-line)); }
+.fl-lap.nope { animation: fl-nope .4s; }
+.fl-seat.litter .fl-chair { box-shadow: inset 0 -5px 0 var(--fl-arm), 0 0 0 2px var(--fl-mid); }
+
+/* Hari nel corridoio */
+.fl-crewbox { position: absolute; left: 44%; width: 12%; top: calc(var(--r) * var(--rh)); height: var(--rh); z-index: 5; pointer-events: none; transition: top .35s ease-in-out; display: flex; align-items: center; justify-content: center; }
+.fl-crewbox .fl-hari { width: 100%; }
+.fl-cartmini { display: none; position: absolute; left: 50%; bottom: -18%; width: 70%; transform: translateX(-50%); }
+.fl-wrap[data-phase="serve"] .fl-cartmini { display: block; }
+.fl-wrap[data-phase="board"] .fl-crewbox, .fl-wrap[data-phase="land"] .fl-crewbox { display: none; }
+.fl-hari { position: relative; display: block; aspect-ratio: 1; }
+.fl-hari > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* muso */
+.fl-nose { position: relative; height: calc(var(--gw) * .2); border-radius: 0 0 50% 50% / 0 0 100% 100%; background: linear-gradient(180deg, var(--fl-nose), var(--fl-cabin-2)); box-shadow: inset 0 2px 0 var(--fl-wall-line); }
+.fl-cockpit { position: absolute; left: 50%; top: 4%; width: calc(var(--gw) * .15); transform: translateX(-50%); z-index: 1; }
+.fl-cpwin { position: absolute; top: 34%; width: 20%; height: 30%; background: var(--fl-cp); box-shadow: 0 0 0 2px var(--fl-wall-line); }
+.fl-cpwin.l { left: 18%; border-radius: 40% 10% 10% 60%; } .fl-cpwin.r { right: 18%; border-radius: 10% 40% 60% 10%; }
+
+/* ---------- cappelliere e bagagli ---------- */
+.fl-bin { position: absolute; top: 0; height: 6px; z-index: 3; display: flex; align-items: flex-end; gap: 0; padding: 0 3px; border-radius: 0 0 6px 6px; background: var(--fl-bin); box-shadow: inset 0 0 0 1.5px var(--fl-bin-line); transition: height .3s; }
+.fl-bin.l { left: 5%; width: 39%; } .fl-bin.r { left: 56%; width: 39%; }
+.fl-bin.open { height: calc(var(--gw) * .39 / 4 * .92 + 8px); padding: 3px 3px 4px; cursor: pointer;
+  background: linear-gradient(180deg, var(--fl-bin-in), var(--fl-bin-2)); box-shadow: inset 0 0 0 2px var(--fl-bin-line), var(--fl-shadow);
+  background-image: linear-gradient(90deg, transparent calc(25% - 1px), var(--fl-bin-line) calc(25% - 1px), var(--fl-bin-line) 25%, transparent 25%, transparent calc(50% - 1px), var(--fl-bin-line) calc(50% - 1px), var(--fl-bin-line) 50%, transparent 50%, transparent calc(75% - 1px), var(--fl-bin-line) calc(75% - 1px), var(--fl-bin-line) 75%, transparent 75%), linear-gradient(180deg, var(--fl-bin-in), var(--fl-bin-2)); }
+.fl-bin.open.sel-ok { box-shadow: inset 0 0 0 2px var(--fl-good), 0 0 0 2px var(--fl-good); }
+.fl-bin.open.sel-no { opacity: .75; }
+.fl-bin.hover { box-shadow: inset 0 0 0 3px var(--fl-sel), 0 0 0 3px var(--fl-sel); }
+.fl-bin.pop { animation: fl-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.fl-bin.shake, .fl-cart.shake, .fl-opt.shake, .fl-ingb.shake, .fl-oven.shake, .fl-sackb.shake { animation: fl-shake .4s; }
+@keyframes fl-shake { 0%, 100% { translate: 0; } 25% { translate: -4px; } 75% { translate: 4px; } }
+.fl-binbag { flex: none; width: calc(var(--s) * 25%); }
+.fl-binbag.fixed { opacity: .55; filter: saturate(.5); }
+.fl-binbag.mine { cursor: grab; }
+.fl-binbag.sel, .fl-loose.sel { filter: drop-shadow(0 0 3px var(--fl-sel)) drop-shadow(0 0 1px var(--fl-sel)); transform: translateY(-2px); }
+.fl-bagslot { position: absolute; left: 0; right: 0; bottom: 4%; display: flex; justify-content: center; z-index: 3; pointer-events: none; }
+.fl-loose { pointer-events: auto; flex: none; width: calc(var(--s) * var(--gw) * .065); cursor: grab; animation: fl-wob 1.8s ease-in-out infinite; touch-action: none; }
+.fl-aisle .fl-loose { position: relative; z-index: 4; width: calc(var(--s) * var(--gw) * .06); }
+.fl-loose.exit { filter: drop-shadow(0 0 2px var(--fl-low)) drop-shadow(0 0 2px var(--fl-low)); }
+.fl-loose.feet { width: calc(var(--s) * var(--gw) * .055); }
+@keyframes fl-wob { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+.fl-ghost { position: absolute; left: 0; top: 0; z-index: 30; width: calc(var(--s) * var(--gw) * .39 / 4); margin: -14px 0 0 -20px; pointer-events: none; filter: drop-shadow(0 6px 6px var(--fl-wall-line)); }
+.fl-bagsleft { display: flex; align-items: center; gap: 6px; font: 16px 'Mochiy Pop One', system-ui, sans-serif; }
+.fl-bagsleft svg { width: 26px; height: 26px; }
+
+/* ---------- cinture e tempo ---------- */
+.fl-wrap[data-phase="belts"] .fl-panel { flex-direction: row; gap: 10px; }
+.fl-sign svg { width: 44px; height: 28px; animation: fl-blink 1.6s ease-in-out infinite; }
+.fl-timer { flex: 1; width: 100%; max-width: 320px; display: flex; align-items: center; gap: 6px; }
+.fl-timer-ic { width: 24px; height: 24px; flex: none; }
+.fl-track { position: relative; flex: 1; height: 12px; border-radius: 8px; background: var(--fl-track); box-shadow: inset 0 0 0 2px var(--fl-card-line); overflow: hidden; }
+.fl-track i { position: absolute; inset: 0 auto 0 0; border-radius: 8px; background: var(--fl-ok); }
+.fl-timer[data-level="mid"] .fl-track i { background: var(--fl-mid); }
+.fl-timer[data-level="low"] .fl-track i { background: var(--fl-low); }
+
+/* ---------- imbarco ---------- */
+.fl-door { position: relative; height: calc(var(--gw) * .66); border-radius: 26px; overflow: hidden; background: linear-gradient(180deg, var(--fl-cabin), var(--fl-cabin-2)); box-shadow: inset 0 0 0 2px var(--fl-wall-line), var(--shadow-s); }
+.fl-door::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 22%; background: var(--fl-aisle); box-shadow: inset 0 3px 0 var(--fl-aisle-2); }
+.fl-jet { position: absolute; left: 16%; top: 10%; width: 30%; height: 72%; border-radius: 40px; background: radial-gradient(ellipse at 50% 40%, var(--fl-jetlight), var(--fl-jet-2) 45%, var(--fl-jet)); }
+.fl-jetlight { position: absolute; left: 25%; top: 12%; width: 50%; height: 6px; border-radius: 4px; background: var(--fl-jetlight); opacity: .9; }
+.fl-frame { position: absolute; left: 16%; top: 10%; width: 30%; height: 72%; border-radius: 40px; box-shadow: inset 0 0 0 7px var(--fl-door), inset 0 0 0 9px var(--fl-ink); z-index: 3; pointer-events: none; }
+.fl-doorpanel { position: absolute; left: -52%; top: 4%; width: 44%; height: 92%; border-radius: 34px; background: linear-gradient(90deg, var(--fl-door-2), var(--fl-door)); box-shadow: inset 0 0 0 2px var(--fl-ink); }
+.fl-walkers { position: absolute; inset: 0; z-index: 4; }
+.fl-walker { position: absolute; bottom: 12%; left: 20%; width: 22%; animation: fl-walkin var(--d) linear both; animation-delay: calc(var(--j) * .3s); margin-bottom: var(--y); }
+.fl-walker.hid { z-index: -1; width: 15%; margin-left: 3%; }
+.fl-walker.out { animation-name: fl-walkout; }
+.fl-walker > svg { position: relative; animation: fl-bob .42s ease-in-out infinite alternate; }
+.fl-wbody { position: absolute; left: 26%; right: 26%; top: 72%; height: 36%; border-radius: 40% 40% 20% 20%; background: var(--fl-shirt-0); box-shadow: inset 0 0 0 1.5px var(--fl-ink); }
+.fl-think { position: absolute; right: -20%; top: -30%; width: 46%; padding: 3px; border-radius: 50%; background: var(--fl-bubble); box-shadow: 0 0 0 1.5px var(--fl-ink); }
+.fl-paused .fl-walker, .fl-paused .fl-walker > svg { animation-play-state: paused; }
+@keyframes fl-walkin { 0% { left: 20%; transform: scale(.6); opacity: 0; } 12% { opacity: 1; } 30% { transform: scale(1); } 100% { left: 105%; transform: scale(1); } }
+@keyframes fl-walkout { 0% { left: 100%; } 70% { transform: scale(1); opacity: 1; } 100% { left: 20%; transform: scale(.6); opacity: 0; } }
+@keyframes fl-bob { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-4px) rotate(3deg); } }
+.fl-dwins { position: absolute; left: 49%; right: 33%; top: 12%; display: flex; justify-content: space-around; }
+.fl-dwins .fl-view { width: 40%; }
+.fl-dseat { position: absolute; right: 4%; bottom: 20%; width: 18%; height: 34%; border-radius: 14px 14px 6px 6px; background: linear-gradient(180deg, var(--fl-seat), var(--fl-seat-2)); box-shadow: inset 0 -5px 0 var(--fl-arm); }
+.fl-dseat::before { content: ""; position: absolute; left: 18%; right: 18%; top: 6%; height: 22%; border-radius: 6px; background: var(--fl-seat-hi); }
+.fl-dseat.b { right: 25%; }
+.fl-greeter { position: absolute; left: 47%; bottom: 14%; width: 16%; z-index: 3; }
+.fl-list { position: absolute; right: 4%; top: 6%; z-index: 4; display: grid; justify-items: center; gap: 0; padding: 6px 10px 4px; border-radius: 12px; background: var(--fl-bubble); box-shadow: 0 0 0 2px var(--fl-ink), var(--fl-shadow); color: var(--fl-ink); }
+.fl-list small { font-size: 10.5px; font-weight: 800; }
+.fl-list b { font: 22px 'Mochiy Pop One', system-ui, sans-serif; }
+.fl-list .fl-captain { width: 30px; position: absolute; left: -22px; top: -10px; }
+.fl-clicker { display: flex; align-items: center; gap: 10px; }
+.fl-clicker .tool { min-width: 44px; min-height: 44px; font-size: 22px; }
+.fl-clicker .candy { min-width: 64px; min-height: 48px; font-size: 18px; }
+.fl-count { min-width: 2.2em; text-align: center; font: 26px 'Mochiy Pop One', system-ui, sans-serif; color: var(--fl-text); }
+.fl-count.pop { animation: fl-pop .3s; }
+.fl-ask { display: grid; justify-items: center; gap: 6px; width: 100%; animation: fl-pop .35s; }
+.fl-ask[hidden] { display: none; }
+.fl-ask p { margin: 0; font-weight: 800; text-align: center; }
+.fl-opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
+.fl-opt { min-height: 50px; border: 0; border-radius: 16px; background: var(--fl-card); box-shadow: inset 0 0 0 2px var(--fl-card-line), 0 3px 0 var(--fl-card-line); color: var(--fl-text);
+  font: 22px 'Mochiy Pop One', system-ui, sans-serif; cursor: pointer; }
+.fl-opt:disabled { opacity: .35; text-decoration: line-through; }
+.fl-opt.right { background: var(--fl-good); color: var(--fl-hi); }
+.fl-replay { font-size: 13px; }
+
+/* ---------- cucina ---------- */
+.fl-galley { position: relative; display: grid; gap: 8px; padding: 10px; border-radius: 26px; background: linear-gradient(180deg, var(--fl-galley), var(--fl-galley-2)); box-shadow: inset 0 0 0 2px var(--fl-wall-line), var(--shadow-s); }
+.fl-note { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 16px; background: var(--fl-bubble); box-shadow: 0 0 0 2px var(--fl-ink); color: var(--fl-ink); }
+.fl-note-cap { width: 44px; flex: none; }
+.fl-recipe { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.fl-recipe li { position: relative; width: calc(var(--gw) * .1); padding: 2px; border-radius: 10px; background: var(--fl-track); }
+.fl-recipe li.ok { opacity: .4; }
+.fl-recipe li.ok::after { content: ""; position: absolute; right: 2px; bottom: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--fl-good); }
+.fl-recipe li.next { box-shadow: 0 0 0 2.5px var(--fl-sel); animation: fl-hop 1s ease-in-out infinite; }
+.fl-recipe li.pop { animation: fl-pop .4s; }
+.fl-traybox { display: flex; justify-content: center; }
+.fl-tray { position: relative; display: flex; align-items: center; justify-content: center; min-height: calc(var(--gw) * .13); width: 70%; padding: 4px 8px; border-radius: 999px; background: var(--fl-tray); box-shadow: inset 0 0 0 2px var(--fl-ink), inset 0 -5px 0 var(--fl-oven-2); }
+.fl-tray > span { width: calc(var(--gw) * .1); margin: 0 -3px; animation: fl-pop .3s; }
+.fl-tray .fl-served { position: absolute; right: -6%; top: -30%; width: calc(var(--gw) * .13); }
+.fl-pal { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.fl-ingb, .fl-cartb { min-height: 46px; padding: 4px; border: 0; border-radius: 14px; background: var(--fl-card); box-shadow: inset 0 0 0 2px var(--fl-card-line), 0 3px 0 var(--fl-card-line); cursor: pointer; }
+.fl-ingb svg, .fl-cartb svg { width: 100%; max-width: 40px; margin: 0 auto; }
+.fl-ingb:disabled { opacity: .45; }
+.fl-ingb:active, .fl-cartb:active, .fl-opt:active, .fl-oven:active, .fl-sackb:active { translate: 0 2px; }
+.fl-ovens { display: flex; gap: 8px; align-items: stretch; }
+.fl-oven { position: relative; flex: 1; min-height: calc(var(--gw) * .22); padding: 6px; border: 0; border-radius: 14px; background: linear-gradient(180deg, var(--fl-oven), var(--fl-oven-2)); box-shadow: inset 0 0 0 2px var(--fl-ink); cursor: pointer; display: grid; grid-template-rows: 1fr auto; gap: 5px; }
+.fl-ovwin { display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--fl-ovwin); box-shadow: inset 0 0 0 2px var(--fl-ink); }
+.fl-ovwin svg { width: 60%; }
+.fl-oven.on .fl-ovwin { background: radial-gradient(circle at 50% 70%, var(--fl-hot), var(--fl-ovwin) 75%); }
+.fl-oven.hot .fl-ovwin { animation: fl-glow .6s ease-in-out infinite alternate; }
+.fl-oven.idle { opacity: .5; }
+.fl-oven.pop { animation: fl-pop .35s; }
+.fl-oven.smoke .fl-ovwin { animation: fl-smoke .8s; }
+@keyframes fl-glow { from { box-shadow: inset 0 0 0 2px var(--fl-ink); } to { box-shadow: inset 0 0 0 2px var(--fl-ink), 0 0 10px 2px var(--fl-zone); } }
+@keyframes fl-smoke { 0%, 100% { filter: none; } 40% { filter: grayscale(1) brightness(.6); } }
+.fl-gauge { position: relative; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--fl-cold), var(--fl-cold) 60%, var(--fl-hot)); box-shadow: inset 0 0 0 1.5px var(--fl-ink); }
+.fl-zone { position: absolute; top: 0; bottom: 0; background: var(--fl-zone); box-shadow: inset 0 0 0 1.5px var(--fl-ink); }
+.fl-needle { position: absolute; top: -4px; bottom: -4px; width: 5px; margin-left: -2.5px; border-radius: 3px; background: var(--fl-ink); box-shadow: 0 0 0 1.5px var(--fl-hi); }
+.fl-meals { flex: none; display: grid; justify-items: center; align-content: center; gap: 0; width: 18%; font: 15px 'Mochiy Pop One', system-ui, sans-serif; color: var(--fl-text); }
+.fl-meals svg { width: 30px; }
+.fl-meals span { font-size: 11px; }
+.fl-chef { position: absolute; right: 18px; top: 16px; width: calc(var(--gw) * .11); }
+.fl-note { padding-right: calc(var(--gw) * .13); }
+
+/* ---------- servizio e rifiuti ---------- */
+.fl-cart { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; padding: 6px; border-radius: 18px; background: var(--fl-cart); box-shadow: inset 0 0 0 2px var(--fl-cart-2); width: 100%; }
+.fl-cartb { position: relative; flex: 1; max-width: 54px; min-width: 40px; }
+.fl-cartb.sel, .fl-sackb.sel { box-shadow: inset 0 0 0 3px var(--fl-sel), 0 3px 0 var(--fl-sel); transform: translateY(-3px); }
+.fl-badge { position: absolute; right: -4px; top: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--fl-sel); color: var(--fl-hi); font-size: 11px; line-height: 18px; }
+.fl-served-n { display: flex; align-items: center; gap: 5px; font: 14px 'Mochiy Pop One', system-ui, sans-serif; }
+.fl-served-n svg { width: 22px; }
+.fl-sacks { display: flex; gap: 8px; justify-content: center; width: 100%; }
+.fl-sackb { flex: 1; max-width: 110px; display: grid; justify-items: center; gap: 0; padding: 4px; border: 0; border-radius: 16px; background: var(--fl-card); box-shadow: inset 0 0 0 2px var(--fl-card-line), 0 3px 0 var(--fl-card-line); color: var(--fl-text); font: 800 11.5px inherit; cursor: pointer; }
+.fl-sackb svg { width: 38px; }
+.fl-sackb.pop { animation: fl-pop .35s; }
+.fl-hearts { position: absolute; left: 50%; top: 0; z-index: 6; pointer-events: none; }
+.fl-hearts i { position: absolute; width: 10px; height: 10px; background: var(--fl-scarf); clip-path: path('M5 9C0 5 0 2 2.5 1C4 .5 5 2 5 2C5 2 6 .5 7.5 1C10 2 10 5 5 9Z'); animation: fl-heart 1s ease-out forwards; }
+.fl-hearts i:nth-child(2) { --x: -14px; animation-delay: .1s; } .fl-hearts i:nth-child(3) { --x: 14px; animation-delay: .2s; }
+@keyframes fl-heart { from { transform: translate(-5px, 0) scale(.6); opacity: 1; } to { transform: translate(calc(var(--x, 0px) - 5px), -30px) scale(1.2); opacity: 0; } }
+
+/* ---------- cartello, timbro, messaggi ---------- */
+.fl-intro { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 26px; background: color-mix(in srgb, var(--fl-cabin) 55%, transparent); backdrop-filter: blur(2px); }
+.fl-intro[hidden] { display: none; }
+.fl-card { position: relative; display: grid; justify-items: center; gap: 8px; width: min(88%, 300px); padding: 18px 16px 16px; border-radius: 24px; background: var(--fl-card); box-shadow: inset 0 0 0 2px var(--fl-card-line), var(--shadow); text-align: center; animation: fl-pop .4s cubic-bezier(.3, 1.6, .5, 1); }
+.fl-card h3 { margin: 0; font: 20px 'Mochiy Pop One', system-ui, sans-serif; color: var(--fl-text); }
+.fl-card p { margin: 0; font-size: 14px; color: var(--fl-text-2); }
+.fl-card-ic { width: 54px; height: 54px; padding: 8px; border-radius: 50%; background: var(--fl-bubble); box-shadow: 0 0 0 2px var(--fl-card-line); }
+.fl-new { position: absolute; top: -10px; right: 14px; padding: 3px 10px; border-radius: 999px; background: var(--fl-new); color: var(--fl-new-text); font-weight: 800; font-size: 12px; box-shadow: 0 2px 0 var(--fl-scarf-2); animation: fl-wob 1.6s ease-in-out infinite; }
+.fl-go { min-width: 120px; }
+.fl-stamp { position: absolute; left: 50%; top: 40%; z-index: 15; width: 80px; height: 80px; padding: 14px; border-radius: 50%; background: var(--fl-good); box-shadow: 0 0 0 4px var(--fl-hi), var(--shadow); translate: -50% -50%; animation: fl-stamp .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes fl-stamp { from { scale: 2; opacity: 0; rotate: -20deg; } to { scale: 1; opacity: 1; rotate: -6deg; } }
+.fl-toast { position: absolute; left: 50%; top: 46px; z-index: 18; translate: -50% 0; padding: 6px 14px; border-radius: 999px; background: var(--fl-card); box-shadow: 0 0 0 2px var(--fl-card-line), var(--shadow-s); font-weight: 800; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; transform: translateY(-6px); white-space: nowrap; }
+.fl-toast.show { opacity: 1; transform: none; }
+.fl-toast.bad { box-shadow: 0 0 0 2px var(--fl-low), var(--shadow-s); }
+.fl-landart { width: 100%; max-width: 220px; border-radius: 16px; background: linear-gradient(180deg, var(--fl-sky-sea), var(--fl-cabin)); }
+.fl-landing { animation: fl-land 2.4s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes fl-land { from { transform: translate(-60px, -40px) rotate(-8deg); } to { transform: translate(0, 10px) rotate(0); } }
+.fl-sum { display: flex; gap: 8px; align-items: center; }
+.fl-sum b { font: 20px 'Mochiy Pop One', system-ui, sans-serif; color: var(--fl-text); }
+.fl-faces { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 260px; }
+.fl-faces span { width: 26px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-wrap *, .fl-a-plane, .fl-a-cloud { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+  .fl-walker { animation-duration: var(--d) !important; }
+}

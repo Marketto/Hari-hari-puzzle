@@ -7,7 +7,7 @@ const HH = load('src/core/audio.js');
 const { TRACKS, deg } = HH.music;
 
 test('brani: menu + uno per gioco', () => {
-  assert.deepEqual(Object.keys(TRACKS).sort(), ['binary', 'boba', 'drive', 'fixit', 'hedgedoku', 'lantern', 'life', 'memory', 'menu', 'parade', 'pixel', 'ropes', 'snack', 'spot', 'sushi', 'yarn']);
+  assert.deepEqual(Object.keys(TRACKS).sort(), ['binary', 'boba', 'drive', 'fixit', 'flight', 'hedgedoku', 'lantern', 'life', 'memory', 'menu', 'parade', 'pixel', 'ropes', 'snack', 'spot', 'sushi', 'yarn']);
 });
 
 for (const [name, tr] of Object.entries(TRACKS)) {

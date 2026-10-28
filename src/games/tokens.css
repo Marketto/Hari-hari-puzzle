@@ -733,6 +733,78 @@
 .sd-art-lens { animation: sd-art-lens 2.8s ease-in-out infinite; }
 @keyframes sd-art-draw { 0% { stroke-dashoffset: 60; } 35%, 100% { stroke-dashoffset: 0; } }
 @keyframes sd-art-lens { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-4px, -3px); } }
+/* flight */
+:root {
+  --tint-flight: #d6ecff;
+  --fl-ink: #4a2c2a; --fl-eye: #2a1814; --fl-hi: #ffffff; --fl-blush: #ff9fb8; --fl-mouth: #e86a7e; --fl-tear: #8fd0ff; --fl-nose: #3a2018;
+  --fl-ear-in: #ffbfd0; --fl-dark: #3e3346; --fl-cream: #fff4e2; --fl-beak: #ffb43c;
+  --fl-cat: #ffc27a; --fl-cat-2: #f09a48; --fl-bunny: #fff8f4; --fl-bunny-2: #ffd3df; --fl-bear: #c58b5c; --fl-bear-2: #8e5a36;
+  --fl-fox: #ff9a54; --fl-fox-2: #d8682a; --fl-panda: #fffaf6; --fl-panda-2: #3e3346; --fl-frog: #9ad86e; --fl-frog-2: #5fa846;
+  --fl-mouse: #c9c3d2; --fl-mouse-2: #9a93a8; --fl-pig: #ffc3cf; --fl-pig-2: #f59aae; --fl-chick: #ffe36a; --fl-chick-2: #f5b82e;
+  --fl-koala: #b7bfcf; --fl-koala-2: #fff1f4; --fl-dog: #f0cf9a; --fl-dog-2: #b98652; --fl-raccoon: #b4adbd; --fl-raccoon-2: #7f778c;
+  --fl-owl: #b88158; --fl-owl-2: #8a5a38; --fl-crew: #3f5fb8; --fl-crew-2: #2c4590; --fl-gold: #ffcf4a; --fl-scarf: #ff6f9c; --fl-scarf-2: #e24f80;
+  --fl-glass: #e9f6ff; --fl-water: #8fd0ff; --fl-straw: #ff6f9c; --fl-juice: #ffa53c; --fl-juice-2: #ffcf4a; --fl-steam: #b9a8c6;
+  --fl-cup: #fffaf3; --fl-tea: #c27a46; --fl-cookie: #e2a866; --fl-choc: #6a3a22; --fl-tray: #9aa4c4; --fl-dome: #e3e8f4;
+  --fl-blanket: #9cc8ff; --fl-blanket-2: #6c9cf0; --fl-pillow: #fff3c4;
+  --fl-bread: #e8a85c; --fl-bread-2: #ffe2b2; --fl-white: #fffdf8; --fl-yolk: #ffc73a; --fl-leaf: #8fd46a; --fl-leaf-2: #4f9a3e;
+  --fl-tomato: #f2575c; --fl-tomato-2: #ff8a84; --fl-seed: #fff2c2; --fl-seed-2: #ffe58a; --fl-cheese: #ffd65a; --fl-cheese-2: #f2b73a;
+  --fl-nori: #3c4a3a; --fl-fish: #ff9f8a; --fl-fish-2: #ffd3c8; --fl-carrot: #ff9a3c; --fl-carrot-2: #d86e1e; --fl-berry: #f24f6a;
+  --fl-plastic-c: #dff2ff; --fl-plastic: #ffd23f; --fl-paper-c: #f3efe2; --fl-banana: #ffe066; --fl-apple-in: #fff3d6; --fl-apple: #f05a5a;
+  --fl-sack-paper: #6fa8ff; --fl-sack-plastic: #ffd23f; --fl-sack-food: #a8cf6a; --fl-sack-all: #b8c2d6;
+  --fl-bag-0: #ff8fb3; --fl-bag-0-2: #d9497a; --fl-bag-1: #7fcfb6; --fl-bag-1-2: #3f9a7e; --fl-bag-2: #a99cf2; --fl-bag-2-2: #6c5ccf;
+  --fl-belt: #6f7a9a; --fl-buckle: #dfe4ee; --fl-pot: #c8cede; --fl-cart: #e7ecf6; --fl-cart-2: #b8c2d6; --fl-sign: #3b3550; --fl-sign-ic: #ffd84a;
+  --fl-sky-d: #bfe4ff; --fl-moon: #ffe58a; --fl-star: #ffe58a;
+  --fl-text: #6a3f38; --fl-text-2: #9a7468;
+  --fl-cabin: #fff6ee; --fl-cabin-2: #f5e6da; --fl-wall: #ffffff; --fl-wall-line: #e2cfc2; --fl-floor: #efe0d4; --fl-aisle: #f2c9d4; --fl-aisle-2: #e8b2c2;
+  --fl-seat: #6f8ce8; --fl-seat-2: #4f6cc8; --fl-seat-hi: #ffffff; --fl-arm: #3f58a8;
+  --fl-bin: #f4ecf6; --fl-bin-2: #e3d6ea; --fl-bin-in: #d8cbe2; --fl-bin-line: #b9a6c8;
+  --fl-sky-sea: #9fd8ff; --fl-sky-mountain: #c4e6ff; --fl-sky-city: #ffd9c4; --fl-sky-n: #2c3470; --fl-star-op: 0;
+  --fl-sea: #4fa8e8; --fl-mount: #8fa6c8; --fl-snow: #ffffff; --fl-city: #b48fb8; --fl-lamp: #fff3a8; --fl-cloud: #ffffff; --fl-cloud-n: #4a5290;
+  --fl-card: #fffaf6; --fl-card-line: #e2cfc2; --fl-bubble: #ffffff; --fl-track: #f3e6dc;
+  --fl-jet: #c9d2e6; --fl-jet-2: #aeb9d2; --fl-door: #e7ecf6; --fl-door-2: #c8d0e2; --fl-jetlight: #fff6c4;
+  --fl-nose: #ffffff; --fl-cp: #bfe4ff; --fl-plane: #ffffff; --fl-tail: #6f8ce8; --fl-wing: #dfe4ee; --fl-stripe: #ff6f9c;
+  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
+  --fl-oven: #dfe4ee; --fl-oven-2: #b8c2d6; --fl-ovwin: #4a3a48;
+  --fl-ok: #6fcf7a; --fl-mid: #ffc23d; --fl-low: #ff6f6f; --fl-zone: #7fdc86; --fl-cold: #9cd4ff; --fl-hot: #ff8a6a;
+  --fl-exit: #3fbf6a; --fl-exit-ic: #ffffff; --fl-sel: #ff6f9c; --fl-good: #6fcf7a; --fl-bad: #ff6f6f;
+  --fl-new: #ff7fa3; --fl-new-text: #ffffff; --fl-shadow: 0 4px 10px -5px rgba(80, 40, 50, .45);
+  --fl-shirt-0: #ffd0dc; --fl-shirt-1: #c9ecd8; --fl-shirt-2: #ffe7a8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-flight: #263a5c;
+    --fl-ink: #2b1b2e; --fl-text: #f3e6ff; --fl-text-2: #c9b8dc;
+    --fl-cabin: #3a3058; --fl-cabin-2: #2d2547; --fl-wall: #4c4170; --fl-wall-line: #6a5c96; --fl-floor: #2a2240; --fl-aisle: #5b3d64; --fl-aisle-2: #4a3154;
+    --fl-seat: #4f63b8; --fl-seat-2: #3a4a92; --fl-seat-hi: #d8dcf2; --fl-arm: #2e3a78;
+    --fl-bin: #5a5084; --fl-bin-2: #463d6c; --fl-bin-in: #2b2445; --fl-bin-line: #7d70ad;
+    --fl-sky-sea: #1b2552; --fl-sky-mountain: #1b2552; --fl-sky-city: #1b2552; --fl-sky-n: #141a3f; --fl-star-op: 1;
+    --fl-sea: #24407a; --fl-mount: #3b3f78; --fl-snow: #9aa6d8; --fl-city: #2b2f60; --fl-lamp: #ffd76a; --fl-cloud: #4a4f86; --fl-cloud-n: #2f3466;
+    --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
+    --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
+    --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
+  }
+}
+:root[data-theme="dark"] {
+    --tint-flight: #263a5c;
+    --fl-ink: #2b1b2e; --fl-text: #f3e6ff; --fl-text-2: #c9b8dc;
+    --fl-cabin: #3a3058; --fl-cabin-2: #2d2547; --fl-wall: #4c4170; --fl-wall-line: #6a5c96; --fl-floor: #2a2240; --fl-aisle: #5b3d64; --fl-aisle-2: #4a3154;
+    --fl-seat: #4f63b8; --fl-seat-2: #3a4a92; --fl-seat-hi: #d8dcf2; --fl-arm: #2e3a78;
+    --fl-bin: #5a5084; --fl-bin-2: #463d6c; --fl-bin-in: #2b2445; --fl-bin-line: #7d70ad;
+    --fl-sky-sea: #1b2552; --fl-sky-mountain: #1b2552; --fl-sky-city: #1b2552; --fl-sky-n: #141a3f; --fl-star-op: 1;
+    --fl-sea: #24407a; --fl-mount: #3b3f78; --fl-snow: #9aa6d8; --fl-city: #2b2f60; --fl-lamp: #ffd76a; --fl-cloud: #4a4f86; --fl-cloud-n: #2f3466;
+    --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
+    --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
+    --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
+}
+.fl-a-plane { animation: fl-float 3.2s ease-in-out infinite; transform-box: fill-box; }
+.fl-a-cloud { animation: fl-drift 6s ease-in-out infinite alternate; }
+.fl-a-cloud.b { animation-delay: -3s; }
+@keyframes fl-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+@keyframes fl-drift { from { transform: translateX(-4px); } to { transform: translateX(6px); } }
 /* life */
 :root {
   --tint-life: #ffe3cf;

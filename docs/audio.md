@@ -31,7 +31,7 @@ Lantern = lanterne accese in più rispetto all'inizio. In vittoria e a cuori fin
 Intonati sulla scala del brano in corso: riccio messo (boing + marimba), segno ✕ (legnetto), errore (due note che scendono),
 cuore perso (campanelle discendenti), bicchiere scelto (din), travaso (gorgoglio di bolle), bicchiere completato (arpeggio),
 lanterna accesa (campanella che sale con il numero di lanterne accese), stelle, record, fanfara di vittoria, risatina di Hari,
-clacson "bip bip" (`honk`, il traffico di Hari Taxi) e "bonk" di gomma (`boing`).
+clacson "bip bip" (`honk`, il traffico di Hari Taxi), "bonk" di gomma (`boing`) e "ding-dong" di cabina (`chime`, segnale delle cinture di Hari Airlines).
 
 ## Messaggi di Hari
 Fumetto con Hari animato in basso: all'inizio, a metà, quando manca poco, dopo un errore, dopo 30 s senza mosse,

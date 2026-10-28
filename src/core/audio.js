@@ -238,6 +238,13 @@
       mel: ['3 . 5 . 3 2 1 .', '4 . 6 . 4 3 2 .', '3 5 8 . 7 5 3 .', '2 . . 3 2 - - .',
         '6 . 5 . 6 8 6 .', '4 . 6 . 8 . 6 .', '5 . 3 4 5 . 2 .', '1 . 3 . 1 - - .'],
     },
+    // Hari Airlines: canzoncina "da viaggio" che decolla (pluck + carillon), basso che rimbalza come le ruote sulla pista
+    flight: {
+      bpm: 120, root: 65, lead: 'pluck', arp: 'musicbox', swing: 0.14, perc: 'pop',
+      chords: [1, 6, 4, 5, 1, 6, 2, 1], bass: 'R . F . O . F .',
+      mel: ['5 . 8 . 7 5 3 .', '6 . 8 6 5 . 3 .', '4 5 6 . 8 6 4 .', '5 - 3 . 2 - - .',
+        '8 . 10 . 9 8 6 .', '6 8 9 . 8 6 5 .', '4 . 6 5 4 3 2 .', '1 . 5 . 8 - - .'],
+    },
     // Hari Home: vita tranquilla in casa, carillon e marimba col passo morbido della giornata
     life: {
       bpm: 88, root: 65, lead: 'musicbox', arp: 'marimba', swing: 0.16, perc: 'lullaby',
@@ -419,6 +426,8 @@
       osc(env(sfxBus, t, 0.004, 0.13, t + 0.28), 'sine', 380, t, t + 0.28, 0, 120, 0.25);
       osc(env(sfxBus, t + 0.02, 0.004, 0.05, t + 0.2), 'triangle', 760, t + 0.02, t + 0.2, 0, 300, 0.16);
     }),
+    // "ding-dong" della cabina (segnale delle cinture, annunci di Hari Airlines)
+    chime: S((t) => { V.bell(sfxBus, sc(10), t, 0.5, 0.08); V.bell(sfxBus, sc(8), t + 0.32, 0.7, 0.08); }),
     setMuted(m) { sfxOn = !m; if (sfxBus) sfxBus.gain.value = sfxOn ? 1 : 0; },
     isMuted: () => !sfxOn,
   };

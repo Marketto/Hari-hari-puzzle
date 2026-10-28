@@ -23,6 +23,9 @@
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
 ## In revisione (prossima versione)
+- [x] Nuovo gioco **Hari Airlines** (Hari assistente di volo, capitano gufo, passeggeri animaletti): ogni livello è un volo a fasi — imbarco da contare (gruppi, nascosti, chi torna indietro, lista del capitano), bagagli nelle cappelliere a capienza (risolutore nei test), cinture con testardi, ribelli e sobbalzo buffo, cucina (ricetta del capitano + fornetti con zona verde), servizio col carrello e pazienza, rifiuti differenziati (1 → 3 sacchi); fasi sbloccate gradualmente con "Nuovo!", tratte mare/montagne/città/notte, tema scuro = volo notturno; niente sconfitta (errori leggeri e passeggeri tristi = meno fragoline); brano `flight`, effetto `chime`, tutorial, test con bot
+- [ ] Traduzioni delle chiavi nuove di Hari Airlines (`r17`, `fl_*`, `tu_flight_1..4`) in 43 lingue (oggi fallback inglese)
+- [ ] Hari Airlines su telefono: comodità del trascinamento dei bagagli e altezza della cabina a 6 file nella fase bagagli
 - [x] Nuovo gioco **Hari Taxi** (guida vista dall'alto, senza violenza): città a griglia generata da seme con isolati, parchi, semafori, strisce e marciapiedi; tre mestieri a rotazione (taxi coi passeggeri, scooter del cibo che si raffredda, furgone coi pacchi a più tappe) con tempo limite; traffico (auto, autobus, bici) e pedoni con IA; incidenti = −1 cuore con "bonk" e salto spaventato, muri morbidi; levetta a un pollice + frecce/WASD, freccia di percorso e minimappa, tema notte con lampioni e fari; brano `drive`, effetti `honk`/`boing`, tutorial, test con bot
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
