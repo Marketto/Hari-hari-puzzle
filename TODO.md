@@ -27,6 +27,9 @@
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 
+## Fatto (v0.16.2)
+- [x] Hari Snack Rush rifatto: porte con un vero dilemma (la porta buona è presidiata da pozzanghere/carretti, porte che si scambiano, porte regalo), una novità ogni 2–3 livelli con cartello "Nuovo!" (fieno, criceti veloci, ranocchie, carretti, ondate di mangioni, formazioni, power-up raffica/doppia/calamita/cestino-scudo), stagioni a rotazione; boss che lanciano merende giganti da rimandare indietro (raffiche "a muro" non evitabili), fasi più agitate al 50%/80% di pancia, due boss nuovi (panda, ippopotamo); il giocatore "pigro" perde spesso dal livello 2; testi in 43 lingue
+
 ## Fatto (v0.16.1)
 - [x] Dopo un aggiornamento Hari dice anche quali giochi nuovi sono arrivati (anche se l'app era chiusa: confronto con l'ultima versione vista, campo `since` nel catalogo) e le loro card mostrano "Nuovo!" finché non li si apre; nessun avviso alla prima installazione
 
@@ -185,6 +188,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.16.2 · `CI=1 npm test` · Snack Rush: bot attento 88/88 fino all'11, pigro perde dal 2; porte, novità, boss con merende da rimandare, power-up, chiaro/scuro
 - 2026-10-28 v0.16.1 · `npm test` · avviso giochi nuovi: utente da versione vecchia (messaggio + etichette), seconda apertura (niente avviso), installazione nuova (niente avviso)
 - 2026-10-28 v0.16.0 · `npm test` · Hari Spot: città e bosco, differenza trovata, errore, lente, vittoria, schermo intero; testi it/de/ja
 - 2026-10-28 v0.15.0 · `npm test` · Hari Memory: partita completa, coppia, errore, scambio, vittoria, schermo intero; testi it/de/ja
