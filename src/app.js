@@ -77,7 +77,10 @@
   };
   const pick = (kind) => t(SAY[kind][(Math.random() * SAY[kind].length) | 0]);
   let sayTimer = 0, lastSay = 0;
+  const COACHED = ['start', 'good', 'half', 'almost', 'oops', 'idle'];
   function say(kind, force, text) {
+    // i giochi con un Hari "allenatore" sulla griglia (coach: true, es. Hari Sudoku) fanno parlare lui durante la partita
+    if (!text && S.game && S.game.coach && S.inst && !$('#game').hidden && COACHED.includes(kind)) return;
     const now = Date.now();
     if (!force && now - lastSay < 9000) return;
     lastSay = now;

@@ -1,0 +1,217 @@
+/* ---------- Hari Sudoku ----------
+ * Carta crema con riquadri alternati (di notte: prugna), numeri in Mochiy Pop One; i numeri del puzzle in cacao,
+ * i tuoi in rosa fragola, le note piccole in grigio caldo. Hari (riccio di hog-kit.js, animazioni .hd-hog di hedgedoku.css)
+ * sta sopra la griglia con una nuvoletta.
+ */
+:root {
+  --tint-sudoku: #fde5cf;
+  --sk-paper: #fffaf3; --sk-paper-2: #fff0e2; --sk-line: rgba(107, 64, 44, .2); --sk-bold: #6b402c;
+  --sk-ink: #4b2e28; --sk-user: #e0517f; --sk-note: #8b6a60;
+  --sk-sel: #ffd2de; --sk-hl: rgba(255, 175, 198, .3); --sk-same: #ffb7cb; --sk-same-ink: #7a1f45;
+  --sk-bad: #e8354f; --sk-bad-soft: rgba(255, 79, 109, .22);
+  --sk-hint: #ffe7a1; --sk-hint-ring: #f0b43c; --sk-hzone: rgba(255, 214, 110, .3);
+  --sk-done: #bff0dc; --sk-nudge: rgba(120, 210, 185, .3); --sk-nudge-ring: #3fb594;
+  --sk-key: #fffaf6; --sk-key-edge: #ecc9b8; --sk-key-ink: #4b2e28; --sk-key-on: #ffe0e9; --sk-key-full: rgba(75, 46, 40, .32);
+  --sk-tool: rgba(255, 250, 246, .85); --sk-tool-on: #ff6f9c; --sk-tool-on-ink: #ffffff;
+  --sk-bubble: #fffaf6; --sk-bubble-line: rgba(107, 64, 44, .22); --sk-shadow: rgba(130, 60, 70, .22);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-sudoku: #3d2c4a;
+    --sk-paper: #30243f; --sk-paper-2: #3a2c4c; --sk-line: rgba(255, 230, 240, .16); --sk-bold: #d7b2cf;
+    --sk-ink: #fbeee8; --sk-user: #ff9cbd; --sk-note: #c9b2c2;
+    --sk-sel: #66406b; --sk-hl: rgba(255, 143, 179, .15); --sk-same: #7d4a78; --sk-same-ink: #ffe6f0;
+    --sk-bad: #ff7d92; --sk-bad-soft: rgba(255, 111, 134, .3);
+    --sk-hint: #7a6430; --sk-hint-ring: #ffd27d; --sk-hzone: rgba(255, 210, 125, .22);
+    --sk-done: #2f5c50; --sk-nudge: rgba(111, 220, 195, .2); --sk-nudge-ring: #6fdcc3;
+    --sk-key: #3b2d55; --sk-key-edge: #221934; --sk-key-ink: #fbeee8; --sk-key-on: #5a3a63; --sk-key-full: rgba(255, 230, 240, .3);
+    --sk-tool: rgba(59, 45, 85, .9); --sk-tool-on: #ff8fb3; --sk-tool-on-ink: #2a1626;
+    --sk-bubble: #3b2d55; --sk-bubble-line: rgba(255, 230, 240, .22); --sk-shadow: rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  --tint-sudoku: #3d2c4a;
+  --sk-paper: #30243f; --sk-paper-2: #3a2c4c; --sk-line: rgba(255, 230, 240, .16); --sk-bold: #d7b2cf;
+  --sk-ink: #fbeee8; --sk-user: #ff9cbd; --sk-note: #c9b2c2;
+  --sk-sel: #66406b; --sk-hl: rgba(255, 143, 179, .15); --sk-same: #7d4a78; --sk-same-ink: #ffe6f0;
+  --sk-bad: #ff7d92; --sk-bad-soft: rgba(255, 111, 134, .3);
+  --sk-hint: #7a6430; --sk-hint-ring: #ffd27d; --sk-hzone: rgba(255, 210, 125, .22);
+  --sk-done: #2f5c50; --sk-nudge: rgba(111, 220, 195, .2); --sk-nudge-ring: #6fdcc3;
+  --sk-key: #3b2d55; --sk-key-edge: #221934; --sk-key-ink: #fbeee8; --sk-key-on: #5a3a63; --sk-key-full: rgba(255, 230, 240, .3);
+  --sk-tool: rgba(59, 45, 85, .9); --sk-tool-on: #ff8fb3; --sk-tool-on-ink: #2a1626;
+  --sk-bubble: #3b2d55; --sk-bubble-line: rgba(255, 230, 240, .22); --sk-shadow: rgba(0, 0, 0, .4);
+}
+
+.sk-wrap { --sk-w: min(var(--game-w), var(--game-max, 460px)); display: flex; flex-direction: column; align-items: center; gap: 6px; width: var(--sk-w); max-width: 100%; margin: 0 auto; }
+
+/* ---------- Hari e la nuvoletta ---------- */
+.sk-coach { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 50px; }
+.sk-hari { flex: none; width: clamp(50px, calc(var(--sk-w) * .14), 110px); height: clamp(50px, calc(var(--sk-w) * .14), 110px); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sk-hari .hd-hog { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 3px var(--sk-shadow)); }
+.sk-bubble {
+  position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 5px 12px;
+  background: var(--sk-bubble); border: 2px solid var(--sk-bubble-line); border-radius: 18px; box-shadow: 0 3px 0 var(--sk-bubble-line);
+  transition: opacity .2s;
+}
+.sk-bubble::before {
+  content: ""; position: absolute; inset-inline-start: -8px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+  background: var(--sk-bubble); border-inline-start: 2px solid var(--sk-bubble-line); border-bottom: 2px solid var(--sk-bubble-line); transform: rotate(45deg);
+}
+[dir="rtl"] .sk-bubble::before { transform: rotate(-45deg); }
+.sk-bubble:has(p:empty) { opacity: 0; }
+.sk-bubble p { margin: 0; font-size: clamp(13px, calc(var(--sk-w) * .036), 22px); line-height: 1.3; font-weight: 800; color: var(--ink); }
+.sk-bic { display: none; flex: none; width: clamp(26px, calc(var(--sk-w) * .075), 44px); height: clamp(26px, calc(var(--sk-w) * .075), 44px); color: var(--sk-hint-ring); }
+.sk-bubble.has-ic .sk-bic { display: block; }
+.sk-bic svg { width: 100%; height: 100%; }
+.sk-bubble.pop { animation: sk-bubble .38s cubic-bezier(.3, 1.7, .5, 1); }
+
+/* espressioni di Hari (le parti del riccio sono quelle di hog-kit.js; le basi .hd-hog stanno in hedgedoku.css) */
+.sk-coach.joy .hh-b, .sk-coach.love .hh-b, .sk-coach.wave .hh-b { animation: hh-hop .8s cubic-bezier(.3, 1.5, .5, 1); }
+.sk-coach.joy .hh-ear, .sk-coach.love .hh-ear, .sk-coach.party .hh-ear { animation: hh-ear .25s ease-in-out 3 alternate; }
+.sk-coach:is(.joy, .love, .party, .wave) .hh-eyes, .sk-coach:is(.joy, .love, .party, .wave) .hh-m0 { opacity: 0; }
+.sk-coach:is(.joy, .love, .party, .wave) .hh-happy, .sk-coach:is(.joy, .love, .party, .wave) .hh-m1 { opacity: 1; }
+.sk-coach.love .hh-heart, .sk-coach.party .hh-heart { animation: hh-heart 1.4s ease-out both; }
+.sk-coach.party .hh-heart { animation-iteration-count: infinite; }
+.sk-coach.party .hh-b { animation: hh-hop .6s cubic-bezier(.3, 1.5, .5, 1) infinite; }
+.sk-coach.party .hh-ear { animation-iteration-count: infinite; }
+.sk-coach.think .hh-brows { opacity: .7; }
+.sk-coach.think .hh-b { animation: hh-nod .9s ease-in-out 2; }
+.sk-coach:is(.sad, .scared) .hh-brows { opacity: 1; }
+.sk-coach.sad .hh-eyes, .sk-coach.sad .hh-m0 { opacity: 0; }
+.sk-coach.sad .hh-squint, .sk-coach.sad .hh-m3, .sk-coach.sad .hh-tears { opacity: 1; }
+.sk-coach.sad .hh-tear { animation: hh-tear .6s ease-in infinite; }
+.sk-coach.sad .hh-tear.r { animation-delay: -.3s; }
+.sk-coach.sad .hh-b { animation: hh-sob .22s ease-in-out 5 alternate; }
+.sk-coach.scared .hh-m0 { opacity: 0; }
+.sk-coach.scared .hh-m2 { opacity: 1; }
+.sk-coach.scared .hh-sweat { animation: hh-sweat 1.3s ease-in infinite; }
+.sk-coach.scared .hh-b { animation: sk-shiver .14s linear infinite alternate; }
+.sk-coach.scared .sk-bubble { border-color: var(--sk-bad); }
+
+/* ---------- griglia ---------- */
+.sk-grid {
+  display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr);
+  width: 100%; aspect-ratio: 1; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  background: var(--sk-paper); border: 3.5px solid var(--sk-bold); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 0 var(--sk-bold);
+}
+.sk-cell {
+  position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; padding: 0; margin: 0;
+  background: var(--sk-paper); color: var(--sk-ink); font: inherit; cursor: pointer;
+  border: 0; border-right: 1px solid var(--sk-line); border-bottom: 1px solid var(--sk-line);
+  -webkit-tap-highlight-color: transparent; transition: background-color .15s;
+}
+.sk-cell.alt { background: var(--sk-paper-2); }
+.sk-cell:nth-child(9n) { border-right: 0; }
+.sk-cell:nth-child(n+73) { border-bottom: 0; }
+.sk-cell.br { border-right: 2.5px solid var(--sk-bold); }
+.sk-cell.bb { border-bottom: 2.5px solid var(--sk-bold); }
+.sk-cell:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 2; }
+.sk-cell.hl { background: color-mix(in srgb, var(--sk-hl), var(--sk-paper) 25%); }
+.sk-cell.alt.hl { background: color-mix(in srgb, var(--sk-hl), var(--sk-paper-2) 25%); }
+.sk-cell.hzone { background: var(--sk-hzone); }
+.sk-cell.same { background: var(--sk-same); }
+.sk-cell.same .sk-n { color: var(--sk-same-ink); }
+.sk-cell.sel { background: var(--sk-sel); box-shadow: inset 0 0 0 2.5px var(--accent); z-index: 1; }
+.sk-cell.hint { background: var(--sk-hint); box-shadow: inset 0 0 0 2.5px var(--sk-hint-ring); }
+.sk-cell.hint.sel { animation: sk-glow 1.2s ease-in-out infinite; }
+.sk-cell.wrong { background: var(--sk-bad-soft); }
+.sk-cell.wrong .sk-n { color: var(--sk-bad); text-decoration: underline wavy var(--sk-bad); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.sk-n { font-family: var(--font-display); font-size: calc(var(--sk-w) / 9 * .58); line-height: 1; color: var(--sk-ink); pointer-events: none; }
+.sk-cell.user .sk-n { color: var(--sk-user); }
+.sk-cell.pop .sk-n { animation: sk-pop .42s cubic-bezier(.3, 1.8, .5, 1); }
+.sk-cell.shake .sk-n { animation: shake .45s; }
+.sk-notes { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 100%; height: 100%; padding: 1px 2px; pointer-events: none; }
+.sk-notes i { display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: calc(var(--sk-w) / 9 * .26); line-height: 1; color: var(--sk-note); }
+.sk-cell.nfd .sk-notes i { opacity: .55; }
+.sk-cell[data-fd="1"] .sk-notes i[data-d="1"], .sk-cell[data-fd="2"] .sk-notes i[data-d="2"], .sk-cell[data-fd="3"] .sk-notes i[data-d="3"],
+.sk-cell[data-fd="4"] .sk-notes i[data-d="4"], .sk-cell[data-fd="5"] .sk-notes i[data-d="5"], .sk-cell[data-fd="6"] .sk-notes i[data-d="6"],
+.sk-cell[data-fd="7"] .sk-notes i[data-d="7"], .sk-cell[data-fd="8"] .sk-notes i[data-d="8"], .sk-cell[data-fd="9"] .sk-notes i[data-d="9"] {
+  opacity: 1; color: var(--sk-user); font-weight: 900;
+}
+/* riga/colonna/riquadro (o numero) completati: onda di menta · Hari che indica: alone menta lento */
+.sk-cell.done { animation: sk-done .9s ease var(--k, 0ms) both; }
+.sk-cell.nudge { background: var(--sk-nudge); transition: background-color .4s; }
+.sk-cell.point { z-index: 1; animation: sk-point .8s ease-in-out 4; }
+.sk-grid.solved .sk-cell { animation: sk-wave .8s ease both; animation-delay: var(--d); }
+
+/* ---------- strumenti e tastierino ---------- */
+.sk-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
+.sk-tool {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 42px; padding: 3px 2px;
+  background: var(--sk-tool); color: var(--ink-2); border: 2px solid var(--line); border-radius: 14px;
+  font: 800 clamp(10.5px, calc(var(--sk-w) * .031), 18px)/1.1 var(--font-body); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.sk-tool svg { width: clamp(21px, calc(var(--sk-w) * .062), 38px); height: clamp(21px, calc(var(--sk-w) * .062), 38px); }
+.sk-tool span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sk-tool.on { background: var(--sk-tool-on); color: var(--sk-tool-on-ink); border-color: transparent; }
+.sk-tool[data-act="hint"] { color: var(--sk-hint-ring); }
+.sk-tool[data-act="hint"] span { color: var(--ink-2); }
+.sk-tool.armed { background: var(--sk-hint); border-color: var(--sk-hint-ring); animation: sk-glow 1.2s ease-in-out infinite; }
+.sk-tool:active, .sk-key:active { transform: translateY(2px); }
+.sk-tool:focus-visible, .sk-key:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.sk-pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; width: 100%; }
+.sk-key {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 54px; padding: 2px 0 3px;
+  background: var(--sk-key); color: var(--sk-key-ink); border: 2px solid var(--sk-key-edge); border-radius: 13px; box-shadow: 0 4px 0 var(--sk-key-edge);
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .08s, box-shadow .08s;
+}
+.sk-key:active { box-shadow: 0 2px 0 var(--sk-key-edge); }
+.sk-key b { font: 400 calc(min(var(--sk-w), 100vw) / 9 * .62) / 1 var(--font-display); }
+.sk-key small { min-height: 13px; font-size: clamp(11px, calc(var(--sk-w) * .032), 19px); font-weight: 800; line-height: 1.1; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sk-key.on { background: var(--sk-key-on); border-color: var(--accent); }
+.sk-pad.notes .sk-key b { font-size: calc(min(var(--sk-w), 100vw) / 9 * .42); color: var(--sk-note); }
+.sk-key.full { color: var(--sk-key-full); box-shadow: 0 2px 0 var(--sk-key-edge); }
+.sk-key.full small::before { content: "✓"; color: var(--mint-2); font-size: 12px; }
+.sk-key.done { animation: sk-pop .5s cubic-bezier(.3, 1.8, .5, 1); }
+
+/* schermo intero: la griglia segue --game-w (calcolata dall'app), tastierino un po' più basso se serve spazio */
+.plate.fs-fit .sk-wrap { gap: 6px; padding-bottom: 6px; }
+.plate.fs-fit .sk-key { min-height: 50px; }
+.plate.fs-fit .sk-tool { min-height: 40px; }
+/* telefono girato a schermo intero: griglia a sinistra, Hari, strumenti e tastierino 3×3 a destra */
+@media (orientation: landscape) and (max-height: 600px) {
+  .plate.fs-fit .sk-wrap {
+    display: grid; grid-template-columns: var(--sk-w) minmax(0, calc(var(--sk-w) * .95)); grid-template-rows: auto auto 1fr;
+    grid-template-areas: "grid coach" "grid tools" "grid pad"; column-gap: 14px; row-gap: 8px; width: auto; max-width: none; align-items: start;
+  }
+  .plate.fs-fit .sk-grid { grid-area: grid; }
+  .plate.fs-fit .sk-coach { grid-area: coach; }
+  .plate.fs-fit .sk-tools { grid-area: tools; margin: 0; }
+  .plate.fs-fit .sk-pad { grid-area: pad; grid-template-columns: repeat(3, 1fr); gap: 6px; align-self: stretch; }
+  .plate.fs-fit .sk-key { min-height: 0; flex-direction: row; gap: 6px; }
+  .plate.fs-fit .sk-key b { font-size: calc(var(--sk-w) * .1); }
+  .plate.fs-fit .sk-hari { width: 44px; height: 44px; }
+  .plate.fs-fit .sk-bubble p { font-size: 12.5px; }
+}
+
+/* ---------- card e tutorial ---------- */
+.skt { width: 100%; height: auto; overflow: visible; }
+.skt-n { font-family: var(--font-display); text-anchor: middle; fill: var(--sk-ink); }
+.sk-art-hl { fill: var(--sk-hint); }
+.sk-art-pop { fill: var(--sk-user); }
+.skt-pop { transform-box: fill-box; transform-origin: 50% 60%; fill: var(--sk-user); animation: skt-pop 5s cubic-bezier(.3, 1.6, .5, 1) calc(var(--i) * .38s) infinite; }
+.skt-note { font: 800 6.5px var(--font-body); text-anchor: middle; fill: var(--sk-note); }
+.skt-in, .skt-in2 { transform-box: fill-box; transform-origin: 50% 50%; }
+.skt-in { fill: var(--sk-user); animation: skt-in 3s ease-out infinite; }
+.skt-key { animation: skt-key 3s ease-out infinite; }
+.skt-bad { fill: var(--sk-bad); animation: shake .5s ease 0s infinite alternate; }
+.skt-heart { transform-box: fill-box; transform-origin: 50% 50%; animation: skt-heart 2.4s ease-in-out infinite; }
+.skt-glow { animation: skt-glow 2.4s ease-in-out infinite; }
+.skt-in2 { fill: var(--sk-user); animation: skt-in 2.4s ease-out infinite; }
+
+@keyframes sk-bubble { 0% { transform: scale(.94); } 60% { transform: scale(1.02); } 100% { transform: none; } }
+@keyframes sk-shiver { from { transform: translateX(-1px) rotate(-1.5deg); } to { transform: translateX(1px) rotate(1.5deg); } }
+@keyframes sk-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.18); } 100% { transform: none; } }
+@keyframes sk-glow { 50% { box-shadow: inset 0 0 0 4px var(--sk-hint-ring); } }
+@keyframes sk-done { 0% { background: var(--sk-done); transform: scale(1); } 35% { background: var(--sk-done); transform: scale(1.08); } 100% { transform: none; } }
+@keyframes sk-point { 50% { box-shadow: inset 0 0 0 3.5px var(--sk-nudge-ring); } }
+@keyframes sk-wave { 0% { transform: none; } 40% { transform: translateY(-5px) scale(1.06); background: var(--sk-done); } 100% { transform: none; } }
+@keyframes skt-pop { 0% { transform: scale(0); } 6%, 86% { transform: scale(1); } 94%, 100% { transform: scale(0); } }
+@keyframes skt-in { 0%, 35% { opacity: 0; transform: scale(.4); } 45%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes skt-key { 0%, 25%, 45%, 100% { transform: none; } 32% { transform: translateY(3px); } }
+@keyframes skt-heart { 0%, 30% { opacity: 1; transform: scale(1); } 55% { opacity: .2; transform: scale(.6) translateY(4px); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes skt-glow { 0%, 40% { opacity: .35; } 60%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .sk-coach *, .sk-cell, .sk-key, .sk-bubble, .skt * { animation: none !important; }
+}

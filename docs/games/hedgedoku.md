@@ -26,7 +26,7 @@ Griglia N×N divisa in N zone colorate. Metti N ricci: uno per riga, uno per col
 - Si aggiorna solo la cella cambiata. 8 tinte di zona ben distinte + bordi spessi tra zone.
 
 ## Ricci vivi (v0.4)
-SVG proprio (`hogSvg()` in `hedgedoku-ui.js`, colori dai token `--hog-*` in `src/games/hedgedoku.css`, chiaro e scuro), gruppi annidati
+SVG proprio (`HH.hogKit.svg()` in `src/games/hog-kit.js`, condiviso con Hari Sudoku; colori dai token `--hog-*` in `src/games/hedgedoku.css`, chiaro e scuro), gruppi annidati
 `g.hh-b` (respiro, salti) › `g.hh-h` (inclinazione `--tilt`) › `g.hh-look` (sguardo `--lx/--ly`); goccia e cuore stanno in un `<g>` interno a un `<g transform>`.
 - **Idle** (solo CSS): respiro e battito di ciglia con durata/ritardo casuali per riccio. Ogni 1,5 s un riccio a caso si guarda intorno (sinistra/destra/su, a volte inclinando la testa) per ~1–2 s.
   Un solo `setInterval`, si ferma quando la griglia esce dal DOM, salta se la pagina è nascosta; disattivato con `prefers-reduced-motion` (che spegne anche tutte le animazioni CSS).
