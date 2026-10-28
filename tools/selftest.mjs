@@ -281,6 +281,7 @@ for (const level of [1, 4, 8, 16]) {
     ok(good === T && ms / T < 10, `Hari Airlines livello ${level}: ${c.rows} file, ${c.pax} passeggeri, fasi ${c.phases.join('·')}: ${good}/${T} ok, media ${(ms / T).toFixed(3)} ms`);
   }
 }
+
 // Hari Rally: 5 gradini di tappa (1,3 → 4,3 km) in 4 ambientazioni, generazione (con traiettoria ideale) < 10 ms, curve mai
 // sotto i 14 m di raggio, nessun tratto che si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota,
 // note per ponti e gallerie, scatole-sorpresa presenti, simulazione (4 auto, power-up, collisioni) < 0,1 ms a fotogramma
@@ -308,6 +309,49 @@ for (const level of [1, 4, 8, 16]) {
       if (k < 3) { const s = rally.newLevel(level, globalThis.HH.rng(level * 31 + k)); s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) rally.step(s, 1 / 60, { steer: 0.05, brake: 0 }); sim += performance.now() - t2; }
     }
     ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Rally livello ${level} (gradino ${c.tier}, ${c.theme}/${c.time}): ${c.len} m, ${(notes / T).toFixed(1)} curve di cui ${(tight / T).toFixed(1)} strette, ${(tun / T).toFixed(1)} gallerie, ${(box / T).toFixed(1)} file di scatole, avversari ${c.ai.join('/')}: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
+  }
+}
+
+// Hari Sudoku: 4 fasce di difficoltà (single · pointing · coppie/triple · X-wing e oltre), soluzione unica per il
+// contatore a backtracking, risolti dal risolutore a tecniche entro la tecnica della fascia, media < 10 ms (livelli curati)
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/sudoku-logic.js'), 'utf8'), { filename: 'sudoku-logic.js' });
+  const { sudoku } = globalThis.HH;
+  sudoku.levelPuzzle(40, 1);                                   // riscaldamento del JIT
+  for (const [from, to] of [[1, 10], [11, 15], [16, 25], [26, 30]]) {
+    let ms = 0, good = 0, tech = 0, clues = 0;
+    for (let L = from; L <= to; L++) {
+      const t = performance.now();
+      const p = sudoku.levelPuzzle(L);
+      ms += performance.now() - t;
+      const T = sudoku.tierFor(L), r = sudoku.logicSolve(p.puzzle, T.maxTech);
+      if (r.ok && r.tech >= T.minTech && sudoku.countSolutions(p.puzzle, 2).count === 1) good++;
+      tech = Math.max(tech, p.tech); clues += p.clues;
+    }
+    const n = to - from + 1;
+    ok(good === n && ms / n < 10, `Hari Sudoku livelli ${from}–${to}: ${good}/${n} unici e logici, tecnica max ${tech}, ${(clues / n).toFixed(1)} indizi, media ${(ms / n).toFixed(2)} ms`);
+  }
+}
+
+// Hari Escape: 1 → 3 stanze, 3 → 10 enigmi (≥ 4 gradini); grafo risolvibile (simulazione), tipi tutti diversi nel livello,
+// sotto-puzzle mai già risolti; generazione < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/escape-logic.js'), 'utf8'), { filename: 'escape-logic.js' });
+  const X = globalThis.HH.escape;
+  for (const level of [1, 3, 5, 8, 12, 20]) {
+    let ms = 0, good = 0, types = 0;
+    const T = 30, c = X.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const L = X.generate(level, globalThis.HH.rng(level * 977 + k));
+      ms += performance.now() - t;
+      const P = Object.values(L.p), ty = new Set(P.map((p) => p.type));
+      types += ty.size;
+      const fresh = X.newGame(level, level * 977 + k);
+      const notSolved = Object.values(X.levelOf(fresh).p).every((p) => !fresh.solved[p.id]);
+      if (L.n === c.n && L.rooms.length === c.rooms && ty.size === P.length && X.simulate(L) && notSolved) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Escape livello ${level}: ${c.rooms} stanze, ${c.n} enigmi (${(types / T).toFixed(1)} tipi diversi): ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
   }
 }
 

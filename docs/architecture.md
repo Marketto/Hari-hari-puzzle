@@ -37,6 +37,11 @@ card in home, in "Riprendi" e nei Progressi (la home non ha il codice del gioco,
 restano solo "Ricomincia" (il gioco chiede conferma) e "?"; niente messaggi "a metà!/quasi fatto!" (`progress` guida
 solo la musica). La voce del catalogo può avere `rulesEn` come testo di riserva finché la chiave regole non è tradotta.
 
+**File condivisi fra giochi**: una voce del catalogo può elencare file di un altro gioco (Hari Sudoku carica `hedgedoku.css`
+e `hog-kit.js`, il riccio animato di Hedgedoku). `build-inline.mjs` li include una volta sola e `gen-cards.mjs` copia i token
+di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gioco ha un suo Hari che parla sulla griglia
+(vedi `docs/audio.md`).
+
 ## Offline
 - Shell e icone: precache in `sw.js` (`SHELL`). **Aggiorna `VERSION`** a ogni release.
 - **Giochi in lazy load**: all'avvio si caricano solo `src/games/catalog.js` (elenco dei giochi e dei loro file),

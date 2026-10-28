@@ -15,7 +15,7 @@ let html = read('index.html');
 {
   const ctx = vm.createContext({});
   vm.runInContext(read('src/games/catalog.js'), ctx);
-  const files = ctx.HH.catalog.flatMap((g) => g.files);
+  const files = [...new Set(ctx.HH.catalog.flatMap((g) => g.files))];   // i file condivisi (hog-kit.js, hedgedoku.css) una volta sola
   const css = files.filter((f) => f.endsWith('.css')).map((f) => `<link rel="stylesheet" href="${f}">\n`).join('');
   const js = files.filter((f) => f.endsWith('.js')).map((f) => `<script src="${f}"></script>\n`).join('');
   html = html.replace('<script src="src/app.js"></script>', js + '<script src="src/app.js"></script>').replace('</head>', css + '</head>');
