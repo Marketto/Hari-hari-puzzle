@@ -28,6 +28,15 @@ for (const [name, tr] of Object.entries(TRACKS)) {
   });
 }
 
+test('effetti di Hari Rally: navigatore e power-up (senza audio non fanno niente e non si rompono)', () => {
+  const { sfx, engine } = HH.audio;
+  for (const k of ['pace', 'gift', 'zoom', 'whee', 'squish', 'puff', 'bubble', 'pop', 'sproing', 'tink', 'plop']) {
+    assert.equal(typeof sfx[k], 'function', k);
+    assert.doesNotThrow(() => sfx[k](1, 2));
+  }
+  assert.doesNotThrow(() => engine(true, 0.5, 0.2));
+});
+
 test('gradi della scala maggiore', () => {
   const tr = { root: 60 };
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8].map((d) => deg(tr, d)), [60, 62, 64, 65, 67, 69, 71, 72]);

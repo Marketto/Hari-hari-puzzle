@@ -442,6 +442,42 @@
       const f0 = g ? sc(g + 1) : sc(5);
       [0, 0.11].forEach((dt, i) => osc(lowpass(env(d, t + dt, 0.004, 0.06, t + dt + 0.08), 2600), 'square', i ? f0 * 1.26 : f0, t + dt, t + dt + 0.08));
     }),
+    // Hari Rally, power-up (tutti buffi e morbidi): scatola-sorpresa = arpeggio scintillante
+    gift: S((t) => [5, 8, 10, 12, 15].forEach((d, i) => V.bell(sfxBus, sc(d), t + i * 0.045, 0.08, 0.06))),
+    // turbo carota: fruscio e nota che salgono
+    zoom: S((t) => {
+      const s0 = ac.createBufferSource(); s0.buffer = noise;
+      const b = ac.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 1.2;
+      b.frequency.setValueAtTime(500, t); b.frequency.exponentialRampToValueAtTime(3200, t + 0.5);
+      s0.connect(b); b.connect(env(sfxBus, t, 0.05, 0.06, t + 0.6)); s0.start(t); s0.stop(t + 0.65);
+      osc(lowpass(env(sfxBus, t, 0.02, 0.05, t + 0.5), 2400), 'triangle', 330, t, t + 0.5, 0, 880, 0.45);
+    }),
+    // buccia di banana: fischietto che scende e risale ("uiii")
+    whee: S((t) => {
+      osc(env(sfxBus, t, 0.02, 0.06, t + 0.38), 'sine', 1400, t, t + 0.38, 0, 520, 0.36);
+      osc(env(sfxBus, t + 0.36, 0.02, 0.05, t + 0.78), 'sine', 520, t + 0.36, t + 0.78, 0, 1250, 0.4);
+    }),
+    // pozza di miele: "sbluurp" basso e morbido
+    squish: S((t) => {
+      osc(lowpass(env(sfxBus, t, 0.01, 0.09, t + 0.35), 600), 'sawtooth', 160, t, t + 0.35, 0, 70, 0.3);
+      noiseHit(sfxBus, t, 0.2, 0.03, 'lowpass', 500);
+    }),
+    // nuvoletta di fiori: soffio + campanellini
+    puff: S((t) => { noiseHit(sfxBus, t, 0.35, 0.05, 'bandpass', 1600, 0.7); [8, 10, 12].forEach((d, i) => V.bell(sfxBus, sc(d), t + 0.1 + i * 0.07, 0.1, 0.04)); }),
+    // scudo-bolla: bolle che salgono; quando assorbe una spinta scoppia con un "pop"
+    bubble: S((t) => { for (let i = 0; i < 4; i++) V.bubble(sfxBus, t + i * 0.06, 0.07); }),
+    pop: S((t) => {
+      osc(env(sfxBus, t, 0.002, 0.1, t + 0.09), 'sine', 900, t, t + 0.09, 0, 300, 0.08);
+      noiseHit(sfxBus, t, 0.05, 0.05, 'highpass', 2500);
+    }),
+    // salto a molla: "boing" che sale
+    sproing: S((t) => {
+      osc(env(sfxBus, t, 0.004, 0.09, t + 0.4), 'triangle', 220, t, t + 0.4, 0, 880, 0.3);
+      osc(env(sfxBus, t, 0.004, 0.04, t + 0.4), 'sine', 440, t, t + 0.4, 6, 1320, 0.3);
+    }),
+    // ghianda raccolta: piccolo "tin" · buccia o miele lasciati: "plop"
+    tink: S((t) => V.bell(sfxBus, sc(12), t, 0.05, 0.05)),
+    plop: S((t) => osc(env(sfxBus, t, 0.003, 0.08, t + 0.15), 'sine', 500, t, t + 0.15, 0, 180, 0.12)),
     setMuted(m) { sfxOn = !m; if (sfxBus) sfxBus.gain.value = sfxOn ? 1 : 0; },
     isMuted: () => !sfxOn,
   };
