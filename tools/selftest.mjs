@@ -138,12 +138,13 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
-// Hari Snack Rush: 4 gradini (tier 0 → 4), copione < 10 ms, sempre una porta buona, fame per ondata proporzionata al potere
+// Hari Snack Rush: 5 gradini (tier 0 → 4), copione < 10 ms, sempre una porta buona, fame per ondata proporzionata al potere,
+// ogni fila di ostacoli lascia un varco, le porte presidiate hanno ostacoli solo sulla corsia migliore
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/snack-logic.js'), 'utf8'), { filename: 'snack-logic.js' });
   const { snack } = globalThis.HH;
   for (const level of [1, 4, 8, 12, 16]) {
-    let ms = 0, good = 0, animals = 0;
+    let ms = 0, good = 0, animals = 0, obst = 0, guards = 0, pus = 0;
     const T = 20, c = snack.config(level);
     for (let k = 0; k < T; k++) {
       const t = performance.now();
@@ -151,9 +152,17 @@ for (const level of [1, 4, 8, 16]) {
       ms += performance.now() - t;
       const gates = s.script.filter((e) => e.k === 'g');
       animals += s.script.filter((e) => e.k === 'a').length;
-      if (gates.length === c.gates && gates.every((g) => [g.l, g.r].some((op) => op && (op[0] === 'x' || op[0] === '+')))) good++;
+      const os = s.script.filter((e) => e.k === 'o');
+      obst += os.filter((o) => !o.guard).length; guards += os.filter((o) => o.guard).length;
+      pus += s.script.filter((e) => e.k === 'p').length;
+      const gap = os.filter((o) => !o.guard).every((o) => {
+        const row = os.filter((q) => !q.guard && q.t === o.t);
+        for (let x = -snack.X_MAX; x <= snack.X_MAX; x += 0.01) if (row.every((q) => Math.abs(q.x - x) >= snack.OBST[q.kind].r + snack.HARI_R)) return true;
+        return false;
+      });
+      if (gap && gates.length === c.gates && gates.every((g) => [g.l, g.r].some((op) => op && (op[0] === 'x' || op[0] === '+')))) good++;
     }
-    ok(good === T && ms / T < 10, `Snack Rush livello ${level} (gradino ${c.tier}): ${c.waves} ondate, ${(animals / T).toFixed(0)} animali, ${c.gates} porte, animalone ${c.boss.kind} da ${c.bossNeed} bocconi: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+    ok(good === T && ms / T < 10, `Snack Rush livello ${level} (gradino ${c.tier}): ${c.waves} ondate, ${(animals / T).toFixed(0)} animali, ${c.gates} porte (${(guards / T).toFixed(1)} ostacoli di guardia), ${(obst / T).toFixed(1)} ostacoli, ${(pus / T).toFixed(1)} power-up, animalone ${c.boss.kind} da ${c.bossNeed} bocconi: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
   }
 }
 

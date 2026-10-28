@@ -18,6 +18,13 @@
   const EN = {
     sr_start: 'Drag left or right to start!', sr_boss: 'Here comes a big eater!', sr_power: 'Snacks per toss', sr_max: 'Max!',
     sr_board: 'Path: drag left or right to move Hari', sr_snatch: 'Snack snatched!', sr_boop: 'Boop!',
+    // novità, power-up e grandi merende
+    sr_new: 'New!', sr_bup: 'Bup!', sr_bump: 'Bump!', sr_splash: 'Splash!', sr_sent: 'Sent back!', sr_hungry: 'Still hungry!',
+    sr_back: 'Toss snacks at it to send it back!',
+    sr_n_puddle: 'Puddles: step around them!', sr_n_hay: 'Rolling hay bales!', sr_n_cart: 'Fruit carts!',
+    sr_n_pu: 'Grab the bubbles: power-ups!', sr_n_pu2: 'New power-ups!', sr_n_hamster: 'Speedy hamsters!', sr_n_frog: 'Frogs hop across!',
+    sr_n_gift: 'Gift gates: fewer snacks, a present!', sr_n_swap: 'Watch out: gates swap!', sr_n_big: 'A wave of big eaters!',
+    sr_pu_rapid: 'Rapid toss!', sr_pu_double: 'Double snacks!', sr_pu_magnet: 'Snack magnet!', sr_pu_shield: 'Basket shield!',
     // già tradotte (Hari Parade)
     pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause',
   };
@@ -109,6 +116,87 @@
       ${puffy([[43, 45, 6], [51, 42, 7], [58, 46, 6]], 'var(--sr-wool)', 1.6)}
       ${face(50, 60, 7.5, m, 0.85)}
       ${hi('M30 40q6-8 14-9', 2.4, 0.9)}`,
+    // criceto velocissimo con le guance piene
+    hamster: (fr, m) => `${feet(fr, 'var(--sr-ham-2)', 40, 60, 7)}
+      <circle cx="29" cy="38" r="8.5" fill="var(--sr-ham)" ${o(2)}/><circle cx="29" cy="39" r="4.2" fill="var(--sr-bunny-in)"/>
+      <circle cx="71" cy="38" r="8.5" fill="var(--sr-ham)" ${o(2)}/><circle cx="71" cy="39" r="4.2" fill="var(--sr-bunny-in)"/>
+      <ellipse cx="50" cy="63" rx="30" ry="28" fill="var(--sr-ham)" ${o(2.2)}/>
+      <ellipse cx="50" cy="72" rx="19" ry="16" fill="var(--sr-ham-belly)"/>
+      <path d="M79 60a30 28 0 0 1-48 24 33 30 0 0 0 48-24z" fill="var(--sr-ham-2)" opacity=".45"/>
+      <ellipse cx="31" cy="68" rx="9" ry="7.5" fill="var(--sr-ham-belly)" ${o(1.4)}/><ellipse cx="69" cy="68" rx="9" ry="7.5" fill="var(--sr-ham-belly)" ${o(1.4)}/>
+      ${face(50, 56, 11, m)}
+      <ellipse cx="50" cy="61.5" rx="2.4" ry="1.8" fill="var(--sr-nose)"/>
+      <path d="M${fr ? 40 : 42} 84l-4 5M${fr ? 60 : 58} 84l4 5" ${o(1.6)}/>
+      ${hi('M27 52q3-12 14-16')}`,
+    // ranocchia che salta da una parte all'altra del sentiero
+    frog: (fr, m) => `${feet(fr, 'var(--sr-frog-2)', 33, 67, 11)}
+      <ellipse cx="50" cy="66" rx="34" ry="25" fill="var(--sr-frog)" ${o(2.2)}/>
+      <circle cx="33" cy="41" r="13" fill="var(--sr-frog)" ${o(2.2)}/><circle cx="67" cy="41" r="13" fill="var(--sr-frog)" ${o(2.2)}/>
+      <ellipse cx="50" cy="56" rx="26" ry="10" fill="var(--sr-frog)"/>
+      <ellipse cx="50" cy="75" rx="20" ry="12" fill="var(--sr-frog-belly)"/>
+      <path d="M83 62a34 25 0 0 1-56 22 37 28 0 0 0 56-22z" fill="var(--sr-frog-2)" opacity=".5"/>
+      ${face(50, 42, 17, m, 1.05, false)}
+      ${m === 'joy' ? '<path d="M37 59q13 12 26 0z" fill="var(--sr-mouth)" stroke="var(--sr-nose)" stroke-width="1.6" stroke-linejoin="round"/>' : '<path d="M36 60q14 9 28 0" fill="none" stroke="var(--sr-nose)" stroke-width="2" stroke-linecap="round"/>'}
+      ${hi('M24 62q2-9 9-13')}${hi('M25 36q3-6 8-7', 2.2, 0.9)}`,
+  };
+
+  /* ostacoli (niente di pericoloso: ci si inciampa e la merenda cade). La pozzanghera è dipinta sul sentiero */
+  const OBSTS = {
+    // rotolo di fieno visto di fianco: la spirale gira mentre rotola verso Hari
+    hay: () => `<circle cx="50" cy="52" r="42" fill="var(--sr-hay)" ${o(2.6)}/>
+      <path d="M88 48a42 42 0 0 1-74 26 46 46 0 0 0 74-26z" fill="var(--sr-hay-2)" opacity=".6"/>
+      <path d="M50 52m-4 0a4 4 0 1 1 8 0a9 9 0 1 1-17 0a14 14 0 1 1 27 0a20 20 0 1 1-39 0a26 26 0 1 1 51 0a32 32 0 1 1-62 0" fill="none" stroke="var(--sr-hay-2)" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M10 40l-6-4M14 26l-6-6M30 12l-3-7M74 12l3-7M88 26l6-5M92 44l7-2M20 84l-6 5M80 86l5 6" ${o(2)}/>
+      ${hi('M24 34q8-14 24-20', 3.4, 0.7)}`,
+    cart: (fr) => `<path d="M14 30q36-22 72 0z" fill="var(--sr-awning)" ${o(2)}/>
+      <path d="M26 24q6 9 12 6M44 21q6 10 12 0M62 22q6 9 12 4" fill="none" stroke="var(--sr-awning-2)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M22 30v16M78 30v16" ${o(2)}/>
+      <circle cx="32" cy="46" r="8" fill="var(--sr-apple)" ${o(1.6)}/><circle cx="46" cy="44" r="8" fill="var(--sr-straw)" ${o(1.6)}/><circle cx="58" cy="46" r="7.5" fill="var(--sr-gold)" ${o(1.6)}/><circle cx="70" cy="45" r="8" fill="var(--sr-apple)" ${o(1.6)}/>
+      <path d="M14 50h72l-5 30H19z" fill="var(--sr-cart)" ${o(2.2)}/><path d="M18 60h64M20 70h60" stroke="var(--sr-cart-2)" stroke-width="2.4"/>
+      <circle cx="28" cy="84" r="9" fill="var(--sr-cart-2)" ${o(2)}/><circle cx="72" cy="84" r="9" fill="var(--sr-cart-2)" ${o(2)}/>
+      <path d="M${fr ? '22 84h12M28 78v12' : '24 80l8 8M32 80l-8 8'}M${fr ? '66 84h12M72 78v12' : '68 80l8 8M76 80l-8 8'}" stroke="var(--sr-ink)" stroke-width="1.6" opacity=".6"/>
+      ${hi('M20 56q2-4 6-4', 2.6, 0.6)}`,
+  };
+  /* power-up: bolla con l'icona dentro (viewBox 100, centrata) */
+  const PUIC = {
+    rapid: `<path d="M24 40h22M18 52h28M24 64h22" stroke="var(--sr-spark)" stroke-width="5" stroke-linecap="round"/>
+      ${[40, 52, 64].map((y, i) => `<ellipse cx="${62 + (i % 2) * 6}" cy="${y}" rx="10" ry="6.5" fill="var(--sr-seed)" ${o(1.8)}/>`).join('')}`,
+    double: `<path d="M38 60C42 42 48 32 58 22M64 56C64 42 62 32 58 22" fill="none" stroke="var(--sr-green-2)" stroke-width="3.6" stroke-linecap="round"/>
+      <circle cx="36" cy="66" r="15" fill="var(--sr-cherry)" ${o(2.2)}/><circle cx="66" cy="62" r="15" fill="var(--sr-cherry)" ${o(2.2)}/>${hi('M28 62q2-6 7-7', 3)}${hi('M58 58q2-6 7-7', 3)}`,
+    magnet: `<path d="M28 30v24a22 22 0 0 0 44 0V30H58v24a8 8 0 0 1-16 0V30z" fill="var(--sr-magnet)" ${o(2.2)}/>
+      <path d="M28 30h14v10H28zM58 30h14v10H58z" fill="var(--sr-magnet-2)" ${o(1.8)}/>
+      <path d="M20 20l-6-6M80 20l6-6M50 16v-8" stroke="var(--sr-spark)" stroke-width="4" stroke-linecap="round"/>`,
+    shield: `<path d="M22 44h56l-6 34H28z" fill="var(--sr-basket)" ${o(2.2)}/><path d="M26 54h48M27 64h46" stroke="var(--sr-basket-2)" stroke-width="2.4"/>
+      <path d="M26 44q24-30 48 0" fill="none" ${o(3)}/>
+      <path d="M50 71c-6-4-9-7-9-11 0-3 2-5 4.5-5 2 0 3.5 1 4.5 2.6 1-1.6 2.5-2.6 4.5-2.6 2.5 0 4.5 2 4.5 5 0 4-3 7-9 11z" fill="var(--sr-heart)" ${o(1.2)}/>`,
+  };
+  const puBubble = (k) => `<circle cx="50" cy="50" r="44" fill="var(--sr-pu)" stroke="var(--sr-pu-2)" stroke-width="4"/>
+    <g transform="translate(14 14) scale(.72)">${PUIC[k]}</g>
+    <path d="M22 40q6-16 22-22" fill="none" stroke="var(--sr-hi)" stroke-width="6" stroke-linecap="round" opacity=".9"/><circle cx="72" cy="74" r="4" fill="var(--sr-hi)" opacity=".8"/>`;
+  /* grandi merende dell'animalone: si rimandano indietro colpendole (viewBox 100, centrate) */
+  const BALL = {
+    acorn: `<path d="M50 94C26 88 18 66 20 48h60c2 18-6 40-30 46z" fill="var(--sr-acorn)" ${o(2.6)}/>
+      <path d="M78 52c0 18-10 34-28 40 20-2 30-20 28-40z" fill="var(--sr-acorn-2)" opacity=".7"/>
+      <path d="M14 50C14 30 30 18 50 18S86 30 86 50Z" fill="var(--sr-cap)" ${o(2.6)}/>
+      <path d="M24 44l10-14M38 46l10-20M54 46l10-20M68 44l8-12M24 32l26 14M40 24l30 22M62 24l18 16" stroke="var(--sr-cap-2)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M50 18c0-8 4-12 10-14" fill="none" ${o(3.4)}/>${hi('M30 60q2 14 10 22', 4, 0.6)}`,
+    yarn: `<circle cx="50" cy="52" r="40" fill="var(--sr-yarn)" ${o(2.6)}/>
+      <path d="M16 40q34 10 66-14M12 58q40 6 76-22M18 74q40-2 66-40M30 88q30-14 50-50M60 14q-26 26-34 74" fill="none" stroke="var(--sr-yarn-2)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M86 70q10 10 4 22" fill="none" stroke="var(--sr-yarn)" stroke-width="5" stroke-linecap="round"/>${hi('M24 40q6-16 22-22', 4, 0.6)}`,
+    muffin: `<path d="M18 52h64l-8 40H26z" fill="var(--sr-muffin-cup)" ${o(2.4)}/><path d="M30 54l4 36M42 54l2 38M56 54l-2 38M70 54l-4 36" stroke="var(--sr-muffin-cup-2)" stroke-width="2.6"/>
+      <path d="M12 54C10 30 30 14 50 14S90 30 88 54C78 60 22 60 12 54Z" fill="var(--sr-muffin)" ${o(2.6)}/>
+      ${[[32, 36], [52, 28], [68, 40], [44, 46], [60, 50]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="var(--sr-blue)" ${o(1.4)}/>`).join('')}${hi('M24 40q4-14 18-20', 4, 0.7)}`,
+    snowball: `<path d="M12 62C6 36 26 12 50 12S94 36 88 62C84 76 70 86 50 86S16 76 12 62Z" fill="var(--sr-gelato)" ${o(2.6)}/>
+      <path d="M12 62c6 6 10 2 14 10s10 4 14 2 10 6 16 2 8 2 12-4 10 0 14-8c-4 14-20 22-38 22S16 76 12 62z" fill="var(--sr-gelato-2)"/>
+      ${[[30, 34, 'var(--sr-straw)'], [46, 26, 'var(--sr-blue)'], [62, 32, 'var(--sr-gold)'], [72, 48, 'var(--sr-mint)'], [38, 50, 'var(--sr-heart)'], [56, 52, 'var(--sr-blue)']].map(([x, y, c], i) => `<rect x="${x}" y="${y}" width="9" height="3.6" rx="1.8" transform="rotate(${(i * 47) % 180} ${x + 4.5} ${y + 1.8})" fill="${c}"/>`).join('')}
+      <circle cx="50" cy="10" r="8" fill="var(--sr-cherry)" ${o(1.8)}/>${hi('M24 40q6-18 22-24', 5, 0.8)}`,
+    bun: `<path d="M8 70C8 40 28 20 50 20S92 40 92 70C92 82 74 88 50 88S8 82 8 70Z" fill="var(--sr-bun)" ${o(2.6)}/>
+      <path d="M90 66c0 14-18 20-40 20 26-2 38-10 40-20z" fill="var(--sr-bun-2)"/>
+      <path d="M50 22q-4 12-16 16M50 22q4 12 16 16M50 22q-12 8-26 6M50 22q12 8 26 6M50 22v14" fill="none" stroke="var(--sr-bun-2)" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="50" cy="56" r="5" fill="var(--sr-sakura-in)"/>${hi('M22 52q4-14 16-20', 4, 0.8)}`,
+    melon: `<circle cx="50" cy="52" r="42" fill="var(--sr-melon)" ${o(2.6)}/>
+      <path d="M50 10C34 28 34 76 50 94M50 10C66 28 66 76 50 94M24 18C10 38 12 70 28 88M76 18C90 38 88 70 72 88" fill="none" stroke="var(--sr-melon-2)" stroke-width="7" stroke-linecap="round"/>
+      <path d="M50 10c-2-6 0-10 6-12" fill="none" stroke="var(--sr-stem)" stroke-width="3.4" stroke-linecap="round"/>${hi('M22 40q6-16 22-24', 5, 0.7)}`,
   };
 
   /* ciò che soffia l'animalone: tutto innocuo e buffo (viewBox 100, centrato) */
@@ -124,6 +212,12 @@
       <path d="M40 60l-6-14M54 50l-4-16M66 38l-2-12" fill="none" stroke="var(--sr-leaf-2)" stroke-width="2" stroke-linecap="round"/>${hi('M26 56q4-18 22-30', 2.6, 0.6)}`,
     petal: `<path d="M50 88C24 70 18 40 34 16L50 28L66 16C82 40 76 70 50 88Z" fill="var(--sr-sakura)" ${o(2.4)}/>
       <path d="M50 84C66 70 72 48 64 26" fill="none" stroke="var(--sr-sakura-in)" stroke-width="3" stroke-linecap="round" opacity=".6"/>${hi('M36 30q-6 18 0 34', 3, 0.7)}`,
+    feather: `<path d="M50 92C46 70 30 50 34 30C38 16 50 8 62 10C72 24 70 46 60 66C56 76 52 84 50 92Z" fill="var(--sr-feather)" ${o(2.2)}/>
+      <path d="M50 92C52 64 56 36 62 10" fill="none" stroke="var(--sr-feather-2)" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M53 66l-12-8M55 52l-14-10M58 38l-12-12M54 60l10-8M57 46l10-10" fill="none" stroke="var(--sr-feather-2)" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>`,
+    flake: `<g stroke="var(--sr-flake-2)" stroke-width="9" stroke-linecap="round">${[0, 60, 120].map((a) => `<path d="M50 14V86" transform="rotate(${a} 50 50)"/>`).join('')}</g>
+      <g stroke="var(--sr-flake)" stroke-width="5" stroke-linecap="round" fill="none">${[0, 60, 120, 180, 240, 300].map((a) => `<path d="M50 50V16M50 28l-9-8M50 28l9-8" transform="rotate(${a} 50 50)"/>`).join('')}</g>
+      <circle cx="50" cy="50" r="8" fill="var(--sr-flake)" stroke="var(--sr-flake-2)" stroke-width="2"/>`,
   };
   /* merende di Hari (viewBox 100, centrate) */
   const TREAT = {
@@ -146,6 +240,8 @@
     polar: ['var(--sr-po)', 'var(--sr-po-2)', 'var(--sr-po)'],
     owl: ['var(--sr-owl)', 'var(--sr-owl-2)', 'var(--sr-owl-belly)'],
     kitty: ['var(--sr-cat)', 'var(--sr-cat-2)', 'var(--sr-bunny)'],
+    panda: ['var(--sr-panda)', 'var(--sr-panda-2)', 'var(--sr-panda)'],
+    hippo: ['var(--sr-hippo)', 'var(--sr-hippo-2)', 'var(--sr-hippo-in)'],
   };
   /* animalone goloso: testone, pancione, bavaglino e coroncina.
    * mood: '' affamato (bocca aperta) · 'blow' soffia (guance gonfie) · 'yum' mastica felice · 'sleep' sazio, dorme */
@@ -157,6 +253,8 @@
       polar: '',
       owl: `<path d="M24 66c-14 4-18 18-12 26 8-2 14-10 16-22z" fill="${c2}" ${o(2)}/><path d="M76 66c14 4 18 18 12 26-8-2-14-10-16-22z" fill="${c2}" ${o(2)}/>`,
       kitty: `<path d="M70 88c18 2 26-10 22-24-2-8 6-12 8-8" fill="none" stroke="var(--sr-ink)" stroke-width="9" stroke-linecap="round"/><path d="M70 88c18 2 26-10 22-24-2-8 6-12 8-8" fill="none" stroke="${c1}" stroke-width="6.5" stroke-linecap="round"/>`,
+      panda: `<path d="M84 30l8-26M88 30l-2-24" stroke="var(--sr-bamboo-2)" stroke-width="2" /><path d="M86 96V12" stroke="var(--sr-bamboo)" stroke-width="7" stroke-linecap="round"/><path d="M82 40h8M82 64h8" stroke="var(--sr-bamboo-2)" stroke-width="2"/><path d="M86 22q10-6 14 2q-8 4-14-2z" fill="var(--sr-bamboo)" ${o(1.2)}/>`,
+      hippo: '',
     }[kind];
     const ears = {
       squirrel: `<path d="M22 38L18 8L42 26Z" fill="${c1}" ${o(2)}/><path d="M25 32L23 15L36 26Z" fill="${c3}"/><path d="M18 8l-4-6M18 8l2-7" ${o(2)}/>
@@ -164,9 +262,12 @@
       polar: `<circle cx="25" cy="25" r="9" fill="${c1}" ${o(2)}/><circle cx="25" cy="26" r="4.6" fill="${c2}"/><circle cx="75" cy="25" r="9" fill="${c1}" ${o(2)}/><circle cx="75" cy="26" r="4.6" fill="${c2}"/>`,
       owl: `<path d="M22 34L16 8L40 24Z" fill="${c1}" ${o(2)}/><path d="M78 34L84 8L60 24Z" fill="${c1}" ${o(2)}/>`,
       kitty: `<path d="M20 38L20 8L44 24Z" fill="${c1}" ${o(2)}/><path d="M24 32L24 16L36 25Z" fill="var(--sr-cat-in)"/><path d="M80 38L80 8L56 24Z" fill="${c1}" ${o(2)}/><path d="M76 32L76 16L64 25Z" fill="var(--sr-cat-in)"/>`,
+      panda: `<circle cx="24" cy="25" r="10" fill="${c2}" ${o(2)}/><circle cx="76" cy="25" r="10" fill="${c2}" ${o(2)}/>`,
+      hippo: `<ellipse cx="27" cy="25" rx="7" ry="8" fill="${c1}" ${o(2)}/><ellipse cx="27" cy="26" rx="3.4" ry="4" fill="var(--sr-hippo-in)"/><ellipse cx="73" cy="25" rx="7" ry="8" fill="${c1}" ${o(2)}/><ellipse cx="73" cy="26" rx="3.4" ry="4" fill="var(--sr-hippo-in)"/>`,
     }[kind];
     const neck = {
-      squirrel: '', owl: '',
+      squirrel: '', owl: '', panda: '',
+      hippo: `<path d="M28 66q22 9 44 0" fill="none" stroke="var(--sr-gold)" stroke-width="3" stroke-dasharray="0.1 6" stroke-linecap="round"/>`,
       polar: `<path d="M24 64q26 10 52 0l2 6q-28 11-56 0z" fill="var(--sr-scarf)" ${o(1.8)}/>`,
       kitty: `<circle cx="50" cy="69" r="4.6" fill="var(--sr-bell)" ${o(1.6)}/>`,
     }[kind];
@@ -180,8 +281,11 @@
       owl: `<path d="M45 52h10l-5 9z" fill="var(--sr-crown-2)" ${o(1.6)}/>`,
       kitty: `<path d="M47 53h6l-3 3z" fill="var(--sr-cat-in)" ${o(1)}/>
         <path d="M30 54l-12-2M30 58l-12 2M70 54l12-2M70 58l12 2" stroke="var(--sr-ink)" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>`,
+      panda: `<ellipse cx="50" cy="57" rx="10" ry="7" fill="${c1}" ${o(1.4)}/><ellipse cx="50" cy="53.5" rx="4" ry="2.8" fill="var(--sr-nose)"/>`,
+      hippo: `<ellipse cx="50" cy="58" rx="22" ry="12" fill="var(--sr-hippo-in)" ${o(1.8)}/><ellipse cx="42" cy="54" rx="2.6" ry="3.4" fill="var(--sr-hippo-2)"/><ellipse cx="58" cy="54" rx="2.6" ry="3.4" fill="var(--sr-hippo-2)"/>`,
     }[kind];
-    const ringEyes = kind === 'owl' ? `<circle cx="37" cy="44" r="12" fill="var(--sr-owl-eye)" ${o(1.8)}/><circle cx="63" cy="44" r="12" fill="var(--sr-owl-eye)" ${o(1.8)}/>` : '';
+    const ringEyes = kind === 'owl' ? `<circle cx="37" cy="44" r="12" fill="var(--sr-owl-eye)" ${o(1.8)}/><circle cx="63" cy="44" r="12" fill="var(--sr-owl-eye)" ${o(1.8)}/>`
+      : kind === 'panda' ? `<ellipse cx="36" cy="45" rx="10" ry="12.5" transform="rotate(28 36 45)" fill="${c2}"/><ellipse cx="64" cy="45" rx="10" ry="12.5" transform="rotate(-28 64 45)" fill="${c2}"/>` : '';
     const mouth = {
       '': `<path d="M43 61q7 10 14 0z" fill="var(--sr-mouth)" ${o(1.6)}/><path d="M46 65q4-3 8 0" fill="var(--sr-tongue)"/><path d="M56 63q2 4 0 6q-2-2 0-6z" fill="var(--sr-drool)" stroke="var(--sr-ink)" stroke-width=".8"/>`,
       blow: `<circle cx="50" cy="63" r="3.6" fill="var(--sr-mouth)" ${o(1.6)}/><circle cx="35" cy="56" r="7" fill="var(--sr-blush)"/><circle cx="65" cy="56" r="7" fill="var(--sr-blush)"/>`,
@@ -242,6 +346,9 @@
     <ellipse cx="50" cy="41" rx="15" ry="12" fill="var(--sr-lamp)" ${o(2)}/>
     <path d="M38 41h24M40 35q10 3 20 0M40 47q10-3 20 0" fill="none" stroke="var(--sr-lamp-2)" stroke-width="1.6" opacity=".8"/>
     <path d="M44 53h12v4H44z" fill="var(--sr-post-wood)" ${o(1.4)}/>${hi('M40 36q2-5 6-6', 2.4, 0.8)}`;
+  const GIFT = `<path d="M18 44h64v44H18z" fill="var(--sr-gift)" ${o(2.4)}/><path d="M12 32h76v14H12z" fill="var(--sr-gift)" ${o(2.4)}/>
+    <path d="M44 32h12v56H44z" fill="var(--sr-gift-2)" ${o(1.6)}/>
+    <path d="M50 32C40 14 22 18 30 30zM50 32C60 14 78 18 70 30z" fill="var(--sr-gift-2)" ${o(2)}/>${hi('M22 52v14', 3, 0.6)}`;
   const treatIc = (k) => `<svg viewBox="0 0 100 100" aria-hidden="true">${TREAT[k]}</svg>`;
 
   const wrapSVG = (inner, size = 200) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}">${inner}</svg>`;
@@ -274,7 +381,7 @@
   const TOKENS = ['ink', 'text', 'text-line', 'sky-1', 'sky-2', 'sky-3', 'sun', 'sun-glow', 'cloud', 'star', 'mount-1', 'mount-2', 'snowcap',
     'hill-1', 'hill-2', 'grass-1', 'grass-2', 'grass-dot', 'road-1', 'road-2', 'road-edge', 'road-line', 'curb', 'fog', 'shadow',
     'good', 'good-2', 'good-3', 'bad', 'bad-2', 'bad-3', 'post', 'post-2', 'trail', 'puff', 'heart', 'spark', 'gold', 'mark',
-    'tummy', 'tummy-2', 'tummy-bg', 'zzz', 'lamp-glow', 'night'];
+    'tummy', 'tummy-2', 'tummy-bg', 'zzz', 'lamp-glow', 'night', 'water', 'water-2', 'danger', 'danger-2', 'fall', 'fall-2', 'pu-2'];
   const FOC = 9;           // "focale": quanto si stringe il sentiero verso l'orizzonte
 
   function create(el, ctx, saved) {
@@ -285,13 +392,14 @@
     let C = {}, IMG = {}, bg = null, themeKey = '', themeAt = 0;
     let drag = null, keyDir = 0, keyStop = false, lastChanged = 0, lastBossPct = 0, tossKick = 0, prevPx = 0, lean = 0;
     let nibbles = new Map(), ghosts = [], parts = [], oopsT = 0, bossYum = 0, bossBlow = 0, scroll = 0, sndNib = 0, sndFull = 0;
+    let newEl, newQ = [], newBusy = 0, swapT = new Map(), hitT = new Map(), sndHit = 0, phaseT = 0;
     const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
     /* ---------- costruzione ---------- */
     function build() {
       clearTimers();
-      el.innerHTML = `<div class="sr-wrap" dir="ltr">
+      el.innerHTML = `<div class="sr-wrap sr-${s.season || 'spring'}" dir="ltr">
         <div class="sr-bar">
           <span class="sr-pow" role="img" aria-label="${L('sr_power')}"><span class="sr-ic"></span><b></b></span>
           <span class="sr-track" aria-hidden="true"><i class="sr-fill"></i><span class="sr-rider">${HH.mascot.mini()}</span><span class="sr-flag">${`<svg viewBox="0 0 100 100">${boss(s.bossKind, '')}</svg>`}</span></span>
@@ -300,10 +408,12 @@
         <div class="sr-stage" tabindex="0" role="application" aria-label="${L('sr_board')}">
           <canvas class="sr-cv"></canvas>
           <div class="sr-msg" aria-live="polite"></div>
+          <div class="sr-new" aria-live="polite" hidden><span class="sr-new-tag"></span><span class="sr-new-ic"></span><b></b></div>
           <div class="sr-pause" hidden><span class="sr-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small></div>
         </div>
       </div>`;
       wrap = el.querySelector('.sr-wrap');
+      newEl = el.querySelector('.sr-new'); newQ = []; newBusy = 0;
       stage = el.querySelector('.sr-stage');
       cv = el.querySelector('.sr-cv');
       g = cv.getContext('2d');
@@ -338,10 +448,13 @@
       for (const k of P.KINDS) { want[`${k}0`] = ANIMAL[k](0, ''); want[`${k}1`] = ANIMAL[k](1, ''); want[`${k}J`] = ANIMAL[k](0, 'joy'); want[`${k}K`] = ANIMAL[k](1, 'joy'); }
       want.hari0 = HARI_BACK(0); want.hari1 = HARI_BACK(1); want.hariJ = HARI_FRONT('joy'); want.hariO = HARI_FRONT('oops');
       want.boss = boss(s.bossKind, ''); want.bossB = boss(s.bossKind, 'blow'); want.bossY = boss(s.bossKind, 'yum'); want.bossZ = boss(s.bossKind, 'sleep');
-      want.drop = DROP[s.drop];
+      want.drop = DROP[s.drop] || DROP.shell;
+      want.ball = BALL[s.ball] || BALL.acorn;
+      for (const k of Object.keys(OBSTS)) { want[`o_${k}0`] = OBSTS[k](0); want[`o_${k}1`] = OBSTS[k](1); }
+      for (const k of P.PUS) { want[`pu_${k}`] = puBubble(k); want[`pi_${k}`] = PUIC[k]; }
       for (const k of P.TREATS) want[`t_${k}`] = TREAT[k];
-      want.tree = TREE; want.bush = BUSH; want.lamp = LAMP;
-      const size = (k) => (k.startsWith('boss') || k === 'tree' ? 280 : k.startsWith('t_') ? 64 : 180);
+      want.tree = TREE; want.bush = BUSH; want.lamp = LAMP; want.gift = GIFT;
+      const size = (k) => (k.startsWith('boss') || k === 'tree' || k === 'ball' ? 280 : k.startsWith('t_') || k.startsWith('pi_') ? 64 : k.startsWith('pu_') ? 120 : 180);
       Object.keys(want).forEach((k) => bake(k, res(wrapSVG(want[k], size(k))), size(k)));
       bg = null;
     }
@@ -501,9 +614,35 @@
         g.font = `${fs}px "Mochiy Pop One", "M PLUS Rounded 1c", sans-serif`;
         g.textAlign = 'center'; g.textBaseline = 'middle';
         g.lineJoin = 'round'; g.lineWidth = Math.max(2, fs * 0.22); g.strokeStyle = C['text-line'];
-        const tx = (x0 + x1) / 2, ty = top + h * 0.5;
+        let tx = (x0 + x1) / 2;
+        const ty = top + h * 0.5;
+        // appena scambiata: il numero scivola dall'altra parte
+        const swAge = t - (swapT.get(gt.id) || -9);
+        if (swAge < 0.28 && !reduce()) { const e = 1 - swAge / 0.28; tx += (W / 2 - tx) * 2 * e * e; }
         g.strokeText(opText(op), tx, ty);
         g.fillStyle = C.text; g.fillText(opText(op), tx, ty);
+        // porta regalo: un pacchetto col power-up sopra il pannello
+        if (gt.gift && gt.gift.side === side) {
+          const gw = h * 0.62, gx = tx, gy = top - 4 * k;
+          sprite('gift', gx - gw * 0.36, gy, gw, a, false, reduce() ? 0 : Math.sin(t * 5) * 0.08);
+          const im = IMG[`pi_${gt.gift.pu}`];
+          if (im) g.drawImage(im, gx + gw * 0.02, gy - gw * 0.86, gw * 0.7, gw * 0.7);
+        }
+      }
+      // porte che si scambiano: frecce che girano tra i due pannelli
+      if (gt.sw && gt.z > P.SWAP_STOP) {
+        const cx = W / 2, cy = y - h * 1.18, r = Math.max(5, h * 0.24), rot = reduce() ? 0 : t * 4;
+        g.lineWidth = Math.max(2, r * 0.32); g.lineCap = 'round';
+        for (let i = 0; i < 2; i++) {
+          const a0 = rot + i * Math.PI, a1 = a0 + Math.PI * 0.7;
+          g.strokeStyle = C['text-line']; g.lineWidth = Math.max(3.5, r * 0.55);
+          g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke();
+          g.strokeStyle = C.gold; g.lineWidth = Math.max(2, r * 0.32);
+          g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke();
+          const ex = cx + Math.cos(a1) * r, ey = cy + Math.sin(a1) * r, d = a1 + Math.PI / 2;
+          g.fillStyle = C.gold;
+          g.beginPath(); g.moveTo(ex + Math.cos(d) * r * 0.5, ey + Math.sin(d) * r * 0.5); g.lineTo(ex + Math.cos(d + 2.4) * r * 0.45, ey + Math.sin(d + 2.4) * r * 0.45); g.lineTo(ex + Math.cos(d - 2.4) * r * 0.45, ey + Math.sin(d - 2.4) * r * 0.45); g.closePath(); g.fill();
+        }
       }
       g.restore();
     }
@@ -579,14 +718,156 @@
       }
     }
 
+    /* ---------- ostacoli, power-up, grandi merende ---------- */
+    function drawObst(ob, t) {
+      const O = P.OBST[ob.kind], k = K(ob.z), x = SX(ob.x, k), y = Y(ob.z), al = fadeIn(ob.z);
+      if (ob.kind === 'puddle') {
+        // pozzanghera dipinta sul sentiero, con un'increspatura che si allarga
+        const rx = O.r * RW * k * 1.1, ry = rx * 0.3;
+        g.globalAlpha = al;
+        g.fillStyle = C.water; g.strokeStyle = C.ink; g.lineWidth = Math.max(0.8, 1.6 * k);
+        g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = C['water-2'];
+        g.beginPath(); g.ellipse(x - rx * 0.25, y - ry * 0.25, rx * 0.4, ry * 0.32, 0, 0, 7); g.fill();
+        if (!reduce()) {
+          const p = (t * 0.9 + ob.id * 0.37) % 1;
+          g.strokeStyle = C['water-2']; g.lineWidth = Math.max(0.6, 1.4 * k); g.globalAlpha = al * (1 - p);
+          g.beginPath(); g.ellipse(x + rx * 0.2, y + ry * 0.1, rx * 0.25 * (0.4 + p), ry * 0.25 * (0.4 + p), 0, 0, 7); g.stroke();
+        }
+        g.globalAlpha = 1;
+        return;
+      }
+      const w = 2 * O.r * RW * k * (ob.kind === 'cart' ? 1.4 : 1.35);
+      const fr = reduce() ? 0 : Math.floor(t * 6 + ob.id) % 2;
+      const bob = reduce() ? 0 : Math.abs(Math.sin(t * 9 + ob.id)) * w * (ob.kind === 'hay' ? 0.05 : 0.015);
+      shadow(x, y, w * 0.4);
+      if (ob.kind === 'hay') {
+        // il rotolo gira su se stesso (perno al centro)
+        const im = IMG.o_hay0;
+        if (im) { g.save(); g.globalAlpha = al; g.translate(x, y - bob - w * 0.46); if (!reduce()) g.rotate(t * 5 + ob.id); g.drawImage(im, -w / 2, -w * 0.52, w, w); g.restore(); }
+        return;
+      }
+      sprite(`o_${ob.kind}${fr}`, x, y - bob, w, al, false, reduce() ? 0 : Math.sin(t * 7 + ob.id) * 0.03);
+    }
+    function drawPu(p, t) {
+      const k = K(p.z), x = SX(p.x, k), w = 0.56 * RW * k, bob = reduce() ? 0 : Math.sin(t * 4 + p.id) * w * 0.12;
+      const y = Y(p.z) - 0.3 * RW * k;
+      shadow(x, Y(p.z), w * 0.3);
+      sprite(`pu_${p.pu}`, x, y + w * 0.5 + bob, w, fadeIn(p.z), false, reduce() ? 0 : Math.sin(t * 2 + p.id) * 0.1);
+    }
+    function drawBall(q, t) {
+      const k = K(q.z), x = SX(q.x, k), w = Math.max(6, 2 * q.r * RW * k * 1.12);
+      let y = Y(q.z);
+      if (q.back) {
+        // rimandata: vola ad arco verso l'animalone, con una scia di stelline
+        const b = s.boss, span = Math.max(1, (b ? b.z : P.BOSS_Z) - 1);
+        y -= Math.sin(Math.min(1, q.z / span) * Math.PI) * RW * 0.5 * k + w * 0.1;
+        if (!reduce() && Math.random() < 0.5) parts.push({ ty: 'spark', x: x + (Math.random() - 0.5) * w * 0.5, y: y - w * 0.4, vx: 0, vy: 20, r: 4 + w * 0.04, t0: t, life: 0.4, col: C.gold });
+      } else shadow(x, y, w * 0.4);
+      const pop = t - (hitT.get(q.id) || -9) < 0.1 ? 0.06 : 0;
+      const spin = reduce() ? 0 : q.k === 'yarn' || q.k === 'melon' ? t * (q.back ? -6 : 3) : Math.sin(t * 8 + q.id) * 0.08;
+      sprite('ball', x, y + w * 0.06, w * (1 + pop), 1, false, spin, -pop);
+      if (q.back) return;
+      // quante merende servono ancora: numerino su un pancino che si riempie
+      // sopra la merenda; su quelle enormi, dentro (resta visibile sotto la barra della pancia)
+      const fs = Math.max(10, Math.min(22, w * 0.2)), by = w > RW * 0.7 ? y - w * 0.62 : Math.max(44, y - w * 1.02);
+      const bw = Math.max(fs * 2.8, Math.min(w * 0.6, fs * 4.4)), bh = fs * 1.35;
+      g.font = `${fs}px "Mochiy Pop One", "M PLUS Rounded 1c", sans-serif`;
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = C['tummy-bg']; g.strokeStyle = C.ink; g.lineWidth = Math.max(1.2, fs * 0.1);
+      rr(x - bw / 2, by - bh / 2, bw, bh, bh / 2); g.fill(); g.stroke();
+      const fill = 1 - q.hp / q.max;
+      if (fill > 0) { g.fillStyle = C.gold; rr(x - bw / 2 + 2, by - bh / 2 + 2, (bw - 4) * fill, bh - 4, (bh - 4) / 2); g.fill(); }
+      g.lineWidth = Math.max(2, fs * 0.22); g.strokeStyle = C['text-line']; g.lineJoin = 'round';
+      g.strokeText(String(q.hp), x, by + fs * 0.04);
+      g.fillStyle = C.text; g.fillText(String(q.hp), x, by + fs * 0.04);
+      // pericolo: sta per prendere Hari
+      if (q.z < 8 && Math.abs(q.x - s.px) < q.r + P.HARI_R) {
+        const a = reduce() ? 1 : 0.55 + 0.45 * Math.sin(t * 16);
+        g.globalAlpha = a;
+        g.font = `${fs * 1.3}px "Mochiy Pop One", sans-serif`;
+        g.lineWidth = fs * 0.28; g.strokeStyle = C['text-line'];
+        g.strokeText('!', x + bw / 2 + fs * 0.6, by); g.fillStyle = C.danger; g.fillText('!', x + bw / 2 + fs * 0.6, by);
+        g.globalAlpha = 1;
+      }
+    }
+    // dove arriveranno ostacoli e grandi merende: una fascia che lampeggia sulla linea di Hari
+    function drawDanger(t) {
+      const y = Y(0), list = [];
+      for (const ob of s.obst) if (ob.z < 10) list.push([ob.x, P.OBST[ob.kind].r, ob.z]);
+      for (const q of s.balls) if (!q.back && q.z < 11) list.push([q.x, q.r, q.z]);
+      let hot = 0;
+      for (const [x, r, z] of list) {
+        const near = 1 - Math.min(1, (z - P.LINE_Z) / 10), on = Math.abs(x - s.px) < r + P.HARI_R;
+        if (on && z < 6) hot = Math.max(hot, near);
+        const x0 = SX(Math.max(-1.05, x - r), 1), x1 = SX(Math.min(1.05, x + r), 1), h = Math.max(5, H * 0.012);
+        g.globalAlpha = (0.18 + near * 0.5) * (reduce() ? 1 : 0.75 + 0.25 * Math.sin(t * 12));
+        g.fillStyle = C.danger; rr(x0, y - h / 2, x1 - x0, h, h / 2); g.fill();
+        g.globalAlpha = 0.35 + near * 0.5; g.strokeStyle = C['danger-2']; g.lineWidth = 1.5; g.setLineDash([5, 4]);
+        rr(x0, y - h / 2, x1 - x0, h, h / 2); g.stroke(); g.setLineDash([]);
+      }
+      g.globalAlpha = 1;
+      return hot;
+    }
+    function vignette(hot, t) {
+      if (hot <= 0) return;
+      const a = hot * (reduce() ? 0.35 : 0.22 + 0.18 * Math.sin(t * 14));
+      const gr = g.createLinearGradient(0, H, 0, H * 0.6);
+      gr.addColorStop(0, C.danger); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.globalAlpha = Math.max(0, a); g.fillStyle = gr; g.fillRect(0, H * 0.6, W, H * 0.4); g.globalAlpha = 1;
+    }
+    // power-up attivi: bollini in alto a sinistra con l'anello del tempo che resta
+    function drawHud() {
+      const on = [];
+      for (const k of ['rapid', 'double', 'magnet']) if (s.fx && s.fx[k] > 0) on.push([k, s.fx[k] / P.PU_TIME[k]]);
+      if (s.shield) on.push(['shield', 1]);
+      const r = 15, y = s.boss ? 48 : 22;
+      on.forEach(([k, f], i) => {
+        const x = 22 + i * (r * 2 + 6);
+        g.fillStyle = C['tummy-bg']; g.strokeStyle = C.ink; g.lineWidth = 1.6;
+        g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke();
+        g.strokeStyle = C.gold; g.lineWidth = 3.4; g.lineCap = 'round';
+        g.beginPath(); g.arc(x, y, r - 3, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
+        const im = IMG[`pi_${k}`];
+        if (im) g.drawImage(im, x - r * 0.72, y - r * 0.72, r * 1.44, r * 1.44);
+      });
+    }
+    // stagione: foglie in autunno, neve d'inverno, petali in primavera, lucciole d'estate
+    function drawSeason(t) {
+      if (reduce()) return;
+      const kind = s.season || 'spring', n = kind === 'winter' ? 22 : 12;
+      for (let i = 0; i < n; i++) {
+        const h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = ((i * 40503 + 7) % 1000) / 1000;
+        if (kind === 'summer') {
+          // lucciole (di giorno appena accennate)
+          const x = (h1 * W + Math.sin(t * 0.7 + i) * 24 + W) % W, y = yH + (H - yH) * (0.1 + 0.55 * h2) + Math.sin(t * 1.3 + i * 2) * 10;
+          g.globalAlpha = (C.night ? 0.5 : 0.25) * (0.5 + 0.5 * Math.sin(t * 3 + i * 1.7));
+          g.fillStyle = C.fall; g.beginPath(); g.arc(x, y, 2.4 + h2 * 1.6, 0, 7); g.fill();
+          continue;
+        }
+        const vy = (kind === 'winter' ? 22 : 30) + h2 * 26, y = ((t * vy + h1 * H * 1.2) % (H * 1.1)) - H * 0.05;
+        const x = (h2 * W * 1.3 + Math.sin(t * (0.8 + h1) + i) * 26 + t * (kind === 'winter' ? 6 : 14)) % (W * 1.1) - W * 0.05;
+        g.globalAlpha = kind === 'winter' ? 0.85 : 0.75;
+        g.fillStyle = i % 3 ? C.fall : C['fall-2'];
+        g.beginPath();
+        if (kind === 'winter') g.arc(x, y, 1.6 + h1 * 2.2, 0, 7);
+        else g.ellipse(x, y, 3.6 + h1 * 2, 2 + h1, t * 2 + i, 0, 7);
+        g.fill();
+      }
+      g.globalAlpha = 1;
+    }
+
     function drawBoss(b, t) {
-      const k = K(b.z), x = SX(b.x, k), y = Y(b.z), w = 3.2 * P.BOSS_R * RW * k;
+      const k = K(b.z), x = SX(b.x, k), w = 3.2 * P.BOSS_R * RW * k;
+      let y = Y(b.z);
       const bob = reduce() || party ? 0 : Math.sin(t * 4) * w * 0.02;
       const breath = party ? Math.sin(t * 2.2) * 0.025 : 0;
       const sq = reduce() ? 0 : Math.sin(t * 8) * 0.015 + (bossBlow > 0 ? -0.06 : 0) + breath;
       shadow(x, y, w * 0.36);
       const yum = t - bossYum < 0.16;
       const name = party ? 'bossZ' : bossBlow > 0 ? 'bossB' : yum ? 'bossY' : 'boss';
+      // fase nuova: un attimo di agitazione (saltella)
+      if (!reduce() && t - phaseT < 0.8) y -= Math.abs(Math.sin((t - phaseT) * 16)) * w * 0.06;
       sprite(name, x, y + bob, w, fadeIn(b.z - 3), !party && b.vx < 0, 0, sq);
     }
     // pancia dell'animalone: si riempie a ogni boccone
@@ -666,6 +947,7 @@
       }
       road();
       drawMarks(t);
+      const hot = drawDanger(t);
       // tutto ciò che sta sul sentiero, dal più lontano al più vicino
       const list = [];
       for (const it of drawScenery()) list.push([it[0], 0, it]);
@@ -673,6 +955,9 @@
       for (const a of s.animals) if (a.z < P.Z_FAR + 1.5) list.push([a.z, 2, a]);
       if (s.boss) list.push([s.boss.z, 3, s.boss]);
       for (const q of s.drops) list.push([q.z, 4, q]);
+      for (const ob of s.obst) if (ob.z < P.Z_FAR + 1.5) list.push([ob.z, ob.kind === 'puddle' ? 0.5 : 1.5, ob]);
+      for (const p of s.pus) list.push([p.z, 1.6, p]);
+      for (const q of s.balls) list.push([q.z, 2.5, q]);
       for (const p of s.treats) list.push([p.z, 5, p]);
       list.push([0, 6, null]);
       list.sort((a, b) => b[0] - a[0] || a[1] - b[1]);
@@ -696,14 +981,20 @@
             g.fillStyle = rg; g.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
           }
         } else if (type === 1) drawGate(o2, t);
+        else if (type === 0.5 || type === 1.5) drawObst(o2, t);
+        else if (type === 1.6) drawPu(o2, t);
+        else if (type === 2.5) drawBall(o2, t);
         else if (type === 2) drawAnimal(o2, t);
         else if (type === 3) drawBoss(o2, t);
         else if (type === 4) drawDrop(o2, t);
         else if (type === 5) drawTreat(o2, t);
         else { drawGhosts(t); drawHari(t); }
       }
+      drawSeason(t);
+      vignette(hot, t);
       drawParts(t);
       drawBossBar();
+      drawHud();
     }
 
     /* ---------- particelle (coordinate dello schermo) ---------- */
@@ -842,13 +1133,59 @@
           oopsT = t;
           const p = at(s.px, 0, 1.1);
           puff(s.px, 0.3, 6, 0.9);
-          float(L(e.what === 'boop' ? 'sr_boop' : 'sr_snatch'), p.x, p.y - 20, C.heart, 18, 1.1);
+          float(L({ boop: 'sr_boop', bup: 'sr_bup', bump: 'sr_bump', splash: 'sr_splash' }[e.what] || 'sr_snatch'), p.x, p.y - 20, C.heart, e.what === 'bup' ? 24 : 18, 1.1);
+          if (e.what === 'splash') puff(s.px, 0.3, 8, 1.1);
+          if (e.what === 'bup' || e.what === 'bump') ctx.sfx.boing();
           if (!reduce()) { stage.classList.remove('wobble'); void stage.offsetWidth; stage.classList.add('wobble'); }
           ctx.mistake(e.left);
           changed(true);
           break;
         }
         case 'lose': over = performance.now(); break;
+        case 'shield': {
+          // il cestino-scudo para il colpo
+          const p = at(s.px, 0, 1.1);
+          sparks(p.x, p.y, 12, C.gold, 1.3);
+          float('♥', p.x, p.y - 20, C.heart, 26, 1);
+          ctx.sfx.heart();
+          changed(true);
+          break;
+        }
+        case 'swap': swapT.set(e.id, t); ctx.sfx.tap(); break;
+        case 'pu': {
+          const p = at(e.x, 0.4, 0.8);
+          sparks(p.x, p.y, 12, C.gold, 1.2);
+          float(L(`sr_pu_${e.pu}`), p.x, p.y - 30, C.gold, 20, 1.3);
+          ctx.sfx.cupDone();
+          changed(true);
+          break;
+        }
+        case 'puMiss': { const p = at(e.x, 0.4, 0.4); puff(e.x, 0.4, 5, 0.7); sparks(p.x, p.y, 3, C.puff, 0.6); break; }
+        case 'ball': ctx.sfx.boing(); bossBlow = 0.4; break;
+        case 'hit': {
+          hitT.set(e.id, t);
+          const p = at(e.x, e.z, 0.5);
+          sparks(p.x, p.y, 2, C.gold, Math.max(0.5, p.k));
+          if (t - sndHit > 0.1) { sndHit = t; ctx.sfx.mark(); }
+          break;
+        }
+        case 'sent': {
+          const p = at(e.x, e.z, 0.9);
+          sparks(p.x, p.y, 14, C.gold, 1.4);
+          float(L('sr_sent'), p.x, p.y - 16, C.gold, 22, 1.2);
+          ctx.sfx.place();
+          break;
+        }
+        case 'backFeed': {
+          bossYum = t;
+          if (s.boss) { hearts(e.x, s.boss.z, 4, 1.4); const p = at(s.boss.x, s.boss.z, 1.6); float(`+${e.bonus}`, p.x, p.y, C.tummy, 24, 1.2); }
+          ctx.sfx.cupDone();
+          changed(true);
+          break;
+        }
+        case 'roll': ctx.sfx.set(); break;
+        case 'phase': phaseT = t; say(L('sr_hungry'), 'boss', 1300); ctx.sfx.milestone(); break;
+        case 'new': showNew(e.what); break;
         case 'wave': changed(true); break;
         case 'boss': {
           say(L('sr_boss'), 'boss', 1700);
@@ -887,6 +1224,38 @@
         }
         default: break;
       }
+    }
+    /* cartello "Nuovo!": cosa compare per la prima volta in questo livello (uno alla volta) */
+    function newArt(w) {
+      const svg = (inner) => `<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+      if (w === 'puddle') return svg('<ellipse cx="50" cy="62" rx="42" ry="16" fill="var(--sr-water)" stroke="var(--sr-ink)" stroke-width="2"/><ellipse cx="38" cy="58" rx="14" ry="5" fill="var(--sr-water-2)"/>');
+      if (w === 'hay' || w === 'cart') return svg(OBSTS[w](0));
+      if (w === 'pu' || w === 'pu2') return svg(puBubble(w === 'pu' ? 'rapid' : 'shield'));
+      if (w === 'hamster' || w === 'frog') return svg(ANIMAL[w](0, ''));
+      if (w === 'big') return svg(ANIMAL.bear(0, ''));
+      if (w === 'gift') return svg(GIFT);
+      if (w === 'swap') return svg('<path d="M20 40h50l-12-12M80 62H30l12 12" fill="none" stroke="var(--sr-gold)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>');
+      if (w === 'back') return svg(BALL[s.ball] || BALL.acorn);
+      if (COL[w]) return svg(boss(w, ''));
+      return '';
+    }
+    function showNew(w) {
+      if (!newEl) return;
+      newQ.push(w);
+      if (!newBusy) nextNew();
+    }
+    function nextNew() {
+      const w = newQ.shift();
+      if (!w) { newBusy = 0; return; }
+      newBusy = 1;
+      const text = w === 'back' ? L('sr_back') : COL[w] ? L('sr_boss') : L(`sr_n_${w}`);
+      newEl.querySelector('.sr-new-tag').textContent = L('sr_new');
+      newEl.querySelector('.sr-new-ic').innerHTML = newArt(w);
+      newEl.querySelector('b').textContent = text;
+      newEl.hidden = false;
+      newEl.classList.remove('show'); void newEl.offsetWidth; newEl.classList.add('show');
+      ctx.sfx.star(1);
+      later(() => { newEl.classList.remove('show'); later(() => { newEl.hidden = true; nextNew(); }, 260); }, w === 'back' ? 3200 : 2600);
     }
     function zzz(b) {
       const k = K(b.z), x = SX(b.x, k) + RW * k * 0.5, y = Y(b.z) - RW * k * 1.2;
@@ -1023,7 +1392,8 @@
     }
     function fresh() { begin(P.newLevel(ctx.level, Math.random)); ctx.changed({ reset: true }); }
 
-    const ok = saved && saved.v === 1 && Array.isArray(saved.script) && Array.isArray(saved.animals) && saved.level > 0 && saved.bossMax > 0;
+    if (saved && saved.v === 1 && P.migrate) P.migrate(saved);
+    const ok = saved && saved.v === 2 && Array.isArray(saved.script) && Array.isArray(saved.animals) && saved.level > 0 && saved.bossMax > 0;
     if (ok && !P.isOver(saved)) begin(Object.assign({}, saved), true);
     else fresh();
 
@@ -1062,7 +1432,7 @@
     tutorial: TUT,
     rate: (s) => HH.snack.rate(s),
     // durata del copione più il tempo medio per riempire l'animalone (circa 15–40 s)
-    parTime: (s) => Math.round(s.end + 15 + s.bossMax / 18),
+    parTime: (s) => Math.round(s.end + 25 + s.bossMax / 18),
     progress: (s) => HH.snack.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
