@@ -19,7 +19,7 @@
     del(k) { try { G.localStorage.removeItem(PREFIX + k); } catch (e) { /* storage bloccato */ } },
   };
 
-  HH.VERSION = '0.16.2';                     // versione dell'app (un test la confronta con package.json e sw.js)
+  HH.VERSION = '0.17.0';                     // versione dell'app (un test la confronta con package.json e sw.js)
   const SAVE_VERSION = 2;
   HH.progress = {
     get(id) {

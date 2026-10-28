@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Hari Rally su telefono vero: fluidità (pixel ratio adattivo), taratura dei sensori in orizzontale
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
 - [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
@@ -26,6 +27,9 @@
 - [x] Nuovo gioco **Hari Taxi** (guida vista dall'alto, senza violenza): città a griglia generata da seme con isolati, parchi, semafori, strisce e marciapiedi; tre mestieri a rotazione (taxi coi passeggeri, scooter del cibo che si raffredda, furgone coi pacchi a più tappe) con tempo limite; traffico (auto, autobus, bici) e pedoni con IA; incidenti = −1 cuore con "bonk" e salto spaventato, muri morbidi; levetta a un pollice + frecce/WASD, freccia di percorso e minimappa, tema notte con lampioni e fari; brano `drive`, effetti `honk`/`boing`, tutorial, test con bot
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
+
+## Fatto (v0.17.0)
+- [x] Nuovo gioco **Hari Rally**: rally 3D in prima persona nel bosco (three.js in locale, solo nei file del gioco), grafica cartoon con contorni, accelerazione automatica, sterzo coi sensori a schermo intero col telefono girato (taratura, permesso iOS) o col tocco/tastiera, freno, note del navigatore 1–6 dedotte dalla curvatura con bip nell'orecchio giusto, 3 avversari (coniglietta, volpe, panda), tappe primavera/autunno/neve/tramonto, arrivare tra i primi 3; testi in 43 lingue
 
 ## Fatto (v0.16.2)
 - [x] Hari Snack Rush rifatto: porte con un vero dilemma (la porta buona è presidiata da pozzanghere/carretti, porte che si scambiano, porte regalo), una novità ogni 2–3 livelli con cartello "Nuovo!" (fieno, criceti veloci, ranocchie, carretti, ondate di mangioni, formazioni, power-up raffica/doppia/calamita/cestino-scudo), stagioni a rotazione; boss che lanciano merende giganti da rimandare indietro (raffiche "a muro" non evitabili), fasi più agitate al 50%/80% di pancia, due boss nuovi (panda, ippopotamo); il giocatore "pigro" perde spesso dal livello 2; testi in 43 lingue
@@ -188,6 +192,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.17.0 · `CI=1 npm test` · Hari Rally: bot tra i primi 3 nei livelli 1–10, note coerenti con la curvatura, sensori simulati, file unico
 - 2026-10-28 v0.16.2 · `CI=1 npm test` · Snack Rush: bot attento 88/88 fino all'11, pigro perde dal 2; porte, novità, boss con merende da rimandare, power-up, chiaro/scuro
 - 2026-10-28 v0.16.1 · `npm test` · avviso giochi nuovi: utente da versione vecchia (messaggio + etichette), seconda apertura (niente avviso), installazione nuova (niente avviso)
 - 2026-10-28 v0.16.0 · `npm test` · Hari Spot: città e bosco, differenza trovata, errore, lente, vittoria, schermo intero; testi it/de/ja
