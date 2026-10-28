@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'memory', 'spot', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -224,6 +224,13 @@
       mel: ['1 3 5 . 6 5 3 .', '4 . 6 4 8 . 6 .', '5 . 7 5 9 8 7 5', '8 - 5 . 3 - - .',
         '6 . 8 6 5 . 3 5', '2 4 6 . 4 . 2 .', '5 6 7 8 9 . 7 .', '8 . 5 . 1 - - .'],
     },
+    // Hari Rally: corsa nel bosco, galoppo energico in Re con le sincopi (pluck + marimba), basso che spinge sulle ottave
+    rally: {
+      bpm: 138, root: 62, lead: 'pluck', arp: 'marimba', swing: 0.06, perc: 'pop',
+      chords: [1, 5, 6, 4, 1, 5, 4, 1], bass: 'R O R O F O R O',
+      mel: ['5 5 8 . 5 . 9 8', '7 . 5 . 7 9 . 7', '6 8 10 . 8 6 5 .', '4 6 8 . 9 - - .',
+        '8 . 5 8 10 . 9 8', '9 . 7 5 7 . 9 .', '10 . 8 6 8 . 9 10', '8 . 5 . 8 - - .'],
+    },
     // Hari Memory: carillon tranquillo a "coppie" di frasi (ogni frase si ripete, come le carte uguali)
     memory: {
       bpm: 92, root: 67, lead: 'musicbox', arp: 'marimba', swing: 0.08, perc: 'lullaby',
@@ -419,10 +426,45 @@
       osc(env(sfxBus, t, 0.004, 0.13, t + 0.28), 'sine', 380, t, t + 0.28, 0, 120, 0.25);
       osc(env(sfxBus, t + 0.02, 0.004, 0.05, t + 0.2), 'triangle', 760, t + 0.02, t + 0.2, 0, 300, 0.16);
     }),
+    // nota del navigatore (Hari Rally): due bip a destra o a sinistra (panorama), più bassi per le curve strette
+    pace: S((t, dir = 0, g = 0) => {
+      let d = sfxBus;
+      if (dir && ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = dir > 0 ? -0.7 : 0.7; p.connect(sfxBus); d = p; }
+      const f0 = g ? sc(g + 1) : sc(5);
+      [0, 0.11].forEach((dt, i) => osc(lowpass(env(d, t + dt, 0.004, 0.06, t + dt + 0.08), 2600), 'square', i ? f0 * 1.26 : f0, t + dt, t + dt + 0.08));
+    }),
     setMuted(m) { sfxOn = !m; if (sfxBus) sfxBus.gain.value = sfxOn ? 1 : 0; },
     isMuted: () => !sfxOn,
   };
 
-  HH.audio = { unlock, sfx, ready: () => !!ac && ac.state === 'running' };
+  // motore della macchinina (Hari Rally): ronzio leggero che segue i giri (rpm 0..1) + ghiaia quando si scivola (grit 0..1)
+  let E = null;
+  function engine(on, rpm = 0, grit = 0) {
+    if (!on) {
+      if (E && ac) { const e = E; E = null; e.g.gain.setTargetAtTime(0.0001, ac.currentTime, 0.06); e.ng.gain.setTargetAtTime(0.0001, ac.currentTime, 0.06); setTimeout(() => { try { e.o1.stop(); e.o2.stop(); e.n.stop(); } catch (x) { /* già fermo */ } }, 400); }
+      return;
+    }
+    if (!sfxOn || !ac || ac.state !== 'running') return;
+    const t = ac.currentTime;
+    if (!E) {
+      const g = ac.createGain(); g.gain.value = 0.0001; g.connect(sfxBus);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500; lp.Q.value = 1.2; lp.connect(g);
+      const o1 = ac.createOscillator(); o1.type = 'sawtooth'; o1.connect(lp);
+      const o2 = ac.createOscillator(); o2.type = 'triangle'; o2.connect(lp);
+      const ng = ac.createGain(); ng.gain.value = 0.0001; ng.connect(sfxBus);
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.8; bp.connect(ng);
+      const n = ac.createBufferSource(); n.buffer = noise; n.loop = true; n.connect(bp);
+      o1.start(); o2.start(); n.start();
+      E = { g, lp, o1, o2, ng, n };
+    }
+    const f = 46 + rpm * 96;
+    E.o1.frequency.setTargetAtTime(f, t, 0.05);
+    E.o2.frequency.setTargetAtTime(f * 0.5, t, 0.05);
+    E.lp.frequency.setTargetAtTime(340 + rpm * 900, t, 0.08);
+    E.g.gain.setTargetAtTime(0.022 + rpm * 0.018, t, 0.08);
+    E.ng.gain.setTargetAtTime(0.0001 + grit * 0.045, t, 0.06);
+  }
+
+  HH.audio = { unlock, sfx, engine, ready: () => !!ac && ac.state === 'running' };
   HH.music = music;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

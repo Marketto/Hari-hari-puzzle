@@ -30,6 +30,10 @@
     { id: 'life', name: 'Hari Home', since: '0.12.0', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },
+    // three.js (src/vendor, ~650 KB) è solo tra i file di questo gioco: si scarica e va in cache offline solo aprendo il rally
+    { id: 'rally', name: 'Hari Rally', since: '0.17.0', rules: 'r14',
+      rulesEn: 'First-person forest rally: Hari speeds up by himself, you steer and brake. Follow the pace notes (6 = fast bend, 1 = hairpin) and finish in the top 3 against Bunny, Fox and Panda. In full screen turn the phone and tilt it to steer!',
+      files: [...f('rally.css'), 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-ui.js')] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
