@@ -284,10 +284,13 @@ for (const level of [1, 4, 8, 16]) {
 
 // Hari Rally: 5 gradini di tappa (1,3 → 4,3 km) in 4 ambientazioni, generazione (con traiettoria ideale) < 10 ms, curve mai
 // sotto i 14 m di raggio, nessun tratto che si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota,
-// note per ponti e gallerie, scatole-sorpresa presenti, simulazione (4 auto, power-up, collisioni) < 0,1 ms a fotogramma
+// note per ponti e gallerie, scatole-sorpresa presenti, simulazione (4 kart, power-up, sotto-passi, collisioni nel mondo) < 0,1 ms
+// a fotogramma
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/rally-logic.js'), 'utf8'), { filename: 'rally-logic.js' });
   const { rally } = globalThis.HH;
+  // riscaldamento del JIT (la misura vuole il costo a regime di un fotogramma, con sotto-passi e collisioni nel mondo)
+  { const w = rally.newLevel(6, globalThis.HH.rng(7)); w.ready = 0; for (let i = 0; i < 900; i++) rally.step(w, 1 / 60, { steer: 0.05, brake: 0 }); }
   for (const level of [1, 2, 3, 6, 9, 13]) {
     let ms = 0, good = 0, sim = 0, notes = 0, tight = 0, tun = 0, box = 0;
     const T = 12, c = rally.config(level);

@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Hari Rally 3 su telefono vero: comodità dei pedali col tocco multiplo, sensibilità del trascinamento, fluidità con 4 kart vicini
 - [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
 - [ ] Hari Escape su telefono vero: comodità dei tocchi su oggetti piccoli (quadri e indizi appesi) e leggibilità degli indizi in miniatura
 - [ ] Hari Airlines su telefono: comodità del trascinamento dei bagagli e altezza della cabina a 6 file nella fase bagagli
@@ -18,6 +19,10 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.20.0)
+- [x] **Hari Rally 3**: visuale in terza persona predefinita (camera a molla, inclinazione in curva, campo visivo col turbo, scossoni) con Hari al volante, pulsante e tasto C per la visuale pilota (scelta salvata); kart a forma di frutto (fragola di Hari, pesca, mandarino, fetta d'anguria) con foglia che sventola, sospensioni, faretti e ombra, LOD da lontano; collisioni risolte nel piano del mondo con sotto-passi (prima in (s, d), che in curva deformava i rettangoli: fino a 24 cm di compenetrazione disegnata); fuori strada vero (erba, marciapiede, sabbia, neve alta), alberi, rocce e cumuli che fermano, guardrail a imbuto prima di ponti e gallerie, nuvoletta che riporta in pista; aderenza limitata con derapata, mini-spinta e sbandata; acceleratore e freno/retromarcia manuali (pedali, frecce, trascinamento, sensori, tastiera ↑↓←→ + spazio/E), acceleratore automatico come opzione (acceso solo al livello 1); avversari più forti dal livello 3 con rubber band moderato; salvataggi v2 → v3
+- [x] Testi di Hari Rally 3 in 43 lingue (6 chiavi nuove, 6 riscritte)
 
 ## Fatto (v0.19.1)
 - [x] **Hari Rally 2**: collisioni vere tra auto (rettangoli orientati, niente compenetrazioni né salti indietro) e con bordi/ostacoli allineati alla grafica; power-up kawaii in scatole-regalo (turbo carota, scudo-bolla, buccia di banana, pozza di miele, nuvoletta di fiori, calamita, salto a molla) e ghiande bonus; avversari con traiettoria ideale, frenata, sorpasso e scia; 12 livelli a rotazione tra bosco, città, mare e neve di giorno, al tramonto e di notte, con gallerie, ponti, chicane, curve paraboliche e molti più dettagli; salvataggi v1 → v2

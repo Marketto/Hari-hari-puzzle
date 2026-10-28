@@ -1,8 +1,9 @@
 // Unit test Hari Rally: pista sempre percorribile (curvatura entro i limiti, nessun tratto che si riavvicina), note del
 // navigatore coerenti con la curvatura misurata da un oracolo indipendente (cerchio per tre punti) e con ponti e gallerie,
-// collisioni senza compenetrazioni né teletrasporti (auto–auto, bordi, ostacoli), power-up, avversari più bravi
-// (traiettoria ideale, sorpassi), un bot pilota con reazioni umane tra i primi 3 nei livelli 1–10, un bot lento che perde
-// più spesso, ambientazioni a rotazione, determinismo e ripresa da JSON (anche dai salvataggi vecchi), tempi.
+// collisioni nel piano del mondo senza compenetrazioni né teletrasporti (oracolo delle pose indipendente, anche sulla posa
+// disegnata), muri veri, fuori strada, ostacoli e nuvoletta, acceleratore/freno/retromarcia, derapata e mini-spinta,
+// power-up, avversari più bravi (traiettoria ideale, sorpassi, rubber band), tre bot (attento, lento, senza freno) con la
+// curva di difficoltà attesa, ambientazioni a rotazione, determinismo e ripresa da JSON (anche dai salvataggi v1 e v2), tempi.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -19,6 +20,7 @@ const fresh = (level, seed) => R.newLevel(level, HH.rng(seed));
 const run = (s, sec, inp) => { const ev = []; for (let t = 0; t < sec && !R.isOver(s); t += DT) ev.push(...R.step(s, DT, typeof inp === 'function' ? inp(s) : inp)); return ev; };
 const go = (s) => { s.ready = 0; s.cd = 0; return s; };
 const SLOWBOT = { react: 0.45, grip: 6.5, wobble: 0.35 };
+const NOBRAKE = { grip: 999 };   // non frena mai (acceleratore sempre giù)
 // parcheggia gli avversari lontano (per provare una cosa alla volta)
 const park = (s, ...ids) => { for (const id of ids) { const c = s.cars[id]; c.s = 5 + id; c.d = -3.5 + id * 2; c.v = 0; c.skill = 1e-4; } };
 
@@ -49,6 +51,42 @@ function sepDepth(A, B) {
   return best;
 }
 const airborne = (c) => c.spr && c.air > 0.2;
+// oracolo nel mondo (indipendente da R.pose): centro dai punti della pista, direzione dalle tangenti ai campioni
+function wpose(g, c) {
+  const i = Math.max(1, Math.min(g.N - 2, Math.floor(c.s))), u = c.s - i;
+  const tan = (j) => Math.atan2(g.y[j + 1] - g.y[j - 1], g.x[j + 1] - g.x[j - 1]);
+  let t0 = tan(i), t1 = tan(i + 1);
+  if (t1 - t0 > Math.PI) t1 -= 2 * Math.PI; else if (t0 - t1 > Math.PI) t1 += 2 * Math.PI;
+  const th = t0 + (t1 - t0) * u, x = g.x[i] + (g.x[i + 1] - g.x[i]) * u, y = g.y[i] + (g.y[i + 1] - g.y[i]) * u;
+  return { x: x - Math.sin(th) * c.d, y: y + Math.cos(th) * c.d, h: th + c.psi };
+}
+function cornersW(P) {
+  const ca = Math.cos(P.h), sa = Math.sin(P.h), hl = R.CAR_L / 2, hw = R.CAR_W / 2;
+  return [[hl, hw], [hl, -hw], [-hl, -hw], [-hl, hw]].map(([a, b]) => [P.x + a * ca - b * sa, P.y + a * sa + b * ca]);
+}
+function sepW(pa, pb) {
+  let best = Infinity;
+  for (const poly of [pa, pb]) for (let i = 0; i < 4; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % 4], nx = y1 - y2, ny = x2 - x1, l = Math.hypot(nx, ny);
+    const pr = (p) => p.map(([x, y]) => (x * nx + y * ny) / l);
+    const a = pr(pa), b = pr(pb);
+    const ov = Math.min(Math.max(...a), Math.max(...b)) - Math.max(Math.min(...a), Math.min(...b));
+    if (ov <= 0) return 0;
+    best = Math.min(best, ov);
+  }
+  return best;
+}
+// quanto un cerchio entra nel rettangolo (≤ 0 = fuori)
+function circleDepth(poly, cx, cy, r) {
+  let inside = true, dist = Infinity;
+  for (let i = 0; i < 4; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % 4], ex = x2 - x1, ey = y2 - y1;
+    if ((cx - x1) * ey - (cy - y1) * ex < 0) inside = false;   // angoli in senso orario: dentro = a destra di ogni lato
+    const t = Math.max(0, Math.min(1, ((cx - x1) * ex + (cy - y1) * ey) / (ex * ex + ey * ey)));
+    dist = Math.min(dist, Math.hypot(cx - x1 - ex * t, cy - y1 - ey * t));
+  }
+  return inside ? r + dist : r - dist;
+}
 
 test('pista percorribile: curve mai più strette di 14 m, passi di 1 m, nessun tratto che torna a meno di 30 m', () => {
   for (let level = 1; level <= 16; level++) {
@@ -211,25 +249,33 @@ test('traiettoria ideale degli avversari: fuori prima della curva, all\'interno 
   assert.ok(n > 20 && inside / n > 0.65 && outside / n > 0.6, `apici dentro ${inside}/${n}, ingressi da fuori ${outside}/${n}`);
 });
 
-test('il bot pilota (reazione ~0,22 s) chiude tra i primi 3 i livelli 1–10 su 4 semi; al livello 1 vince sempre', () => {
-  const stats = [], misses = [];
-  for (let level = 1; level <= 10; level++) {
+test('il bot pilota attento (reazione ~0,22 s) vince i primi livelli, poi non sempre: 1°–3° a metà, più dura in alto', () => {
+  const stats = [], pos = {};
+  for (let level = 1; level <= 12; level++) {
+    pos[level] = [];
     for (let k = 0; k < 4; k++) {
       const s = fresh(level, level * 1000 + k);
       const ev = play(s, { seed: level * 7 + k });
-      stats.push(`L${level}.${k} ${s.pos}° ${s.fin.toFixed(0)} s, power-up ${ev.filter((e) => e.type === 'use' && e.who === 0).length}`);
+      stats.push(`L${level}.${k} ${s.pos}° ${s.fin.toFixed(0)} s, fuori ${s.offT.toFixed(0)} s, power-up ${ev.filter((e) => e.type === 'use' && e.who === 0).length}`);
       assert.ok(R.isOver(s), `livello ${level}: gara non finita`);
-      if (s.pos > 3) misses.push(`L${level}.${k}: ${s.res.map((r) => `${R.WHO[r.id]} ${r.t.toFixed(1)}`).join(', ')}`);
-      if (level === 1) assert.equal(s.pos, 1, `livello 1: ${s.pos}°`);
+      pos[level].push(s.pos);
       assert.equal(R.progress(s), s.won ? 1 : R.progress(s));
       assert.equal(R.rate(s), Math.max(0, 4 - s.pos));
       // anche gli avversari usano i power-up
       if (level >= 3) assert.ok(ev.some((e) => e.type === 'use' && e.who > 0), `livello ${level}: avversari senza power-up`);
     }
   }
-  // eccezioni ammesse (documentate in docs/games/rally.md): al massimo una gara persa per livello, solo dal 9
-  assert.ok(misses.every((m) => +m.slice(1, m.indexOf('.')) >= 9) && misses.length <= 2, `gare perse: ${misses.join(' · ')}`);
   if (process.env.RALLY_STATS) console.log(stats.join('\n'));
+  const mean = (a, b) => { let n = 0, t = 0; for (let L = a; L <= b; L++) for (const p of pos[L]) { t += p; n++; } return t / n; };
+  const all = (a, b, f) => { for (let L = a; L <= b; L++) if (!pos[L].every(f)) return false; return true; };
+  // livelli 1–2: vince sempre; 1–5: sempre sul podio
+  assert.ok(all(1, 2, (p) => p === 1), `livelli 1–2: ${[1, 2].map((L) => pos[L].join('')).join(' ')}`);
+  assert.ok(all(1, 5, (p) => p <= 3), `livelli 1–5: ${[1, 2, 3, 4, 5].map((L) => pos[L].join('')).join(' ')}`);
+  // a metà (6–8) quasi sempre sul podio ma non sempre primo; in alto (9–12) più indietro, a volte giù dal podio
+  const mid = mean(6, 8), high = mean(9, 12);
+  assert.ok(mid > 1.1 && mid < 2.6, `livelli 6–8: posizione media ${mid.toFixed(2)}`);
+  assert.ok(high > mid && high < 3.7, `livelli 9–12: posizione media ${high.toFixed(2)} (6–8: ${mid.toFixed(2)})`);
+  assert.ok([6, 7, 8].reduce((n, L) => n + pos[L].filter((p) => p > 3).length, 0) <= 2, 'livelli 6–8: al massimo 2 gare perse');
 });
 
 test('livello 1: corto e facile anche per un pilota lento e impreciso, che però perde più spesso nei livelli alti', () => {
@@ -239,7 +285,7 @@ test('livello 1: corto e facile anche per un pilota lento e impreciso, che però
     assert.ok(R.isWon(s), `seme ${k}: ${s.pos}°`);
     assert.ok(s.fin > 55 && s.fin < 120, `durata ${s.fin.toFixed(1)} s`);
   }
-  for (let level = 2; level <= 4; level++) {
+  for (let level = 2; level <= 3; level++) {
     const s = fresh(level, 500 + level);
     play(s, Object.assign({ seed: level }, SLOWBOT));
     assert.ok(R.isWon(s), `livello ${level}: ${s.pos}°`);
@@ -254,6 +300,33 @@ test('livello 1: corto e facile anche per un pilota lento e impreciso, che però
   }
   assert.ok(slowPos > goodPos + n * 0.8, `posizione media: lento ${(slowPos / n).toFixed(2)}, attento ${(goodPos / n).toFixed(2)}`);
   assert.ok(lost >= n / 2, `il bot lento perde ${lost}/${n}`);
+});
+
+test('chi non frena mai va fuori strada (erba, sabbia, neve, marciapiede), viene riportato in pista dalla nuvoletta e perde', () => {
+  let lost = 0, n = 0, worse = 0, rescues = 0, spins = 0, offRaces = 0, first = 0, sumA = 0, sumB = 0, nHi = 0;
+  const rows = [];
+  for (let level = 5; level <= 12; level++) for (let k = 0; k < 2; k++) {
+    const a = fresh(level, level * 1000 + k), b = fresh(level, level * 1000 + k);
+    play(a, { seed: level * 7 + k });
+    const ev = play(b, Object.assign({ seed: level * 7 + k }, NOBRAKE));
+    n++; sumA += a.pos; sumB += b.pos;
+    if (b.pos === 1) first++;
+    if (level >= 8) { nHi++; if (!R.isWon(b)) lost++; }
+    if (level >= 10 && b.pos === 1) first += 10;
+    if (b.pos > a.pos || (b.pos === a.pos && b.fin > a.fin)) worse++;
+    if (b.offT > 1.5) offRaces++;
+    rescues += ev.filter((e) => e.type === 'rescue').length;
+    spins += ev.filter((e) => e.type === 'spin' && e.who === 0).length;
+    rows.push(`L${level}.${k} senza freno ${b.pos}° ${b.fin.toFixed(0)} s (fuori ${b.offT.toFixed(0)} s) · attento ${a.pos}° ${a.fin.toFixed(0)} s`);
+  }
+  if (process.env.RALLY_STATS) console.log(rows.join('\n'));
+  // sempre fuori strada; in media dietro al bot attento; raramente primo (mai dal livello 10); dall'8 perde spesso
+  assert.ok(offRaces >= n - 1, `fuori strada in ${offRaces}/${n} gare`);
+  assert.ok(sumB >= sumA + n * 0.5, `posizione media: senza freno ${(sumB / n).toFixed(2)}, attento ${(sumA / n).toFixed(2)}`);
+  assert.ok(first <= 3, `chi non frena arriva primo ${first} volte (+10 per ogni volta dal livello 10)`);
+  assert.ok(lost >= nHi / 2, `dal livello 8 chi non frena perde ${lost}/${nHi}`);
+  assert.ok(worse >= n * 0.7, `chi non frena fa peggio del bot attento in ${worse}/${n} gare`);
+  assert.ok(rescues >= 6, `nuvolette ${rescues} (sbandate ${spins})`);
 });
 
 test('gli avversari finiscono sempre la gara (anche con Hari fermo al via), dentro i bordi, e la classifica è completa', () => {
@@ -279,35 +352,67 @@ test('gli avversari finiscono sempre la gara (anche con Hari fermo al via), dent
   assert.equal(s.res.findIndex((r) => r.id === 0) + 1, s.pos);
 });
 
-test('collisioni: in gare intere nessuna compenetrazione residua, nessuno oltre i bordi, nessun teletrasporto', () => {
-  let ticks = 0, contacts = 0;
-  for (const level of [2, 4, 6, 8, 9, 10]) for (let k = 0; k < 2; k++) {
-    const s = fresh(level, level * 1000 + k), g = R.geo(s), bot = makeBot(s, { seed: level * 7 + k });
+test('collisioni nel mondo: in tante gare (3 bot, livelli 2–12) nessuna coppia di kart si sovrappone, né nella logica né nella posa disegnata', () => {
+  let ticks = 0, contacts = 0, near = 0, rescues = 0;
+  for (const bo of [{}, NOBRAKE, SLOWBOT]) for (const level of [2, 3, 4, 5, 6, 8, 9, 10, 11, 12]) for (let k = 0; k < 2; k++) {
+    const s = fresh(level, level * 1000 + k), g = R.geo(s), bot = makeBot(s, Object.assign({ seed: level * 7 + k }, bo));
     while (!R.isOver(s)) {
       const prev = s.cars.map((c) => ({ s: c.s, d: c.d, v: c.v }));
       const ev = R.step(s, DT, bot());
       if (ev.some((e) => e.type === 'bump')) contacts++;
-      const n = Math.round(DT / R.TICK);   // passi fissi fatti
+      const jumped = new Set(ev.filter((e) => e.type === 'rescue' || e.type === 'back').map((e) => e.who));
+      rescues += ev.filter((e) => e.type === 'rescue').length;
+      const W = s.cars.map((c) => wpose(g, c)), D = s.cars.map((c) => R.pose(g, c));
       for (let a = 0; a < 4; a++) {
         const A = s.cars[a];
-        if (A.fin >= 0) continue;
-        // dentro i bordi con tutto il rettangolo (cespugli, transenne, ringhiere e pareti delle gallerie)
-        assert.ok(Math.abs(A.d) + R.extent(A.psi) <= R.edgeAt(g, A.s).lim + 1e-6, `L${level}: auto ${A.id} oltre il bordo`);
-        for (const rk of g.rocks) assert.ok(!R.hitCircle(A, rk.s, rk.d, rk.r - 1e-3), `L${level}: auto ${A.id} dentro un ostacolo`);
-        // niente salti: lo spostamento in un passo è quello della velocità (più pochi centimetri)
-        assert.ok(Math.abs(A.d - prev[a].d) <= 0.2 * n, `L${level}: scarto laterale ${(A.d - prev[a].d).toFixed(2)} m`);
-        assert.ok(A.s - prev[a].s <= Math.max(A.v, prev[a].v) * DT * 1.05 + 0.08 && A.s - prev[a].s >= -0.12, `L${level}: scarto in avanti ${(A.s - prev[a].s).toFixed(2)} m`);
+        if (A.fin >= 0 || A.res > 0) continue;
+        // la posa che usa la grafica (R.pose) è il rettangolo vero (oracolo calcolato qui dai punti della pista)
+        assert.ok(Math.hypot(D[a].x - W[a].x, D[a].y - W[a].y) < 0.02 && Math.abs(Math.sin(D[a].h - W[a].h)) < 0.004, `L${level}: posa disegnata diversa di ${Math.hypot(D[a].x - W[a].x, D[a].y - W[a].y).toFixed(4)} m, ${Math.sin(D[a].h - W[a].h).toFixed(4)} rad a s = ${A.s.toFixed(1)}, d = ${A.d.toFixed(2)}`);
+        // dentro i muri veri con tutto il rettangolo; oltre il limite senza muro solo finché arriva la nuvoletta
+        for (const sg of [1, -1]) {
+          const sd = R.sideAt(g, A.s, sg), over = sg * A.d + R.extent(A.psi) - sd.lim;
+          assert.ok(over <= (sd.hard ? 1e-6 : 0.4), `L${level}: auto ${A.id} oltre il bordo di ${over.toFixed(2)} m (${sd.hard ? 'muro' : 'limite'})`);
+        }
+        // mai dentro un albero, una roccia, un cumulo o un vaso
+        const poly = cornersW(W[a]);
+        for (const ob of g.props.concat(g.rocks)) if (Math.abs(ob.s - A.s) < 8) assert.ok(circleDepth(poly, ob.x, ob.y, ob.r) < 0.01, `L${level}: auto ${A.id} dentro ${ob.k}`);
+        // niente salti (tranne la nuvoletta): lo spostamento in un passo è quello della velocità (più pochi centimetri)
+        if (!jumped.has(A.id)) {
+          // (lungo i guardrail a imbuto prima dei ponti il muro spinge di lato quanto la sua pendenza × la strada fatta)
+          assert.ok(Math.abs(A.d - prev[a].d) <= 0.35, `L${level}: scarto laterale ${(A.d - prev[a].d).toFixed(2)} m`);
+          const ds = A.s - prev[a].s, vm = Math.max(Math.abs(A.v), Math.abs(prev[a].v));
+          assert.ok(Math.abs(ds) <= vm * DT * 1.6 + 0.1, `L${level}: scarto in avanti ${ds.toFixed(2)} m a ${vm.toFixed(1)} m/s`);
+        }
         for (let b = a + 1; b < 4; b++) {
           const B = s.cars[b];
-          if (B.fin >= 0 || airborne(A) || airborne(B)) continue;
-          assert.ok(sepDepth(A, B) < 0.01, `L${level}: auto ${A.id} e ${B.id} compenetrate di ${sepDepth(A, B).toFixed(3)} m`);
+          if (B.fin >= 0 || B.res > 0 || A.gh || B.gh || airborne(A) || airborne(B)) continue;
+          if (Math.abs(A.s - B.s) < 8) near++;
+          // oracolo (± qualche millimetro di discretizzazione della pista) e posa disegnata
+          const dep = sepW(poly, cornersW(W[b])), drawn = sepW(cornersW(D[a]), cornersW(D[b]));
+          assert.ok(dep < 0.015 && drawn < 0.005, `L${level}: kart ${A.id} e ${B.id} compenetrati di ${dep.toFixed(3)} m (disegnati ${drawn.toFixed(3)} m)`);
         }
       }
       ticks++;
     }
   }
-  assert.ok(contacts >= 5, `contatti con Hari: ${contacts}`);
-  assert.ok(ticks > 10000);
+  assert.ok(contacts >= 20 && near > 5000 && rescues >= 5, `contatti con Hari ${contacts}, vicini ${near}, nuvolette ${rescues}`);
+  assert.ok(ticks > 100000);
+});
+
+test('in curva il vecchio modo (rettangoli in s, d) sbagliava: il nuovo separa davvero nel mondo', () => {
+  // due kart all'interno di un tornante, uno davanti all'altro di CAR_L + 5 cm "lungo s": in (s, d) non si toccano,
+  // nel mondo sì (all'interno un metro di s vale 1 − k·d metri)
+  let s, nt;
+  for (let seed = 1; seed < 80 && !nt; seed++) { s = go(fresh(8, seed)); nt = R.geo(s).notes.find((q) => q.kind === 'curve' && q.g === 1); }
+  const G = R.geo(s);
+  park(s, 2, 3);
+  const A = s.cars[0], B = s.cars[1], din = nt.dir * 3.6;
+  A.s = nt.apex; A.d = din; A.v = 0; B.s = nt.apex + R.CAR_L + 0.05; B.d = din; B.v = 0; B.skill = 1e-4;
+  assert.equal(R.overlap(A, B), null, 'in (s, d) sembrano staccati');
+  const before = sepW(cornersW(wpose(G, A)), cornersW(wpose(G, B)));
+  assert.ok(before > 0.2, `nel mondo si compenetrano di ${before.toFixed(2)} m`);
+  R.tick(s, { steer: 0, gas: 0, brake: 1 });
+  assert.ok(sepW(cornersW(wpose(G, A)), cornersW(wpose(G, B))) < 0.01, 'dopo un passo sono separati nel mondo');
 });
 
 test('collisioni auto–auto: spinte proporzionali all\'urto, con attrito, e lo scudo-bolla non si sposta', () => {
@@ -320,7 +425,7 @@ test('collisioni auto–auto: spinte proporzionali all\'urto, con attrito, e lo 
     let ev = [];
     for (let i = 0; i < 12; i++) ev = ev.concat(R.tick(s, { steer: 0, brake: 0 }));
     assert.ok(ev.some((e) => e.type === 'bump'));
-    assert.ok(sepDepth(A, B) < 0.01);
+    assert.ok(sepW(cornersW(wpose(R.geo(s), A)), cornersW(wpose(R.geo(s), B))) < 0.015);
     return { a: A.v, b: B.v };
   };
   const soft = hit(3), hard = hit(8);
@@ -332,7 +437,7 @@ test('collisioni auto–auto: spinte proporzionali all\'urto, con attrito, e lo 
   const A = s.cars[0], B = s.cars[1];
   A.s = 200; A.d = -1.2; A.v = 18; A.psi = 0.12; B.s = 200.5; B.d = 1.0; B.v = 18; B.skill = 1;
   let maxPd = 0;
-  for (let i = 0; i < 60; i++) { R.tick(s, { steer: -0.4, brake: 0 }); maxPd = Math.max(maxPd, Math.abs(B.pd)); assert.ok(sepDepth(A, B) < 0.01); }
+  for (let i = 0; i < 60; i++) { R.tick(s, { steer: -0.4, brake: 0 }); maxPd = Math.max(maxPd, Math.abs(B.pd)); assert.ok(sepW(cornersW(wpose(R.geo(s), A)), cornersW(wpose(R.geo(s), B))) < 0.015); }
   assert.ok(maxPd > 0.3 && maxPd <= 4, `spinta laterale ${maxPd.toFixed(2)} m/s`);
   // scudo-bolla: chi lo ha non viene spostato; lo scudo scoppia dopo la prima spinta
   const t = go(fresh(2, 4));
@@ -345,30 +450,44 @@ test('collisioni auto–auto: spinte proporzionali all\'urto, con attrito, e lo 
   const ev = R.tick(t, { steer: 0, brake: 0 });
   R.tick(t2, { steer: 0, brake: 0 });
   assert.ok(ev.some((e) => e.type === 'pop' && e.who === 1));
-  assert.ok(Math.abs(Q.d - Q2.d) < 1e-6 && Math.abs(Q.s - Q2.s) < 1e-6 && Math.abs(Q.v - Q2.v) < 1e-6, 'lo scudo non si sposta');
+  // (a meno di quei pochi centimetri con cui il suo pilota reagisce a chi gli è accanto)
+  assert.ok(Math.abs(Q.d - Q2.d) < 0.03 && Math.abs(Q.s - Q2.s) < 0.03 && Math.abs(Q.v - Q2.v) < 0.05, `lo scudo non si sposta: ${(Q.d - Q2.d).toFixed(3)} / ${(Q.s - Q2.s).toFixed(3)}`);
   assert.ok(P.v < 19 - 4, `chi sbatte sulla bolla rimbalza: ${P.v.toFixed(1)} m/s`);
-  assert.ok(sepDepth(P, Q) < 0.01);
+  assert.ok(sepW(cornersW(wpose(R.geo(t), P)), cornersW(wpose(R.geo(t), Q))) < 0.015);
 });
 
-test('fisica: freno, fuori strada, bordi morbidi con rallentamento proporzionale, ostacoli, mai al contrario', () => {
-  // freno
+test('fisica: acceleratore, freno e retromarcia, fuori strada che rallenta, muri veri, nuvoletta, ostacoli', () => {
+  // acceleratore manuale: senza gas si rallenta piano, col freno si frena, da fermi il freno è la retromarcia
   const s = go(fresh(4, 3));
   park(s, 1, 2, 3);
-  run(s, 4, { steer: 0, brake: 0 });
+  run(s, 4, { steer: 0, gas: 1, brake: 0 });
   const v0 = s.cars[0].v;
-  assert.ok(v0 > 14, `accelerazione automatica: ${v0.toFixed(1)} m/s`);
-  run(s, 0.5, { steer: 0, brake: 1 });
-  assert.ok(s.cars[0].v < v0 - 5, 'il freno rallenta');
-  // fuori strada: sull'erba la velocità scende sotto il limite
+  assert.ok(v0 > 14, `accelerando: ${v0.toFixed(1)} m/s`);
+  run(s, 1, { steer: 0, gas: 0, brake: 0 });
+  const v1 = s.cars[0].v;
+  assert.ok(v1 < v0 - 0.8 && v1 > v0 - 4, `senza gas: ${v0.toFixed(1)} → ${v1.toFixed(1)} m/s`);
+  run(s, 0.5, { steer: 0, gas: 0, brake: 1 });
+  assert.ok(s.cars[0].v < v1 - 5, 'il freno rallenta');
+  const sb = s.cars[0].s;
+  run(s, 4, { steer: 0, gas: 0, brake: 1 });
+  assert.ok(s.cars[0].v < -2 && s.cars[0].v >= -R.REV - 1e-9 && s.cars[0].s < sb, `retromarcia ${s.cars[0].v.toFixed(1)} m/s`);
+  run(s, 1, { steer: 0, gas: 1, brake: 0 });
+  assert.ok(s.cars[0].v > 0, 'col gas si torna avanti');
+  // acceleratore automatico (gas assente) e gas a zero (resta fermo)
+  const au = go(fresh(4, 3)); park(au, 1, 2, 3); run(au, 3, { steer: 0, brake: 0 });
+  assert.ok(au.cars[0].v > 12, 'acceleratore automatico');
+  const z = go(fresh(4, 3)); park(z, 1, 2, 3); run(z, 2, { steer: 0, gas: 0, brake: 0 });
+  assert.equal(z.cars[0].v, 0);
+  // fuori strada: sull'erba si rallenta molto (fino al limite della superficie)
   const t = go(fresh(4, 3)), p = t.cars[0];
   park(t, 1, 2, 3);
-  run(t, 4, null);
-  p.d = R.HALF + 1.5; p.psi = 0;
-  const ev = run(t, 2.5, { steer: 0, brake: 0 });
-  assert.ok(ev.some((e) => e.type === 'off'));
-  if (Math.abs(p.d) > R.HALF + R.SHOULDER) assert.ok(p.v <= R.config(4).vmax * R.OFFCAP + 0.3, `fuori strada ${p.v.toFixed(1)} m/s`);
-  // contro la ringhiera di un ponte (sull'asfalto, niente erba): urto di striscio = poco rallentamento, urto deciso =
-  // di più; il rettangolo resta sempre dentro
+  run(t, 4, { steer: 0, gas: 1, brake: 0 });
+  p.d = R.HALF + 1.4; p.psi = 0;
+  // resta sull'erba (a 1,4 m dal bordo) con un po' di sterzo
+  const ev = run(t, 2.5, (q) => ({ steer: -(R.kAt(R.geo(q), p.s) + (R.HALF + 1.4 - p.d) * 0.03 - (p.psi - p.bet) * 0.3) / R.KMAX, gas: 1, brake: 0 }));
+  assert.ok(ev.some((e) => e.type === 'off' && e.surf === 'grass') && R.isOff(p));
+  assert.ok(p.v <= R.config(4).vmax * R.SURF.forest.cap + 0.3, `sull'erba ${p.v.toFixed(1)} m/s`);
+  // muro vero (ringhiera di un ponte): urto di striscio = poco rallentamento, urto deciso = tanto; mai oltre
   let bs = 1;
   while (!R.geo(fresh(1, bs)).bridges.length) bs++;
   const wallHit = (psi) => {
@@ -376,19 +495,47 @@ test('fisica: freno, fuori strada, bordi morbidi con rallentamento proporzionale
     park(u, 1, 2, 3);
     q.s = b.s0 + 1; q.v = 18; q.psi = psi; q.d = R.RAIL - R.extent(psi) - 0.05;
     const e2 = [];
-    for (let i = 0; i < 20; i++) { e2.push(...R.tick(u, { steer: 0, brake: 0 })); assert.ok(Math.abs(q.d) + R.extent(q.psi) <= R.edgeAt(g, q.s).lim + 1e-6); }
+    for (let i = 0; i < 20; i++) { e2.push(...R.tick(u, { steer: 0, gas: 1, brake: 0 })); assert.ok(Math.abs(q.d) + R.extent(q.psi) <= R.sideAt(g, q.s, Math.sign(q.d)).lim + 1e-6); }
     return { v: q.v, boing: e2.some((e) => e.type === 'boing') };
   };
   const graze = wallHit(0.06), steep = wallHit(0.5);
-  assert.ok(steep.boing && steep.v < graze.v - 1.5 && graze.v > 15.5, `striscio ${graze.v.toFixed(1)}, deciso ${steep.v.toFixed(1)}`);
-  // sterzo tutto da una parte per 6 s: si resta dentro, mai al contrario, si va sempre avanti
+  assert.ok(steep.boing && steep.v < graze.v - 3 && graze.v > 14, `striscio ${graze.v.toFixed(1)}, deciso ${steep.v.toFixed(1)}`);
+  // prima del ponte il guardrail a imbuto porta dentro senza scatti
+  {
+    const u = go(fresh(1, bs)), g = R.geo(u), b = g.bridges[0];
+    let prev = R.sideAt(g, b.s0 - R.FUN - 2, 1).lim;
+    for (let sv = b.s0 - R.FUN - 2; sv <= b.s0; sv += 0.25) { const l = R.sideAt(g, sv, 1).lim; assert.ok(l <= prev + 1e-9 && prev - l < 0.2); prev = l; }
+    assert.equal(R.sideAt(g, b.s0, 1).lim, R.RAIL);
+  }
+  // bosco (niente muri): sterzando tutto da una parte si esce, arriva la nuvoletta e si torna sulla strada più indietro
   const u = go(fresh(4, 8)), q = u.cars[0];
-  run(u, 3, null);
-  const s0 = q.s;
-  const ev2 = run(u, 6, { steer: 1, brake: 0 });
-  assert.ok(ev2.some((e) => e.type === 'boing'), 'rimbalzo sul bordo');
-  assert.ok(Math.abs(q.psi) <= 1 + 1e-9 && q.s > s0 + 20);
-  // ostacolo all'interno della curva: chi taglia rallenta e viene spostato fuori, senza restarci dentro
+  park(u, 1, 2, 3);
+  run(u, 3, { steer: 0, gas: 1, brake: 0 });
+  const ev2 = [];
+  let resc = null;
+  for (let i = 0; i < 60 * 8 && !ev2.some((e) => e.type === 'back'); i++) {
+    const e = R.tick(u, { steer: 1, gas: 1, brake: 0 });
+    ev2.push(...e);
+    if (!resc && e.some((x) => x.type === 'rescue')) resc = { s: q.s, t: u.t };
+  }
+  assert.ok(resc, 'nuvoletta');
+  assert.ok(ev2.some((e) => e.type === 'back') && Math.abs(q.d) <= R.HALF && q.v === 0 && q.psi === 0 && q.s < resc.s, 'di nuovo sulla strada');
+  assert.ok(u.t - resc.t >= R.RESCUE - 0.02 && u.nres >= 1, 'tempo perso');
+  // ostacoli della fascia fuori strada (alberi, rocce): fermano, si gira un po', mai dentro
+  for (let seed = 1; seed < 40; seed++) {
+    const w = go(fresh(4, seed)), g = R.geo(w);
+    const ob = g.props.find((o) => !R.SOFT[o.k] && o.s > g.S0 + 200);
+    if (!ob) continue;
+    park(w, 1, 2, 3);
+    const c = w.cars[0];
+    c.s = ob.s - 7; c.d = ob.d; c.v = 15; c.psi = 0;
+    const e3 = [];
+    for (let i = 0; i < 60; i++) { e3.push(...R.tick(w, { steer: 0, gas: 1, brake: 0 })); assert.ok(circleDepth(cornersW(wpose(g, c)), ob.x, ob.y, ob.r) < 0.01, 'dentro un ostacolo'); }
+    assert.ok(e3.some((e) => e.type === 'rock' && e.k === ob.k), 'urto');
+    assert.ok(Math.abs(c.v) < 9, `dopo l'urto ${c.v.toFixed(1)} m/s`);
+    break;
+  }
+  // ostacolo "non tagliare" all'interno della curva: chi taglia sbatte e viene spostato fuori, senza restarci dentro
   for (let seed = 1; seed < 40; seed++) {
     const w = go(fresh(6, seed)), g = R.geo(w);
     if (!g.rocks.length) continue;
@@ -396,19 +543,96 @@ test('fisica: freno, fuori strada, bordi morbidi con rallentamento proporzionale
     const rk = g.rocks[0], c = w.cars[0];
     c.s = rk.s - 6; c.d = rk.d; c.v = 15; c.psi = 0;
     const e3 = [];
-    for (let i = 0; i < 60; i++) { e3.push(...R.tick(w, { steer: 0, brake: 0 })); assert.ok(!R.hitCircle(c, rk.s, rk.d, rk.r - 1e-3)); }
+    for (let i = 0; i < 60; i++) { e3.push(...R.tick(w, { steer: 0, gas: 1, brake: 0 })); assert.ok(circleDepth(cornersW(wpose(g, c)), rk.x, rk.y, rk.r) < 0.01); }
     assert.ok(e3.some((e) => e.type === 'rock'));
-    assert.ok(c.v < 15 && c.v > 0);
+    assert.ok(c.v < 15);
     break;
   }
+  // mai al contrario
+  const m = go(fresh(4, 8)); park(m, 1, 2, 3);
+  run(m, 3, null);
+  run(m, 3, { steer: -1, gas: 1, brake: 0 });
+  assert.ok(Math.abs(m.cars[0].psi) <= 1.1 + 1e-9);
 });
 
-test('hitbox coerenti con la grafica: la mesh usa le misure della logica (auto, ostacoli, bordi)', () => {
+test('aderenza limitata: troppo veloci in curva si va larghi e si derapa; la derapata tenuta dà la mini-spinta', () => {
+  let drifts = 0, minis = 0, wide = 0, n = 0;
+  for (let seed = 1; seed < 60 && n < 6; seed++) {
+    const s = go(fresh(6, seed)), g = R.geo(s);
+    const nt = g.notes.find((q) => q.kind === 'curve' && q.g === 3 && q.R < 58 && q.ang > 60 && q.at > 200 && !q.bank);
+    if (!nt) continue;
+    n++;
+    park(s, 1, 2, 3);
+    const c = s.cars[0], vIn = Math.min(R.config(6).vmax, 1.2 * Math.sqrt(R.GRIP * g.c.grip * nt.R));
+    // dentro la curva sterzando tutto: il kart non riesce a seguirla (va largo) e derapa
+    c.s = nt.at - 30; c.d = 0; c.v = vIn;
+    const ev = [];
+    let dMax = 0;
+    for (let i = 0; i < 60 * 6 && c.s < nt.end + 30; i++) {
+      // vuole stare in mezzo: curvatura della strada + correzione su scostamento e direzione
+      const steer = Math.max(-1, Math.min(1, -(R.kAt(g, c.s + 3) - c.d * 0.03 - (c.psi - c.bet) * 0.25) / R.KMAX));
+      ev.push(...R.tick(s, { steer, gas: 1, brake: 0 }));
+      if (c.s < nt.end) dMax = Math.max(dMax, -nt.dir * c.d);
+    }
+    if (ev.some((e) => e.type === 'drift')) drifts++;
+    if (ev.some((e) => e.type === 'mini')) minis++;
+    if (dMax > 1.5) wide++;
+    if (process.env.RALLY_STATS) console.log(`seme ${seed} R ${nt.R} v ${vIn.toFixed(1)} largo ${dMax.toFixed(2)} m ${ev.filter((e) => ['drift', 'mini', 'off', 'spin'].includes(e.type)).map((e) => e.type).join(',')}`);
+    // la stessa curva frenando prima: niente fuori strada
+    const s2 = go(fresh(6, seed)); park(s2, 1, 2, 3);
+    const c2 = s2.cars[0];
+    c2.s = nt.at - 30; c2.d = 0; c2.v = vIn;
+    const ev2 = [];
+    for (let i = 0; i < 60 * 8 && c2.s < nt.end + 10; i++) {
+      const steer = Math.max(-1, Math.min(1, -(R.kAt(g, c2.s + 4) - c2.d * 0.02 - c2.psi * 0.08) / R.KMAX));
+      ev2.push(...R.tick(s2, { steer, gas: c2.v > 0.92 * Math.sqrt(R.GRIP * g.c.grip * nt.R) ? 0 : 1, brake: c2.v > Math.sqrt(R.GRIP * g.c.grip * nt.R) ? 1 : 0 }));
+    }
+    assert.ok(!ev2.some((e) => e.type === 'off' || e.type === 'rescue'), `seme ${seed}: frenando si resta in strada`);
+  }
+  assert.ok(n >= 4 && drifts >= n - 1 && wide >= n - 1, `derapate ${drifts}/${n}, larghi ${wide}/${n}`);
+  // chi entra appena un po' più veloce e tiene lo sterzo dentro (senza esagerare) derapa e all'uscita ha la mini-spinta
+  for (let seed = 1; seed < 40; seed++) {
+    const s = go(fresh(6, seed)), g = R.geo(s);
+    const nt = g.notes.find((q) => q.kind === 'curve' && q.g >= 3 && q.g <= 4 && q.ang > 70 && q.at > 200 && !q.bank);
+    if (!nt) continue;
+    park(s, 1, 2, 3);
+    const c = s.cars[0];
+    c.s = nt.at - 30; c.d = 0; c.v = Math.min(R.config(6).vmax, 1.2 * Math.sqrt(R.GRIP * g.c.grip * nt.R));
+    const ev = [];
+    for (let i = 0; i < 60 * 6 && c.s < nt.end + 30; i++) ev.push(...R.tick(s, { steer: Math.max(-1, Math.min(1, -R.kAt(g, c.s + 4) * 1.35 / R.KMAX)), gas: 1, brake: 0 }));
+    if (ev.some((e) => e.type === 'mini')) minis++;
+    if (seed > 12) break;
+  }
+  assert.ok(minis >= 2, `mini-spinte ${minis}`);
+  // la mini-spinta: un po' più di velocità massima per un attimo
+  const s = go(fresh(3, 2)), c = s.cars[0];
+  park(s, 1, 2, 3);
+  c.s = 200; c.v = 20; c.mini = R.DRIFT.T2;
+  const v = c.v;
+  R.tick(s, { steer: 0, gas: 1, brake: 0 });
+  assert.ok(c.mini > 0 && c.v > v);
+  // tanta deriva: sbandata (giro buffo, si rallenta)
+  c.bet = R.DRIFT.spin + 0.05; c.v = 20;
+  const e = R.tick(s, { steer: 0, gas: 1, brake: 0 });
+  assert.ok(e.some((x) => x.type === 'spin') && c.slip > 0 && c.v < 14);
+});
+
+test('hitbox coerenti con la grafica: kart, ostacoli, muri e imbuti usano le misure e la posa della logica', () => {
   const ui = fs.readFileSync(path.join(root, 'src/games/rally-ui.js'), 'utf8');
-  // macchinine, ostacoli e bordi disegnati con le stesse misure delle collisioni
-  for (const k of ['P.CAR_L', 'P.CAR_W', 'rk.r', 'P.edgeAt', 'P.RAIL', 'P.TUBE', 'P.PU.boxR', 'P.PU.honeyR', 'P.PU.bananaR']) assert.ok(ui.includes(k), `la grafica non usa ${k}`);
-  // la camera è dietro il centro dell'auto in modo che il bordo del cofano coincida col muso del rettangolo
+  // kart costruiti con P.CAR_L × P.CAR_W e messi nella posa della logica (P.pose); ostacoli col loro raggio; bordi e imbuti
+  for (const k of ['P.CAR_L', 'P.CAR_W', 'P.pose(g, c)', 'rk.r', 'pr.r', 'P.edgeAt', 'P.sideAt', 'P.RAIL', 'P.TUBE', 'P.FUN', 'P.PU.boxR', 'P.PU.honeyR', 'P.PU.bananaR']) assert.ok(ui.includes(k), `la grafica non usa ${k}`);
+  // visuale pilota: la camera è dietro il centro del kart in modo che il bordo del cofano coincida col muso del rettangolo
   assert.ok(/EYE_BACK\s*=\s*2\.9\s*-\s*P\.CAR_L\s*\/\s*2/.test(ui));
+  // gli ostacoli della fascia fuori strada stanno tra PROP_IN e il limite, mai sulla carreggiata
+  for (const L of [1, 4, 5, 7, 8]) {
+    const g = R.track(4000 + L, L);
+    for (const pr of g.props) {
+      assert.ok(Math.abs(pr.d) - pr.r >= R.PROP_IN - 1e-6 && Math.abs(pr.d) + pr.r <= R.sideAt(g, pr.s, Math.sign(pr.d)).lim, `L${L}: ostacolo ${pr.k} a d = ${pr.d}`);
+      const w = R.world(g, pr.s, pr.d);
+      assert.ok(Math.hypot(w.x - pr.x, w.y - pr.y) < 1e-9);
+    }
+    if (!R.config(L).hard) assert.ok(g.props.length > g.L / 40, `L${L}: ${g.props.length} ostacoli`);
+  }
 });
 
 test('power-up: turbo carota, scudo-bolla, buccia, miele, nuvoletta di fiori, calamita e molla', () => {
@@ -535,23 +759,34 @@ test('determinismo e ripresa da JSON: stessa partita con lo stesso seme, salvata
   assert.ok(a.cars[0].s > R.PREROLL + 100);
 });
 
-test('salvataggi della versione precedente: migrate() aggiunge i campi nuovi e la gara riprende', () => {
+test('salvataggi delle versioni precedenti: migrate() porta v1 e v2 alla v3 (kart nuovi, bordi nuovi) e la gara riprende', () => {
   const s = fresh(3, 12);
   run(s, 12, { steer: 0.05, brake: 0 });
-  // un salvataggio v1 aveva solo questi campi
-  const KEEP = ['id', 's', 'd', 'psi', 'v', 'air', 'airT', 'off', 'kc', 'slide', 'fin', 'skill', 'lane', 'err', 'errK', 'errD', 'bump', 'wall'];
-  const old = JSON.parse(JSON.stringify(s));
-  old.v = 1; delete old.hz; delete old.cl; delete old.bx; delete old.ag; delete old.chk; delete old.nhz;
-  old.cars = old.cars.map((c) => Object.fromEntries(KEEP.map((k) => [k, c[k]])));
-  old.cars[1].d = 9.5;   // fuori dai bordi nuovi
-  const m = R.migrate(old);
-  assert.equal(m.v, 2);
-  assert.ok(Array.isArray(m.hz) && m.cars.every((c) => c.it === 0 && c.pd === 0 && c.ac === 0));
-  assert.ok(Math.abs(m.cars[1].d) + R.CAR_W / 2 <= R.edgeAt(R.geo(m), m.cars[1].s).lim);
-  run(m, 10, { steer: 0, brake: 0 });
-  assert.ok(m.cars[0].s > old.cars[0].s + 50);
-  assert.equal(R.migrate(m).v, 2);
+  // un salvataggio v2 (auto 4 × 1,96 m, niente derapata né nuvoletta) e uno v1 (anche senza power-up)
+  const V2 = ['id', 's', 'd', 'psi', 'v', 'pd', 'air', 'airT', 'off', 'kc', 'slide', 'fin', 'skill', 'lane', 'err', 'errK', 'errD', 'bump', 'wall',
+    'it', 'hold', 'ac', 'boost', 'sh', 'slip', 'slow', 'mag', 'spr', 'ovS', 'ovT', 'use'];
+  const V1 = V2.slice(0, 19);
+  for (const [ver, keep] of [[2, V2], [1, V1]]) {
+    const old = JSON.parse(JSON.stringify(s));
+    old.v = ver; delete old.nres;
+    if (ver === 1) { delete old.hz; delete old.cl; delete old.bx; delete old.ag; delete old.chk; delete old.nhz; }
+    old.cars = old.cars.map((c) => Object.fromEntries(keep.map((k) => [k, c[k]])));
+    old.cars[1].d = 9.5;   // fuori dai bordi nuovi
+    old.cars[2].s = old.cars[3].s + 0.5; old.cars[2].d = old.cars[3].d;   // due kart uno sull'altro
+    const m = R.migrate(old);
+    assert.equal(m.v, 3);
+    assert.ok(Array.isArray(m.hz) && m.cars.every((c) => c.bet === 0 && c.res === 0 && c.dr === 0 && c.mini === 0), `v${ver}: campi nuovi`);
+    const g = R.geo(m);
+    assert.ok(m.cars.every((c) => Math.abs(c.d) + R.extent(c.psi) <= Math.min(R.sideAt(g, c.s, 1).lim, R.sideAt(g, c.s, -1).lim) + 1e-6), `v${ver}: dentro i bordi`);
+    assert.ok(sepW(cornersW(wpose(g, m.cars[2])), cornersW(wpose(g, m.cars[3]))) < 0.015, `v${ver}: separati`);
+    const s0 = m.cars[0].s;
+    run(m, 10, { steer: 0, brake: 0 });
+    assert.ok(m.cars[0].s > s0 + 50, `v${ver}: la gara riprende`);
+    assert.equal(R.migrate(m).v, 3);
+  }
   assert.equal(R.migrate({ v: 7, cars: [] }), null);
+  assert.equal(R.migrate({ v: 2, cars: [1, 2] }), null);
+  assert.equal(R.migrate(null), null);
 });
 
 test('conto alla rovescia 3-2-1-via, checkpoint, sorpassi contati, fragoline per posizione', () => {

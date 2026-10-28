@@ -1,34 +1,40 @@
 /* Hari Rally — logica pura (nessun DOM, nessun THREE), macchina a stati deterministica e serializzabile.
  *
- * Gara di rally in prima persona: tappa punto-punto generata da seme (rettilinei, curve con raccordi a clotoide,
- * chicane, tornanti, curve paraboliche), Hari contro 3 animaletti (coniglietta, volpe, panda). Ambientazioni a
- * rotazione (bosco, città, mare, neve) con giorno, tramonto e notte. L'acceleratore è AUTOMATICO: il giocatore sterza,
- * frena e usa i power-up. Obiettivo: arrivare tra i primi 3 (fragoline: 1° = 3, 2° = 2, 3° = 1).
- * Niente danni né armi: fuori strada si rallenta, i bordi sono morbidi, i contatti sono spintarelle, i power-up sono
- * scherzi buffi (buccia di banana, pozza di miele, nuvoletta di fiori) che rallentano un attimo.
+ * Gara di kart-rally: tappa punto-punto generata da seme (rettilinei, curve con raccordi a clotoide, chicane, tornanti,
+ * curve paraboliche), Hari contro 3 animaletti (coniglietta, volpe, panda) su kart a forma di frutto. Ambientazioni a
+ * rotazione (bosco, città, mare, neve) con giorno, tramonto e notte. Acceleratore e freno/retromarcia manuali
+ * (l'acceleratore automatico è un'opzione: input.gas assente = automatico). Obiettivo: arrivare tra i primi 3
+ * (fragoline: 1° = 3, 2° = 2, 3° = 1). Niente danni né armi: fuori strada (erba, marciapiede, sabbia, neve alta) si
+ * rallenta molto, alberi, rocce, transenne e ringhiere fermano o fanno girare, chi esce troppo viene riportato in pista
+ * da una nuvoletta; i contatti sono spintarelle, i power-up sono scherzi buffi che rallentano un attimo.
  *
  * Coordinate: metri. Pista campionata ogni metro: x, y (piano, y "a nord"), th (direzione), k (curvatura, >0 = sinistra).
  * Le auto vivono in coordinate di Frenet: s (metri lungo la pista), d (scostamento laterale, >0 = a sinistra),
- * psi (angolo rispetto alla pista, >0 = punta a sinistra), v (m/s), pd (spinta laterale ricevuta, m/s, si smorza).
+ * psi (angolo del muso rispetto alla pista, >0 = punta a sinistra), bet (angolo di deriva: il muso punta bet più in là
+ * di dove va l'auto; derapata), v (m/s lungo la direzione di marcia, < 0 in retromarcia), pd (spinta laterale ricevuta).
  * Sterzo in ingresso: steer -1..1 (>0 = destra). La geometria (pista, note, traiettoria ideale, profilo di velocità,
- * dossi, ponti, gallerie, curve paraboliche, ostacoli, scatole e ghiande) si ricava da seme + livello con geo(s) ed è
- * in cache fuori dallo stato; lo stato è JSON puro (anche il generatore casuale: s.rs, mulberry32). Passi fissi 1/60 s.
+ * dossi, ponti, gallerie, curve paraboliche, ostacoli, scatole e ghiande, bordi per lato) si ricava da seme + livello con
+ * geo(s) ed è in cache fuori dallo stato; lo stato è JSON puro (anche il generatore casuale: s.rs, mulberry32).
+ * Passi fissi 1/60 s, ciascuno con SUB sotto-passi di movimento e collisioni.
  *
- * Collisioni: ogni auto è un rettangolo orientato CAR_L × CAR_W (le stesse misure della mesh). Auto–auto: separazione
- * completa lungo l'asse di minima compenetrazione (SAT), impulso con poco rimbalzo e attrito, a metà tra le due auto
- * (chi ha lo scudo-bolla non si sposta). Bordi (cespugli, transenne, ringhiere, pareti delle gallerie) e ostacoli
- * (cerchi): si calcola l'ingombro vero del rettangolo, si spinge fuori di quanto serve e si toglie solo la parte di
- * velocità che va contro l'ostacolo (rallentamento proporzionale all'urto). Mai teletrasporti.
+ * Collisioni NEL PIANO DEL MONDO (non in (s, d), dove un metro lungo s vale (1 − k·d) metri veri e i rettangoli in
+ * curva si deformano): ogni auto è un rettangolo orientato CAR_L × CAR_W (le stesse misure del kart disegnato) con
+ * centro world(s, d) e direzione th + psi, la stessa posa che usa la grafica (pose()). Auto–auto: SAT nel mondo,
+ * separazione completa lungo l'asse di minima compenetrazione, risolta in modo iterativo (fino a 10 giri per
+ * sotto-passo, rimettendo dentro ai muri chi è stato spinto), impulso con poco rimbalzo e attrito; gli spostamenti e le
+ * velocità tornano in (s, d) con la base locale della pista. Muri (transenne, staccionate sul mare, ringhiere, pareti
+ * delle gallerie) e ostacoli (alberi, rocce, cumuli, vasi: cerchi nel mondo) come prima, mai teletrasporti (tranne la
+ * nuvoletta che riporta in pista, che è un evento esplicito).
  *
  * API:
  *   config(level)              parametri del livello (curva di difficoltà, monotona) e ambientazione
  *   newLevel(level, rnd)       stato iniziale (griglia di partenza, conto alla rovescia)
- *   step(s, dt, input) → ev    tempo reale; input = { steer, brake, use } oppure null
- *   tick · geo · track · notes · upcoming · world · height · nearest · edgeAt · bankAt · ranking · migrate
- *   isWon · isLost · isOver · rate · progress · par · obb · overlap
- * Eventi: count{n} · go · call{i} · off · on · boing{who} · rock{who} · bump{who, a, b} · jump{v} · pass{who, up}
- *   check{n, pos} · box{who, it} · use{who, it} · slip{who} · honey{who} · cloud{who, by} · pop{who} · acorn{who, n}
- *   spring{who} · finish{pos} · win · lose
+ *   step(s, dt, input) → ev    tempo reale; input = { steer, gas?, brake, use } oppure null
+ *   tick · geo · track · notes · upcoming · world · pose · height · nearest · edgeAt · sideAt · bankAt · ranking · migrate
+ *   isWon · isLost · isOver · rate · progress · par · obb · overlap · overlapW
+ * Eventi: count{n} · go · call{i} · off{surf} · on · boing{who} · rock{who, k} · bump{who, a, b} · jump{v}
+ *   pass{who, up} · check{n, pos} · box{who, it} · use{who, it} · slip{who} · honey{who} · cloud{who, by} · pop{who}
+ *   acorn{who, n} · spring{who} · drift{who} · mini{who, lvl} · spin{who} · rescue{who} · back{who} · finish{pos} · win · lose
  * Esporta HH.rally.
  */
 (function (G) {
@@ -38,19 +44,35 @@
   const READY = 3.2;            // conto alla rovescia 3, 2, 1, via
   const HALF = 4.5;             // metà larghezza della carreggiata
   const SHOULDER = 0.5;         // oltre HALF + SHOULDER si è fuori strada (erba, marciapiede, sabbia, neve)
-  const WALLS = { forest: 8.8, city: 7.2, sea: 8.2, snow: 8.4 };   // superficie del bordo morbido (dal centro)
+  // limite dell'ambientazione (dal centro): in città transenne e sul mare staccionata (lato spiaggia) e muretto (lato
+  // terra) sono MURI veri e continui; nel bosco e sulla neve oltre questa distanza (cespugli e staccionate decorativi)
+  // si è "usciti troppo" e arriva la nuvoletta che riporta in pista. Prima c'è la fascia fuori strada con gli ostacoli.
+  const WALLS = { forest: 12, city: 7.2, sea: 8.2, snow: 12 };
+  const HARD = { forest: false, city: true, sea: true, snow: false };
+  // superfici fuori strada: velocità massima (× vmax), aderenza, frenata oltre il massimo (m/s²)
+  const SURF = {
+    forest: { k: 'grass', cap: 0.42, grip: 0.68, drag: 13 }, city: { k: 'walk', cap: 0.45, grip: 0.8, drag: 13 },
+    sea: { k: 'sand', cap: 0.38, grip: 0.62, drag: 14 }, snow: { k: 'snow', cap: 0.36, grip: 0.58, drag: 14 },
+  };
   const WALL = WALLS.forest;
   const RAIL = HALF + 0.45;     // ringhiere dei ponti (superficie interna)
   const TUBE = HALF + 1.4;      // pareti delle gallerie
   const KMAX = 1 / 8.5;         // curvatura massima dello sterzo a fondo corsa
-  const GRIP = 9.5;             // accelerazione laterale massima (m/s²) sullo sterrato asciutto
+  const GRIP = 8.5;             // accelerazione laterale massima (m/s²) sullo sterrato asciutto
   const ACC = 6.8;              // spinta del motore (m/s² da fermi)
   const BRAKE = 13;             // frenata (m/s²)
-  const OFFCAP = 0.42;          // fuori strada: velocità massima = OFFCAP × vmax
+  const REV = 5;                // retromarcia: velocità massima (m/s)
+  const COAST = 1.3;            // senza gas né freno si rallenta piano (m/s²)
+  const OFFCAP = SURF.forest.cap;   // fuori strada (erba): velocità massima = OFFCAP × vmax
+  const SUB = 2;                // sotto-passi di movimento e collisioni per passo fisso
+  // derapata: oltre ON rad si derapa, sotto OFF si è "usciti"; tenuta T1/T2 s = mini-spinta 1/2 (+v m/s per T s)
+  const DRIFT = { on: 0.12, off: 0.06, t1: 0.75, t2: 1.6, v1: 1.8, v2: 3.0, T1: 0.55, T2: 0.95, max: 0.85, spin: 0.6, lock: 1.5 };
+  const RESCUE = 1.5;           // nuvoletta: secondi tra l'uscita e il ritorno in pista
   const CALL = 110;             // il navigatore legge la nota quando mancano CALL metri
   const RUNOFF = 90;            // strada dopo il traguardo
   const PREROLL = 30;           // strada prima della linea di partenza (griglia)
-  const CAR_L = 4.0, CAR_W = 1.96, HL = CAR_L / 2, HW = CAR_W / 2;
+  // kart a forma di frutto: rettangolo di collisione = ingombro del kart disegnato (scocca, ruote, paraurti)
+  const CAR_L = 3.2, CAR_W = 1.8, HL = CAR_L / 2, HW = CAR_W / 2;
   const E_CAR = 0.25, MU_CAR = 0.3, E_WALL = 0.2;
   const WHO = ['hari', 'bunny', 'fox', 'panda'];
   // gravità delle note (rally: 6 = quasi piena, 1 = la più stretta): raggio minimo della curva in metri
@@ -114,19 +136,23 @@
       level: L, tier, theme, stage, time, night: time === 'night' ? 1 : time === 'dusk' ? 0.5 : 0,
       len: Math.round(Math.min(4300, 1300 + 270 * (L - 1))),   // metri dalla partenza al traguardo
       minGrade: [3, 2, 1, 1, 1][tier],                          // curva più stretta possibile
-      tight: +([0, 0.08, 0.16, 0.22, 0.28][tier] + (tier ? pl.tight : 0)).toFixed(2),   // quota di curve gravità 1–2
+      tight: +([0, 0.1, 0.2, 0.28, 0.34][tier] + (tier ? pl.tight : 0)).toFixed(2),   // quota di curve gravità 1–2
       curvy: [0.62, 0.66, 0.7, 0.74, 0.78][tier],               // probabilità che il pezzo dopo un rettilineo sia una curva
       straight: [[40, 125], [36, 120], [30, 110], [25, 100], [20, 90]][tier],
       chicane: +(pl.chicane * (0.6 + 0.2 * tier)).toFixed(3),   // probabilità di una chicane al posto di una curva
       vmax: +(22.5 + 7 * up).toFixed(2),                        // m/s (81 → 106 km/h)
       grip: pl.grip,
-      wall: WALLS[theme],
-      // bravura degli avversari (frazione del profilo di velocità in curva) e velocità sui rettilinei
-      ai: [0.68, 0.75, 0.81].map((b, i) => +Math.min([0.88, 0.93, 0.97][i], b + 0.018 * (L - 1)).toFixed(3)),
-      aiTop: +Math.min(1, 0.95 + 0.006 * (L - 1)).toFixed(3),
-      aiErr: +Math.max(0.35, 1.3 - 0.07 * (L - 1)).toFixed(3), // errori degli avversari per km
+      wall: WALLS[theme], hard: HARD[theme], surf: SURF[theme].k,
+      // bravura degli avversari (frazione del profilo di velocità in curva) e velocità sui rettilinei: dal livello 3
+      // un gradino in più; ai livelli alti vicini al limite dell'aderenza
+      ai: [0.7, 0.77, 0.83].map((b, i) => +Math.min([0.91, 0.945, 0.975][i], b + 0.015 * (L - 1) + (L >= 3 ? 0.03 : 0)).toFixed(3)),
+      aiTop: +Math.min(1.01, 0.95 + 0.006 * (L - 1) + (L >= 3 ? 0.02 : 0)).toFixed(3),
+      // rubber band moderato: chi è indietro rispetto a Hari va fino a rb più forte (chi è davanti non rallenta mai)
+      rb: +Math.min(0.06, 0.03 + 0.003 * (L - 1)).toFixed(3),
+      aiErr: +Math.max(0.3, 1.3 - 0.08 * (L - 1)).toFixed(3),  // errori degli avversari per km
       aiItem: +Math.min(1, 0.3 + 0.09 * (L - 1)).toFixed(3),    // quanto usano i power-up "dispettosi"
-      assist: +Math.max(0.12, 0.7 - 0.06 * (L - 1)).toFixed(3), // aiuto allo sterzo (riallinea dolcemente)
+      assist: +Math.max(0, 0.45 - 0.08 * (L - 1)).toFixed(3),  // aiuto allo sterzo (riallinea dolcemente): solo all'inizio
+      autoGas: L <= 1,                                          // acceleratore automatico predefinito (opzione)
       // ampiezza delle colline (solo grafica): al mare quasi piatto (il livello dell'acqua è uno solo)
       hills: theme === 'sea' ? 1.6 : +Math.min(9, 2.5 + 0.5 * (L - 1)).toFixed(2),
       crests: +(0.5 + 0.14 * tier).toFixed(2),                  // dossi per km
@@ -346,7 +372,70 @@
     }
     // ampiezza e fasi delle colline (solo grafica)
     g.hill = { A: c.hills, p: [r() * 6.28, r() * 6.28, r() * 6.28] };
+    edgesAndProps(g, c);
     return g;
+  }
+  // limite per lato (outL a sinistra, outR a destra) e ostacoli della fascia fuori strada (g.props, cerchi nel mondo).
+  // All'interno delle curve strette il limite si accorcia (0,62 × raggio): lì le coordinate di Frenet si stringono.
+  const PROPS = {
+    forest: [['tree', 0.42, 0.42, 0.34], ['rock', 0.55, 0.95, 0.22], ['stump', 0.45, 0.5, 0.14], ['bush', 0.75, 0.95, 0.3]],
+    snow: [['pine', 0.42, 0.42, 0.4], ['bank', 0.9, 1.2, 0.36], ['snowman', 0.7, 0.75, 0.14], ['rock', 0.55, 0.8, 0.1]],
+    sea: [],    // al mare la fascia di sabbia arriva fino alla staccionata e al muretto: niente ostacoli in mezzo
+    city: [],   // in città il marciapiede finisce contro le transenne
+  };
+  const SOFT = { bush: 1, bank: 1 };   // si sbatte ma si perde meno velocità
+  const PROP_IN = HALF + SHOULDER + 2.8;           // nessun ostacolo prima di qui (gli avversari non arrivano oltre)
+  function slideMax(k, N, W, sg) {
+    const out = new Float32Array(N + 1), dq = new Int32Array(N + 1);
+    let h = 0, t = 0;
+    for (let j = 0; j <= N + W; j++) {
+      if (j <= N) { const v = sg * k[j]; while (t > h && sg * k[dq[t - 1]] <= v) t--; dq[t++] = j; }
+      const i = j - W;
+      if (i < 0) continue;
+      while (dq[h] < i - W) h++;
+      out[i] = Math.max(0, sg * k[dq[h]]);
+    }
+    return out;
+  }
+  function edgesAndProps(g, c) {
+    const { k, N } = g;
+    g.hard = c.hard;
+    for (const rk of g.rocks) { const w = world(g, rk.s, rk.d); rk.x = w.x; rk.y = w.y; }
+    g.outL = new Float32Array(N + 1); g.outR = new Float32Array(N + 1);
+    // massimo della curvatura verso ciascun lato nei ±12 m (finestra scorrevole, O(N))
+    const W = 12, mL = slideMax(k, N, W, 1), mR = slideMax(k, N, W, -1);
+    for (let i = 0; i <= N; i++) {
+      g.outL[i] = Math.min(g.wall, mL[i] > 0 ? 0.62 / mL[i] : g.wall);
+      g.outR[i] = Math.min(g.wall, mR[i] > 0 ? 0.62 / mR[i] : g.wall);
+    }
+    // ostacoli: generatore a parte (la pista e il resto restano identici)
+    const r = HH.rng((g.seed ^ 0x51ab7e) >>> 0), kinds = PROPS[c.theme];
+    g.props = [];
+    g.pb = new Map();
+    if (!kinds.length) return;
+    const tot = kinds.reduce((a, q) => a + q[3], 0);
+    const busy = (sv) => sv < g.S0 + 25 || sv > g.S1 - 8 || g.checks.some((q) => Math.abs(sv - q) < 9) ||
+      g.bridges.some((b) => sv > b.s0 - FUN - 4 && sv < b.s1 + FUN + 4) || g.tunnels.some((t) => sv > t.s0 - FUN - 4 && sv < t.s1 + FUN + 4) ||
+      g.rocks.some((q) => Math.abs(sv - q.s) < 5);
+    for (const sg of [1, -1]) {
+      for (let sv = g.S0 + 20 + r() * 10; sv < g.S1 + 40; sv += 7 + r() * 9) {
+        if (r() > 0.78 || busy(sv)) continue;
+        let u = r() * tot, kd = kinds[0];
+        for (const q of kinds) { u -= q[3]; if (u < 0) { kd = q; break; } }
+        const rad = +(kd[1] + (kd[2] - kd[1]) * r()).toFixed(2);
+        const i0 = Math.round(sv), out = Math.min(...[-3, 0, 3].map((o) => (sg > 0 ? g.outL : g.outR)[clamp(i0 + o, 0, N)]));
+        const lo = PROP_IN + rad, hi = out - rad - 0.25;
+        if (hi < lo) continue;
+        const ps = +sv.toFixed(2), d = +(sg * (lo + (hi - lo) * r())).toFixed(2);
+        const w = world(g, ps, d);
+        if (nearest(g, w.x, w.y).dist < PROP_IN + rad - 0.3) continue;
+        const p = { s: ps, d, r: rad, k: kd[0], x: w.x, y: w.y };
+        g.props.push(p);
+        const b = Math.floor(sv / 8);
+        let L = g.pb.get(b); if (!L) g.pb.set(b, (L = [])); L.push(p);
+      }
+    }
+    g.props.sort((p, q) => p.s - q.s);
   }
   const gk = (g, X, Y) => Math.floor(X / g.cell) * 73856093 ^ Math.floor(Y / g.cell) * 19349663;
 
@@ -516,16 +605,41 @@
   const kAt = (g, s) => { const f = clamp(s, 0, g.N - 1e-6), i = Math.floor(f); return lerp(g.k[i], g.k[i + 1], f - i); };
   const bankAt = (g, s) => { const f = clamp(s, 0, g.N - 1e-6), i = Math.floor(f); return lerp(g.bankA[i], g.bankA[i + 1], f - i); };
   const inSpan = (list, s, m = 0) => { for (const b of list) if (s > b.s0 - m && s < b.s1 + m) return b; return null; };
-  // bordo morbido alla distanza s: ringhiera del ponte, parete della galleria o bordo dell'ambientazione
-  function limAt(g, s) {
-    for (const b of g.bridges) if (s > b.s0 - 1 && s < b.s1 + 1) return RAIL;
-    for (const b of g.tunnels) if (s > b.s0 - 0.5 && s < b.s1 + 0.5) return TUBE;
-    return g.wall;
-  }
+  // bordo alla distanza s: ringhiera del ponte, parete della galleria o limite dell'ambientazione (per la grafica)
   function edgeAt(g, s) {
-    if (inSpan(g.bridges, s, 1)) return { lim: RAIL, kind: 'rail' };
-    if (inSpan(g.tunnels, s, 0.5)) return { lim: TUBE, kind: 'tube' };
-    return { lim: g.wall, kind: 'wall' };
+    if (inSpan(g.bridges, s, 1)) return { lim: RAIL, kind: 'rail', hard: true };
+    if (inSpan(g.tunnels, s, 0.5)) return { lim: TUBE, kind: 'tube', hard: true };
+    return { lim: g.wall, kind: 'wall', hard: !!g.hard };
+  }
+  // bordo di un lato (sg = +1 sinistra, −1 destra): distanza dal centro, se è un muro vero (altrimenti oltre si esce)
+  // e pendenza del muro (dlim/ds). Prima e dopo ponti e gallerie un guardrail a imbuto lungo FUN metri porta dal
+  // limite dell'ambientazione alla ringhiera o alla parete (niente muri che spuntano di colpo)
+  const FUN = 20;
+  const SIDE = { lim: 0, hard: false, slope: 0, kind: '' };
+  function spanSide(list, s, inner, m, kind) {
+    for (const b of list) {
+      const a0 = b.s0 - m, a1 = b.s1 + m;
+      if (s < a0 - FUN || s > a1 + FUN) continue;
+      if (s >= a0 && s <= a1) { SIDE.lim = inner; SIDE.hard = true; SIDE.slope = 0; SIDE.kind = kind; return; }
+      const u = s < a0 ? (a0 - s) / FUN : (s - a1) / FUN, l = inner + (SIDE.lim - inner) * u;
+      if (l < SIDE.lim) { SIDE.slope = (s < a0 ? -1 : 1) * (SIDE.lim - inner) / FUN; SIDE.lim = l; SIDE.hard = true; SIDE.kind = 'fun'; }
+    }
+  }
+  function sideAt(g, s, sg) {
+    const i = clamp(Math.round(s), 0, g.N);
+    SIDE.lim = sg > 0 ? g.outL[i] : g.outR[i]; SIDE.hard = !!g.hard; SIDE.slope = 0; SIDE.kind = 'wall';
+    spanSide(g.bridges, s, RAIL, 1, 'rail');
+    if (SIDE.kind !== 'rail') spanSide(g.tunnels, s, TUBE, 0.5, 'tube');
+    return SIDE;
+  }
+  // il più vicino dei due bordi (per gli avversari)
+  const limAt = (g, s) => Math.min(sideAt(g, s, 1).lim, sideAt(g, s, -1).lim);
+  // posa nel mondo di un'auto (la stessa che usa la grafica): centro, direzione del muso, base locale della pista
+  function pose(g, car) {
+    const N = g.N, f = clamp(car.s, 0, N - 1e-6), i = Math.floor(f), u = f - i;
+    const th = lerp(g.th[i], g.th[i + 1], u), tc = Math.cos(th), tn = Math.sin(th);
+    const x = lerp(g.x[i], g.x[i + 1], u) - tn * car.d, y = lerp(g.y[i], g.y[i + 1], u) + tc * car.d, h = th + car.psi;
+    return { x, y, h, c: Math.cos(h), n: Math.sin(h), tc, tn, k: lerp(g.k[i], g.k[i + 1], u), th };
   }
   // campione più vicino a un punto del piano (per la grafica: alberi lontani dalla strada)
   function nearest(g, X, Y) {
@@ -550,22 +664,25 @@
   }
 
   /* ---------- stato ---------- */
+  // dr = derapata tenuta (s), mini = mini-spinta (s), res = nuvoletta in corso (s), gh = "fantasma" appena posato
+  // (non urta finché non è libero), stuck = tempo fermo fuori strada
   function carOf(id, s0, d0, skill) {
-    return { id, s: s0, d: d0, psi: 0, v: 0, pd: 0, air: 0, airT: 0, off: false, kc: 0, slide: 0, fin: -1,
+    return { id, s: s0, d: d0, psi: 0, bet: 0, v: 0, pd: 0, air: 0, airT: 0, off: false, kc: 0, slide: 0, fin: -1,
       skill, lane: d0, err: 0, errK: 0, errD: 0, bump: 0, wall: 0,
-      it: 0, hold: 0, ac: 0, boost: 0, sh: 0, slip: 0, slow: 0, mag: 0, spr: 0, ovS: 0, ovT: 0, use: 0 };
+      it: 0, hold: 0, ac: 0, boost: 0, sh: 0, slip: 0, slow: 0, mag: 0, spr: 0, ovS: 0, ovT: 0, use: 0,
+      dr: 0, mini: 0, res: 0, gh: 0, stuck: 0 };
   }
   function newLevel(level, rnd = Math.random) {
     const seed = Math.floor(rnd() * 2147483647) >>> 0;
     const c = config(level);
     const s = {
-      v: 2, level: c.level, seed, L: c.len, t: 0, ready: READY, acc: 0, rs: (seed ^ 0x9e3779b9) >>> 0,
+      v: 3, level: c.level, seed, L: c.len, t: 0, ready: READY, acc: 0, rs: (seed ^ 0x9e3779b9) >>> 0,
       cars: [], rank: [], fin: -1, pos: 4, res: null, won: false, moves: 0, called: 0, cd: 4,
       offT: 0, boingT: 0, bumpT: 0, inp: null, wait: false,
-      hz: [], cl: [], bx: [], ag: '', chk: 0, nhz: 0,
+      hz: [], cl: [], bx: [], ag: '', chk: 0, nhz: 0, nres: 0,
     };
     // griglia: due file da due; Hari parte ultimo a destra
-    const grid = [[PREROLL - 2, 1.8], [PREROLL - 2, -1.8], [PREROLL - 9, 1.8], [PREROLL - 10, -1.8]];
+    const grid = [[PREROLL - 2, 1.7], [PREROLL - 2, -1.7], [PREROLL - 8, 1.7], [PREROLL - 9, -1.7]];
     const order = [1, 2, 3, 0];
     order.forEach((id, j) => s.cars.push(carOf(id, grid[j][0], grid[j][1], id ? c.ai[id - 1] : 1)));
     s.cars.sort((a, b) => a.id - b.id);
@@ -573,22 +690,27 @@
     geo(s);
     return s;
   }
-  // salvataggi della versione 1 (prima dei power-up): aggiunge i campi nuovi, rimette le auto dentro i bordi
+  // salvataggi vecchi: v1 (prima dei power-up) e v2 (auto più grandi, muri invisibili, acceleratore automatico).
+  // Aggiunge i campi nuovi, rimette le auto dentro i bordi nuovi e separa chi si tocca; la gara riprende da lì.
   function migrate(saved) {
-    if (!saved || typeof saved !== 'object' || !Array.isArray(saved.cars)) return null;
+    if (!saved || typeof saved !== 'object' || !Array.isArray(saved.cars) || saved.cars.length !== 4) return null;
     const s = JSON.parse(JSON.stringify(saved));
-    if (s.v === 2) return s;
-    if (s.v !== 1) return null;
-    s.v = 2;
-    Object.assign(s, { hz: [], cl: [], bx: [], ag: '', chk: 0, nhz: 0 });
-    const g = geo(s);
+    if (s.v === 3) return s;
+    if (s.v !== 1 && s.v !== 2) return null;
+    if (typeof s.seed !== 'number' || !(s.level >= 1)) return null;
+    if (s.v === 1) Object.assign(s, { hz: [], cl: [], bx: [], ag: '', chk: 0, nhz: 0 });
+    s.v = 3;
+    s.nres = 0;
+    const g = geo(s), c = config(s.level);
     for (const car of s.cars) {
       const base = carOf(car.id, car.s, car.d, car.skill);
       for (const k in base) if (!(k in car)) car[k] = base[k];
-      const lim = edgeAt(g, car.s).lim - HW - 0.01;
+      if (car.id) car.skill = c.ai[car.id - 1];
+      const lim = Math.min(sideAt(g, car.s, 1).lim, sideAt(g, car.s, -1).lim) - extent(car.psi) - 0.05;
       car.d = clamp(car.d, -lim, lim);
     }
     s.chk = g.checks.filter((q) => s.cars[0].s >= q).length;
+    contacts(s, g, [], false);
     return s;
   }
   const me = (s) => s.cars[0];
@@ -619,19 +741,20 @@
   }
   const placeOf = (s, id = 0) => { const o = order(s); return o.indexOf(id) + 1; };
 
+  // gas: 0..1, oppure −1 = acceleratore automatico (si accelera sempre tranne quando si frena)
   function cleanInput(inp) {
-    if (!inp) return { steer: 0, brake: 0, use: 0 };
-    return { steer: clamp(+inp.steer || 0, -1, 1), brake: inp.brake ? 1 : 0, use: inp.use ? 1 : 0 };
+    if (!inp) return { steer: 0, gas: -1, brake: 0, use: 0 };
+    const gas = inp.gas === undefined || inp.gas === null || inp.gas < 0 ? -1 : clamp(+inp.gas || 0, 0, 1);
+    return { steer: clamp(+inp.steer || 0, -1, 1), gas, brake: inp.brake ? 1 : 0, use: inp.use ? 1 : 0 };
   }
 
   /* ---------- geometria delle collisioni ---------- */
-  // rettangolo orientato dell'auto nel piano (s, d): centro, assi e mezze misure
+  // rettangolo orientato dell'auto nel piano (s, d) (solo per compatibilità: le collisioni vere sono nel mondo)
   const obb = (car) => ({ s: car.s, d: car.d, c: Math.cos(car.psi), n: Math.sin(car.psi), hl: HL, hw: HW });
-  // SAT tra due auto: null se separate, altrimenti { nx, ny, depth } con la normale da A verso B
-  function overlap(A, B) {
-    const dx = B.s - A.s, dy = B.d - A.d;
+  // SAT tra due rettangoli dati da centro (x, y) e direzione (c = cos, n = sin): null o { nx, ny, depth } da A verso B
+  function sat(ax, ay, ca, sa, bx, by, cb, sb) {
+    const dx = bx - ax, dy = by - ay;
     if (dx * dx + dy * dy > 4 * (HL * HL + HW * HW)) return null;
-    const ca = Math.cos(A.psi), sa = Math.sin(A.psi), cb = Math.cos(B.psi), sb = Math.sin(B.psi);
     let best = 1e9, nx = 0, ny = 0;
     for (let q = 0; q < 4; q++) {
       const ux = q === 0 ? ca : q === 1 ? -sa : q === 2 ? cb : -sb, uy = q === 0 ? sa : q === 1 ? ca : q === 2 ? sb : cb;
@@ -643,13 +766,16 @@
     }
     return { nx, ny, depth: best };
   }
+  // in (s, d) come se fosse piano (vecchio modo, sbagliato in curva: tenuto per confronto nei test)
+  const overlap = (A, B) => sat(A.s, A.d, Math.cos(A.psi), Math.sin(A.psi), B.s, B.d, Math.cos(B.psi), Math.sin(B.psi));
+  // nel mondo, tra due pose (pose(g, car))
+  const overlapW = (PA, PB) => sat(PA.x, PA.y, PA.c, PA.n, PB.x, PB.y, PB.c, PB.n);
   // ingombro laterale del rettangolo (metà larghezza vista lungo d)
   const extent = (psi) => HL * Math.abs(Math.sin(psi)) + HW * Math.cos(psi);
-  // cerchio (s, d, r) contro il rettangolo dell'auto: null o { nx, ny, depth } con la normale dall'auto al cerchio
-  function hitCircle(car, cs, cd, r) {
-    const dx = cs - car.s, dy = cd - car.d;
-    if (dx * dx + dy * dy > (r + 2.3) * (r + 2.3)) return null;
-    const c = Math.cos(car.psi), n = Math.sin(car.psi);
+  // cerchio contro il rettangolo (centro x, y, direzione c, n): null o { nx, ny, depth } con la normale verso il cerchio
+  function circle(x, y, c, n, ox, oy, r) {
+    const dx = ox - x, dy = oy - y;
+    if (dx * dx + dy * dy > (r + 2) * (r + 2)) return null;
     const lx = dx * c + dy * n, ly = -dx * n + dy * c;
     const qx = clamp(lx, -HL, HL), qy = clamp(ly, -HW, HW);
     const ex = lx - qx, ey = ly - qy, dist = Math.hypot(ex, ey);
@@ -660,120 +786,234 @@
     else { ux = 0; uy = Math.sign(ly) || 1; depth = r + HW - Math.abs(ly); }
     return { nx: ux * c - uy * n, ny: ux * n + uy * c, depth };
   }
-  // velocità nel piano (s, d) e ritorno: la parte lungo il muso va in v, quella di lato in pd (spinta che si smorza)
-  const velOf = (car) => [car.v * Math.cos(car.psi), car.v * Math.sin(car.psi) + car.pd];
-  function setVel(car, vs, vd, keep = 0) {
-    const c = Math.cos(car.psi), n = Math.sin(car.psi);
+  // in (s, d) (scatole, ghiande, bucce e pozze: sulla carreggiata, dove la differenza è piccola)
+  const hitCircle = (car, cs, cd, r) => circle(car.s, car.d, Math.cos(car.psi), Math.sin(car.psi), cs, cd, r);
+  // nel mondo (alberi, rocce, cumuli, vasi)
+  const hitCircleW = (P, ox, oy, r) => circle(P.x, P.y, P.c, P.n, ox, oy, r);
+  // velocità nel piano (s, d): direzione di marcia psi − bet; la parte di lato va in pd (spinta che si smorza)
+  const velOf = (car) => { const a = car.psi - car.bet; return [car.v * Math.cos(a), car.v * Math.sin(a) + car.pd]; };
+  function setVel(car, vs, vd, keep) {
+    const a = car.psi - car.bet, c = Math.cos(a), n = Math.sin(a);
     const vl = vs * c + vd * n, lat = -vs * n + vd * c;
-    car.v = Math.max(keep, vl);
+    // un urto non trasforma la marcia avanti in retromarcia (né il contrario)
+    car.v = keep !== undefined ? Math.max(keep, vl) : car.v < -0.01 ? Math.min(0, vl) : Math.max(0, vl);
     car.pd = clamp(lat / Math.max(0.5, c), -4, 4);
   }
+  // dal mondo a (s, d) con la base locale della pista (posa P): spostamenti e velocità
+  function moveW(car, P, dx, dy) {
+    const den = Math.max(0.3, 1 - P.k * car.d);
+    car.s += (dx * P.tc + dy * P.tn) / den;
+    car.d += -dx * P.tn + dy * P.tc;
+  }
+  const velW = (car, P) => { const [vs, vd] = velOf(car); return [vs * P.tc - vd * P.tn, vs * P.tn + vd * P.tc]; };
+  const setVelW = (car, P, wx, wy, keep) => setVel(car, wx * P.tc + wy * P.tn, -wx * P.tn + wy * P.tc, keep);
 
-  /* ---------- bordi e ostacoli ---------- */
-  // main = passo principale (sfregamento e rimbalzo una volta sola per passo); dopo le spinte solo la posizione
-  function edges(s, g, car, ev, main) {
-    const lim = limAt(g, car.s);
-    const ex = extent(car.psi), over = Math.abs(car.d) + ex - lim;
-    if (over > 0) {
-      const sg = Math.sign(car.d) || 1;
+  /* ---------- bordi, uscite e ostacoli ---------- */
+  // main = sotto-passo principale (sfregamento, eventi, uscite); dopo le spinte tra auto solo la posizione
+  function edges(s, g, car, ev, main, h = TICK) {
+    if (car.res > 0) return;
+    const ex = extent(car.psi);
+    for (let sg = 1; sg >= -1; sg -= 2) {
+      const sd = sideAt(g, car.s, sg), lim = sd.lim, hard = sd.hard, slope = sd.slope;
+      const over = sg * car.d + ex - lim;
+      if (over <= 0) continue;
+      if (!hard) {
+        // niente muro: Hari, uscito troppo, viene riportato in pista dalla nuvoletta (gli avversari restano dentro)
+        if (car.id || car.fin >= 0) car.d -= sg * over;
+        else if (main) rescue(s, g, car, ev);
+        continue;
+      }
       car.d -= sg * over;
-      const vn = sg * (car.v * Math.sin(car.psi) + car.pd);   // velocità contro il bordo
+      const vel = velOf(car), vn = sg * vel[1] - slope * vel[0];   // velocità contro il muro (anche quello a imbuto)
       if (vn > 0) {
-        // si raddrizza dolcemente e rimbalza appena; perde velocità in proporzione all'urto
+        // si raddrizza e rimbalza appena; perde velocità in proporzione all'urto (un urto deciso fa girare)
         if (sg * car.psi > 0) car.psi *= -E_WALL;
+        car.bet *= 0.5;
         car.pd = -sg * Math.min(2, vn * E_WALL);
-        car.v = Math.max(car.v * 0.55, car.v - 0.5 * vn);
-        if (car.wall <= 0 && vn > 0.8) { car.wall = 0.45; ev.push({ type: 'boing', who: car.id, side: sg, kind: edgeAt(g, car.s).kind, bridge: edgeAt(g, car.s).kind === 'rail' }); }
+        car.v = car.v >= 0 ? Math.max(car.v * 0.4, car.v - 0.9 * vn) : Math.min(0, car.v + 0.9 * vn);
+        if (!car.id && vn > 4.5 && car.fin < 0) car.slip = Math.max(car.slip, 0.45);
+        if (main && car.wall <= 0 && vn > 0.8) { car.wall = 0.45; const e = edgeAt(g, car.s); ev.push({ type: 'boing', who: car.id, side: sg, kind: e.kind, bridge: e.kind === 'rail' }); }
       }
-      if (main && car.v > 4) car.v -= 1.6 * TICK;    // sfregamento
+      if (main && car.v > 5) car.v -= 12 * h;     // strisciando contro il muro si frena forte
     }
-    for (const rk of g.rocks) {
-      if (Math.abs(car.s - rk.s) > 4) continue;
-      const h = hitCircle(car, rk.s, rk.d, rk.r);
-      if (!h) continue;
-      car.s -= h.nx * h.depth; car.d -= h.ny * h.depth;
-      const [vs, vd] = velOf(car), vn = vs * h.nx + vd * h.ny;
-      if (vn > 0) {
-        const v0 = car.v, ts = -h.ny, td = h.nx, vt = vs * ts + vd * td;
-        const jt = clamp(vt, -MU_CAR * (1 + E_WALL) * vn, MU_CAR * (1 + E_WALL) * vn);
-        setVel(car, vs - (1 + E_WALL) * vn * h.nx - jt * ts, vd - (1 + E_WALL) * vn * h.ny - jt * td, v0 * 0.45);
-        if (car.wall <= 0 && vn > 0.8) { car.wall = 0.5; ev.push({ type: 'rock', who: car.id }); }
+    // ostacoli: alberi, rocce, ceppi, cespugli, cumuli, castelli di sabbia (fascia fuori strada) e quelli "non tagliare"
+    let P = null;
+    const reach = Math.abs(car.d) + HL + HW;   // fin dove può arrivare un angolo del rettangolo
+    if (reach > PROP_IN - 0.2) {
+      const b0 = Math.floor(car.s / 8);
+      for (let b = b0 - 1; b <= b0 + 1; b++) {
+        const L = g.pb.get(b);
+        if (L) for (const ob of L) { P = P || pose(g, car); const q = obstacle(s, g, car, P, ob, ev, main); if (q) P = q; }
       }
     }
+    if (reach > HALF) for (const rk of g.rocks) {
+      if (Math.abs(car.s - rk.s) > 6 || Math.abs(car.d - rk.d) > rk.r + HL + HW) continue;
+      P = P || pose(g, car);
+      const q = obstacle(s, g, car, P, rk, ev, main);
+      if (q) P = q;
+    }
+  }
+  function obstacle(s, g, car, P, ob, ev, main) {
+    const hit = hitCircleW(P, ob.x, ob.y, ob.r);
+    if (!hit) return null;
+    moveW(car, P, -hit.nx * hit.depth, -hit.ny * hit.depth);
+    const [wx, wy] = velW(car, P), vn = wx * hit.nx + wy * hit.ny;
+    if (vn > 0) {
+      // alberi, rocce e vasi fermano (e un urto deciso fa girare); cespugli, cumuli e castelli di sabbia meno
+      const soft = SOFT[ob.k], e = soft ? 0.12 : 0.3, tx = -hit.ny, ty = hit.nx, vt = wx * tx + wy * ty;
+      const jt = clamp(vt, -MU_CAR * (1 + e) * vn, MU_CAR * (1 + e) * vn);
+      setVelW(car, P, wx - (1 + e) * vn * hit.nx - jt * tx, wy - (1 + e) * vn * hit.ny - jt * ty);
+      car.bet *= 0.5;
+      if (!soft && !car.id && vn > 5 && car.fin < 0) car.slip = Math.max(car.slip, 0.5);
+      if (main && car.wall <= 0 && vn > 0.8) { car.wall = 0.5; ev.push({ type: 'rock', who: car.id, k: ob.k || 'rock' }); }
+    }
+    return pose(g, car);
+  }
+  // la nuvoletta: Hari sparisce in una nuvola di fiori e torna sulla strada un po' più indietro (tempo perso, niente danni)
+  function rescue(s, g, car, ev) {
+    if (car.res > 0 || car.fin >= 0) return;
+    car.res = RESCUE; car.v = 0; car.pd = 0; car.bet = 0; car.dr = 0; car.mini = 0; car.boost = 0; car.stuck = 0; car.air = 0; car.spr = 0;
+    s.nres = (s.nres || 0) + 1;
+    ev.push({ type: 'rescue', who: car.id, s: +car.s.toFixed(2), d: +car.d.toFixed(2) });
+  }
+  function rescueStep(s, g, car, ev, h) {
+    const was = car.res;
+    car.res = Math.max(0, car.res - h);
+    if (was > RESCUE / 2 && car.res <= RESCUE / 2) {
+      // a metà: posato sulla strada 6 m più indietro, nel posto libero più vicino alla traiettoria ideale
+      const sv = Math.max(PREROLL - 8, car.s - 6), i = clamp(Math.round(sv), 0, g.N);
+      const cand = [g.line[i], 0, 2.4, -2.4, 3.4, -3.4];
+      let best = cand[0], bd = -1;
+      for (const d of cand) {
+        let free = 1e9;
+        for (const o of s.cars) if (o !== car && !ghost(s, o)) free = Math.min(free, Math.hypot((o.s - sv) * 0.6, o.d - d));
+        if (free > 4.5) { best = d; bd = free; break; }
+        if (free > bd) { bd = free; best = d; }
+      }
+      car.s = sv; car.d = best; car.psi = 0; car.bet = 0; car.v = 0; car.pd = 0; car.off = false; car.slip = 0;
+    }
+    if (car.res <= 0) { car.gh = 1; ev.push({ type: 'back', who: car.id }); }
   }
 
   /* ---------- fisica di Hari ---------- */
+  const isOff = (car) => Math.abs(car.d) > HALF + SHOULDER;
   function topSpeed(c, car, g) {
     let top = c.vmax * (1 + PU.acornV * Math.min(PU.acornMax, car.ac));
     if (car.boost > 0) top = c.vmax * PU.boostV;
+    else if (car.mini > 0) top = Math.max(top, c.vmax * 1.12);
     if (car.slow > 0) top = Math.min(top, c.vmax * PU.slowV);
     if (car.honey) top = Math.min(top, c.vmax * PU.honeyV);
-    if (Math.abs(car.d) > HALF + SHOULDER) top = Math.min(top, c.vmax * OFFCAP);
+    if (isOff(car)) top = Math.min(top, c.vmax * SURF[c.theme].cap);
     return top;
   }
-  function drivePlayer(s, g, c, car, inp, ev) {
-    const dt = TICK;
+  // aderenza limitata: la direzione di marcia gira al massimo di (aderenza / v); il muso può girare un po' di più e
+  // allora l'auto derapa (bet cresce); con aderenza in avanzo bet torna a zero. Entrando in curva troppo veloci si va
+  // larghi (e si finisce sull'erba): le curve strette vanno prese frenando. Una derapata tenuta dà una mini-spinta.
+  function drivePlayer(s, g, c, car, inp, ev, h) {
+    if (car.res > 0) { rescueStep(s, g, car, ev, h); return; }
     const done = car.fin >= 0;
-    let steer = done ? 0 : inp.steer;
-    const brake = done ? (car.v > 6 ? 1 : 0) : inp.brake;
-    const kt = kAt(g, car.s);
-    const off = Math.abs(car.d) > HALF + SHOULDER;
+    let steer = done ? 0 : inp.steer, brake = inp.brake;
+    let gas = inp.gas < 0 ? (brake ? 0 : 1) : inp.gas;
+    if (done) { brake = car.v > 6 ? 1 : 0; gas = brake ? 0 : 1; }
+    const kt = kAt(g, car.s), off = isOff(car), sf = SURF[c.theme];
     const top = topSpeed(c, car, g);
-    // motore automatico / freno; sopra la velocità massima (miele, nuvoletta, erba) si rallenta in fretta
-    if (brake) car.v = Math.max(0, car.v - BRAKE * dt);
-    else if (!done || car.v < 6) car.v += ACC * (car.boost > 0 ? 3 : 1) * Math.max(0, 1 - car.v / top) * dt;
-    if (car.v > top) car.v = Math.max(top, car.v - (car.honey ? 14 : 9) * dt);
-    // sterzo: curvatura richiesta (+ aiutino che riallinea alla pista quando non si sterza forte)
+    // motore, freno e retromarcia (da fermi il freno tirato fa andare indietro)
+    if (brake) {
+      if (car.v > 0.3) car.v = Math.max(0, car.v - BRAKE * h);
+      else car.v = Math.max(-REV, car.v - ACC * 0.6 * h);
+    } else if (gas > 0) {
+      if (car.v < 0) car.v = Math.min(0, car.v + BRAKE * h);
+      else car.v += ACC * gas * (car.boost > 0 ? 3 : car.mini > 0 ? 2.2 : 1) * Math.max(0, 1 - car.v / top) * h;
+    } else if (car.v !== 0) {
+      const dv = (COAST + 0.0025 * car.v * car.v) * h;
+      car.v = Math.abs(car.v) <= dv ? 0 : car.v - Math.sign(car.v) * dv;
+    }
+    if (car.v > top) car.v = Math.max(top, car.v - (car.honey ? 14 : off ? sf.drag : 9) * h);
+    // sterzo (+ aiutino che riallinea alla pista, solo nei primi livelli)
     const slip = car.slip > 0;
     if (slip) steer = 0;
     let kReq = -steer * KMAX;
-    const w = slip ? 1 : c.assist * (1 - Math.min(1, Math.abs(steer)) * 0.7);
+    const w = slip ? 0 : c.assist * (1 - Math.min(1, Math.abs(steer)) * 0.7);
     if (w > 0 && car.v > 1) kReq += w * (kt + (clamp(-0.1 * car.d, -0.35, 0.35) - car.psi) * 1.4 / Math.max(8, car.v));
-    kReq = clamp(kReq, -KMAX * 1.15, KMAX * 1.15);
-    const grip = GRIP * c.grip * (off ? 0.75 : 1) * (1 + 1.5 * Math.abs(bankAt(g, car.s)));
-    const kLim = grip / Math.max(1, car.v * car.v);
-    const flying = car.air > 0 && !car.spr;
-    let kc = flying ? 0 : clamp(kReq * (car.air > 0 ? 0.6 : 1), -kLim, kLim);
-    // sottosterzo: si scivola verso l'esterno e si perde velocità
-    car.slide = flying ? 0 : Math.max(0, Math.abs(kReq) - kLim) * car.v * car.v;
-    if (car.slide > 0) car.v = Math.max(0, car.v - Math.min(6, car.slide * 0.3) * dt);
-    car.kc = kc;
-    frenet(car, kt, kc, dt);
-    // non si gira mai al contrario: oltre 1 rad si raddrizza e rallenta
-    if (Math.abs(car.psi) > 1) { car.psi = Math.sign(car.psi) * 1; car.v = Math.max(0, car.v - 4 * dt); }
+    let grip = GRIP * c.grip * (off ? sf.grip : 1) * (1 + 1.5 * Math.abs(bankAt(g, car.s)));
+    if (brake && car.v > 3) grip *= 0.82;
+    const flying = car.air > 0 && !car.spr, va = Math.abs(car.v);
+    // a fondo corsa lo sterzo chiede al massimo DRIFT.lock volte l'aderenza: tenendolo si derapa (mai un testacoda
+    // per uno sterzo tenuto); se la curva chiede di più, si va larghi
+    const kCap = Math.min(KMAX * 1.15, DRIFT.lock * grip / Math.max(1, va * va));
+    kReq = clamp(kReq, -kCap, kCap);
+    let wv = 0, r = 0;
+    if (!flying) {
+      const rd = kReq * car.v, wMax = grip / Math.max(1, va);
+      const want = rd + car.bet * 4.5;
+      wv = clamp(want, -wMax, wMax);
+      r = clamp(rd, -wMax * 1.6, wMax * 1.6);
+      // oltre l'aderenza le gomme strisciano: si perde velocità in proporzione a quanto si chiede di troppo
+      const ex = (Math.abs(want) - wMax) * va;
+      if (ex > 0) car.v -= Math.sign(car.v) * Math.min(Math.abs(car.v), Math.min(1.2, 0.08 * ex) * h);
+      if (car.air > 0) { wv *= 0.6; r *= 0.6; }
+      car.bet = clamp(car.bet + (r - wv) * h, -DRIFT.max, DRIFT.max);
+    }
+    car.kc = va > 0.5 ? wv / Math.max(1, va) : 0;
+    car.slide = Math.abs(car.bet) * va;
+    const s0 = car.s;
+    // un passo in coordinate di Frenet nella direzione di marcia (+ la spinta laterale che si smorza)
+    const a = car.psi - car.bet, den = Math.max(0.3, 1 - kt * car.d), sd = (car.v * Math.cos(a)) / den;
+    car.s += sd * h;
+    car.d += (car.v * Math.sin(a) + car.pd) * h;
+    car.psi += (r - kt * sd) * h;
+    car.pd *= Math.exp(-5 * h);
+    if (Math.abs(car.pd) < 1e-3) car.pd = 0;
+    // derapando si striscia (e si perde un po' di velocità)
+    if (car.bet) { const dv = 4.5 * Math.abs(Math.sin(car.bet)) * h; car.v = Math.abs(car.v) <= dv ? 0 : car.v - Math.sign(car.v) * dv; }
+    // non si gira mai al contrario: oltre 1,1 rad si raddrizza e rallenta
+    if (Math.abs(car.psi) > 1.1) { car.psi = Math.sign(car.psi) * 1.1; car.v = car.v > 0 ? Math.max(0, car.v - 4 * h) : car.v; }
+    // troppa deriva: sbandata (un giro buffo, si rallenta e per un attimo non si sterza)
+    if (Math.abs(car.bet) > DRIFT.spin && car.v > 8 && !done) {
+      car.slip = Math.max(car.slip, 0.8); car.v *= 0.55; car.bet *= 0.3; car.dr = 0;
+      ev.push({ type: 'spin', who: car.id });
+    }
+    // derapata tenuta → mini-spinta all'uscita
+    const ab = Math.abs(car.bet);
+    if (!off && !flying && car.v > 10 && ab > DRIFT.on && !done) { if (car.dr <= 0) ev.push({ type: 'drift', who: car.id }); car.dr += h; }
+    else if (car.dr > 0 && (ab < DRIFT.off || off || car.v < 8 || done)) {
+      if (!off && !done && car.dr >= DRIFT.t1 && car.v >= 8) {
+        const lvl = car.dr >= DRIFT.t2 ? 2 : 1;
+        car.mini = lvl === 2 ? DRIFT.T2 : DRIFT.T1; car.v += lvl === 2 ? DRIFT.v2 : DRIFT.v1;
+        ev.push({ type: 'mini', who: car.id, lvl });
+      }
+      car.dr = 0;
+    }
     // dossi: troppo veloci si salta un pochino (niente sterzo in aria)
-    if (car.air > 0) { car.air = Math.max(0, car.air - dt); if (car.air <= 0) car.spr = 0; }
+    if (car.air > 0) { car.air = Math.max(0, car.air - h); if (car.air <= 0) car.spr = 0; }
     for (const cr of g.crests) {
-      if (car.s - car.v * dt * Math.cos(car.psi) < cr.s && car.s >= cr.s && car.v > 16.5 && car.air <= 0) {
+      if (s0 < cr.s && car.s >= cr.s && car.v > 16.5 && car.air <= 0) {
         car.air = car.airT = +Math.min(0.6, 0.15 + (car.v - 16.5) * 0.06).toFixed(3);
         ev.push({ type: 'jump', v: car.v });
       }
     }
-    edges(s, g, car, ev, true);
-    const nowOff = Math.abs(car.d) > HALF + SHOULDER;
-    if (nowOff !== car.off) { car.off = nowOff; ev.push({ type: nowOff ? 'off' : 'on' }); }
-    if (nowOff) s.offT += dt;
-  }
-  // un passo in coordinate di Frenet (+ la spinta laterale che si smorza)
-  function frenet(car, kt, kc, dt) {
-    const den = Math.max(0.3, 1 - kt * car.d);
-    const sd = (car.v * Math.cos(car.psi)) / den;
-    car.s += sd * dt;
-    car.d += (car.v * Math.sin(car.psi) + car.pd) * dt;
-    car.psi += (kc * car.v - kt * sd) * dt;
-    car.pd *= Math.exp(-5 * dt);
-    if (Math.abs(car.pd) < 1e-3) car.pd = 0;
+    edges(s, g, car, ev, true, h);
+    if (car.res > 0) return;
+    const nowOff = isOff(car);
+    if (nowOff !== car.off) { car.off = nowOff; ev.push(nowOff ? { type: 'off', surf: sf.k } : { type: 'on' }); }
+    if (nowOff) s.offT += h;
+    // fermi fuori strada (incastrati tra gli alberi): dopo un po' arriva la nuvoletta
+    if (nowOff && !done && va < 1.5 && (gas > 0 || brake)) car.stuck += h; else car.stuck = Math.max(0, car.stuck - h);
+    if (car.stuck > 2.5) rescue(s, g, car, ev);
   }
 
   /* ---------- avversari ---------- */
-  const ghost = (s, car) => car.fin >= 0 && car.s > PREROLL + s.L + 15;
-  function driveAI(s, g, c, car, ev, solo) {
-    const dt = TICK, done = car.fin >= 0;
+  const ghost = (s, car) => (car.fin >= 0 && car.s > PREROLL + s.L + 15) || car.res > 0;
+  function driveAI(s, g, c, car, ev, solo, h = TICK) {
+    const dt = h, done = car.fin >= 0;
     const i = clamp(Math.round(car.s), 0, g.N);
+    // rubber band moderato: chi è indietro rispetto a Hari va un po' più forte; chi è davanti non rallenta mai
+    const p = s.cars[0];
+    const rb = !solo && !done && p.fin < 0 ? 1 + c.rb * clamp((p.s - car.s - 12) / 70, 0, 1) : 1;
     // velocità: profilo sulla traiettoria ideale × bravura, rettilinei quasi a tavoletta
     const look = clamp(Math.round(car.s + 2 + car.v * 0.25), 0, g.N);
-    let vt = Math.min(g.prof[i], g.prof[look]) * car.skill;
-    vt = Math.min(vt, c.vmax * c.aiTop * (1 + PU.acornV * Math.min(PU.acornMax, car.ac)));
+    let vt = Math.min(g.prof[i], g.prof[look]) * Math.min(1.02, car.skill * rb);
+    vt = Math.min(vt, c.vmax * c.aiTop * rb * (1 + PU.acornV * Math.min(PU.acornMax, car.ac)));
     if (car.boost > 0) vt = Math.max(vt, Math.min(c.vmax * PU.boostV, g.prof[look] * 1.12));
     // errori umani (poco frequenti): curva larga o alzata del piede
     if (car.err > 0) {
@@ -789,11 +1029,11 @@
     let tgt = g.line[ahead] + car.lane * 0.22;
     if (car.err > 0 && car.errK === 1) tgt = -car.errD * (HALF + 2.2);        // largo, fin sull'erba
     // scansa bucce e pozze di miele viste in tempo (i più bravi le vedono prima)
-    if (car.air <= 0) for (const h of s.hz) {
-      const ds = h.s - car.s, r = h.k === 'h' ? PU.honeyR : PU.bananaR;
-      if (ds > 2 && ds < 12 + 22 * car.skill && Math.abs(h.d - tgt) < r + HW + 0.4) {
-        const sd = h.d > tgt ? -1 : 1, alt = h.d + sd * (r + HW + 0.6);
-        tgt = Math.abs(alt) < HALF - 0.6 ? alt : h.d - sd * (r + HW + 0.6);
+    if (car.air <= 0) for (const hz of s.hz) {
+      const ds = hz.s - car.s, r = hz.k === 'h' ? PU.honeyR : PU.bananaR;
+      if (ds > 2 && ds < 12 + 22 * car.skill && Math.abs(hz.d - tgt) < r + HW + 0.4) {
+        const sd = hz.d > tgt ? -1 : 1, alt = hz.d + sd * (r + HW + 0.6);
+        tgt = Math.abs(alt) < HALF - 0.6 ? alt : hz.d - sd * (r + HW + 0.6);
       }
     }
     // sorpasso: chi è più lento davanti sulla nostra linea si passa di lato (scelta tenuta per un po'); se non c'è
@@ -802,30 +1042,30 @@
     for (const o of s.cars) {
       if (o === car || (solo && !o.id) || ghost(s, o)) continue;
       const ds = o.s - car.s;
-      if (ds > 0 && ds < 16 + car.v * 0.45 && Math.abs(o.d - tgt) < 2.5) {
+      if (ds > 0 && ds < 14 + car.v * 0.45 && Math.abs(o.d - tgt) < CAR_W + 0.6) {
         const closing = car.v - o.v;
-        if (closing > -0.5 || ds < 8) {
+        if (closing > -0.5 || ds < 7) {
           let side = car.ovT > 0 ? car.ovS : (tgt >= o.d ? 1 : -1);
-          const room = (sd) => Math.abs(o.d + sd * 2.6) < HALF - 0.7;
+          const room = (sd) => Math.abs(o.d + sd * (CAR_W + 0.8)) < HALF - 0.6;
           if (!room(side)) side = -side;
-          if (room(side)) { tgt = o.d + side * 2.6; if (car.ovT <= 0) { car.ovS = side; car.ovT = 1.4; } }
-          else if (ds < 10) vt = Math.min(vt, o.v + Math.max(0, ds - 6.5) * 0.8);
+          if (room(side)) { tgt = o.d + side * (CAR_W + 0.8); if (car.ovT <= 0) { car.ovS = side; car.ovT = 1.4; } }
+          else if (ds < 9) vt = Math.min(vt, o.v + Math.max(0, ds - CAR_L - 2) * 0.8);
         }
       } else if (Math.abs(ds) < CAR_L + 0.6 && Math.abs(o.d - car.d) < CAR_W + 0.5) {
         // affiancati: ci si allarga un pochino per non strusciarsi
         tgt = o.d + Math.sign(car.d - o.d || car.lane || 1) * (CAR_W + 0.7);
       }
     }
-    const room = limAt(g, car.s + 6) - HW - 0.45;
+    const room = Math.min(limAt(g, car.s + 6) - HW - 0.45, HALF + 2.2);
     tgt = clamp(tgt, -room, room);
     // velocità massima effettiva (miele, nuvoletta, erba)
-    vt = Math.min(vt, topSpeed(c, car, g) * (car.boost > 0 ? 1 : 0.999));
+    vt = Math.min(vt, topSpeed(c, car, g) * (car.boost > 0 ? 1 : 0.999) * (car.boost > 0 ? 1 : rb));
     if (car.slip > 0) vt = Math.min(vt, car.v);
     // motore e freni (un po' più dolci in frenata)
-    if (car.v < vt) car.v += ACC * (car.boost > 0 ? 3 : 1) * Math.max(0, 1 - car.v / (c.vmax * (car.boost > 0 ? PU.boostV : 1.02))) * dt;
+    if (car.v < vt) car.v += ACC * (car.boost > 0 ? 3 : 1) * Math.max(0, 1 - car.v / (c.vmax * (car.boost > 0 ? PU.boostV : 1.04) * rb)) * dt;
     else car.v = Math.max(vt, car.v - (car.honey ? 14 : 9) * dt);
     const rate = (2.2 + 1.4 * car.skill) * Math.min(1, car.v / 8);
-    let lat = car.slip > 0 ? Math.sin(car.slip * 14) * 1.2 * dt : clamp(tgt - car.d, -rate * dt, rate * dt);
+    const lat = car.slip > 0 ? Math.sin(car.slip * 14) * 1.2 * dt : clamp(tgt - car.d, -rate * dt, rate * dt);
     if (car.air > 0) { car.air = Math.max(0, car.air - dt); if (car.air <= 0) car.spr = 0; }
     const kt = kAt(g, car.s);
     const den = Math.max(0.3, 1 - kt * car.d);
@@ -837,8 +1077,8 @@
     const pw = clamp(Math.atan2(lat / dt, Math.max(1, car.v)), -0.35, 0.35);
     car.psi += clamp(pw - car.psi, -2.5 * dt, 2.5 * dt);
     car.kc = kt;
-    edges(s, g, car, ev, true);
-    car.off = Math.abs(car.d) > HALF + SHOULDER;
+    edges(s, g, car, ev, true, dt);
+    car.off = isOff(car);
   }
 
   /* ---------- power-up ---------- */
@@ -919,7 +1159,7 @@
     const cars = s.cars;
     // scatole-sorpresa
     for (const car of cars) {
-      if ((solo && !car.id) || car.fin >= 0) continue;
+      if ((solo && !car.id) || car.fin >= 0 || car.res > 0) continue;
       for (let r = 0; r < g.boxes.length; r++) {
         const row = g.boxes[r];
         if (Math.abs(row.s - car.s) > 3) continue;
@@ -938,7 +1178,7 @@
     }
     // ghiande bonus (la calamita le attira da lontano)
     for (const car of cars) {
-      if ((solo && !car.id) || car.fin >= 0) continue;
+      if ((solo && !car.id) || car.fin >= 0 || car.res > 0) continue;
       const R2 = car.mag > 0 ? PU.magR : 0;
       for (let j = 0; j < g.acorns.length; j++) {
         const a = g.acorns[j];
@@ -964,7 +1204,7 @@
           if (!hitCircle(car, h.s, h.d, PU.bananaR)) continue;
           s.hz.splice(q, 1);
           if (!shielded(car, ev)) {
-            car.slip = PU.slipT; car.v *= 0.72; car.ac = Math.max(0, car.ac - 2);
+            car.slip = PU.slipT; car.v *= 0.72; car.ac = Math.max(0, car.ac - 2); car.dr = 0;
             ev.push({ type: 'slip', who: car.id, by: h.by });
           }
           break;
@@ -980,7 +1220,7 @@
     for (let q = s.cl.length - 1; q >= 0; q--) {
       const cl = s.cl[q];
       const o = cl.to >= 0 ? cars[cl.to] : null;
-      if (!o || o.fin >= 0 || s.t > cl.t || (solo && !o.id)) {
+      if (!o || o.fin >= 0 || o.res > 0 || s.t > cl.t || (solo && !o.id)) {
         // nessun bersaglio: vola avanti ancora un po' e svanisce
         cl.to = -1; cl.s += PU.cloudV * TICK;
         cl.life = (cl.life === undefined ? 1.5 : cl.life) - TICK;
@@ -1001,61 +1241,93 @@
       if (car.slip > 0) car.slip = Math.max(0, car.slip - TICK);
       if (car.slow > 0) car.slow = Math.max(0, car.slow - TICK);
       if (car.mag > 0) car.mag = Math.max(0, car.mag - TICK);
+      if (car.mini > 0) car.mini = Math.max(0, car.mini - TICK);
     }
   }
 
-  /* ---------- contatti morbidi tra auto ---------- */
+  /* ---------- contatti morbidi tra auto (nel mondo) ---------- */
+  // SAT tra i rettangoli veri (pose nel mondo, le stesse della grafica), separazione completa lungo l'asse di minima
+  // compenetrazione, impulso; fino a 10 giri finché nessuno si tocca più, rimettendo dentro ai muri chi è stato spinto.
+  // Chi è appena stato posato dalla nuvoletta (gh) non urta e non viene urtato finché non è libero.
+  const PS = [null, null, null, null], MV = [false, false, false, false];
   function contacts(s, g, ev, solo) {
-    const cs = s.cars;
-    for (let it = 0; it < 6; it++) {
+    const cs = s.cars, n = cs.length;
+    // pose calcolate solo per le auto vicine a qualcun altro (la maggior parte del tempo nessuna)
+    for (let a = 0; a < n; a++) PS[a] = null;
+    const ps = (a) => PS[a] || (PS[a] = pose(g, cs[a]));
+    let ghostHit = 0;
+    for (let it = 0; it < 10; it++) {
       let any = false;
-      for (let a = 0; a < cs.length; a++) for (let b = a + 1; b < cs.length; b++) {
+      MV[0] = MV[1] = MV[2] = MV[3] = false;
+      for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
         const A = cs[a], B = cs[b];
         if (solo && (!A.id || !B.id)) continue;
         if (ghost(s, A) || ghost(s, B)) continue;
         if ((A.spr && A.air > 0.2) || (B.spr && B.air > 0.2)) continue;   // salto a molla: si passa sopra
-        const o = overlap(A, B);
+        if (Math.abs(A.s - B.s) > CAR_L + 4 || Math.abs(A.d - B.d) > CAR_L + 1) continue;
+        const o = overlapW(ps(a), ps(b));
         if (!o) continue;
+        if (A.gh || B.gh) { ghostHit |= (A.gh ? 1 << a : 0) | (B.gh ? 1 << b : 0); continue; }
         any = true;
         // lo scudo-bolla non si sposta: la spinta va tutta all'altro (e lo scudo scoppia)
         let wA = 0.5, wB = 0.5;
         if (A.sh > 0 && !(B.sh > 0)) { wA = 0; wB = 1; } else if (B.sh > 0 && !(A.sh > 0)) { wA = 1; wB = 0; }
-        const dep = o.depth + 1e-4;
-        A.s -= o.nx * dep * wA; A.d -= o.ny * dep * wA;
-        B.s += o.nx * dep * wB; B.d += o.ny * dep * wB;
-        const [as, ad] = velOf(A), [bs, bd] = velOf(B);
-        const vn = (as - bs) * o.nx + (ad - bd) * o.ny;
+        const dep = o.depth + 2e-3;
+        moveW(A, PS[a], -o.nx * dep * wA, -o.ny * dep * wA);
+        moveW(B, PS[b], o.nx * dep * wB, o.ny * dep * wB);
+        const [ax, ay] = velW(A, PS[a]), [bx, by] = velW(B, PS[b]);
+        const vn = (ax - bx) * o.nx + (ay - by) * o.ny;
         if (vn > 0) {
           const J = (1 + E_CAR) * vn, tx = -o.ny, ty = o.nx;
-          const vt = (as - bs) * tx + (ad - bd) * ty, Jt = clamp(vt, -MU_CAR * J, MU_CAR * J);
-          setVel(A, as - (J * o.nx + Jt * tx) * wA, ad - (J * o.ny + Jt * ty) * wA);
-          setVel(B, bs + (J * o.nx + Jt * tx) * wB, bd + (J * o.ny + Jt * ty) * wB);
+          const vt = (ax - bx) * tx + (ay - by) * ty, Jt = clamp(vt, -MU_CAR * J, MU_CAR * J);
+          setVelW(A, PS[a], ax - (J * o.nx + Jt * tx) * wA, ay - (J * o.ny + Jt * ty) * wA);
+          setVelW(B, PS[b], bx + (J * o.nx + Jt * tx) * wB, by + (J * o.ny + Jt * ty) * wB);
+          A.bet *= 0.7; B.bet *= 0.7;
           if (vn > 0.5) {
             if (wA === 0) shielded(A, ev); else if (wB === 0) shielded(B, ev);
           }
           if ((!A.id || !B.id) && s.bumpT <= 0 && vn > 0.3) { s.bumpT = 0.6; ev.push({ type: 'bump', who: A.id === 0 ? B.id : A.id, a: A.id, b: B.id, vn }); }
         }
+        PS[a] = pose(g, A); PS[b] = pose(g, B);
+        MV[a] = MV[b] = true;
       }
-      // le spinte possono aver portato qualcuno contro il bordo: lo si rimette dentro (e si ricontrolla)
-      for (const car of cs) if (!(solo && !car.id) && !ghost(s, car)) edges(s, g, car, ev);
+      // le spinte possono aver portato qualcuno contro un muro o un ostacolo: lo si rimette dentro (e si ricontrolla)
+      for (let a = 0; a < n; a++) if (MV[a]) { edges(s, g, cs[a], ev, false); PS[a] = null; }
       if (!any) break;
     }
+    for (let a = 0; a < n; a++) if (cs[a].gh && !(ghostHit & (1 << a))) cs[a].gh = 0;
   }
 
   /* ---------- passo fisso ---------- */
+  // quanti sotto-passi: SUB se due kart sono vicini o qualcuno è fuori dalla carreggiata (muri, ostacoli), altrimenti 1
+  function subs(s) {
+    const cs = s.cars;
+    for (let a = 0; a < cs.length; a++) {
+      const A = cs[a];
+      if (A.fin >= 0 && A.s > PREROLL + s.L + 15) continue;
+      if (Math.abs(A.d) > HALF - 1 || A.res > 0) return SUB;
+      for (let b = a + 1; b < cs.length; b++) { const B = cs[b]; if (Math.abs(A.s - B.s) < CAR_L + 10 && Math.abs(A.d - B.d) < CAR_W + 4) return SUB; }
+    }
+    return 1;
+  }
   function tick(s, input) {
     const ev = [];
     const g = geo(s), c = config(s.level), inp = cleanInput(input === undefined ? s.inp : input);
     s.t += TICK;
     if (s.bumpT > 0) s.bumpT -= TICK;
     for (const car of s.cars) if (car.wall > 0) car.wall -= TICK;
-    const p = me(s);
-    drivePlayer(s, g, c, p, inp, ev);
-    if (inp.use && p.fin < 0) useItem(s, g, c, p, ev);
+    const p = me(s), n = subs(s), h = TICK / n;
+    // sotto-passi (quando qualcuno è vicino a un altro kart, a un muro o a un ostacolo): movimento di tutti, poi
+    // collisioni risolte nel mondo
+    for (let k = 0; k < n; k++) {
+      drivePlayer(s, g, c, p, inp, ev, h);
+      for (const car of s.cars) if (car.id) driveAI(s, g, c, car, ev, false, h);
+      contacts(s, g, ev);
+    }
+    if (inp.use && p.fin < 0 && !(p.res > 0)) useItem(s, g, c, p, ev);
     if (s.inp) s.inp.use = 0;   // il tasto del power-up vale una volta sola
-    for (const car of s.cars) if (car.id) { driveAI(s, g, c, car, ev); aiItems(s, g, c, car, ev); }
+    for (const car of s.cars) if (car.id) aiItems(s, g, c, car, ev);
     items(s, g, c, ev);
-    contacts(s, g, ev);
     // traguardo
     const fin = PREROLL + s.L;
     for (const car of s.cars) {
@@ -1097,20 +1369,19 @@
     const hz = s.hz;
     for (let n = 0; n < 60 * 400 && s.cars.some((x) => x.fin < 0); n++) {
       s.t += TICK;
-      const ev = [];
+      const ev = [], ns = subs(s), h = TICK / ns;
       for (const car of s.cars) if (car.wall > 0) car.wall -= TICK;
-      for (const car of s.cars) {
-        if (!car.id || car.fin >= 0) continue;
-        driveAI(s, g, c, car, ev, true);
-        aiItems(s, g, c, car, ev);
+      for (let k = 0; k < ns; k++) {
+        for (const car of s.cars) if (car.id && car.fin < 0) driveAI(s, g, c, car, ev, true, h);
+        contacts(s, g, ev, true);
       }
+      for (const car of s.cars) if (car.id && car.fin < 0) aiItems(s, g, c, car, ev);
       items(s, g, c, ev, true);
-      contacts(s, g, ev, true);
       for (const car of s.cars) if (car.id && car.fin < 0 && car.s >= fin) car.fin = +(s.t - (car.s - fin) / Math.max(1, car.v)).toFixed(3);
     }
     for (const car of s.cars) if (car.fin < 0) car.fin = +(s.t + 999).toFixed(3);
     s.t = s.fin;
-    s.hz = hz.filter((h) => h.t > s.t); s.cl = [];
+    s.hz = hz.filter((h2) => h2.t > s.t); s.cl = [];
     p.s = ps; p.v = pv; p.d = pd;
   }
 
@@ -1167,10 +1438,10 @@
   const par = (s) => Math.round(s.L / (config(s.level).vmax * 0.62));
 
   HH.rally = {
-    TICK, READY, HALF, SHOULDER, WALL, WALLS, RAIL, TUBE, KMAX, GRIP, ACC, BRAKE, OFFCAP, CALL, RUNOFF, PREROLL, CAR_L, CAR_W,
-    WHO, BANDS, STAGES, THEMES, TIMES, ROT, ITEMS, PU, IW,
-    solveLine, config, newLevel, migrate, track, geo, notes, deriveNotes, world, nearest, height, kAt, bankAt, edgeAt, gradeOf,
-    ranking, placeOf, upcoming, obb, overlap, hitCircle, extent, acornTaken, aheadOf,
+    TICK, SUB, READY, HALF, SHOULDER, WALL, WALLS, HARD, SURF, RAIL, TUBE, KMAX, GRIP, ACC, BRAKE, REV, OFFCAP, CALL, RUNOFF, PREROLL,
+    CAR_L, CAR_W, DRIFT, RESCUE, PROP_IN, SOFT, FUN, WHO, BANDS, STAGES, THEMES, TIMES, ROT, ITEMS, PU, IW,
+    solveLine, config, newLevel, migrate, track, geo, notes, deriveNotes, world, pose, nearest, height, kAt, bankAt, edgeAt, sideAt,
+    gradeOf, ranking, placeOf, upcoming, obb, overlap, overlapW, hitCircle, hitCircleW, extent, acornTaken, aheadOf, isOff,
     step, tick, isOver, isWon, isLost, rate, progress, par,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

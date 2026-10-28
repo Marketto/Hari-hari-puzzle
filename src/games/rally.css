@@ -10,7 +10,11 @@
   --ry-ink: #4a2c22; --ry-eye: #2a160e; --ry-hi: #ffffff; --ry-nose: #3a1e14; --ry-mouth: #ff7f98; --ry-blush: rgba(255, 130, 165, .72);
   --ry-quill: #9a6342; --ry-quill-2: #714330; --ry-face: #fff1e2; --ry-ear: #ffe4cc; --ry-ear-in: #ffadc0; --ry-paw: #b97d58; --ry-bean: #ffadc0;
   --ry-car: #ff6f8e; --ry-car-2: #fff1f4; --ry-trim: #4f4a66; --ry-tire: #3d3350; --ry-glass: #bfe6ff; --ry-head: #fff3c4; --ry-tail: #ff4f6d;
-  --ry-bunny-car: #c7a8ff; --ry-fox-car: #7fc8ff; --ry-panda-car: #7fdcb0;
+  /* kart a forma di frutto: fragola (Hari), pesca (Coniglietta), mandarino (Volpe), fetta d'anguria (Panda) */
+  --ry-straw: #ff5f7a; --ry-straw-2: #e8456a; --ry-seed: #ffe27a; --ry-kleaf: #6fcf6a; --ry-kleaf-2: #3f9e57;
+  --ry-peach: #ffb49a; --ry-peach-2: #ff8f9a; --ry-mand: #ff9a3d; --ry-mand-2: #ef7f24;
+  --ry-melon: #ff6f86; --ry-melon-w: #f4ffe6; --ry-melon-rind: #5cc46e; --ry-melon-rind-2: #2f9a52; --ry-mseed: #3a2632;
+  --ry-chassis: #5a5470; --ry-shadow: #2a1a24;
   --ry-bunny: #fffaf6; --ry-bunny-in: #ffb3c8; --ry-fox: #ff9a4a; --ry-fox-2: #fff4ea; --ry-panda: #fffdf8; --ry-panda-2: #3d3448;
   --ry-dash: #5a4560; --ry-dash-2: #775c7e; --ry-dash-hi: #9a7ea0; --ry-wheel: #4a3a52; --ry-wheel-2: #ff8fa8; --ry-gauge: #fff6e8; --ry-needle: #ff5f7a;
   --ry-dust: #e9d2a8; --ry-leafp: #8fd36f; --ry-spark: #ffd84a;
@@ -18,7 +22,7 @@
   --ry-ui: rgba(255, 250, 246, .92); --ry-ui-2: rgba(255, 250, 246, .55); --ry-ui-line: #4a2c22; --ry-ui-ink: #4a2c22;
   --ry-note: #fffaf0; --ry-note-line: #4a2c22; --ry-arrow: #ff6f8e; --ry-warn: #ffc23d; --ry-warn-2: #ff5f7a; --ry-go: #48d18a; --ry-stop: #ff5f7a; --ry-off: #6d6680;
   --ry-text: #ffffff; --ry-text-line: #4a2c22; --ry-veil: rgba(255, 250, 244, .62); --ry-gold: #ffd84a; --ry-silver: #d9dbe8; --ry-bronze: #f0b27a;
-  --ry-me: #ff6f8e; --ry-p1: #c7a8ff; --ry-p2: #ff9a4a; --ry-p3: #3d3448;
+  --ry-me: #ff5f7a; --ry-p1: #ffb49a; --ry-p2: #ff9a3d; --ry-p3: #5cc46e;
   /* bosco di primavera (giorno) */
   --ry-sky-1: #8fd0ff; --ry-sky-2: #e6f6ff; --ry-sun: #fff4b8; --ry-cloud: #ffffff; --ry-hill: #b9dcc8;
   --ry-grass: #9ed67a; --ry-grass-2: #8acb6a; --ry-verge: #c8e39a; --ry-dirt: #e3bf8c; --ry-dirt-2: #cfa271; --ry-dirt-3: #b9d683;
@@ -152,7 +156,7 @@
 
 /* power-up tenuto: pulsante grande (tocco, clic o tasto ↑/W/Invio) e ghiande raccolte */
 .ry-item {
-  position: absolute; z-index: 5; right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(30% + 10px); display: grid; place-items: center; width: 70px; height: 70px;
+  position: absolute; z-index: 6; right: max(8px, env(safe-area-inset-right, 0px)); bottom: 116px; display: grid; place-items: center; width: 70px; height: 70px;
   padding: 0; border: 0; border-radius: 50%; background: var(--ry-ui); box-shadow: inset 0 0 0 3px var(--ry-ui-line), 0 5px 0 var(--ry-ui-line); color: var(--ry-ui-ink);
   cursor: pointer; pointer-events: auto; touch-action: none; transition: transform .12s, opacity .2s;
 }
@@ -183,20 +187,47 @@
 .ry-prog b { position: absolute; right: -10px; top: -9px; width: 20px; height: 20px; }
 .ry-prog b svg { width: 100%; height: 100%; }
 
-/* comandi a tocco */
-.ry-touch { position: absolute; inset: 0; z-index: 1; display: flex; pointer-events: none; }
-.ry-zone { flex: 1; display: flex; align-items: center; padding: 0 10px 12%; opacity: 0; transition: opacity .2s; }
-.ry-zone.r { justify-content: flex-end; }
-.ry-zone svg { width: 40px; height: 40px; filter: drop-shadow(0 2px 0 var(--ry-ui-line)); }
-.ry-wrap.touch .ry-zone { opacity: .55; }
-.ry-zone.on { opacity: .95 !important; }
-.ry-pedal {
-  position: absolute; z-index: 5; left: 50%; bottom: 10px; display: grid; place-items: center; width: 74px; height: 58px; transform: translateX(-50%);
-  border-radius: 18px; background: var(--ry-ui); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 4px 0 var(--ry-ui-line); color: var(--ry-stop); pointer-events: none;
+/* comandi: pedale destro (acceleratore, grande), pedale sinistro (freno e retromarcia), frecce dello sterzo (col tocco),
+   pulsante del power-up sopra l'acceleratore; tutti insieme col tocco multiplo */
+.ry-ctl { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.ry-ped, .ry-arr { position: absolute; display: grid; place-items: center; border-radius: 20px; background: var(--ry-ui); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 4px 0 var(--ry-ui-line); transition: transform .06s, box-shadow .06s; }
+.ry-ped.gas { right: max(10px, env(safe-area-inset-right, 0px)); bottom: 10px; width: 66px; height: 94px; color: var(--ry-go); }
+.ry-ped.gas svg { width: 44px; height: 58px; }
+.ry-ped.brake { left: max(10px, env(safe-area-inset-left, 0px)); bottom: 10px; width: 70px; height: 62px; color: var(--ry-stop); }
+.ry-ped.brake svg { width: 42px; height: 42px; }
+.ry-wrap.touch .ry-ped.brake { left: auto; right: calc(max(10px, env(safe-area-inset-right, 0px)) + 74px); width: 62px; height: 62px; }
+.ry-ped.on { transform: translateY(3px) scale(.96); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 1px 0 var(--ry-ui-line); }
+.ry-ped.gas.on { background: var(--ry-go); color: var(--ry-text); }
+.ry-ped.brake.on { background: var(--ry-stop); color: var(--ry-text); }
+.ry-auto { display: none; position: absolute; top: -9px; left: -9px; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: var(--ry-gold); color: var(--ry-ink); box-shadow: 0 0 0 2px var(--ry-ui-line); }
+.ry-auto svg { width: 16px; height: 16px; }
+.ry-wrap.auto .ry-auto { display: grid; }
+.ry-arr { bottom: 12px; width: 62px; height: 62px; border-radius: 50%; background: transparent; box-shadow: none; }
+.ry-arr svg { width: 100%; height: 100%; filter: drop-shadow(0 3px 0 var(--ry-ui-line)); }
+.ry-arr.l { left: max(10px, env(safe-area-inset-left, 0px)); }
+.ry-arr.r { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 70px); }
+.ry-arr.on { transform: translateY(2px) scale(.94); }
+.ry-wrap.tilt .ry-arr { display: none; }
+/* contachilometri tondo (da dietro; da pilota c'è il cruscotto) */
+.ry-spd { position: absolute; z-index: 3; left: max(12px, env(safe-area-inset-left, 0px)); bottom: 88px; width: 50px; height: 50px; pointer-events: none; }
+.ry-wrap.tilt .ry-spd { bottom: 84px; }
+.ry-spd svg { width: 100%; height: 100%; }
+.ry-wrap.pilot .ry-spd, .ry-wrap.chase .ry-dash { display: none; }
+.ry-wrap.chase .ry-prog { bottom: auto; top: 96px; left: 24%; right: 24%; }
+
+/* menu di pausa: visuale, acceleratore automatico, sensori ↔ tocco */
+.ry-opts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; max-width: 94%; }
+.ry-opt {
+  display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px 4px 8px; border: 2px solid var(--line-2); border-radius: 20px;
+  background: var(--card-solid); color: var(--ink); box-shadow: 0 3px 0 var(--line-2); font: 800 13px/1.15 var(--font-body); cursor: pointer;
 }
-.ry-pedal svg { width: 40px; height: 40px; }
-.ry-pedal.on { transform: translateX(-50%) translateY(3px) scale(.96); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 1px 0 var(--ry-ui-line); background: var(--ry-stop); color: var(--ry-text); }
-.ry-wrap.tilt .ry-pedal { width: 64px; height: 50px; opacity: .8; }
+.ry-opt svg { flex: none; width: 24px; height: 24px; color: var(--accent-2); }
+.ry-opt:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+.ry-opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ry-sw { position: relative; flex: none; width: 34px; height: 20px; border-radius: 10px; background: var(--ry-off); box-shadow: inset 0 0 0 2px var(--line-2); transition: background .2s; }
+.ry-sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--card-solid); transition: transform .2s; }
+.ry-opt[aria-pressed="true"] .ry-sw { background: var(--ry-go); }
+.ry-opt[aria-pressed="true"] .ry-sw::after { transform: translateX(14px); }
 
 /* messaggi, semaforo di partenza */
 .ry-msg { position: absolute; inset: 22% 0 auto; z-index: 6; display: grid; place-items: center; pointer-events: none; }
@@ -262,11 +293,23 @@
   .plate:fullscreen .ry-note { width: 66px; }
   .plate:fullscreen .ry-note > svg { width: 46px; height: 36px; }
   .plate:fullscreen .ry-rank i { width: 20px; height: 20px; }
-  .plate:fullscreen .ry-item { width: 60px; height: 60px; bottom: calc(34% + 8px); }
+  .plate:fullscreen .ry-item { width: 60px; height: 60px; bottom: 56px; right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
+  .plate:fullscreen .ry-wrap.touch .ry-item { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 172px); }
   .plate:fullscreen .ry-item svg { width: 42px; height: 42px; }
+  .plate:fullscreen .ry-ped.gas { height: 100px; }
+  .plate:fullscreen .ry-spd { bottom: 56px; left: calc(max(10px, env(safe-area-inset-left, 0px)) + 164px); }
+  .plate:fullscreen .ry-wrap.tilt .ry-spd { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 92px); }
+  .plate:fullscreen .ry-wrap.chase .ry-prog { top: 78px; }
 }
-/* a schermo intero l'uscita galleggia in basso a destra: il pulsante del power-up resta sopra */
-.plate:fullscreen .ry-item { bottom: max(calc(30% + 10px), 64px); }
+/* a schermo intero l'uscita galleggia in basso agli angoli: pedali e frecce un po' più in alto e più grandi */
+.plate:fullscreen .ry-ped.gas { bottom: 56px; width: 78px; height: 112px; }
+.plate:fullscreen .ry-ped.gas svg { width: 52px; height: 70px; }
+.plate:fullscreen .ry-ped.brake { bottom: 56px; width: 76px; height: 70px; }
+.plate:fullscreen .ry-wrap.touch .ry-ped.brake { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
+.plate:fullscreen .ry-arr { bottom: 58px; width: 72px; height: 72px; }
+.plate:fullscreen .ry-arr.r { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 82px); }
+.plate:fullscreen .ry-item { bottom: 178px; }
+.plate:fullscreen .ry-spd { bottom: 138px; }
 
 /* tutorial e card */
 .ry-tut-wheel { animation: ry-steer 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
