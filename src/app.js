@@ -209,6 +209,7 @@
         <span class="card-art">
           ${g.endless ? '' : `<span class="ribbon-tag">${t('level')} ${p.level}</span>`}
           ${s ? `<span class="pause-tag">${ICON.pause}${fmt(s.elapsed)}</span>` : ''}
+          ${isNew(g.id) ? `<span class="new-tag">${ICON.sparkle}${lab('newTag', 'New!')}</span>` : ''}
           ${cardArt(g.id)}
         </span>
         <span class="card-body">
@@ -409,6 +410,7 @@
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
+    if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
     const g = HH.gameLoaded(id);
     if (!g) {
       // primo avvio del gioco: lo scarica (o lo prende dalla cache offline) e poi lo apre
@@ -848,10 +850,31 @@
     bar.hidden = false;
     $('#updGo').onclick = applyUpdate;
   }
+  /* ---------- giochi nuovi dopo un aggiornamento (anche se l'app era chiusa) ---------- */
+  const vnum = (v) => String(v || '0').split('.').reduce((a, x) => a * 1000 + (+x || 0), 0);
+  function newGamesCheck() {
+    const cur = HH.VERSION;
+    let seen = HH.store.get('seenVersion', null);
+    if (seen === null) {
+      // prima volta con questa funzione: chi aveva già giocato "veniva" dalla 0.14.1, una installazione nuova no
+      const played = HH.catalog.some((g) => { const p = P.get(g.id); return p.wins > 0 || p.level > 1 || P.loadGame(g.id) || HH.store.get('tut:' + g.id); });
+      seen = played ? '0.14.1' : cur;
+    }
+    const fresh = vnum(seen) < vnum(cur) ? HH.catalog.filter((g) => g.since && vnum(g.since) > vnum(seen) && vnum(g.since) <= vnum(cur)) : [];
+    const updated = vnum(seen) < vnum(cur);
+    HH.store.set('seenVersion', cur);
+    if (fresh.length) HH.store.set('newGames', [...new Set([...HH.store.get('newGames', []), ...fresh.map((g) => g.id)])]);
+    return { fresh, updated };
+  }
+  const isNew = (id) => (HH.store.get('newGames', []) || []).includes(id);
   function setupUpdates() {
-    if (HH.store.get('justUpdated')) {
-      HH.store.del('justUpdated');
-      setTimeout(() => say('cheer', true, t('updDone')), 900);
+    const ng = newGamesCheck();
+    const upd = HH.store.get('justUpdated') || ng.updated;
+    HH.store.del('justUpdated');
+    if (upd || ng.fresh.length) {
+      const list = ng.fresh.map((g) => g.name).join(', ');
+      const txt = `${upd ? t('updDone') : ''} ${ng.fresh.length ? lab('updNew', 'New games: {list}').replace('{list}', list) : ''}`.trim();
+      setTimeout(() => say('cheer', true, txt), 900);
     }
     if (!('serviceWorker' in G.navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost') || HH.INLINE) return;
     const sw = G.navigator.serviceWorker;

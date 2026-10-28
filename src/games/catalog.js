@@ -2,6 +2,7 @@
  * Ogni gioco è un modulo scaricato in lazy load solo quando lo si apre: HH.loadGame(id) inserisce in ordine
  * i suoi CSS e script classici (logic prima di ui); il gioco si registra come sempre con HH.games.push({...}).
  * Il service worker legge questo file (importScripts) per sapere quali file mettere in cache quando servono.
+ * `since` = versione in cui il gioco è arrivato (per l'avviso "nuovi giochi" dopo un aggiornamento).
  * Ordine = ordine delle card in home. Nuovo gioco: aggiungi la voce qui e poi `npm run cards`.
  */
 (function (G) {
@@ -19,17 +20,17 @@
     { id: 'pixel', name: 'Pixel Mochi', rules: 'r7', files: f('pixel.css', 'pixel-logic.js', 'pixel-ui.js') },
     { id: 'yarn', name: 'Yarn Link', rules: 'r9', files: f('yarn.css', 'yarn-logic.js', 'yarn-ui.js') },
     { id: 'ropes', name: 'Hari Knots', rules: 'r10c', files: f('ropes.css', 'ropes-logic.js', 'ropes-ui.js') },
-    { id: 'snack', name: 'Hari Snack Rush', rules: 'r11', files: f('snack.css', 'snack-logic.js', 'snack-ui.js') },
-    { id: 'drive', name: 'Hari Taxi', rules: 'r13',
+    { id: 'snack', name: 'Hari Snack Rush', since: '0.10.0', rules: 'r11', files: f('snack.css', 'snack-logic.js', 'snack-ui.js') },
+    { id: 'drive', name: 'Hari Taxi', since: '0.14.0', rules: 'r13',
       rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
       files: f('drive.css', 'drive-logic.js', 'drive-ui.js') },
-    { id: 'spot', name: 'Hari Spot', rules: 'r16',
+    { id: 'spot', name: 'Hari Spot', since: '0.16.0', rules: 'r16',
       rulesEn: 'Two pictures of the city or the forest, almost the same: find every difference! Tap it on either picture to circle it. The magnifier shows where to look, but costs a strawberry; random taps cost a little time.',
       files: f('spot.css', 'spot-logic.js', 'spot-art.js', 'spot-ui.js') },
-    { id: 'life', name: 'Hari Home', rules: 'r12', endless: true,
+    { id: 'life', name: 'Hari Home', since: '0.12.0', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },
-    { id: 'memory', name: 'Hari Memory', rules: 'r15',
+    { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
   ];

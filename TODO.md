@@ -27,6 +27,9 @@
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 
+## Fatto (v0.16.1)
+- [x] Dopo un aggiornamento Hari dice anche quali giochi nuovi sono arrivati (anche se l'app era chiusa: confronto con l'ultima versione vista, campo `since` nel catalogo) e le loro card mostrano "Nuovo!" finché non li si apre; nessun avviso alla prima installazione
+
 ## Fatto (v0.16.0)
 - [x] Nuovo gioco **Hari Spot** (trova le differenze): scene di città e di bosco generate da seme (4 stagioni, giorno/tramonto/notte, Hari sempre presente), da 3 a 10 differenze di 8 tipi sempre visibili (area, contrasto, copertura) e mai sovrapposte, hitbox comode, lente per gli aiuti, zoom col pizzico, scene affiancate in orizzontale; niente cuori, errori senza costo nei primi livelli; testi in 43 lingue
 
@@ -182,6 +185,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.16.1 · `npm test` · avviso giochi nuovi: utente da versione vecchia (messaggio + etichette), seconda apertura (niente avviso), installazione nuova (niente avviso)
 - 2026-10-28 v0.16.0 · `npm test` · Hari Spot: città e bosco, differenza trovata, errore, lente, vittoria, schermo intero; testi it/de/ja
 - 2026-10-28 v0.15.0 · `npm test` · Hari Memory: partita completa, coppia, errore, scambio, vittoria, schermo intero; testi it/de/ja
 - 2026-10-28 v0.14.1 · `npm test` · schermo intero misurato in tutti i 13 giochi a 360×760, 800×380 e 1024×768: niente tagli né scorrimento orizzontale

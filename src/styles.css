@@ -811,3 +811,12 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .an-sheet h2 { margin: 4px 0 6px; font-family: var(--font-display); font-weight: 400; font-size: 22px; }
 .an-sheet p { margin: 0 0 14px; color: var(--ink-2); line-height: 1.45; }
 .an-sheet .win-actions { justify-content: center; }
+
+/* card dei giochi nuovi (dopo un aggiornamento), finché non li si apre */
+.new-tag {
+  position: absolute; inset-inline-end: 10px; bottom: 18px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px 5px 8px;
+  border-radius: 999px; font-weight: 800; font-size: 12px; letter-spacing: .03em; color: var(--accent-ink); background: var(--sun);
+  box-shadow: 0 3px 0 var(--sun-2); transform: rotate(-5deg); animation: ver-bob 2.4s ease-in-out infinite;
+}
+.new-tag svg { width: 13px; height: 13px; }
+.view-list .new-tag { bottom: 8px; inset-inline-end: 6px; font-size: 10.5px; padding: 3px 8px 4px 6px; }
