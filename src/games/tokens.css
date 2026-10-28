@@ -995,7 +995,11 @@
   --ry-ink: #4a2c22; --ry-eye: #2a160e; --ry-hi: #ffffff; --ry-nose: #3a1e14; --ry-mouth: #ff7f98; --ry-blush: rgba(255, 130, 165, .72);
   --ry-quill: #9a6342; --ry-quill-2: #714330; --ry-face: #fff1e2; --ry-ear: #ffe4cc; --ry-ear-in: #ffadc0; --ry-paw: #b97d58; --ry-bean: #ffadc0;
   --ry-car: #ff6f8e; --ry-car-2: #fff1f4; --ry-trim: #4f4a66; --ry-tire: #3d3350; --ry-glass: #bfe6ff; --ry-head: #fff3c4; --ry-tail: #ff4f6d;
-  --ry-bunny-car: #c7a8ff; --ry-fox-car: #7fc8ff; --ry-panda-car: #7fdcb0;
+  
+  --ry-straw: #ff5f7a; --ry-straw-2: #e8456a; --ry-seed: #ffe27a; --ry-kleaf: #6fcf6a; --ry-kleaf-2: #3f9e57;
+  --ry-peach: #ffb49a; --ry-peach-2: #ff8f9a; --ry-mand: #ff9a3d; --ry-mand-2: #ef7f24;
+  --ry-melon: #ff6f86; --ry-melon-w: #f4ffe6; --ry-melon-rind: #5cc46e; --ry-melon-rind-2: #2f9a52; --ry-mseed: #3a2632;
+  --ry-chassis: #5a5470; --ry-shadow: #2a1a24;
   --ry-bunny: #fffaf6; --ry-bunny-in: #ffb3c8; --ry-fox: #ff9a4a; --ry-fox-2: #fff4ea; --ry-panda: #fffdf8; --ry-panda-2: #3d3448;
   --ry-dash: #5a4560; --ry-dash-2: #775c7e; --ry-dash-hi: #9a7ea0; --ry-wheel: #4a3a52; --ry-wheel-2: #ff8fa8; --ry-gauge: #fff6e8; --ry-needle: #ff5f7a;
   --ry-dust: #e9d2a8; --ry-leafp: #8fd36f; --ry-spark: #ffd84a;
@@ -1003,7 +1007,7 @@
   --ry-ui: rgba(255, 250, 246, .92); --ry-ui-2: rgba(255, 250, 246, .55); --ry-ui-line: #4a2c22; --ry-ui-ink: #4a2c22;
   --ry-note: #fffaf0; --ry-note-line: #4a2c22; --ry-arrow: #ff6f8e; --ry-warn: #ffc23d; --ry-warn-2: #ff5f7a; --ry-go: #48d18a; --ry-stop: #ff5f7a; --ry-off: #6d6680;
   --ry-text: #ffffff; --ry-text-line: #4a2c22; --ry-veil: rgba(255, 250, 244, .62); --ry-gold: #ffd84a; --ry-silver: #d9dbe8; --ry-bronze: #f0b27a;
-  --ry-me: #ff6f8e; --ry-p1: #c7a8ff; --ry-p2: #ff9a4a; --ry-p3: #3d3448;
+  --ry-me: #ff5f7a; --ry-p1: #ffb49a; --ry-p2: #ff9a3d; --ry-p3: #5cc46e;
   
   --ry-sky-1: #8fd0ff; --ry-sky-2: #e6f6ff; --ry-sun: #fff4b8; --ry-cloud: #ffffff; --ry-hill: #b9dcc8;
   --ry-grass: #9ed67a; --ry-grass-2: #8acb6a; --ry-verge: #c8e39a; --ry-dirt: #e3bf8c; --ry-dirt-2: #cfa271; --ry-dirt-3: #b9d683;

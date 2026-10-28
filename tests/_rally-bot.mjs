@@ -20,8 +20,8 @@ export function botKit(HH) {
     return area2 < 1e-6 ? 1e6 : (a * b * c) / (2 * area2);
   }
   // items = false: il bot ignora i power-up (non li usa mai)
-  function makeBot(s, { react = 0.22, grip = 7.6, seed = 1, wobble = 0.08, items = true, dodge = true } = {}) {
-    const g = R.geo(s), rnd = HH.rng(seed);
+  function makeBot(s, { react = 0.22, grip = 8.4, dec = 7.5, seed = 1, wobble = 0.08, items = true, dodge = true } = {}) {
+    const g = R.geo(s), rnd = HH.rng(seed), cg = R.config(s.level).grip;
     let next = 0, inp = { steer: 0, brake: 0, use: 0 }, held = 0, lane = 0;
     return function drive() {
       const c = s.cars[0];
@@ -46,8 +46,9 @@ export function botKit(HH) {
       let brake = 0;
       const look = (v * v) / (2 * 9) + 30;
       for (let x = 4; x < look; x += 3) {
-        const va = Math.sqrt(grip * radius(g, c.s + x));
-        if (va < v && (v * v - va * va) / (2 * Math.max(1, x - 6 - v * react)) > 6) { brake = 1; break; }
+        // stima "umana" dell'aderenza: l'asfalto tiene un po' di più, le curve paraboliche aiutano (si vedono)
+        const va = Math.sqrt(grip * cg * (1 + 1.5 * Math.abs(R.bankAt(g, c.s + x))) * radius(g, c.s + x));
+        if (va < v && (v * v - va * va) / (2 * Math.max(1, x - 6 - v * react)) > dec) { brake = 1; break; }
       }
       // power-up: turbo sui rettilinei, scudo e calamita subito, bucce/miele se c'è qualcuno dietro, nuvoletta se c'è
       // qualcuno davanti, molla se c'è una buccia davanti o dopo un po'

@@ -1,24 +1,27 @@
 /* Hari Rally — interfaccia 3D (three.js r160, copia locale in src/vendor/three.min.js, scaricata solo aprendo il gioco).
- * Visuale pilota: cofano 3D della macchinina di Hari, cruscotto SVG col volante e le zampine (gira con lo sterzo).
+ * Visuale in terza persona (predefinita, stile kart): camera a molla dietro e sopra il kart-fragola di Hari, con Hari
+ * al volante (si inclina in curva, festeggia); visuale pilota a scelta (cofano a fragola, cruscotto SVG col volante e le
+ * zampine). Kart a forma di frutto: fragola (Hari), pesca (Coniglietta), mandarino (Volpe), fetta d'anguria (Panda), con
+ * sospensioni, foglia-spoiler che sventola, faretti la notte, ombra e LOD da lontano.
  * Ambientazioni a rotazione (bosco, città, mare, neve) di giorno, al tramonto e di notte: strade sterrate o asfaltate
- * con marciapiedi e strisce, ponti, gallerie, curve paraboliche, dossi; ai bordi cespugli, staccionate, transenne
- * morbide, palazzi con negozi e finestre accese, lampioni, semafori decorativi, pubblico che tifa, spiaggia con
- * ombrelloni, palme, faro, porticciolo con le barche, gabbiani, scogliere, chalet, pupazzi di neve, case sugli alberi,
- * animaletti che saltellano. Cel shading: MeshToonMaterial con rampa a 3 toni e contorni "a guscio rovesciato".
- * Colori solo dai token --ry-* (getComputedStyle → THREE.Color); tema scuro = notte.
- * Collisioni coerenti con la grafica: macchinine costruite con P.CAR_L × P.CAR_W, bordi (cespugli, transenne,
- * ringhiere, pareti delle gallerie) con la faccia interna esattamente dove la logica ferma le auto (P.edgeAt), ostacoli
- * col raggio di collisione rk.r, la camera sta EYE_BACK dietro il centro dell'auto così il bordo del cofano coincide
- * col muso del rettangolo di collisione.
+ * con marciapiedi e strisce, ponti, gallerie, guardrail a imbuto, curve paraboliche, dossi; fascia fuori strada con
+ * alberi, rocce, ceppi, cespugli, pini, cumuli e pupazzi (gli stessi cerchi della logica); transenne, staccionate e
+ * muretti dove la logica ha i muri veri; palazzi, negozi, lampioni, spiaggia, faro, porticciolo, chalet, animaletti.
+ * Cel shading: MeshToonMaterial con rampa a 3 toni e contorni "a guscio rovesciato". Colori solo dai token --ry-*
+ * (getComputedStyle → THREE.Color); tema scuro = notte.
+ * Collisioni coerenti con la grafica: i kart sono costruiti con P.CAR_L × P.CAR_W e messi nella posa della logica
+ * (P.pose: la stessa con cui la logica risolve le collisioni nel mondo, nessuna interpolazione); ostacoli col loro
+ * raggio; muri dove la logica ferma il rettangolo (P.edgeAt, P.sideAt). In visuale pilota la camera sta EYE_BACK dietro
+ * il centro del kart così il bordo del cofano coincide col muso del rettangolo.
  * Prestazioni da telefono: pixel ratio ≤ 1,5 (cala da solo se gli fps scendono), nebbia, scenario a blocchi di 120 m
  * costruiti mentre ci si avvicina e nascosti da lontano, oggetti numerosi con InstancedMesh, il resto fuso in una
  * geometria per blocco (2 draw call), terreno a griglia che segue la camera.
  *
- * Controlli (accelerazione automatica):
- *   sensori (schermo intero, telefono girato): inclina il telefono come un volante, tieni premuto ovunque = freno
- *   tocco: tieni premuta la metà sinistra/destra per sterzare (più a lungo = più forte), pedale in basso al centro = freno
- *   tastiera: frecce/A-D sterzo, giù/S/spazio freno, su/W/Invio power-up, P/Esc pausa. Pulsante grande del power-up
- *   a destra (anche coi sensori). Pulsante in alto a destra: sensori ↔ tocco.
+ * Comandi: pedale destro = acceleratore, pedale sinistro = freno (da fermi retromarcia), pulsante del power-up sopra
+ *   l'acceleratore (tocco multiplo). Sterzo coi sensori (schermo intero, telefono girato: inclinalo come un volante),
+ *   oppure frecce ◀ ▶ o trascinamento. Tastiera: ↑/W acceleratore, ↓/S freno, ←→/A-D sterzo, spazio/E/Invio power-up,
+ *   C/V visuale, P/Esc pausa. In alto a destra: visuale, sensori ↔ tocco, pausa; nel menu di pausa anche
+ *   l'acceleratore automatico (acceso di base solo al livello 1).
  * Pausa automatica a pagina nascosta, col tutorial e col telefono in verticale a schermo intero.
  */
 (function (G) {
@@ -27,13 +30,14 @@
 
   const label = (k, en) => { const v = HH.i18n && HH.i18n.t ? HH.i18n.t(k) : k; return v && v !== k ? v : en; };
   const EN = {
-    ry_board: 'Rally: steer, brake and use power-ups', ry_turn: 'Turn your phone sideways', ry_tilt: 'Tilt to steer', ry_touch: 'Touch to steer',
+    ry_board: 'Rally: accelerate, brake, steer and use power-ups', ry_turn: 'Turn your phone sideways', ry_tilt: 'Tilt to steer', ry_touch: 'Touch to steer',
+    ry_gas: 'Accelerate', ry_auto: 'Automatic speed', ry_cam_chase: 'Chase view', ry_cam_pilot: 'Driver view', ry_rescue: 'Back on the road!', ry_mini: 'Mini boost!',
     ry_brake: 'Brake', ry_top3: 'Finish in the top 3!', ry_nogl: 'This game needs 3D graphics (WebGL).',
     ry_item: 'Use power-up', ry_acorns: 'Acorns',
     ry_pu_carrot: 'Carrot turbo!', ry_pu_bubble: 'Bubble shield!', ry_pu_banana: 'Banana peel!', ry_pu_honey: 'Honey puddle!',
     ry_pu_cloud: 'Flower cloud!', ry_pu_magnet: 'Acorn magnet!', ry_pu_spring: 'Spring jump!',
     // già tradotte (Hari Parade, comuni)
-    pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', retry: 'Try again',
+    pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', retry: 'Try again', pa_left: 'Left', pa_right: 'Right',
   };
   const L = (k) => label(k, EN[k]);
 
@@ -136,6 +140,12 @@
   const TILT = '<svg viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(-18 12 12)"><rect x="3" y="7" width="18" height="10" rx="2.6" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="18" cy="12" r="1.2" fill="currentColor"/></g><path d="M3 4.5q3-2.5 6-1.5M21 19.5q-3 2.5-6 1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   const HAND = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V5a1.6 1.6 0 0 1 3.2 0v5.5M12.2 10V8.6a1.6 1.6 0 0 1 3.2 0V11M15.4 10.4a1.6 1.6 0 0 1 3.2 0V15c0 3.6-2.6 6-6 6h-1c-2.4 0-3.8-1-5-2.8L4.4 15a1.6 1.6 0 0 1 2.6-1.8L9 15.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const PEDAL = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="5" width="22" height="28" rx="7" fill="currentColor" opacity=".25"/><rect x="9" y="5" width="22" height="28" rx="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 13h12M14 19h12M14 25h12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
+  const GAS = '<svg viewBox="0 0 40 52" aria-hidden="true"><rect x="7" y="3" width="26" height="46" rx="9" fill="currentColor" opacity=".25"/><rect x="7" y="3" width="26" height="46" rx="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M13 14h14M13 22h14M13 30h14M13 38h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
+  const CAM = {
+    chase: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 20.5Q12 15 20.5 20.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"/><rect x="5.5" y="11" width="13" height="6" rx="3" fill="currentColor"/><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><rect x="5" y="15.5" width="3.4" height="3" rx="1.2" fill="currentColor"/><rect x="15.6" y="15.5" width="3.4" height="3" rx="1.2" fill="currentColor"/></svg>',
+    pilot: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M4 11.2h16M12 12v8" stroke="currentColor" stroke-width="2.6"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg>',
+  };
+  const AUTO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.5" y="2.5" width="9" height="15" rx="3.4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10.4 7h3.2M10.4 10h3.2M10.4 13h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 20.5q7-3.4 14 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M16.6 17.6l2.6 2.9-3.6 1.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const ZONE = (d) => `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--ry-ui)" stroke="var(--ry-ui-line)" stroke-width="2.5"/><path d="${d > 0 ? 'M16 11l9 9-9 9' : 'M24 11l-9 9 9 9'}" fill="none" stroke="var(--ry-arrow)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const PHONE = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="30" y="12" width="40" height="76" rx="9" fill="var(--card-solid)" stroke="var(--ry-ink)" stroke-width="4"/><rect x="36" y="22" width="28" height="52" rx="3" fill="var(--ry-sky-1)"/><path d="M38 70l12-30 12 30Z" fill="var(--ry-dirt)"/><circle cx="50" cy="81" r="3" fill="var(--ry-ink)"/></svg>`;
 
@@ -163,11 +173,29 @@
   /* ---------- illustrazioni della card e del tutorial (120 × 90) ---------- */
   const pine = (x, y, k) => `<path d="M${x} ${y - 16 * k}L${x + 7 * k} ${y}H${x - 7 * k}Z" fill="var(--ry-pine)" ${o(1.2)}/><rect x="${x - 1.2 * k}" y="${y}" width="${2.4 * k}" height="${3 * k}" fill="var(--ry-trunk)"/>`;
   const roundT = (x, y, k, c = 'var(--ry-leaf-1)') => `<rect x="${x - 1.3 * k}" y="${y - 3 * k}" width="${2.6 * k}" height="${6 * k}" fill="var(--ry-trunk)"/><circle cx="${x}" cy="${y - 8 * k}" r="${7 * k}" fill="${c}" ${o(1.2)}/>`;
-  const carBack = (x, y, k, body, who) => `<g transform="translate(${x} ${y}) scale(${k})">
-    <rect x="-13" y="-6" width="26" height="12" rx="4" fill="${body}" ${o(1.6)}/><rect x="-9" y="-13" width="18" height="8" rx="3" fill="var(--ry-glass)" ${o(1.4)}/>
-    <rect x="-11" y="4" width="5" height="5" rx="1.5" fill="var(--ry-tire)"/><rect x="6" y="4" width="5" height="5" rx="1.5" fill="var(--ry-tire)"/>
-    <rect x="-11" y="-3" width="4" height="2.4" rx="1" fill="var(--ry-tail)"/><rect x="7" y="-3" width="4" height="2.4" rx="1" fill="var(--ry-tail)"/>
-    <svg x="-8" y="-27" width="16" height="16" viewBox="0 0 100 100">${FACE[who](false)}</svg></g>`;
+  // kart-frutto visto da dietro (card e tutorial): fragola, pesca, mandarino, fetta d'anguria, col pilota che spunta
+  const FRUIT = ['straw', 'peach', 'mand', 'melon'];
+  const dots = (pts, c, r = 1) => pts.map(([a, b]) => `<ellipse cx="${a}" cy="${b}" rx="${f1(r * 0.8)}" ry="${f1(r * 1.15)}" fill="var(--ry-${c})"/>`).join('');
+  const leafFan = (cx, cy, n, len, a0, a1) => Array.from({ length: n }, (_, i) => { const a = a0 + ((a1 - a0) * i) / Math.max(1, n - 1); return `<ellipse cx="${cx}" cy="${f1(cy - len / 2)}" rx="${f1(len * 0.28)}" ry="${f1(len / 2)}" transform="rotate(${f1(a)} ${cx} ${cy})" fill="var(--ry-kleaf)" ${o(1.1)}/>`; }).join('');
+  const BACK = {
+    straw: () => `<path d="M-13 -3C-13 -11 13 -11 13 -3C13 4 5 9 0 9C-5 9 -13 4 -13 -3Z" fill="var(--ry-straw)" ${o(1.4)}/>${dots([[-7, -3], [0, -6], [7, -3], [-4, 2], [4, 2], [0, 6], [-9, 1], [9, 1]], 'seed', 0.9)}`,
+    peach: () => `<ellipse cx="0" cy="-1" rx="13" ry="10" fill="var(--ry-peach)" ${o(1.4)}/><ellipse cx="-5" cy="1" rx="6" ry="5" fill="var(--ry-peach-2)" opacity=".55"/><path d="M1 -11Q-2 -1 1 9" fill="none" stroke="var(--ry-peach-2)" stroke-width="1.6" stroke-linecap="round"/>`,
+    mand: () => `<ellipse cx="0" cy="-0.5" rx="13.5" ry="9.5" fill="var(--ry-mand)" ${o(1.4)}/>${[[-8, -3], [-3, 3], [3, -4], [8, 2], [0, 6], [-9, 4], [6, -1]].map(([a, b]) => `<circle cx="${a}" cy="${b}" r=".7" fill="var(--ry-mand-2)"/>`).join('')}`,
+    melon: () => `<path d="M-14 7A14 14 0 0 1 14 7Z" fill="var(--ry-melon-rind)" ${o(1.4)}/><path d="M-12 7A12 12 0 0 1 12 7Z" fill="var(--ry-melon-w)"/><path d="M-10.6 7A10.6 10.6 0 0 1 10.6 7Z" fill="var(--ry-melon)"/>${dots([[-6, 3], [-2, -1], [3, 0], [6, 4], [0, 4], [-3, -4.5], [3, -5]], 'mseed', 0.8)}`,
+  };
+  // spoiler a foglia (davanti al pilota, visto da dietro)
+  const SPOIL = {
+    straw: () => leafFan(0, -7, 5, 9, -70, 70),
+    peach: () => `<path d="M2 -9v-4" stroke="var(--ry-trunk)" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="7" cy="-13" rx="2.6" ry="6" transform="rotate(60 2 -11)" fill="var(--ry-kleaf)" ${o(1.1)}/>`,
+    mand: () => `<path d="M0 -9v-3" stroke="var(--ry-kleaf-2)" stroke-width="1.8" stroke-linecap="round"/>${leafFan(0, -11, 2, 8, -60, 60)}`,
+    melon: () => `<path d="M0 -7q-3-3 0-5t0-5" fill="none" stroke="var(--ry-melon-rind-2)" stroke-width="1.4" stroke-linecap="round"/>${leafFan(0, -10, 1, 7, 40, 40)}`,
+  };
+  const kartBack = (x, y, k, id, tilt = 0) => `<g transform="translate(${x} ${y}) scale(${k}) rotate(${tilt})">
+    <ellipse cx="0" cy="10" rx="16" ry="3" fill="var(--ry-shadow)" opacity=".25"/>
+    <rect x="-16" y="1" width="6.5" height="9" rx="2.6" fill="var(--ry-tire)" ${o(1.2)}/><rect x="9.5" y="1" width="6.5" height="9" rx="2.6" fill="var(--ry-tire)" ${o(1.2)}/>
+    <rect x="-12" y="3" width="24" height="4" rx="2" fill="var(--ry-chassis)" ${o(1.1)}/>
+    ${BACK[FRUIT[id]]()}<svg x="-8.5" y="-25" width="17" height="17" viewBox="0 0 100 100">${FACE[WHO[id]](false)}</svg>${SPOIL[FRUIT[id]]()}
+    <rect x="-11" y="-1" width="3.4" height="2" rx="1" fill="var(--ry-tail)"/><rect x="7.6" y="-1" width="3.4" height="2" rx="1" fill="var(--ry-tail)"/></g>`;
   function forest(extra, under = '') {
     return `<svg viewBox="0 0 120 90" aria-hidden="true">
       <rect x="4" y="4" width="112" height="82" rx="14" fill="var(--ry-sky-1)"/>
@@ -183,25 +211,28 @@
       <g transform="translate(14 64)"><rect x="-1.4" y="-1" width="2.8" height="4" fill="var(--ry-stem)"/><path d="M-4 -1a4 3.4 0 0 1 8 0z" fill="var(--ry-cap)" ${o(0.8)}/></g>
       ${extra}</svg>`;
   }
-  const hood = (wheel = '') => `<path d="M10 86C20 74 100 74 110 86Z" fill="var(--ry-car)" ${o(1.6)}/><path d="M56 76h8l2 10h-12z" fill="var(--ry-car-2)" opacity=".8"/>${wheel}`;
-  const miniWheel = (cls = '') => `<g class="${cls}"><circle cx="60" cy="98" r="17" fill="none" stroke="var(--ry-wheel)" stroke-width="4.6" ${''}/><circle cx="60" cy="98" r="17" fill="none" stroke="var(--ry-ink)" stroke-width="1" opacity=".8"/>
-    <circle cx="45" cy="88" r="4.6" fill="var(--ry-paw)" ${o(1)}/><circle cx="75" cy="88" r="4.6" fill="var(--ry-paw)" ${o(1)}/></g>`;
+  // pedali e frecce piccoli per il tutorial
+  const pedalArt = (x, y, k, gas) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-6" y="${gas ? -11 : -7}" width="12" height="${gas ? 22 : 14}" rx="4" fill="var(${gas ? '--ry-go' : '--ry-stop'})" ${o(1.2)}/>${(gas ? [-6, -2, 2, 6] : [-3, 1, 5]).map((q) => `<path d="M-3 ${q - (gas ? 0 : 1)}h6" stroke="var(--ry-hi)" stroke-width="1.4" stroke-linecap="round"/>`).join('')}</g>`;
+  const arrowArt = (x, y, k, d) => `<g transform="translate(${x} ${y}) scale(${k})"><circle r="7" fill="var(--ry-note)" ${o(1.1)}/><path d="${d > 0 ? 'M-2 -4l4 4-4 4' : 'M2 -4l-4 4 4 4'}" fill="none" stroke="var(--ry-arrow)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   const noteArt = (x, y, k, dir, g, extra = '') => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="0" y="0" width="30" height="26" rx="6" fill="var(--ry-note)" stroke="var(--ry-note-line)" stroke-width="1.4"/>
     <svg x="2" y="3" width="20" height="18" viewBox="0 0 60 48">${arrow(dir, g)}</svg><text x="26" y="12" text-anchor="end" font-size="11" font-weight="900" fill="var(--ry-arrow)" stroke="var(--ry-note)" stroke-width="2" paint-order="stroke">${g}</text>${extra}</g>`;
   const giftArt = (x, y, k) => `<svg x="${x}" y="${y}" width="${48 * k}" height="${48 * k}" viewBox="0 0 48 48">${PU_ART.gift}</svg>`;
-  const art = () => forest(`${giftArt(45, 50, 0.24)}${carBack(62, 56, 0.55, 'var(--ry-bunny-car)', 'bunny')}${hood(miniWheel())}${noteArt(84, 7, 1, -1, 3)}`);
+  const art = () => forest(`${giftArt(40, 49, 0.24)}${kartBack(70, 55, 0.5, 1)}${kartBack(58, 76, 0.95, 0)}${noteArt(84, 7, 1, -1, 3)}`);
 
   /* ---------- utilità ---------- */
   let rmAt = -1e9, rmVal = false;
   const reduce = () => { const n = Date.now(); if (n - rmAt > 1000) { rmAt = n; rmVal = !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches); } return rmVal; };
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
-  const KEYS = { ArrowLeft: 'l', ArrowRight: 'r', a: 'l', d: 'r', A: 'l', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ' ': 'b' };
-  const USEKEYS = { ArrowUp: 1, w: 1, W: 1, Enter: 1, e: 1, E: 1 };
+  // tastiera: ↑/W acceleratore, ↓/S freno (e retromarcia), ←→/A-D sterzo; spazio, E o Invio power-up; C/V visuale
+  const KEYS = { ArrowLeft: 'l', ArrowRight: 'r', a: 'l', d: 'r', A: 'l', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ArrowUp: 'g', w: 'g', W: 'g' };
+  const USEKEYS = { ' ': 1, Enter: 1, e: 1, E: 1 };
   const fmtT = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60), sec = t - m * 60; return `${m}:${sec < 10 ? '0' : ''}${sec.toFixed(1)}`; };
   const PITCH = Math.atan(0.45 / 12);   // la camera guarda appena in giù
   const COLS = ['ink', 'sky-1', 'sky-2', 'sun', 'cloud', 'hill', 'grass', 'grass-2', 'verge', 'dirt', 'dirt-2', 'dirt-3', 'wood', 'wood-2', 'water', 'water-2',
     'trunk', 'leaf-1', 'leaf-2', 'leaf-3', 'pine', 'pine-2', 'snow-cap', 'rock', 'rock-2', 'cap', 'cap-dot', 'stem', 'flower-1', 'flower-2', 'flower-3', 'bush', 'shaft',
-    'chevron', 'chevron-2', 'check-1', 'check-2', 'pole', 'flag', 'car', 'car-2', 'trim', 'tire', 'glass', 'head', 'tail', 'bunny-car', 'fox-car', 'panda-car',
+    'chevron', 'chevron-2', 'check-1', 'check-2', 'pole', 'flag', 'car', 'car-2', 'trim', 'tire', 'glass', 'head', 'tail',
+    'straw', 'straw-2', 'seed', 'kleaf', 'kleaf-2', 'peach', 'peach-2', 'mand', 'mand-2', 'melon', 'melon-w', 'melon-rind', 'melon-rind-2', 'mseed', 'chassis', 'shadow',
+    'quill', 'quill-2', 'face', 'ear', 'paw', 'nose', 'hi', 'wheel',
     'bunny', 'bunny-in', 'fox', 'fox-2', 'panda', 'panda-2', 'dust', 'leafp', 'spark', 'nsky-1', 'nsky-2', 'nsun', 'nhill',
     'gift-1', 'gift-2', 'gift-3', 'gift-4', 'ribbon', 'acorn', 'acorn-cap', 'banana', 'banana-2', 'honey', 'honey-2', 'bubble', 'petal', 'petal-2', 'carrot', 'carrot-leaf', 'spring',
     'road', 'road-2', 'paint', 'paint-2', 'curb', 'curb-2', 'walk', 'walk-2', 'plaza', 'bld-1', 'bld-2', 'bld-3', 'bld-4', 'bld-5', 'bld-6', 'roof', 'roof-2',
@@ -216,11 +247,19 @@
     // la camera sta un po' dietro il centro dell'auto: il bordo del cofano (2,9 m davanti all'occhio) è il muso dell'auto
     const EYE_BACK = 2.9 - P.CAR_L / 2;
     let s = null, g = null, cfg = null, raf = 0, last = 0, paused = false, over = 0, timers = [], lastChanged = 0, alive = true;
-    let wrap, stage, cv, needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pauseEl, endEl, turnEl, pedalEl, zoneL, zoneR, modeBtn, pauseBtn, itemBtn, acornEl, fxoEl, glErr = false;
+    let wrap, stage, cv, needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pauseEl, endEl, turnEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl, optsEl, glErr = false;
     let W = 300, H = 400, pr = 1, slowF = 0, fastF = 0;
-    let keys = {}, ptrs = new Map(), steerV = 0, brakeOn = false, hdgS = null, camRoll = 0, useQ = false, fovK = 0;
-    let pref = 'tilt';
-    try { pref = (HH.store && HH.store.get && HH.store.get('rally:ctl')) || 'tilt'; } catch (e) { pref = 'tilt'; }
+    let keys = {}, ptrs = new Map(), steerV = 0, brakeOn = false, gasOn = false, hdgS = null, camRoll = 0, useQ = false, fovK = 0, shake = 0, lastDrawn = null;
+    const sget = (k, d) => { try { const v = HH.store && HH.store.get && HH.store.get(k); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
+    const sset = (k, v) => { try { if (HH.store && HH.store.set) HH.store.set(k, v); } catch (e) { /* niente salvataggio */ } };
+    let pref = sget('rally:ctl', 'tilt');
+    // visuale: 'chase' (terza persona, predefinita) o 'pilot'; acceleratore automatico: scelta salvata, altrimenti
+    // acceso solo al livello 1 (si impara prima a sterzare), spento dal 2 (si guida coi pedali)
+    let camPref = sget('rally:cam', 'chase') === 'pilot' ? 'pilot' : 'chase';
+    let autoPref = sget('rally:auto', null);
+    const autoGas = () => (autoPref === null ? !!(cfg && cfg.autoGas) : !!autoPref);
+    // camera da dietro: posizione e velocità della molla, punto guardato
+    const CH = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, lx: 0, ly: 0, lz: 0, ok: false };
     const sensor = { at: 0, raw: 0, zero: 0, val: 0, asked: false };
     let lastHud = { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' };
     let rollUntil = 0, seenPu = {}, qaHold = false;
@@ -248,26 +287,38 @@
 
     /* ---------- costruzione del DOM ---------- */
     function build() {
+      const GAUGE = `<svg viewBox="-24 -24 48 48" aria-hidden="true"><circle r="21" fill="var(--ry-gauge)" ${o(2.4)}/><path d="M-14 6A15 15 0 1 1 14 6" fill="none" stroke="var(--ry-dash-2)" stroke-width="3" stroke-dasharray="2 4"/><g class="ry-needle2"><path d="M0 0L-12 -6" stroke="var(--ry-needle)" stroke-width="3.4" stroke-linecap="round"/></g><circle r="3.6" fill="var(--ry-ink)"/></svg>`;
       el.innerHTML = `<div class="ry-wrap" dir="ltr">
         <div class="ry-stage" tabindex="0" role="application" aria-label="${L('ry_board')}">
           <canvas class="ry-cv"></canvas>
           <div class="ry-fxo" aria-hidden="true"></div>
-          <div class="ry-touch" aria-hidden="true"><div class="ry-zone l">${ZONE(-1)}</div><div class="ry-zone r">${ZONE(1)}</div></div>
           <div class="ry-dash">${DASH}</div>
           <div class="ry-prog" aria-hidden="true">${[3, 2, 1, 0].map((i) => `<i class="${i ? '' : 'me'}" data-id="${i}" style="--ry-c:${CCOL[i]}"></i>`).join('')}<b>${FLAG}</b></div>
           <div class="ry-top">
             <div class="ry-left"><div class="ry-pos" role="status"><b>4</b><small>/4</small></div><div class="ry-rank" aria-hidden="true"></div></div>
             <div class="ry-notes" aria-live="polite"></div>
             <div class="ry-right"><div class="ry-btns">
+              <button class="ry-btn ry-cam" type="button"></button>
               <button class="ry-btn ry-mode" type="button"></button>
               <button class="ry-btn ry-pbtn" type="button" aria-label="${L('pa_pause')}">${PAUSE}</button></div>
               <div class="ry-time">0:00.0</div>
               <div class="ry-acorn" role="img" aria-label="${L('ry_acorns')}: 0">${ACORN}<b>0</b></div></div>
           </div>
+          <div class="ry-spd" aria-hidden="true">${GAUGE}</div>
+          <div class="ry-ctl">
+            <div class="ry-arr l" role="img" aria-label="${L('pa_left')}">${ZONE(-1)}</div>
+            <div class="ry-arr r" role="img" aria-label="${L('pa_right')}">${ZONE(1)}</div>
+            <div class="ry-ped brake" role="img" aria-label="${L('ry_brake')}">${PEDAL}</div>
+            <div class="ry-ped gas" role="img" aria-label="${L('ry_gas')}">${GAS}<span class="ry-auto">${AUTO}</span></div>
+          </div>
           <button class="ry-item empty" type="button" aria-label="${L('ry_item')}">${puSvg('gift')}</button>
-          <div class="ry-pedal" aria-label="${L('ry_brake')}" role="img">${PEDAL}</div>
           <div class="ry-msg" aria-live="polite"></div>
-          <div class="ry-veil ry-pause" hidden><span class="ry-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small></div>
+          <div class="ry-veil ry-pause" hidden><span class="ry-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small>
+            <div class="ry-opts">
+              <button class="ry-opt" type="button" data-opt="cam"></button>
+              <button class="ry-opt" type="button" data-opt="auto">${AUTO}<span>${L('ry_auto')}</span><i class="ry-sw" aria-hidden="true"></i></button>
+              <button class="ry-opt" type="button" data-opt="ctl"></button>
+            </div></div>
           <div class="ry-veil ry-turn" hidden>${PHONE}<b>${L('ry_turn')}</b></div>
           <div class="ry-veil ry-end" hidden></div>
         </div></div>`;
@@ -285,14 +336,18 @@
       pauseEl = el.querySelector('.ry-pause');
       endEl = el.querySelector('.ry-end');
       turnEl = el.querySelector('.ry-turn');
-      pedalEl = el.querySelector('.ry-pedal');
-      zoneL = el.querySelector('.ry-zone.l');
-      zoneR = el.querySelector('.ry-zone.r');
+      pedalEl = el.querySelector('.ry-ped.brake');
+      gasEl = el.querySelector('.ry-ped.gas');
+      arrL = el.querySelector('.ry-arr.l');
+      arrR = el.querySelector('.ry-arr.r');
       modeBtn = el.querySelector('.ry-mode');
+      camBtn = el.querySelector('.ry-cam');
       pauseBtn = el.querySelector('.ry-pbtn');
       itemBtn = el.querySelector('.ry-item');
       acornEl = el.querySelector('.ry-acorn');
       fxoEl = el.querySelector('.ry-fxo');
+      spdEl = el.querySelector('.ry-needle2');
+      optsEl = el.querySelector('.ry-opts');
       renderMode();
       if (G.ResizeObserver) {
         if (el._ryRO) el._ryRO.disconnect();
@@ -380,10 +435,14 @@
     function geos() {
       if (GEO) return GEO;
       const prism = new T.CylinderGeometry(1, 1, 1, 3); prism.rotateZ(Math.PI / 2); prism.rotateX(-Math.PI / 2);   // tetto a capanna: colmo lungo x, punta in su (base a −0,5)
+      // mezzo cilindro (fetta d'anguria): asse lungo x, arco in su, base piatta a y = 0
+      const half = new T.CylinderGeometry(1, 1, 1, 14, 1, false, 0, Math.PI); half.rotateZ(Math.PI / 2);
+      const disc = new T.CircleGeometry(1, 18); disc.rotateX(-Math.PI / 2);   // ombra dei kart
       GEO = {
         box: keep(new T.BoxGeometry(1, 1, 1)), sph: keep(new T.IcosahedronGeometry(1, 1)), sph2: keep(new T.SphereGeometry(1, 10, 8)), lo: keep(new T.SphereGeometry(1, 7, 5)),
         cyl: keep(new T.CylinderGeometry(1, 1, 1, 10)), cyl6: keep(new T.CylinderGeometry(1, 1, 1, 6)), cone: keep(new T.ConeGeometry(1, 1, 8)), rock: keep(new T.DodecahedronGeometry(1, 0)),
         prism: keep(prism), plane: keep(new T.PlaneGeometry(1, 1)), ball: keep(new T.SphereGeometry(1, 16, 12)), sph0: keep(new T.IcosahedronGeometry(1, 0)),
+        half: keep(half), disc: keep(disc),
       };
       return GEO;
     }
@@ -505,7 +564,7 @@
       for (let a = 0; a < g.N - 2; a += 120) R3.chunks.push({ a, b: Math.min(g.N, a + 120), grp: null });
       R3.built = 0;
       TGc = null;
-      buildCars();
+      buildKarts();
       buildHood();
       buildFx();
       buildItems();
@@ -796,6 +855,7 @@
       else if (th === 'sea') decorSea(ctxC);
       else decorSnow(ctxC);
       obstacles(ctxC);
+      props(ctxC);
       arches(ctxC);
       chevrons(ctxC);
       const tDecor = performance.now();
@@ -934,6 +994,24 @@
           }
         }
       }
+      // guardrail a imbuto (logica: P.sideAt, tipo 'fun'): dal limite dell'ambientazione alla ringhiera o alla parete
+      for (const [list, m] of [[g.bridges, 1], [g.tunnels, 0.5]]) for (const q of list) {
+        for (const [f0, f1] of [[q.s0 - m - P.FUN, q.s0 - m], [q.s1 + m, q.s1 + m + P.FUN]]) {
+          if (f1 < a || f0 >= b) continue;
+          for (let sv = Math.max(a, f0); sv < Math.min(b, f1); sv += 2) {
+            for (const side of [-1, 1]) {
+              const l0 = P.sideAt(g, sv + 0.01, side).lim, l1 = P.sideAt(g, Math.min(f1, sv + 2) - 0.01, side).lim;
+              const p0 = P.world(g, sv, side * (l0 + 0.12)), p1 = P.world(g, Math.min(f1, sv + 2), side * (l1 + 0.12));
+              const len = Math.hypot(p1.x - p0.x, p1.y - p0.y), mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2, hh = groundH(mx, my);
+              const yaw = YAW(Math.atan2(p1.y - p0.y, p1.x - p0.x));
+              const rc = th === 'city' ? C['barrier-1'] : th === 'sea' ? C.paint : C.wood;
+              add(GEO.box, rc, M4(mx, hh + 0.75, -my, 0, yaw, 0, 0.18, 0.22, len + 0.04), 0.04);
+              add(GEO.box, th === 'city' ? C['barrier-2'] : rc, M4(mx, hh + 0.4, -my, 0, yaw, 0, 0.14, 0.16, len + 0.04), 0.03);
+              add(GEO.box, woodC ? C['wood-2'] : C.lamp, M4(p0.x, hh + 0.45, -p0.y, 0, yaw, 0, 0.16, 0.9, 0.16), 0.03);
+            }
+          }
+        }
+      }
       for (const q of g.tunnels) {
         if (q.s1 < a || q.s0 >= b) continue;
         const wallC = th === 'city' ? C.curb : th === 'sea' ? C.cliff : C.rock, wall2 = th === 'city' ? C['bld-2'] : th === 'sea' ? C['cliff-2'] : C['rock-2'];
@@ -981,6 +1059,13 @@
         for (const side of [-1, 1]) {
           const ed = P.edgeAt(g, sv);
           if (ed.kind !== 'wall') continue;
+          if (P.sideAt(g, sv, side).kind === 'fun' || P.sideAt(g, sv + 2, side).kind === 'fun') continue;
+          if (th === 'sea' && side > 0) {
+            // lato terra: muretto di pietra continuo (muro vero, come la logica)
+            const p = at(sv + 1, side * (WL + 0.3), 'g');
+            add(GEO.box, Math.floor(sv / 2) % 2 ? C.cliff : C['cliff-2'], M4(p.x, p.h + 0.35, p.z, 0, p.ry, 0, 0.6, 0.8, 2.04), 0.04);
+            continue;
+          }
           if (th === 'city') {
             // transenne morbide a cuscino lunghe 4 m, a colori alterni
             if (Math.floor(sv / 2) % 2) continue;
@@ -1018,6 +1103,38 @@
       }
     }
 
+    /* ostacoli della fascia fuori strada (logica: g.props, cerchi di raggio pr.r nel mondo): tronchi, rocce, ceppi,
+       cespugli, pini, cumuli e pupazzi di neve disegnati con la stessa misura; le chiome stanno in alto
+       (sopra i 2,3 m), così il kart che sbatte sul tronco non le attraversa */
+    function props(K) {
+      const { a, b, add, L2, r } = K;
+      for (const pr of g.props) {
+        if (pr.s < a || pr.s >= b) continue;
+        const x = pr.x, z = -pr.y, h = groundH(pr.x, pr.y), R = pr.r, yaw = pr.x * 1.7;
+        if (pr.k === 'tree') {
+          add(GEO.cyl6, C.trunk, M4(x, h + 1.5, z, 0, 0, 0, R, 3.0, R), 0.05);
+          const c = [C['leaf-1'], C['leaf-2'], C['leaf-3']][Math.floor(r() * 3)];
+          add(GEO.lo, c, M4(x, h + 4.0, z, 0, yaw, 0, 1.35, 1.2, 1.35), 0.1);
+          add(GEO.lo, c, M4(x + 0.7, h + 3.5, z + 0.4, 0, 0, 0, 0.8, 0.7, 0.8));
+        } else if (pr.k === 'pine') {
+          add(GEO.cyl6, C.trunk, M4(x, h + 1.3, z, 0, 0, 0, R, 2.6, R), 0.05);
+          add(GEO.cone, C.pine, M4(x, h + 3.4, z, 0, yaw, 0, 1.6, 2.2, 1.6), 0.08);
+          add(GEO.cone, C['snow-cap'], M4(x, h + 4.5, z, 0, yaw, 0, 1.0, 1.4, 1.0), 0.07);
+        } else if (pr.k === 'stump') {
+          add(GEO.cyl6, C.trunk, M4(x, h + 0.3, z, 0, 0, 0, R, 0.6, R), 0.04);
+          add(GEO.cyl6, C.wood, M4(x, h + 0.61, z, 0, 0, 0, R * 0.85, 0.03, R * 0.85));
+          if (r() < 0.4) add(GEO.sph, C.cap, M4(x + R * 0.4, h + 0.75, z, 0, 0, 0, 0.18, 0.1, 0.18), 0.02);
+        } else if (pr.k === 'bush') {
+          add(GEO.lo, C.bush, M4(x, h + 0.55 * R, z, 0, yaw, 0, R, 0.78 * R, R), 0.07);
+          add(GEO.lo, C.bush, M4(x + 0.3 * R, h + 0.95 * R, z - 0.2 * R, 0, 0, 0, 0.55 * R, 0.45 * R, 0.55 * R), 0.05);
+          for (let i = 0; i < 3; i++) { const an = yaw + i * 2.1; add(GEO.sph0, C['flower-' + (1 + i)], M4(x + Math.cos(an) * R * 0.7, h + 0.8 * R, z + Math.sin(an) * R * 0.7, 0, 0, 0, 0.12, 0.1, 0.12)); }
+        } else if (pr.k === 'bank') {
+          add(GEO.lo, C.snowbank, M4(x, h + 0.25 * R, z, 0, yaw, 0, R, 0.55 * R, R), 0.06);
+        } else if (pr.k === 'snowman') {
+          snowman(add, x, h + 0.05, z, R, yaw);
+        } else L2.rock.push([x, pr.y, R, C[r() < 0.5 ? 'rock' : 'rock-2'], 1]);
+      }
+    }
     /* ostacoli all'interno delle curve (logica: cerchi di raggio rk.r): stessa misura nella grafica */
     function obstacles(K) {
       const { a, b, add, at, L2 } = K;
@@ -1488,65 +1605,155 @@
       if (r() < 0.3) critterAt(K, a + 10 + r() * 100, r() < 0.5 ? -1 : 1, true);
     }
 
-    /* ---------- macchinine degli avversari (misure = rettangolo di collisione P.CAR_L × P.CAR_W) e cofano di Hari ---------- */
-    function carParts(body, who) {
-      const ps = [], add = (geo, c, m, ol = 0) => ps.push({ geo, c, m, ol });
-      const Lc = P.CAR_L, Wc = P.CAR_W, hl = Lc / 2;
-      add(GEO.box, body, M4(0, 0.62, 0, 0, 0, 0, Wc - 0.16, 0.56, Lc - 0.4), 0.05);
-      add(GEO.box, C.trim, M4(0, 0.42, hl - 0.15, 0, 0, 0, Wc - 0.1, 0.26, 0.3), 0.04);
-      add(GEO.box, C.trim, M4(0, 0.42, -(hl - 0.15), 0, 0, 0, Wc - 0.1, 0.26, 0.3), 0.04);
-      add(GEO.box, C.glass, M4(0, 1.13, -0.2, 0, 0, 0, Wc - 0.48, 0.5, 1.7), 0.04);
-      add(GEO.box, body, M4(0, 1.43, -0.2, 0, 0, 0, Wc - 0.38, 0.13, 1.82), 0.04);
-      add(GEO.box, C['car-2'], M4(0, 0.91, 0, 0, 0, 0, 0.42, 0.03, Lc - 0.38));
-      // ruote dentro la sagoma: il bordo esterno è a metà larghezza dell'auto
-      for (const x of [-(Wc / 2 - 0.16), Wc / 2 - 0.16]) for (const z of [-1.2, 1.2]) add(GEO.cyl, C.tire, M4(x, 0.38, z, 0, 0, Math.PI / 2, 0.38, 0.32, 0.38), 0.03);
-      for (const x of [-0.6, 0.6]) { add(GEO.sph, C.head, M4(x, 0.68, hl - 0.16, 0, 0, 0, 0.17, 0.13, 0.08)); add(GEO.box, C.tail, M4(x, 0.74, -(hl - 0.14), 0, 0, 0, 0.36, 0.15, 0.06)); }
-      // alettone da rally
-      add(GEO.box, C['car-2'], M4(0, 1.32, -(hl - 0.28), 0, 0, 0, Wc - 0.32, 0.08, 0.34), 0.04);
-      for (const x of [-0.55, 0.55]) add(GEO.box, C.trim, M4(x, 1.1, -(hl - 0.34), 0, 0, 0, 0.08, 0.4, 0.08));
-      // pilota che spunta dal tettuccio
-      const hy = 1.92;
-      if (who === 'bunny') {
-        add(GEO.sph, C.bunny, M4(0, hy, -0.3, 0, 0, 0, 0.48, 0.44, 0.46), 0.05);
-        for (const sx of [-1, 1]) { add(GEO.sph, C.bunny, M4(sx * 0.2, hy + 0.66, -0.36, 0, 0, sx * -0.18, 0.13, 0.5, 0.1), 0.04); add(GEO.sph, C['bunny-in'], M4(sx * 0.2, hy + 0.66, -0.29, 0, 0, sx * -0.18, 0.07, 0.38, 0.05)); }
-        add(GEO.sph, C.bunny, M4(0, hy - 0.3, -0.9, 0, 0, 0, 0.16, 0.16, 0.16), 0.03);
-      } else if (who === 'fox') {
-        add(GEO.sph, C.fox, M4(0, hy, -0.3, 0, 0, 0, 0.5, 0.44, 0.46), 0.05);
-        for (const sx of [-1, 1]) { add(GEO.cone, C.fox, M4(sx * 0.27, hy + 0.48, -0.3, 0, 0, sx * -0.32, 0.17, 0.4, 0.12), 0.04); add(GEO.cone, C.ink, M4(sx * 0.33, hy + 0.62, -0.3, 0, 0, sx * -0.32, 0.07, 0.14, 0.05)); }
-      } else if (who === 'panda') {
-        add(GEO.sph, C.panda, M4(0, hy, -0.3, 0, 0, 0, 0.5, 0.45, 0.47), 0.05);
-        for (const sx of [-1, 1]) add(GEO.sph, C['panda-2'], M4(sx * 0.34, hy + 0.36, -0.32, 0, 0, 0, 0.17, 0.17, 0.12), 0.04);
-        add(GEO.sph, C['panda-2'], M4(0, hy - 0.42, -0.5, 0, 0, 0, 0.46, 0.18, 0.3));
+    /* ---------- kart a forma di frutto (ingombro = rettangolo di collisione P.CAR_L × P.CAR_W) ---------- */
+    // assi locali: z avanti, x di lato, y in su. Ruote, paraurti, scocca e contorni stanno tutti in |x| ≤ P.CAR_W / 2 e
+    // |z| ≤ P.CAR_L / 2 (i contorni compresi). Tre pezzi animati: scocca (rimbalza sulle sospensioni), foglia-spoiler
+    // (sventola), pilota (si inclina in curva, festeggia). Lontano: una forma sola senza contorno (LOD).
+    const MQ = (x, y, z, dx, dy, dz, sx, sy, sz) => { const d = new T.Vector3(dx, dy, dz).normalize(); return new T.Matrix4().compose(new T.Vector3(x + d.x * sy, y + d.y * sy, z + d.z * sy), new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), d), new T.Vector3(sx, sy, sz)); };
+    const DRV = [0, 0.86, -0.22];      // perno del pilota (sedile)
+    const LEAF = [0, 1.0, -0.98];      // perno della foglia-spoiler (dietro, in alto)
+    function kartParts(id) {
+      const body = [], leaf = [], drv = [], lod = [];
+      const add = (L) => (geo, c, m, ol = 0) => L.push({ geo, c, m, ol });
+      const B = add(body), F = add(leaf), D = add(drv), Lo = add(lod);
+      const hw = P.CAR_W / 2, hl = P.CAR_L / 2;
+      // telaio comune: pianale, paraurti, ruote tonde coi mozzi, faretti, fanalini, volantino
+      B(GEO.box, C.chassis, M4(0, 0.3, 0, 0, 0, 0, hw * 1.5, 0.16, hl * 1.7), 0.03);
+      for (const z of [hl - 0.12, -(hl - 0.12)]) B(GEO.box, C.trim, M4(0, 0.36, z, 0, 0, 0, hw * 1.45, 0.2, 0.14), 0.03);
+      for (const x of [-(hw - 0.18), hw - 0.18]) for (const z of [-(hl - 0.6), hl - 0.6]) {
+        B(GEO.cyl, C.tire, M4(x, 0.32, z, 0, 0, Math.PI / 2, 0.32, 0.26, 0.32), 0.03);
+        B(GEO.sph0, C['car-2'], M4(x + Math.sign(x) * 0.11, 0.32, z, 0, 0, 0, 0.04, 0.12, 0.12));
       }
-      return ps;
+      for (const x of [-0.42, 0.42]) { B(GEO.sph, C.head, M4(x, 0.52, hl - 0.2, 0, 0, 0, 0.13, 0.11, 0.07), 0.02); B(GEO.box, C.tail, M4(x, 0.5, -(hl - 0.2), 0, 0, 0, 0.2, 0.09, 0.04)); }
+      B(GEO.cyl, C.wheel, M4(0, 1.02, 0.3, -0.9, 0, 0, 0.2, 0.04, 0.2), 0.02);
+      Lo(GEO.box, C.tire, M4(0, 0.3, 0, 0, 0, 0, P.CAR_W - 0.1, 0.5, P.CAR_L - 0.9));
+      // seme / poro sulla buccia di un ellissoide (centro c, semiassi a), a quota (u, w) = frazioni di x e z
+      const onShell = (cx, cy, cz, ax, ay, az, u, w, col, k) => { const q = 1 - u * u - w * w; if (q < 0.05) return; const y = cy + ay * Math.sqrt(q); B(GEO.sph0, col, M4(cx + ax * u * 1.01, y + 0.01, cz + az * w, 0, 0, 0, k[0], k[1], k[2])); };
+      const f = FRUIT[id];
+      if (f === 'straw') {
+        // fragola: ellissoide largo dietro e punta davanti, semini gialli, corona di foglie come spoiler
+        B(GEO.sph2, C.straw, M4(0, 0.72, -0.05, 0, 0, 0, 0.74, 0.44, 1.16), 0.05);
+        B(GEO.cone, C.straw, M4(0, 0.66, 1.18, Math.PI / 2, 0, 0, 0.5, 0.42, 0.42), 0.04);
+        for (const u of [-0.62, -0.25, 0.25, 0.62]) for (const w of [-0.55, 0.15, 0.62]) onShell(0, 0.72, -0.05, 0.74, 0.44, 1.16, u, w, C.seed, [0.05, 0.03, 0.075]);
+        for (const u of [-0.86, 0.86]) for (const w of [-0.3, 0.3]) onShell(0, 0.72, -0.05, 0.74, 0.44, 1.16, u, w, C.seed, [0.03, 0.06, 0.07]);
+        // semini anche dietro (si vedono dalla camera)
+        for (const [x, y] of [[-0.45, 0.62], [0, 0.55], [0.45, 0.62], [-0.25, 0.85], [0.25, 0.85], [-0.6, 0.8], [0.6, 0.8]]) B(GEO.sph0, C.seed, M4(x, y, -0.05 - 1.16 * Math.sqrt(Math.max(0.05, 1 - (x / 0.74) ** 2 - ((y - 0.72) / 0.44) ** 2)) - 0.01, 0, 0, 0, 0.06, 0.075, 0.03));
+        for (let i = 0; i < 5; i++) { const a = -1.15 + i * 0.575; F(GEO.sph, C.kleaf, MQ(0, 0, 0, Math.sin(a), 0.42, -Math.cos(a) * 0.9, 0.12, 0.25, 0.04), 0.03); }
+        F(GEO.cyl, C['kleaf-2'], M4(0, 0.14, 0, 0, 0, 0, 0.045, 0.28, 0.045), 0.02);
+        Lo(GEO.sph0, C.straw, M4(0, 0.74, 0.05, 0, 0, 0, 0.78, 0.46, 1.4));
+      } else if (f === 'peach') {
+        // pesca: tonda con la piega e la guancia rosata, una foglia grande e il picciolo
+        B(GEO.sph2, C.peach, M4(0, 0.74, 0, 0, 0, 0, 0.76, 0.48, 1.25), 0.05);
+        B(GEO.sph2, C['peach-2'], M4(0.24, 0.8, 0.22, 0, 0, 0, 0.54, 0.42, 0.9));
+        B(GEO.sph2, C['peach-2'], M4(0, 0.74, 0, 0, 0, 0, 0.035, 0.505, 1.27));
+        F(GEO.sph, C.kleaf, MQ(0.05, 0.1, 0, 0.45, 0.75, -0.5, 0.15, 0.32, 0.045), 0.03);
+        F(GEO.cyl, C.trunk, M4(0, 0.08, 0, 0, 0, 0, 0.04, 0.2, 0.04), 0.02);
+        Lo(GEO.sph0, C.peach, M4(0, 0.74, 0, 0, 0, 0, 0.8, 0.5, 1.3));
+      } else if (f === 'mand') {
+        // mandarino: schiacciato, coi pori della buccia; due foglioline e il picciolo
+        B(GEO.sph2, C.mand, M4(0, 0.7, 0.04, 0, 0, 0, 0.78, 0.42, 1.25), 0.05);
+        for (const u of [-0.7, -0.35, 0, 0.35, 0.7]) for (const w of [-0.55, 0.05, 0.6]) onShell(0, 0.7, 0.04, 0.78, 0.42, 1.25, u, w + (u * 7 % 2) * 0.05, C['mand-2'], [0.035, 0.02, 0.035]);
+        B(GEO.sph0, C['kleaf-2'], M4(0, 0.7, 1.28, 0, 0, 0, 0.07, 0.07, 0.04));
+        for (const sx of [-1, 1]) F(GEO.sph, C.kleaf, MQ(0, 0.12, 0, sx * 0.55, 0.65, -0.5, 0.11, 0.26, 0.04), 0.03);
+        F(GEO.cyl, C['kleaf-2'], M4(0, 0.08, 0, 0, 0, 0, 0.045, 0.2, 0.045), 0.02);
+        Lo(GEO.sph0, C.mand, M4(0, 0.7, 0.04, 0, 0, 0, 0.82, 0.44, 1.3));
+      } else {
+        // fetta d'anguria: buccia verde a strisce, polpa rossa coi semini neri sui due lati, ricciolo come spoiler
+        B(GEO.half, C['melon-rind'], M4(0, 0.36, 0, 0, 0, 0, 1.5, 0.9, 1.36), 0.05);
+        for (const x of [-0.42, 0, 0.42]) B(GEO.half, C['melon-rind-2'], M4(x, 0.36, 0, 0, 0, 0, 0.09, 0.915, 1.375));
+        for (const sx of [-1, 1]) {
+          B(GEO.half, C['melon-w'], M4(sx * 0.756, 0.36, 0, 0, 0, 0, 0.012, 0.86, 1.3));
+          B(GEO.half, C.melon, M4(sx * 0.764, 0.36, 0, 0, 0, 0, 0.012, 0.78, 1.21));
+          for (const [r, a] of [[0.45, 0.5], [0.45, 1.3], [0.45, 2.2], [0.62, 0.9], [0.62, 1.7], [0.62, 2.6], [0.3, 1.6]]) B(GEO.sph0, C.mseed, M4(sx * 0.775, 0.36 + Math.sin(a) * r * 0.86, Math.cos(a) * r * 1.2, 0, 0, 0, 0.01, 0.06, 0.035));
+        }
+        for (let i = 0; i < 3; i++) F(GEO.cyl, C['melon-rind-2'], M4(Math.sin(i * 2.1) * 0.06, 0.07 + i * 0.12, Math.cos(i * 2.1) * 0.06, 0, 0, (i % 2 ? 0.5 : -0.5), 0.03, 0.14, 0.03), 0.015);
+        F(GEO.sph, C.kleaf, MQ(0, 0.3, 0, -0.35, 0.8, -0.4, 0.12, 0.22, 0.04), 0.03);
+        Lo(GEO.half, C['melon-rind'], M4(0, 0.36, 0, 0, 0, 0, 1.5, 0.9, 1.36));
+      }
+      // pilota (coordinate rispetto al perno DRV): testa all'altezza giusta per spuntare dalla scocca
+      const hy = 0.6, ink = C.eye, eyes = (y, z, sp) => { for (const sx of [-1, 1]) { D(GEO.sph0, ink, M4(sx * sp, y, z, 0, 0, 0, 0.05, 0.065, 0.03)); D(GEO.sph0, C.hi, M4(sx * sp + 0.015, y + 0.025, z + 0.02, 0, 0, 0, 0.018, 0.018, 0.01)); } };
+      const who = WHO[id];
+      for (const sx of [-1, 1]) D(GEO.sph, C.paw, M4(sx * 0.2, 0.2, 0.48, 0, 0, 0, 0.09, 0.08, 0.09), 0.02);
+      if (who === 'hari') {
+        D(GEO.sph0, C.quill, M4(0, 0.2, -0.05, 0, 0, 0, 0.27, 0.25, 0.24), 0.03);
+        D(GEO.sph, C.face, M4(0, hy, 0.02, 0, 0, 0, 0.32, 0.29, 0.29), 0.04);
+        // nuca a riccio: mezza testa marrone dietro (da dietro si vede questa, con gli aculei)
+        D(GEO.sph, C.quill, M4(0, hy + 0.03, -0.07, 0, 0, 0, 0.34, 0.32, 0.29), 0.04);
+        // aculei: coni che sporgono dietro e in alto (da dietro si vede la testa a riccio)
+        for (const [ax, ay, az] of [[0, 1, -0.2], [-0.45, 0.9, -0.3], [0.45, 0.9, -0.3], [-0.85, 0.45, -0.35], [0.85, 0.45, -0.35], [-0.95, -0.05, -0.4], [0.95, -0.05, -0.4],
+          [0, 0.6, -0.8], [-0.45, 0.45, -0.8], [0.45, 0.45, -0.8], [-0.6, 0, -0.85], [0.6, 0, -0.85], [0, 0, -1], [-0.3, -0.4, -0.9], [0.3, -0.4, -0.9]]) {
+          const l = Math.hypot(ax, ay, az), ux = ax / l, uy = ay / l, uz = az / l;
+          D(GEO.cone, (Math.abs(ax) + ay) % 0.9 < 0.3 ? C.quill : C['quill-2'], MQ(ux * 0.24, hy + 0.03 + uy * 0.22, -0.07 + uz * 0.2, ux, uy, uz, 0.12, 0.14, 0.12), 0.025);
+        }
+        for (const sx of [-1, 1]) D(GEO.sph, C.ear, M4(sx * 0.26, hy + 0.2, -0.02, 0, 0, 0, 0.08, 0.08, 0.05), 0.02);
+        eyes(hy + 0.03, 0.27, 0.11);
+        D(GEO.sph0, C.nose, M4(0, hy - 0.05, 0.3, 0, 0, 0, 0.045, 0.035, 0.03));
+        for (const sx of [-1, 1]) D(GEO.sph0, C['bunny-in'], M4(sx * 0.19, hy - 0.07, 0.25, 0, 0, 0, 0.06, 0.03, 0.02));
+      } else if (who === 'bunny') {
+        D(GEO.sph0, C.bunny, M4(0, 0.2, -0.05, 0, 0, 0, 0.26, 0.24, 0.23), 0.03);
+        D(GEO.sph, C.bunny, M4(0, hy, 0, 0, 0, 0, 0.31, 0.29, 0.29), 0.04);
+        for (const sx of [-1, 1]) { D(GEO.sph, C.bunny, M4(sx * 0.12, hy + 0.45, -0.06, 0, 0, sx * -0.15, 0.08, 0.3, 0.06), 0.03); D(GEO.sph, C['bunny-in'], M4(sx * 0.125, hy + 0.45, -0.01, 0, 0, sx * -0.15, 0.04, 0.22, 0.02)); }
+        eyes(hy + 0.02, 0.26, 0.11);
+        D(GEO.sph0, C['bunny-in'], M4(0, hy - 0.06, 0.29, 0, 0, 0, 0.04, 0.03, 0.02));
+      } else if (who === 'fox') {
+        D(GEO.sph0, C.fox, M4(0, 0.2, -0.05, 0, 0, 0, 0.26, 0.24, 0.23), 0.03);
+        D(GEO.sph, C.fox, M4(0, hy, 0, 0, 0, 0, 0.32, 0.29, 0.3), 0.04);
+        D(GEO.sph, C['fox-2'], M4(0, hy - 0.08, 0.17, 0, 0, 0, 0.2, 0.13, 0.15));
+        for (const sx of [-1, 1]) { D(GEO.cone, C.fox, M4(sx * 0.19, hy + 0.3, -0.02, 0, 0, sx * -0.35, 0.1, 0.22, 0.06), 0.025); D(GEO.cone, C.ink, M4(sx * 0.24, hy + 0.38, -0.02, 0, 0, sx * -0.35, 0.04, 0.08, 0.03)); }
+        eyes(hy + 0.04, 0.27, 0.12);
+        D(GEO.sph0, C.nose, M4(0, hy - 0.04, 0.33, 0, 0, 0, 0.045, 0.035, 0.03));
+      } else {
+        D(GEO.sph0, C.panda, M4(0, 0.2, -0.05, 0, 0, 0, 0.26, 0.24, 0.23), 0.03);
+        D(GEO.sph, C.panda, M4(0, hy, 0, 0, 0, 0, 0.32, 0.3, 0.3), 0.04);
+        for (const sx of [-1, 1]) { D(GEO.sph, C['panda-2'], M4(sx * 0.24, hy + 0.24, -0.02, 0, 0, 0, 0.1, 0.1, 0.07), 0.02); D(GEO.sph0, C['panda-2'], M4(sx * 0.12, hy + 0.02, 0.25, 0, 0, sx * 0.4, 0.08, 0.1, 0.03)); D(GEO.sph0, C.hi, M4(sx * 0.12, hy + 0.04, 0.275, 0, 0, 0, 0.03, 0.03, 0.01)); }
+        D(GEO.sph0, C.nose, M4(0, hy - 0.06, 0.3, 0, 0, 0, 0.045, 0.035, 0.03));
+      }
+      Lo(GEO.sph0, C[who === 'hari' ? 'quill-2' : who], M4(0, DRV[1] + hy, DRV[2], 0, 0, 0, 0.32, 0.3, 0.3));
+      return { body, leaf, drv, lod };
     }
-    function buildCars() {
-      R3.cars = [];
-      const bodies = [null, C['bunny-car'], C['fox-car'], C['panda-car']];
-      // molla (salto) e bolla (scudo) per ogni auto
+    function buildKarts() {
+      R3.karts = [];
+      // molla (salto) e bolla (scudo) per ogni kart
       const coil = [];
       for (let i = 0; i < 6; i++) coil.push({ geo: GEO.cyl, c: C.spring, m: M4(0, -0.1 - i * 0.18, 0, 0, 0, (i % 2 ? 0.25 : -0.25), 0.5, 0.11, 0.5), ol: 0.03 });
-      coil.push({ geo: GEO.box, c: C.car, m: M4(0, -1.2, 0, 0, 0, 0, 1.3, 0.14, 1.3), ol: 0.03 });
+      coil.push({ geo: GEO.box, c: C.straw, m: M4(0, -1.2, 0, 0, 0, 0, 1.2, 0.14, 1.2), ol: 0.03 });
       const coilM = merge(coil);
       R3.bubbleMat = basic({ color: C.bubble, transparent: true, opacity: 0.32, depthWrite: false });
-      for (let id = 1; id <= 3; id++) {
-        const mm = merge(carParts(bodies[id], WHO[id]));
-        const grp = meshOf(mm, R3.inkMat, R3.vc);
-        const sp = meshOf(coilM, R3.inkMat, R3.vc); sp.visible = false; grp.add(sp);
-        const bb = new T.Mesh(GEO.ball, R3.bubbleMat); bb.scale.set(1.45, 1.35, 2.5); bb.position.y = 1.0; bb.visible = false; grp.add(bb);
-        grp.userData = { spring: sp, bubble: bb };
+      // ombre: un disco schiacciato sotto ogni kart (4 istanze, 1 draw call)
+      const shM = basic({ color: C.shadow, transparent: true, opacity: 0.3, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      R3.shadow = new T.InstancedMesh(GEO.disc, shM, 4); R3.shadow.frustumCulled = false;
+      R3.scene.add(R3.shadow);
+      for (let id = 0; id < 4; id++) {
+        const K = kartParts(id), grp = new T.Group(), sus = new T.Group();
+        const leafG = new T.Group(), drvG = new T.Group();
+        leafG.position.set(...LEAF); drvG.position.set(...DRV);
+        // la foglia senza contorno (un draw call in meno per kart); i piloti degli avversari fusi con la scocca
+        // (rimbalzano con lei), quello di Hari a parte (si inclina in curva e festeggia)
+        leafG.add(new T.Mesh(merge(K.leaf.map((q) => Object.assign({}, q, { ol: 0 }))).body, R3.vc));
+        const toSeat = new T.Matrix4().makeTranslation(...DRV);
+        if (id) K.body.push(...K.drv.map((q) => Object.assign({}, q, { m: toSeat.clone().multiply(q.m) })));
+        else drvG.add(meshOf(merge(K.drv), R3.inkMat, R3.vc));
+        sus.add(meshOf(merge(K.body), R3.inkMat, R3.vc), leafG, drvG);
+        const lod = new T.Mesh(merge(K.lod).body, R3.vc); lod.visible = false;
+        const sp = meshOf(coilM, R3.inkMat, R3.vc); sp.visible = false;
+        const bb = new T.Mesh(GEO.ball, R3.bubbleMat); bb.scale.set(1.3, 1.3, 2.1); bb.position.y = 1.0; bb.visible = false;
+        grp.add(sus, lod, sp, bb);
+        grp.userData = { sus, leafG, drvG, lod, spring: sp, bubble: bb, ph: id * 1.7 };
         R3.scene.add(grp);
-        R3.cars[id] = grp;
+        R3.karts[id] = grp;
       }
     }
     function buildHood() {
       const ps = [], add = (geo, c, m, ol = 0) => ps.push({ geo, c, m, ol });
-      // cofano (il bordo davanti a 2,9 m dall'occhio = muso dell'auto, sopra a quota −0,5; measure() lo alza/abbassa
-      // secondo il campo visivo): la parte vicina resta sotto il cruscotto, si vede il bordo con le gobbe dei fari
-      add(GEO.box, C.car, M4(0, -0.68, -1.6, 0.04, 0, 0, P.CAR_W + 0.04, 0.34, 2.2));
-      add(GEO.sph, C.car, M4(0, -0.62, -2.55, 0, 0, 0, 1.0, 0.16, 0.36), 0.05);
-      for (const x of [-0.16, 0.16]) add(GEO.box, C['car-2'], M4(x, -0.505, -1.7, 0.04, 0, 0, 0.14, 0.02, 2.2));
-      for (const x of [-0.72, 0.72]) add(GEO.sph, C.car, M4(x, -0.53, -2.32, 0, 0, 0, 0.28, 0.12, 0.36), 0.04);
+      // visuale pilota: il muso della fragola (il bordo davanti a 2,9 m dall'occhio = muso del kart, sopra a quota −0,5;
+      // measure() lo alza/abbassa secondo il campo visivo), coi semini e i faretti
+      const HC = [0, -0.68, -1.6], HA = [P.CAR_W / 2 + 0.08, 0.3, 1.3];
+      add(GEO.sph2, C.straw, M4(HC[0], HC[1], HC[2], 0, 0, 0, HA[0], HA[1], HA[2]), 0.05);
+      for (const [x, z] of [[-0.45, -2.15], [0.45, -2.15], [0, -2.35], [-0.25, -2.55], [0.25, -2.55], [-0.7, -2.3], [0.7, -2.3], [0, -2.72], [-0.5, -2.7], [0.5, -2.7]]) {
+        const q = 1 - (x / HA[0]) ** 2 - ((z - HC[2]) / HA[2]) ** 2;
+        if (q > 0.02) add(GEO.sph0, C.seed, M4(x, HC[1] + HA[1] * Math.sqrt(q) + 0.01, z, 0, 0, 0, 0.06, 0.03, 0.09));
+      }
+      for (const x of [-0.55, 0.55]) add(GEO.sph, C.head, M4(x, -0.62, -2.72, 0, 0, 0, 0.14, 0.1, 0.08), 0.03);
       const mm = merge(ps);
       const grp = meshOf(mm, R3.inkMat, toon({ vertexColors: true, fog: false }));
       R3.camera.add(grp);
@@ -1571,7 +1778,7 @@
       R3.fx = { pts, n, list: Array.from({ length: n }, () => ({ life: 0 })), next: 0 };
       // fanalini posteriori e fari degli avversari che brillano al buio
       if ((N.night || 0) > 0) {
-        const mk = (c, sz) => { const tg = keep(new T.BufferGeometry()); tg.setAttribute('position', new T.BufferAttribute(new Float32Array(18), 3)); const tl = new T.Points(tg, keep(new T.PointsMaterial({ size: sz, map: tex, color: c, transparent: true, depthWrite: false, blending: T.AdditiveBlending }))); tl.frustumCulled = false; R3.scene.add(tl); return tl; };
+        const mk = (c, sz) => { const tg = keep(new T.BufferGeometry()); tg.setAttribute('position', new T.BufferAttribute(new Float32Array(24), 3)); const tl = new T.Points(tg, keep(new T.PointsMaterial({ size: sz, map: tex, color: c, transparent: true, depthWrite: false, blending: T.AdditiveBlending }))); tl.frustumCulled = false; R3.scene.add(tl); return tl; };
         R3.tails = mk(C.tail, 0.42); R3.heads = mk(C.head, 0.7);
       } else { R3.tails = null; R3.heads = null; }
     }
@@ -1584,6 +1791,7 @@
       bubble: ['bubble', 'ribbon'], carrot: ['carrot', 'spark', 'carrot-leaf'], gift: ['gift-1', 'gift-2', 'gift-3', 'gift-4'], acorn: ['acorn', 'spark'] };
     function burst(kind, at3, n0) {
       if (reduce() || !R3 || !R3.fx) return;
+      if (!at3 && s && chase()) at3 = kart3(0);
       const cam = R3.camera, f = new T.Vector3(0, 0, -1).applyQuaternion(cam.quaternion), rgt = new T.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
       const n = n0 || (kind === 'leaf' ? 14 : 10), col = (BURST[kind] || BURST.spark).map((k) => C[k]);
       for (let i = 0; i < n; i++) {
@@ -1699,6 +1907,13 @@
         m4.compose(V.set(w.x, roadH(cl.s, cl.d, w.x, w.y) + 2.2 + Math.sin(now * 5 + nc) * 0.2, -w.y), Q.setFromAxisAngle(UP, now * 2), V.clone().set(sc, sc, sc));
         I.cloud.im.setMatrixAt(nc++, m4);
       }
+      // la nuvoletta che riporta in pista (sotto il kart che sale e scende)
+      for (const c of s.cars) {
+        if (!(c.res > 0) || nc >= 8) continue;
+        const Pz = P.pose(g, c), k = 1 - c.res / P.RESCUE, lift = (k < 0.5 ? k : 1 - k) * 2 * 2.4, sc = 0.75 * Math.min(1, Math.min(k, 1 - k) * 8);
+        m4.compose(V.set(Pz.x, roadH(c.s, c.d, Pz.x, Pz.y) + lift - 0.1, -Pz.y), Q.setFromAxisAngle(UP, now * 1.5), V.clone().set(sc * 1.4, sc * 0.7, sc * 1.6));
+        I.cloud.im.setMatrixAt(nc++, m4);
+      }
       I.cloud.im.count = I.cloud.ol.count = nc;
       I.cloud.im.instanceMatrix.needsUpdate = true;
     }
@@ -1720,48 +1935,119 @@
 
     /* ---------- disegno ---------- */
     let baseFov = 64;
+    const chase = () => camPref === 'chase';
     function measure() {
       if (!stage) return;
       W = stage.clientWidth || 300; H = stage.clientHeight || 400;
       if (!R3) return;
       R3.renderer.setSize(W, H, false);
       R3.camera.aspect = W / H;
-      baseFov = W / H < 1 ? 74 : W / H > 1.7 ? 58 : 64;
-      R3.camera.fov = baseFov + fovK * 8;
+      // da dietro un campo visivo un po' più stretto (il kart resta grande), da pilota più largo
+      baseFov = chase() ? (W / H < 1 ? 68 : W / H > 1.7 ? 52 : 58) : (W / H < 1 ? 74 : W / H > 1.7 ? 58 : 64);
+      R3.camera.fov = baseFov + fovK * 9;
       R3.camera.updateProjectionMatrix();
-      // il bordo del cofano (2,9 m davanti) cade al 71% dell'altezza, qualunque sia il campo visivo
-      const a = Math.atan(0.42 * Math.tan((baseFov * Math.PI) / 360)) + PITCH;
+      // il bordo del cofano (2,9 m davanti) cade al 65% dell'altezza (sopra il cruscotto), qualunque sia il campo visivo
+      const a = Math.atan(0.3 * Math.tan((baseFov * Math.PI) / 360)) + PITCH;
       R3.hoodY = -2.9 * Math.tan(a) + 0.5;
       if (!raf) draw(0);
     }
     // altezza del saltino (dossi) o del salto a molla (più alto, per vedere la molla)
     const hopOf = (c) => { if (!(c.air > 0 && c.airT > 0)) return 0; const k = 1 - c.air / c.airT; return 4 * c.airT * (c.spr ? 1.6 : 1.1) * k * (1 - k); };
+    const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+    const cl = (v, a, b) => (v < a ? a : v > b ? b : v);
+    // kart: posa = rettangolo di collisione (P.pose, la stessa della logica), quota della strada, sospensioni, pilota
+    const M0 = new T.Matrix4(), Q0 = new T.Quaternion(), V0 = new T.Vector3(), S0 = new T.Vector3(), UPV = new T.Vector3(0, 1, 0);
+    function placeKart(id, now, dt, rm, show) {
+      const c = s.cars[id], m = R3.karts[id], U = m.userData, Pz = P.pose(g, c);
+      const h0 = roadH(c.s, c.d, Pz.x, Pz.y), hp = hopOf(c), vm = cfg.vmax, sp = Math.min(1.3, Math.abs(c.v) / vm);
+      // nuvoletta: il kart sale in cielo, sparisce un attimo e ricompare posato sulla strada
+      let lift = 0;
+      if (c.res > 0) { const k = 1 - c.res / P.RESCUE; lift = (k < 0.5 ? k : 1 - k) * 2 * 2.4; }
+      m.position.set(Pz.x, h0 + hp + lift, -Pz.y);
+      m.rotation.set(0, YAW(Pz.h), 0);
+      m.visible = show && !(c.res > 0 && Math.abs(c.res - P.RESCUE / 2) < 0.12);
+      const far = !!id && Math.abs(c.s - s.cars[0].s) > 32;
+      U.sus.visible = !far; U.lod.visible = far;
+      // sospensioni: rimbalzo (più forte fuori strada), inclinazione in curva, beccheggio in frenata e in accelerazione
+      const bounce = rm ? 0 : Math.sin(now * 11 + U.ph) * 0.03 * sp + (c.off ? Math.abs(Math.sin(now * 19 + U.ph)) * 0.07 * sp : 0);
+      const lean = cl(-c.kc * c.v * c.v * 0.004, -0.07, 0.07) - P.bankAt(g, c.s);
+      const pitch = id ? 0 : (brakeOn && c.v > 2 ? 0.035 : gasOn && c.v < cfg.vmax * 0.6 ? -0.02 : 0);
+      const wob = c.slip > 0 && !rm ? Math.sin((1 - c.slip / P.PU.slipT) * Math.PI * 4) * 0.05 : 0;
+      U.sus.position.y = bounce;
+      U.sus.rotation.set(rm ? 0 : pitch, wob, rm ? 0 : lean);
+      // la foglia sventola con la velocità; il pilota si inclina verso l'interno, gira la testa sulla buccia, festeggia
+      if (!far && !rm) {
+        U.leafG.rotation.set(-0.15 + Math.sin(now * (6 + 8 * sp) + U.ph) * (0.08 + 0.18 * sp), 0, Math.sin(now * 4 + U.ph) * 0.06);
+        const party = c.fin >= 0 && s.res && s.res.findIndex((r) => r.id === id) < 3;
+        const spin = c.slip > 0 ? (1 - c.slip / P.PU.slipT) * Math.PI * 2 : 0;
+        U.drvG.position.y = DRV[1] + (party ? Math.abs(Math.sin(now * 7 + U.ph)) * 0.35 : 0);
+        U.drvG.rotation.set(party ? Math.sin(now * 7) * 0.15 : 0, spin + (party ? Math.sin(now * 3.5) * 0.5 : 0), cl(lean * 3, -0.25, 0.25) + (party ? Math.sin(now * 7 + 1) * 0.2 : 0));
+      }
+      U.spring.visible = !!(c.spr && c.air > 0);
+      if (U.spring.visible) U.spring.scale.y = Math.max(0.15, hp * 0.85);
+      U.bubble.visible = c.sh > 0;
+      // ombra sulla strada (resta giù nei salti)
+      const sk = c.res > 0 ? 0.001 : 1 / (1 + (hp + lift) * 0.35);
+      M0.compose(V0.set(Pz.x, h0 + 0.05, -Pz.y), Q0.setFromAxisAngle(UPV, YAW(Pz.h)), S0.set(P.CAR_W * 0.56 * sk, 1, P.CAR_L * 0.52 * sk));
+      R3.shadow.setMatrixAt(id, show ? M0 : M0.makeScale(0, 0, 0));
+      return { Pz, h0, hp, lift };
+    }
     function draw(dt) {
       if (!R3 || !R3.scene || !s) return;
-      const p = s.cars[0], cam = R3.camera, now = performance.now() / 1000;
-      const w = P.world(g, p.s, p.d), h0 = roadH(p.s, p.d, w.x, w.y);
-      const hop = hopOf(p), rm = reduce();
-      // buccia di banana: il muso fa un giro buffo a destra e sinistra
+      const p = s.cars[0], cam = R3.camera, now = performance.now() / 1000, rm = reduce(), ch = chase();
+      const vm = cfg.vmax, sp = Math.min(1.3, Math.abs(p.v) / vm);
+      // kart (anche quello di Hari, da dietro); posa disegnata = posa della logica
+      const KP = [];
+      for (let id = 0; id < 4; id++) KP[id] = placeKart(id, now, dt, rm, id ? Math.abs(s.cars[id].s - p.s) < R3.fogFar + 20 : ch);
+      R3.shadow.instanceMatrix.needsUpdate = true;
+      const H0 = KP[0], w = P.world(g, p.s, p.d), h0 = H0.h0, hop = H0.hp;
+      // direzione morbida (per la camera e la luce)
       const slipK = p.slip > 0 ? 1 - p.slip / P.PU.slipT : 0, wob = p.slip > 0 && !rm ? Math.sin(slipK * Math.PI * 2) * 0.55 * (1 - slipK * 0.5) : 0;
-      const hdg = w.th + p.psi + wob;
-      if (hdgS === null || !(dt > 0)) hdgS = hdg; else hdgS += (hdg - hdgS) * Math.min(1, dt * 14);
-      const vm = cfg.vmax, sp = p.v / vm;
-      const shake = rm ? 0 : (p.off ? 0.05 : 0.012) * Math.min(1.3, sp);
-      // occhio un po' dietro il centro: il bordo del cofano è il muso del rettangolo di collisione
-      const ex = w.x - Math.cos(w.th + p.psi) * EYE_BACK, ey = w.y - Math.sin(w.th + p.psi) * EYE_BACK;
-      const eye = V3(ex, h0 + 1.15 + hop + (rm ? 0 : Math.sin(now * 19) * shake), ey);
-      cam.position.copy(eye);
-      const ah = P.world(g, p.s + 12, p.d), hA = roadH(p.s + 12, p.d, ah.x, ah.y);
-      const look = V3(ex + Math.cos(hdgS) * 12, h0 + 1.15 + (hA - h0) * 0.85 - 12 * Math.tan(PITCH) + hop * 0.5, ey + Math.sin(hdgS) * 12);
-      cam.lookAt(look);
-      const roll = Math.max(-0.06, Math.min(0.06, p.kc * p.v * p.v * 0.0032)) + P.bankAt(g, p.s) + (rm ? 0 : wob * 0.12);
-      camRoll += (roll - camRoll) * Math.min(1, (dt || 0.016) * 6);
-      if (!rm) cam.rotateZ(camRoll + (p.off ? (Math.random() - 0.5) * 0.012 * sp : 0));
-      // turbo: il campo visivo si allarga un pochino
-      const fk = p.boost > 0 && !rm ? 1 : 0;
+      const hdg = H0.Pz.h + (ch ? 0 : wob);
+      if (hdgS === null || !(dt > 0) || p.res > 0) hdgS = hdg; else hdgS += wrapA(hdg - hdgS) * Math.min(1, dt * (ch ? 5 : 14));
+      if (shake > 0) shake = Math.max(0, shake - (dt || 0.016) * 2.5);
+      const jig = rm ? 0 : shake * 0.5 + (p.off ? 0.06 * sp : 0);
+      let ex, ey, eh;
+      if (ch) {
+        // terza persona: dietro e sopra il kart, inseguimento con una molla smorzata (critica), si allontana un po' in velocità
+        const back = 5.8 + 1.4 * sp, up = 2.55 + 0.35 * sp;
+        const tx = H0.Pz.x - Math.cos(hdgS) * back, ty = H0.Pz.y - Math.sin(hdgS) * back, tz = h0 + hop * 0.6 + H0.lift * 0.3 + up;
+        if (!CH.ok || !(dt > 0) || Math.hypot(CH.x - tx, CH.y - ty) > 25) { Object.assign(CH, { x: tx, y: ty, z: tz, vx: 0, vy: 0, vz: 0, ok: true }); }
+        else {
+          const ww = 7.5, d2 = Math.min(dt, 0.05);
+          for (const [k, vk, t] of [['x', 'vx', tx], ['y', 'vy', ty], ['z', 'vz', tz]]) { CH[vk] += (ww * ww * (t - CH[k]) - 2 * ww * CH[vk]) * d2; CH[k] += CH[vk] * d2; }
+        }
+        // mai sotto il terreno (dossi, colline)
+        const gh = Math.max(roadH(Math.max(0, p.s - back), 0, CH.x, CH.y), h0) + 1.1;
+        if (CH.z < gh) { CH.z = gh; CH.vz = Math.max(0, CH.vz); }
+        ex = CH.x; ey = CH.y; eh = CH.z;
+        const sh = jig ? (Math.random() - 0.5) * jig : 0;
+        cam.position.set(ex + sh * 0.6, eh + (rm ? 0 : sh * 0.5 + (p.off ? Math.sin(now * 23) * 0.05 * sp : 0)), -ey);
+        const lk = 6 + 3 * sp;
+        cam.lookAt(V3(H0.Pz.x + Math.cos(hdgS) * lk, h0 + hop * 0.5 + H0.lift * 0.6 + 0.9, H0.Pz.y + Math.sin(hdgS) * lk));
+        // leggera inclinazione nelle curve (verso l'interno)
+        const roll = cl(-p.kc * p.v * p.v * 0.0022, -0.045, 0.045) + P.bankAt(g, p.s) * 0.5;
+        camRoll += (roll - camRoll) * Math.min(1, (dt || 0.016) * 4);
+        if (!rm) cam.rotateZ(camRoll + (jig ? (Math.random() - 0.5) * jig * 0.05 : 0));
+      } else {
+        // visuale pilota: occhio un po' dietro il centro, il bordo del cofano è il muso del rettangolo di collisione
+        const ah = H0.Pz.h + p.bet * 0.6;
+        ex = H0.Pz.x - Math.cos(ah) * EYE_BACK; ey = H0.Pz.y - Math.sin(ah) * EYE_BACK;
+        const shk = rm ? 0 : (p.off ? 0.05 : 0.012) * sp + shake * 0.15;
+        eh = h0 + 1.15 + hop + H0.lift + (rm ? 0 : Math.sin(now * 19) * shk);
+        cam.position.set(ex, eh, -ey);
+        const aw = P.world(g, p.s + 12, p.d), hA = roadH(p.s + 12, p.d, aw.x, aw.y);
+        cam.lookAt(V3(ex + Math.cos(hdgS) * 12, h0 + 1.15 + (hA - h0) * 0.85 - 12 * Math.tan(PITCH) + hop * 0.5 + H0.lift, ey + Math.sin(hdgS) * 12));
+        const roll = Math.max(-0.06, Math.min(0.06, p.kc * p.v * p.v * 0.0032)) + P.bankAt(g, p.s) + (rm ? 0 : wob * 0.12);
+        camRoll += (roll - camRoll) * Math.min(1, (dt || 0.016) * 6);
+        if (!rm) cam.rotateZ(camRoll + (p.off ? (Math.random() - 0.5) * 0.012 * sp : 0));
+      }
+      if (R3.hood) { R3.hood.visible = !ch; R3.hood.position.y = (R3.hoodY || 0) + (rm ? 0 : Math.sin(now * 23) * 0.006 * sp); }
+      // turbo e mini-spinta: il campo visivo si allarga
+      const fk = (p.boost > 0 || p.mini > 0) && !rm ? (p.boost > 0 ? 1 : 0.6) : 0;
       fovK += (fk - fovK) * Math.min(1, (dt || 0.016) * 5);
-      if (Math.abs(cam.fov - (baseFov + fovK * 8)) > 0.05) { cam.fov = baseFov + fovK * 8; cam.updateProjectionMatrix(); }
-      if (R3.hood) R3.hood.position.y = (R3.hoodY || 0) + (rm ? 0 : Math.sin(now * 23) * 0.006 * sp);
+      if (Math.abs(cam.fov - (baseFov + fovK * 9)) > 0.05) { cam.fov = baseFov + fovK * 9; cam.updateProjectionMatrix(); }
+      const eye = cam.position;
       // cielo segue la camera; la luce principale arriva da dietro-sinistra-alto rispetto a chi guida (niente controluce)
       R3.sky.position.copy(eye);
       if (R3.sea) { R3.sea.position.x = eye.x; R3.sea.position.z = eye.z; }
@@ -1771,16 +2057,19 @@
       updateGround(ex + Math.cos(hdgS) * 90, ey + Math.sin(hdgS) * 90);
       // blocchi di scenario: costruisce il prossimo (uno per fotogramma) e mostra solo quelli vicini
       const ahead = p.s + 320;
-      for (const ch of R3.chunks) {
-        if (!ch.grp && ch.a < ahead && ch.b > p.s - 80) { buildChunk(ch); break; }
+      for (const chk of R3.chunks) {
+        if (!chk.grp && chk.a < ahead && chk.b > p.s - 80) { buildChunk(chk); break; }
       }
-      for (const ch of R3.chunks) {
-        if (!ch.grp) continue;
-        const dd = Math.hypot(ch.x - w.x, ch.y - w.y);
-        ch.grp.visible = dd < R3.fogFar + ch.rad;
+      // da dietro la camera è più alta e vede più lontano: nebbia un po' più vicina e dettagli che calano prima
+      const fogF = R3.fogFar * (ch ? 0.88 : 1);
+      if (R3.scene.fog && Math.abs(R3.scene.fog.far - fogF) > 0.5) R3.scene.fog.far = fogF;
+      for (const chk of R3.chunks) {
+        if (!chk.grp) continue;
+        const dd = Math.hypot(chk.x - w.x, chk.y - w.y);
+        chk.grp.visible = dd < fogF + chk.rad;
         // LOD semplice: i blocchi lontani mostrano alberi e cespugli senza dettagli
-        const isFar = dd - ch.rad * 0.6 > 85;
-        if (ch.isFar !== isFar) { ch.isFar = isFar; for (const m of ch.near) m.visible = !isFar; for (const m of ch.far) m.visible = isFar; }
+        const isFar = dd - chk.rad * 0.6 > (ch ? 72 : 85);
+        if (chk.isFar !== isFar) { chk.isFar = isFar; for (const m of chk.near) m.visible = !isFar; for (const m of chk.far) m.visible = isFar; }
       }
       // animazioni dello scenario (animaletti, pubblico, barche, faro) solo nei blocchi vicini
       if (!rm) for (const an of R3.anim) if (!an.ch || (an.ch.grp && an.ch.grp.visible && Math.hypot(an.ch.x - w.x, an.ch.y - w.y) < 200)) an.fn(now);
@@ -1790,40 +2079,38 @@
         gl.position.set(cx + Math.cos(an) * rr, eye.y + 12 + i * 2.5 + Math.sin(now * 2 + i) * 0.6, -(cy + Math.sin(an) * rr));
         gl.rotation.set(0, -an + Math.PI, Math.sin(now * 6 + i) * 0.25);
       });
-      // avversari
+      // fanalini e faretti che brillano al buio; polvere, scintille, petali dietro i kart
       const tails = R3.tails ? R3.tails.geometry.attributes.position : null, heads = R3.heads ? R3.heads.geometry.attributes.position : null;
-      for (let id = 1; id <= 3; id++) {
-        const c = s.cars[id], m = R3.cars[id], cw = P.world(g, c.s, c.d), ch = roadH(c.s, c.d, cw.x, cw.y), hp = hopOf(c);
-        const spin = c.slip > 0 ? (1 - c.slip / P.PU.slipT) * Math.PI * 4 : 0;
-        m.position.set(cw.x, ch + hp + (rm ? 0 : Math.abs(Math.sin(now * 13 + id * 2)) * 0.05 * (c.v / vm)), -cw.y);
-        m.rotation.set(0, YAW(cw.th + c.psi) + spin, 0);
-        m.rotateZ(-c.kc * c.v * c.v * 0.004 - P.bankAt(g, c.s));
-        m.visible = Math.abs(c.s - p.s) < R3.fogFar + 20;
-        m.userData.spring.visible = !!(c.spr && c.air > 0);
-        if (m.userData.spring.visible) m.userData.spring.scale.y = Math.max(0.15, hp * 0.85);
-        m.userData.bubble.visible = c.sh > 0;
-        if (dt > 0 && !rm && m.visible) {
-          // polvere (o scintille del turbo, petali della nuvoletta)
-          const bx = cw.x - Math.cos(cw.th) * 2.1, by = cw.y - Math.sin(cw.th) * 2.1;
-          if (c.v > 9 && c.s - p.s > 9 && Math.random() < dt * 12) emit(bx + (Math.random() - 0.5) * 1.4, ch + 0.25, -by, (Math.random() - 0.5) * 0.8, 0.4 + Math.random() * 0.4, (Math.random() - 0.5) * 0.8, c.off ? C.leafp : C.dust, 0.8, 0.4);
-          if (c.boost > 0 && Math.random() < dt * 30) emit(bx, ch + 0.6, -by, (Math.random() - 0.5) * 2, 1 + Math.random(), (Math.random() - 0.5) * 2, Math.random() < 0.5 ? C.carrot : C.spark, 0.5, 1);
-          if (c.slow > 0 && Math.random() < dt * 20) emit(cw.x + (Math.random() - 0.5) * 2, ch + 2 + Math.random(), -cw.y + (Math.random() - 0.5) * 2, 0, -0.5, 0, C.petal, 0.7, 1);
-        }
-        const nx = -Math.sin(cw.th), ny = Math.cos(cw.th);
-        if (tails) for (const [k, sd] of [[0, -0.6], [1, 0.6]]) tails.setXYZ((id - 1) * 2 + k, cw.x - Math.cos(cw.th) * 2.0 + nx * sd, ch + 0.75 + hp, -(cw.y - Math.sin(cw.th) * 2.0 + ny * sd));
-        if (heads) for (const [k, sd] of [[0, -0.6], [1, 0.6]]) heads.setXYZ((id - 1) * 2 + k, cw.x + Math.cos(cw.th) * 2.0 + nx * sd, ch + 0.68 + hp, -(cw.y + Math.sin(cw.th) * 2.0 + ny * sd));
+      const hl = P.CAR_L / 2;
+      for (let id = 0; id < 4; id++) {
+        const c = s.cars[id], Pz = KP[id].Pz, ht = KP[id].h0 + KP[id].hp + KP[id].lift, m = R3.karts[id];
+        const nx = -Math.sin(Pz.h), ny = Math.cos(Pz.h), cx = Math.cos(Pz.h), cy = Math.sin(Pz.h);
+        const vis = m.visible ? 1 : 0;
+        if (tails) for (const [k, sd] of [[0, -0.42], [1, 0.42]]) tails.setXYZ(id * 2 + k, Pz.x - cx * (hl - 0.15) + nx * sd, ht + 0.5 - (1 - vis) * 999, -(Pz.y - cy * (hl - 0.15) + ny * sd));
+        if (heads) for (const [k, sd] of [[0, -0.42], [1, 0.42]]) heads.setXYZ(id * 2 + k, Pz.x + cx * (hl - 0.1) + nx * sd, ht + 0.52 - (1 - vis) * 999, -(Pz.y + cy * (hl - 0.1) + ny * sd));
+        if (!(dt > 0) || rm || !vis || (id && !U_near(c, p))) continue;
+        const bx = Pz.x - cx * (hl + 0.1), by = Pz.y - cy * (hl + 0.1);
+        const dust = (c.off ? 22 : 0) + (Math.abs(c.bet) > 0.1 ? 18 : 0) + (c.v > 9 ? 4 : 0);
+        if (dust && Math.random() < dt * dust) emit(bx + (Math.random() - 0.5) * 1.4, ht + 0.25, -by, (Math.random() - 0.5) * 1.2, 0.5 + Math.random() * 0.6, (Math.random() - 0.5) * 1.2, c.off ? (cfg.theme === 'snow' ? C.snowbank : cfg.theme === 'sea' ? C.sand : cfg.theme === 'city' ? C.dust : C.dirt) : C.dust, 0.8, c.off ? 0.7 : 0.4);
+        // derapata: scintille dalle ruote dietro (gialle, poi arancioni quando la mini-spinta è carica)
+        if (c.dr > 0 && Math.random() < dt * 40) { const sd = (Math.random() < 0.5 ? -1 : 1) * 0.72; emit(bx + nx * sd, ht + 0.2, -(by + ny * sd), (Math.random() - 0.5) * 2, 1 + Math.random(), (Math.random() - 0.5) * 2, c.dr >= P.DRIFT.t1 ? C.carrot : C.spark, 0.35, 1); }
+        if ((c.boost > 0 || c.mini > 0) && Math.random() < dt * 30) emit(bx, ht + 0.5, -by, (Math.random() - 0.5) * 2, 1 + Math.random(), (Math.random() - 0.5) * 2, Math.random() < 0.5 ? C.carrot : C.spark, 0.5, 1);
+        if (c.slow > 0 && Math.random() < dt * 20) emit(Pz.x + (Math.random() - 0.5) * 2, ht + 2 + Math.random(), -Pz.y + (Math.random() - 0.5) * 2, 0, -0.5, 0, C.petal, 0.7, 1);
+        if (c.res > 0 && Math.random() < dt * 40) emit(Pz.x + (Math.random() - 0.5) * 2.4, ht + 0.2 + Math.random(), -Pz.y + (Math.random() - 0.5) * 2.4, (Math.random() - 0.5), 0.4, (Math.random() - 0.5), Math.random() < 0.5 ? C['petal-2'] : C.petal, 0.9, 1);
       }
       if (tails) tails.needsUpdate = true;
       if (heads) heads.needsUpdate = true;
-      // Hari: scintille del turbo e petali davanti al parabrezza
-      if (dt > 0 && !rm) {
+      // visuale pilota: scintille del turbo e petali davanti al parabrezza
+      if (dt > 0 && !rm && !ch) {
         if (p.boost > 0 && Math.random() < dt * 25) burst('carrot', null, 1);
         if (p.slow > 0 && Math.random() < dt * 14) burst('petal', null, 1);
       }
       updateItems(now, p);
       updateFx(dt || 0);
       R3.renderer.render(R3.scene, cam);
+      lastDrawn = KP;
     }
+    const U_near = (c, p) => Math.abs(c.s - p.s) < 60;
 
     /* ---------- indicatori HTML ---------- */
     function hud() {
@@ -1878,13 +2165,15 @@
       // effetti a schermo: miele, petali, bolla, turbo
       const fxk = p.honey ? 'honey' : p.slow > 0 ? 'petals' : p.sh > 0 ? 'bubble' : p.boost > 0 ? 'zoom' : '';
       if (fxk !== lastHud.fx) { lastHud.fx = fxk; fxoEl.className = `ry-fxo${fxk ? ' ' + fxk : ''}`; }
-      // volante e lancetta
-      const ang = steerV * 70;
+      // volante e lancette (cruscotto in visuale pilota, contachilometri tondo da dietro)
+      const ang = steerV * 70, nd = `rotate(${(-20 + Math.min(1.35, Math.abs(p.v) / cfg.vmax) * 200).toFixed(0)})`;
       if (wheelG) wheelG.style.transform = `rotate(${ang.toFixed(1)}deg)`;
-      if (needle) needle.setAttribute('transform', `rotate(${(-20 + Math.min(1.35, p.v / cfg.vmax) * 200).toFixed(0)})`);
-      zoneL.classList.toggle('on', steerV < -0.2 && mode() === 'touch');
-      zoneR.classList.toggle('on', steerV > 0.2 && mode() === 'touch');
+      if (needle) needle.setAttribute('transform', nd);
+      if (spdEl) spdEl.setAttribute('transform', nd);
+      arrL.classList.toggle('on', steerV < -0.2);
+      arrR.classList.toggle('on', steerV > 0.2);
       pedalEl.classList.toggle('on', brakeOn);
+      gasEl.classList.toggle('on', gasOn);
     }
     function noteHTML(n, j) {
       if (n.kind !== 'curve') return `<div class="ry-note${j ? ' next' : ''}"><svg viewBox="0 0 60 48" aria-hidden="true">${BIG[n.kind]}</svg><span class="ry-dist"><i></i></span></div>`;
@@ -1923,8 +2212,21 @@
       modeBtn.classList.toggle('on', m === 'tilt');
       modeBtn.setAttribute('aria-label', pref === 'tilt' ? L('ry_tilt') : L('ry_touch'));
       modeBtn.title = modeBtn.getAttribute('aria-label');
+      camBtn.innerHTML = CAM[camPref];
+      camBtn.setAttribute('aria-label', L(camPref === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot'));
+      camBtn.title = camBtn.getAttribute('aria-label');
       wrap.classList.toggle('tilt', m === 'tilt');
       wrap.classList.toggle('touch', m === 'touch');
+      wrap.classList.toggle('chase', camPref === 'chase');
+      wrap.classList.toggle('pilot', camPref !== 'chase');
+      wrap.classList.toggle('auto', autoGas());
+      // menu di pausa: visuale, acceleratore automatico, sensori ↔ tocco
+      if (optsEl) {
+        const [oc, oa, ot] = optsEl.querySelectorAll('.ry-opt');
+        oc.innerHTML = `${CAM[camPref]}<span>${L(camPref === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot')}</span>`;
+        oa.setAttribute('aria-pressed', String(autoGas()));
+        ot.innerHTML = `${pref === 'tilt' ? TILT : HAND}<span>${L(pref === 'tilt' ? 'ry_tilt' : 'ry_touch')}</span>`;
+      }
       if (m !== lastMode) { if (m === 'tilt') sensor.zero = sensor.raw; lastMode = m; }
     }
     // inclinazione "a volante": componente della verticale lungo il lato lungo dello schermo
@@ -1949,23 +2251,39 @@
       sensor.asked = true;
       try { D.requestPermission().then(() => {}).catch(() => {}); } catch (e) { /* niente sensori */ }
     }
-    const inPedal = (x, y) => { const r = pedalEl.getBoundingClientRect(), sr = stage.getBoundingClientRect(); return x >= r.left - sr.left - 14 && x <= r.right - sr.left + 14 && y >= r.top - sr.top - 14; };
+    // ruolo di un tocco: pedali, frecce, power-up; altrove (col tocco) si sterza trascinando
+    function roleAt(x, y, t) {
+      const hit = (node) => { if (!node || node.offsetParent === null) return false; const r = node.getBoundingClientRect(), sr = stage.getBoundingClientRect(), m = 10; return x >= r.left - sr.left - m && x <= r.right - sr.left + m && y >= r.top - sr.top - m && y <= r.bottom - sr.top + m; };
+      if (t && t.closest && t.closest('.ry-item')) return 'item';
+      if (hit(gasEl)) return 'gas';
+      if (hit(pedalEl)) return 'brake';
+      if (mode() === 'touch' && hit(arrL)) return 'left';
+      if (mode() === 'touch' && hit(arrR)) return 'right';
+      return mode() === 'touch' ? 'drag' : 'none';
+    }
     function input(dt) {
-      const m = mode();
-      let tgt = 0, brake = !!keys.b, now = performance.now();
+      const m = mode(), now = performance.now();
+      let tgt = 0, brake = !!keys.b, gas = !!keys.g, arrow = 0, held = 0, latest = -1, drag = null;
       if (keys.l || keys.r) tgt = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
       else if (m === 'tilt') tgt = tiltSteer();
-      let side = 0, held = 0, latest = -1;
       for (const q of ptrs.values()) {
-        if (m === 'tilt' || q.pedal) { brake = true; continue; }
-        if (q.t0 > latest) { latest = q.t0; side = q.x < W / 2 ? -1 : 1; held = (now - q.t0) / 1000; }
+        if (q.role === 'gas') gas = true;
+        else if (q.role === 'brake') brake = true;
+        else if (q.role === 'left' || q.role === 'right') { if (q.t0 > latest) { latest = q.t0; arrow = q.role === 'left' ? -1 : 1; held = (now - q.t0) / 1000; } }
+        else if (q.role === 'drag' && (!drag || q.t0 > drag.t0)) drag = q;
       }
-      if (m === 'touch' && side && !(keys.l || keys.r)) tgt = side * Math.min(1, 0.42 + held * 2.4);
-      steerV += (tgt - steerV) * Math.min(1, dt * (m === 'tilt' ? 16 : 11));
+      if (!(keys.l || keys.r) && m === 'touch') {
+        // frecce: partono al 42% e arrivano al massimo in ~0,25 s; trascinando: lo sterzo segue il dito
+        if (arrow) tgt = arrow * Math.min(1, 0.42 + held * 2.4);
+        else if (drag) tgt = Math.max(-1, Math.min(1, (drag.x - drag.x0) / Math.max(60, W * 0.2)));
+      }
+      steerV += (tgt - steerV) * Math.min(1, dt * (m === 'tilt' || drag ? 16 : 11));
       brakeOn = brake;
+      // acceleratore automatico (opzione): sempre giù tranne quando si frena
+      gasOn = autoGas() ? !brake : gas;
       const use = useQ ? 1 : 0;
       useQ = false;
-      return { steer: steerV, brake: brake ? 1 : 0, use };
+      return { steer: steerV, gas: gasOn ? 1 : 0, brake: brake ? 1 : 0, use };
     }
     function useItem() {
       if (!s || P.isOver(s) || paused || s.ready > 0 || !s.cars[0].it) return;
@@ -1973,42 +2291,57 @@
       itemBtn.classList.remove('press'); void itemBtn.offsetWidth; itemBtn.classList.add('press');
       later(() => itemBtn.classList.remove('press'), 150);
     }
+    function setCam(c) {
+      camPref = c; sset('rally:cam', c); CH.ok = false; hdgS = null;
+      renderMode(); measure(); sfx('tap');
+      say(L(c === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot'), 'small', 1200);
+    }
+    function setAuto(on) { autoPref = !!on; sset('rally:auto', !!on); renderMode(); sfx('tap'); }
+    function setCtl() {
+      pref = pref === 'tilt' ? 'touch' : 'tilt';
+      sset('rally:ctl', pref);
+      if (pref === 'tilt') askPermission();
+      sensor.zero = sensor.raw;
+      renderMode(); sfx('tap');
+      say(pref === 'tilt' ? L('ry_tilt') : L('ry_touch'), 'small', 1400);
+    }
     const local = (e) => { const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
     el.onpointerdown = (e) => {
       if (!stage || !e.target.closest('.ry-stage')) return;
-      if (e.target.closest('.ry-btn') || e.target.closest('.ry-end button')) return;
+      if (e.target.closest('.ry-btn') || e.target.closest('.ry-end button') || e.target.closest('.ry-opts')) return;
       e.preventDefault();
       if (HH.audio && HH.audio.unlock) HH.audio.unlock();
       if (pref === 'tilt') askPermission();
       if (!turnEl.hidden) return;
       if (paused) { resume(); return; }
       if (P.isOver(s)) return;
-      // pulsante del power-up: non sterza e non frena
-      if (e.target.closest('.ry-item')) { useItem(); return; }
-      const [x, y] = local(e);
-      ptrs.set(e.pointerId, { x, y, t0: performance.now(), pedal: inPedal(x, y) });
+      const [x, y] = local(e), role = roleAt(x, y, e.target);
+      // pulsante del power-up: si usa subito (anche insieme ai pedali: tocco multiplo)
+      if (role === 'item') { useItem(); return; }
+      if (role === 'none') return;
+      ptrs.set(e.pointerId, { x, y, x0: x, t0: performance.now(), role });
       try { stage.setPointerCapture(e.pointerId); } catch (err) { /* vecchi browser */ }
     };
     el.onpointermove = (e) => {
       const q = ptrs.get(e.pointerId);
       if (!q) return;
       const [x, y] = local(e);
-      const ns = x < W / 2 ? -1 : 1, os = q.x < W / 2 ? -1 : 1;
-      if (ns !== os) q.t0 = performance.now();
-      q.x = x; q.y = y; q.pedal = inPedal(x, y);
+      q.x = x; q.y = y;
+      // scivolando da una freccia all'altra (o da un pedale all'altro) il comando segue il dito
+      if (q.role !== 'drag') { const r = roleAt(x, y, null); if (r !== q.role && r !== 'drag' && r !== 'none' && r !== 'item') { q.role = r; q.t0 = performance.now(); } }
     };
     el.onpointerup = el.onpointercancel = (e) => { ptrs.delete(e.pointerId); };
     el.oncontextmenu = (e) => { if (e.target.closest('.ry-stage')) e.preventDefault(); };
     el.onclick = (e) => {
       if (e.target.closest('.ry-pbtn')) { e.preventDefault(); sfx('tap'); toggle(); return; }
-      if (e.target.closest('.ry-mode')) {
+      if (e.target.closest('.ry-cam')) { e.preventDefault(); setCam(camPref === 'chase' ? 'pilot' : 'chase'); return; }
+      if (e.target.closest('.ry-mode')) { e.preventDefault(); setCtl(); return; }
+      const opt = e.target.closest('.ry-opt');
+      if (opt) {
         e.preventDefault();
-        pref = pref === 'tilt' ? 'touch' : 'tilt';
-        try { if (HH.store && HH.store.set) HH.store.set('rally:ctl', pref); } catch (err) { /* niente salvataggio */ }
-        if (pref === 'tilt') askPermission();
-        sensor.zero = sensor.raw;
-        renderMode(); sfx('tap');
-        say(pref === 'tilt' ? L('ry_tilt') : L('ry_touch'), 'small', 1400);
+        if (opt.dataset.opt === 'cam') setCam(camPref === 'chase' ? 'pilot' : 'chase');
+        else if (opt.dataset.opt === 'auto') setAuto(!autoGas());
+        else setCtl();
         return;
       }
       // tastiera (Invio/spazio sul pulsante): il clic senza puntatore usa il power-up
@@ -2021,21 +2354,23 @@
       if (document.querySelector('.overlay:not([hidden])')) return;
       const tag = e.target && e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const onBtn = e.target && e.target.closest && e.target.closest('button');
       if (e.key in USEKEYS) {
-        if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('button') && !e.target.closest('.ry-wrap')) return;
+        // Invio o spazio su un pulsante (anche del gioco) premono il pulsante
+        if (onBtn && (e.key === 'Enter' || e.key === ' ')) return;
         e.preventDefault();
         if (paused) { resume(); return; }
         if (!e.repeat) useItem();
         return;
       }
       if (e.key in KEYS) {
-        if (e.key === ' ' && e.target && e.target.closest && e.target.closest('button') && !e.target.closest('.ry-wrap')) return;
         e.preventDefault();
         if (paused) { resume(); return; }
         if (P.isOver(s)) return;
         keys[KEYS[e.key]] = true;
         return;
       }
+      if (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V') { e.preventDefault(); setCam(camPref === 'chase' ? 'pilot' : 'chase'); return; }
       if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { e.preventDefault(); if (e.key === 'Escape') pause(); else toggle(); }
     }
     function onKeyUp(e) { if (e.key in KEYS) keys[KEYS[e.key]] = false; }
@@ -2100,13 +2435,15 @@
       const A = audio();
       if (!A.engine) return;
       if (!on) { A.engine(false); return; }
-      const v = Math.min(1.3, p.v / cfg.vmax);
-      // tre marce: il motore sale e "cambia"
-      const gear = v < 0.33 ? 0 : v < 0.66 ? 1 : 2, rpm = Math.min(1, (v - gear * 0.33) / 0.38 * 0.8 + 0.2 + gear * 0.06);
+      const v = Math.min(1.3, Math.abs(p.v) / cfg.vmax);
+      // tre marce: il motore sale e "cambia" (col gas giù un po' di più)
+      const gear = v < 0.33 ? 0 : v < 0.66 ? 1 : 2, rpm = Math.min(1, (v - gear * 0.33) / 0.38 * 0.8 + 0.2 + gear * 0.06 + (gasOn ? 0.05 : 0));
       A.engine(true, rpm, Math.min(1, (p.off ? 0.6 : 0) + Math.min(1, p.slide / 6) * 0.6 + (p.honey ? 0.3 : 0)), brakeOn && p.v > 3);
     }
 
     /* ---------- eventi della logica ---------- */
+    // punto del kart nel mondo three (per le particelle degli urti)
+    const kart3 = (id) => { if (!id && !chase()) return null; const c = s.cars[id], Pz = P.pose(g, c); return Math.abs(c.s - s.cars[0].s) < 70 ? V3(Pz.x, roadH(c.s, c.d, Pz.x, Pz.y) + 0.8, Pz.y) : null; };
     const near3 = (id) => { const c = s.cars[id], cw = P.world(g, c.s, c.d); return Math.abs(c.s - s.cars[0].s) < 70 ? V3(cw.x, roadH(c.s, c.d, cw.x, cw.y) + 1, cw.y) : null; };
     function onEvent(e) {
       switch (e.type) {
@@ -2119,10 +2456,15 @@
           break;
         }
         case 'call': { const n = g.notes[e.i]; asfx('pace', n.kind === 'curve' ? n.dir : 0, n.kind === 'curve' ? n.g : 0); break; }
-        case 'off': burst('leaf'); break;
-        case 'boing': if (e.who === 0) { burst(cfg.theme === 'city' ? 'gift' : cfg.theme === 'snow' ? 'bubble' : 'leaf'); sfx('boing'); bumpAnim(); } break;
-        case 'rock': if (e.who === 0) { burst('spark'); sfx('boing'); bumpAnim(); if (ctx.react) ctx.react('oops'); } break;
-        case 'bump': burst('spark'); sfx('set'); bumpAnim(); break;
+        case 'off': if (!chase()) burst('leaf'); shake = Math.max(shake, 0.25); break;
+        case 'boing': if (e.who === 0) { burst(cfg.theme === 'city' ? 'gift' : cfg.theme === 'snow' ? 'bubble' : 'leaf', kart3(0)); sfx('boing'); bumpAnim(); shake = Math.max(shake, 0.7); } break;
+        case 'rock': if (e.who === 0) { burst(e.k === 'bush' || e.k === 'bank' ? 'leaf' : 'spark', kart3(0)); sfx('boing'); bumpAnim(); shake = 1; if (ctx.react) ctx.react('oops'); } break;
+        case 'bump': burst('spark', kart3(e.who)); sfx('set'); bumpAnim(); shake = Math.max(shake, 0.6); break;
+        case 'drift': break;
+        case 'mini': if (e.who === 0) { asfx('zoom'); burst('carrot', kart3(0), e.lvl > 1 ? 14 : 8); if (e.lvl > 1 || !seenPu.mini) say(L('ry_mini'), 'pu', 900); seenPu.mini = 1; } break;
+        case 'spin': if (e.who === 0) { asfx('whee'); shake = Math.max(shake, 0.5); if (ctx.react) ctx.react('oops'); } break;
+        case 'rescue': if (e.who === 0) { asfx('puff'); burst('petal', kart3(0), 18); if (ctx.react) ctx.react('oops'); } break;
+        case 'back': if (e.who === 0) { CH.ok = false; burst('petal', kart3(0), 12); say(L('ry_rescue'), 'small', 1300); } break;
         case 'jump': sfx('pick'); break;
         case 'pass': if (e.up) { sfx('place'); changed(true); } else sfx('tap'); break;
         case 'check': {
@@ -2206,7 +2548,7 @@
       paused = true;
       pauseEl.hidden = !turnEl.hidden;
       pauseBtn.innerHTML = PLAY;
-      ptrs.clear(); keys = {}; steerV = 0; useQ = false;
+      ptrs.clear(); keys = {}; steerV = 0; useQ = false; gasOn = false; brakeOn = false;
       engine(false);
       stop();
       if (R3) draw(0);
@@ -2232,11 +2574,12 @@
       s = state;
       g = P.geo(s);
       cfg = P.config(s.level);
-      paused = false; over = 0; ptrs.clear(); keys = {}; steerV = 0; useQ = false; rollUntil = 0;
+      paused = false; over = 0; ptrs.clear(); keys = {}; steerV = 0; useQ = false; rollUntil = 0; shake = 0; CH.ok = false; hdgS = null;
       lastHud = { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' };
       if (!wrap || !wrap.isConnected) build();
       wrap.dataset.stage = cfg.stage;
       wrap.dataset.time = cfg.time;
+      renderMode();
       endEl.hidden = true; endEl.innerHTML = '';
       pauseEl.hidden = true; pauseBtn.innerHTML = PAUSE;
       themeKey = '';
@@ -2262,7 +2605,7 @@
         const kt = P.kAt(g, p.s), want = (o2.d != null ? o2.d : 0) - p.d;
         const kReq = kt + (Math.max(-0.4, Math.min(0.4, want * 0.12)) - p.psi) * 1.6 / Math.max(8, p.v);
         const vt = g.prof[Math.min(g.N, Math.round(p.s + p.v * 1.2))] * (o2.k || 0.95);
-        ev.push(...P.step(s, P.TICK, { steer: o2.steer != null ? o2.steer : Math.max(-1, Math.min(1, -kReq / P.KMAX)), brake: p.v > vt ? 1 : 0, use: useQ ? 1 : 0 }));
+        ev.push(...P.step(s, P.TICK, { steer: o2.steer != null ? o2.steer : Math.max(-1, Math.min(1, -kReq / P.KMAX)), gas: o2.gas != null ? o2.gas : p.v > vt ? 0 : 1, brake: o2.brake != null ? o2.brake : p.v > vt + 1 ? 1 : 0, use: useQ ? 1 : 0 }));
         useQ = false;
       }
       ev.forEach(onEvent);
@@ -2279,7 +2622,13 @@
       return c.it;
     }
     // hold(true): il tempo reale si ferma (per le foto dei controlli di qualità), ff() continua a funzionare
-    el._rally = { state: () => s, geo: () => g, three: () => R3, mode, sensor, ff, give, use: useItem, pr: () => pr, draw: () => { draw(0); hud(); }, hold: (on) => { qaHold = !!on; } };
+    // posa effettivamente disegnata dei kart (dalle matrici delle mesh): x, y del piano della logica e direzione
+    function drawn() {
+      if (!R3 || !R3.karts) return [];
+      return R3.karts.map((m) => { m.updateMatrixWorld(true); const e = m.matrixWorld.elements; return { x: e[12], y: -e[14], h: Math.atan2(-e[10], e[8]), vis: m.visible }; });
+    }
+    el._rally = { state: () => s, geo: () => g, three: () => R3, mode, sensor, ff, give, use: useItem, pr: () => pr, draw: () => { draw(0); hud(); }, hold: (on) => { qaHold = !!on; },
+      drawn, place: () => { if (!R3 || !R3.karts) return []; for (let id = 0; id < 4; id++) placeKart(id, performance.now() / 1000, 0, reduce(), true); return drawn(); }, cam: () => camPref, setCam, setAuto, auto: autoGas, ctl: () => ({ steer: steerV, gas: gasOn, brake: brakeOn, ptrs: [...ptrs.values()].map((q) => q.role) }), input: (dt) => input(dt || 0.016) };
     const migrated = saved && typeof saved.seed === 'number' && saved.L > 0 && Array.isArray(saved.cars) && saved.cars.length === 4 ? P.migrate(saved) : null;
     if (migrated && !P.isOver(migrated)) begin(migrated, true);
     else fresh();
@@ -2297,22 +2646,24 @@
 
   /* tutorial della prima partita */
   const puRow = (x, y, k, list) => list.map((n, i) => `<g class="ry-tut-gift" style="animation-delay:${(i * 0.15).toFixed(2)}s"><svg x="${x + i * 17 * k}" y="${y}" width="${16 * k}" height="${16 * k}" viewBox="0 0 48 48">${PU_ART[n]}</svg></g>`).join('');
+  const RULES_EN = 'Kart rally through forests, cities, seaside and snow, by day and by night, with Hari in his strawberry kart: accelerate, brake and steer (automatic speed is an option). Follow the pace notes (6 = fast bend, 1 = hairpin), brake before tight bends or you slide onto the grass, hold a drift for a mini boost, grab surprise gifts for silly power-ups and finish in the top 3 against Bunny, Fox and Panda.';
+  const tilted = (x, y) => `<g transform="translate(${x} ${y})"><g class="ry-tut-wheel"><rect x="-10" y="-6" width="20" height="12" rx="3" fill="var(--card-solid)" ${o(1.2)}/><rect x="-7" y="-4" width="14" height="8" rx="1.5" fill="var(--ry-sky-1)"/></g></g>`;
+  const sparks = (x, y) => [[-4, 0], [-1, -3], [-6, -4], [2, 1]].map(([a, b], i) => `<circle cx="${x + a}" cy="${y + b}" r="${1.4 - i * 0.2}" fill="var(--ry-${i % 2 ? 'carrot' : 'spark'})"/>`).join('');
   const TUT = [
-    { key: 'tu_rally_1', en: 'Hari speeds up by himself: you steer and brake! In full screen turn the phone sideways and tilt it like a wheel, hold anywhere to brake. Or touch left/right and use the pedal. Arrows and space work too.',
-      art: forest(`${hood(`<g class="ry-tut-wheel">${miniWheel()}</g>`)}
-        <g transform="translate(18 14)"><g class="ry-tut-wheel"><rect x="-10" y="-6" width="20" height="12" rx="3" fill="var(--card-solid)" ${o(1.2)}/><rect x="-7" y="-4" width="14" height="8" rx="1.5" fill="var(--ry-sky-1)"/></g></g>
-        <g transform="translate(22 76)"><rect x="-8" y="-7" width="16" height="14" rx="4" fill="var(--ry-stop)" ${o(1.2)}/><path d="M-4 -2h8M-4 2h8" stroke="var(--ry-hi)" stroke-width="1.6" stroke-linecap="round"/></g>`) },
-    { key: 'tu_rally_2', en: 'Read the pace notes: the arrow and the number say how tight the next bend is. 6 is almost straight, 1 is a hairpin: brake before the small numbers! The yellow triangle means caution.',
-      art: forest(`<g class="ry-tut-note">${noteArt(36, 8, 1.6, 1, 2, `<svg x="2" y="18" width="7" height="7" viewBox="0 0 24 24">${IC.warn}</svg>`)}</g>${hood(miniWheel())}`) },
-    { key: 'tu_rally_4', en: 'Drive through the surprise gifts to get a power-up, then tap the big button (or ↑) to use it: carrot turbo, bubble shield, banana peel or honey puddle to leave behind, flower cloud for whoever is ahead, acorn magnet and spring jump. Acorns make you a bit faster!',
-      art: forest(`<g class="ry-tut-gift">${giftArt(44, 44, 0.34)}</g>${puRow(10, 12, 1, ['carrot', 'bubble', 'banana', 'honey'])}${puRow(28, 30, 1, ['cloud', 'magnet', 'spring'])}${hood(miniWheel())}`) },
-    { key: 'tu_rally_3', en: 'Race Bunny, Fox and Panda through forests, cities, seaside roads and snowy mountains, by day and by night, and finish in the top 3! Off the road you slow down, edges are soft and bumps are just a little push.',
-      art: forest(`<g class="ry-tut-car">${carBack(46, 58, 0.42, 'var(--ry-bunny-car)', 'bunny')}${carBack(74, 54, 0.36, 'var(--ry-fox-car)', 'fox')}${carBack(60, 50, 0.28, 'var(--ry-panda-car)', 'panda')}</g>
-        <g transform="translate(10 8)"><rect x="0" y="8" width="8" height="10" fill="var(--ry-silver)" ${o(1)}/><rect x="8" y="2" width="8" height="16" fill="var(--ry-gold)" ${o(1)}/><rect x="16" y="11" width="8" height="7" fill="var(--ry-bronze)" ${o(1)}/></g>${hood(miniWheel())}`) },
+    { key: 'tu_rally_1', en: 'Drive Hari\'s strawberry kart! Right pedal to speed up, left pedal to brake (keep it pressed to go backwards). Steer with the arrows or by dragging, or in full screen tilt the phone like a wheel. Keyboard: arrows to drive, space for power-ups.',
+      art: forest(`${tilted(18, 14)}<g class="ry-tut-car">${kartBack(60, 70, 0.95, 0)}</g>${pedalArt(16, 74, 1, false)}${pedalArt(104, 72, 1, true)}${arrowArt(34, 78, 0.8, -1)}${arrowArt(86, 78, 0.8, 1)}`) },
+    { key: 'tu_rally_2', en: 'Read the pace notes: 6 is almost straight, 1 is a hairpin. Brake before the small numbers or you slide wide onto the grass! Too fast in a bend the kart drifts: hold the drift and you get a mini boost when it straightens.',
+      art: forest(`<g class="ry-tut-note">${noteArt(36, 6, 1.5, 1, 2, `<svg x="2" y="18" width="7" height="7" viewBox="0 0 24 24">${IC.warn}</svg>`)}</g>${sparks(46, 82)}${kartBack(60, 74, 0.9, 0, -14)}`) },
+    { key: 'tu_rally_4', en: 'Drive through the surprise gifts to get a power-up, then tap the big button (or space) to use it: carrot turbo, bubble shield, banana peel or honey puddle to leave behind, flower cloud for whoever is ahead, acorn magnet and spring jump. Acorns make you a bit faster!',
+      art: forest(`<g class="ry-tut-gift">${giftArt(44, 44, 0.34)}</g>${puRow(10, 12, 1, ['carrot', 'bubble', 'banana', 'honey'])}${puRow(28, 30, 1, ['cloud', 'magnet', 'spring'])}${kartBack(60, 78, 0.8, 0)}`) },
+    { key: 'tu_rally_3', en: 'Race Bunny, Fox and Panda on their fruit karts through forests, cities, seaside roads and snowy mountains, and finish in the top 3! Off the road you slow right down, trees, rocks and barriers stop you, and if you go too far a little cloud brings you back.',
+      art: forest(`<g class="ry-tut-car">${kartBack(42, 60, 0.5, 1)}${kartBack(80, 56, 0.44, 2)}${kartBack(62, 50, 0.36, 3)}${kartBack(60, 78, 0.8, 0)}</g>
+        <g transform="translate(10 8)"><rect x="0" y="8" width="8" height="10" fill="var(--ry-silver)" ${o(1)}/><rect x="8" y="2" width="8" height="16" fill="var(--ry-gold)" ${o(1)}/><rect x="16" y="11" width="8" height="7" fill="var(--ry-bronze)" ${o(1)}/></g>
+        <g transform="translate(98 18)"><path d="M-9 4c-4 0-5-5-2-6 0-5 6-6 8-3 2-4 8-3 8 1 4 0 5 5 2 7Z" fill="var(--ry-petal-2)" ${o(1)}/><circle cx="-3" cy="0" r="1.6" fill="var(--ry-petal)"/><circle cx="3" cy="1" r="1.6" fill="var(--ry-petal)"/></g>`) },
   ];
   HH.games.push({
     id: 'rally', name: 'Hari Rally', rules: 'r14',
-    rulesEn: 'First-person rally through forests, cities, seaside and snow, by day and by night: Hari speeds up by himself, you steer and brake. Follow the pace notes (6 = fast bend, 1 = hairpin), drive through surprise gifts for silly power-ups and finish in the top 3 against Bunny, Fox and Panda. In full screen turn the phone and tilt it to steer!',
+    rulesEn: RULES_EN,
     art, create,
     tutorial: TUT,
     rate: (s) => HH.rally.rate(s),
