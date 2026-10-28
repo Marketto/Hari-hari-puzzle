@@ -20,6 +20,7 @@
 | [games/yarn.md](games/yarn.md) | Yarn Link: fili, generatore, unicità, fragoline |
 | [games/drive.md](games/drive.md) | Hari Taxi: città dall'alto, missioni taxi/cibo/pacchi, traffico e pedoni, incidenti senza violenza, curva di difficoltà, bot di test |
 | [games/memory.md](games/memory.md) | Hari Memory: 49 soggetti del bosco, varianti (simili, a tema, carte che scivolano), curva di difficoltà, fragoline, bot di test |
+| [games/spot.md](games/spot.md) | Hari Spot: scene città/bosco generate da seme, 8 tipi di differenze, soglie di visibilità, hitbox, curva di difficoltà, oracolo dei test |
 | [games/snack.md](games/snack.md) | Hari Snack Rush: sentiero in prospettiva, merende, porte, animalone goloso, curva di difficoltà, bot di test |
 | [games/life.md](games/life.md) | Hari Home: simulazione di vita isometrica senza fine (bisogni, casa da ristrutturare, attività, quartiere, età, traguardi, scala del tempo, bilanciamento) |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

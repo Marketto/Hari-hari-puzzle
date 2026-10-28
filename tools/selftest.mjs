@@ -224,6 +224,26 @@ for (const level of [1, 4, 8, 16]) {
 }
 
 
+// Hari Spot (trova le differenze): 3 → 10 differenze, città/foresta alternate; esattamente N differenze con zone
+// che non si toccano, ognuna toccabile al centro; media < 10 ms per livello
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/spot-logic.js'), 'utf8'), { filename: 'spot-logic.js' });
+  const { spot } = globalThis.HH;
+  for (const level of [1, 2, 5, 9, 14, 20]) {
+    let ms = 0, good = 0, objs = 0;
+    const T = 20, P = spot.paramsFor(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const p = spot.generate(level, globalThis.HH.rng(level * 811 + k));
+      ms += performance.now() - t;
+      objs += p.a.length;
+      const apart = p.diffs.every((d, i) => p.diffs.every((e, j) => j <= i || Math.hypot(d.zone.x - e.zone.x, d.zone.y - e.zone.y) >= d.zone.r + e.zone.r));
+      if (p.diffs.length === P.n && apart && p.diffs.every((d, i) => spot.hitTest(p, d.zone.x, d.zone.y) === i)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Spot livello ${level} (${P.theme === 'city' ? 'città' : 'foresta'}): ${P.n} differenze, ${(objs / T).toFixed(1)} oggetti, ${good}/${T} valide, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);
