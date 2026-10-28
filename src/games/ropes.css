@@ -46,7 +46,7 @@
   --rk-warn: #ff8a9a; --rk-sink: rgba(10, 4, 20, .5); --rk-lock: #ffd27d; --rk-halo: rgba(255, 220, 120, .5); --rk-dim: rgba(30, 20, 50, .45);
 }
 
-.rk-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.rk-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(var(--game-w), var(--game-max, 460px)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .rk-stage { position: relative; width: 100%; }
 .rk-plates, .rk-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .rk-plates { overflow: visible; }

@@ -41,7 +41,7 @@
   --mb-text: #ffd6e6; --mb-track: #2a1f3d;
 }
 
-.mb-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.mb-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(var(--game-w), var(--game-max, 460px)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
 /* ---------- barra: due mochi amici e piattini riempiti ---------- */
 .mb-bar { display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; }

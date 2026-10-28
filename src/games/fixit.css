@@ -60,7 +60,7 @@
   --fi-mtn-2: #463a72; --fi-grass-3: #447c5d; --fi-fence: #d8c6cf; --fi-fence-2: #b09aa8; --fi-wainscot: #c895ad; --fi-mail: #6f9fd8;
 }
 
-.fi-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(var(--game-w), 460px); }
+.fi-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(var(--game-w), var(--game-max, 460px)); }
 .fi-scene {
   position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden;
   box-shadow: 0 0 0 2px var(--line-2), var(--shadow-s); user-select: none; -webkit-user-select: none;

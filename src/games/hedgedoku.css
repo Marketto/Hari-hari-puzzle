@@ -34,7 +34,7 @@
 
 .hd-grid {
   display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-template-rows: repeat(var(--n), 1fr);
-  width: min(var(--game-w), 460px); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none;
+  width: min(var(--game-w), var(--game-max, 460px)); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none;
   -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   border: 4px solid var(--wall); border-radius: 18px; overflow: hidden; box-shadow: 0 6px 0 var(--wall);
 }
@@ -73,7 +73,7 @@
 .hd-count .mini-hari { width: 28px; height: 28px; }
 .hd-count span { color: var(--ink-2); }
 @media (max-width: 560px) {
-  .hd-grid { width: min(var(--game-w), 460px); }
+  .hd-grid { width: min(var(--game-w), var(--game-max, 460px)); }
 }
 
 /* ---------- Ricci vivi ----------

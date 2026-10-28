@@ -361,8 +361,45 @@
     box.hidden = !open;
     btn.setAttribute('aria-expanded', String(open));
   }
+  /* schermo intero: il gioco si adatta allo spazio (larghezza E altezza). Si cerca la --game-w più grande per cui il
+   * contenuto entra nel riquadro: niente scorrimento in orizzontale (telefono girato) e giochi grandi sui tablet. */
+  function fitFs() {
+    const pl = $('#gPlate'), bd = $('#board');
+    if (!pl || !bd) return;
+    if (!isFull()) { pl.classList.remove('fs-fit', 'fs-scroll'); pl.style.removeProperty('--game-w'); return; }
+    if (bd.querySelector(':scope > .dr-wrap')) return;               // Hari Taxi riempie già lo schermo da solo
+    pl.classList.add('fs-fit');
+    const box = bd.getBoundingClientRect();
+    const fits = (w) => {
+      pl.style.setProperty('--game-w', `${Math.floor(w)}px`);
+      let top = Infinity, bottom = -Infinity, right = -Infinity, left = Infinity;
+      for (const c of bd.children) { const r = c.getBoundingClientRect(); if (!r.height) continue; top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); left = Math.min(left, r.left); right = Math.max(right, r.right); }
+      return bottom - top <= box.height + 1 && right - left <= box.width + 1;
+    };
+    pl.classList.remove('fs-scroll');
+    // tetto: non oltre ~1,15 volte l'altezza (sui tablet i giochi non si "stirano"), mai sotto i 460 px se c'è spazio
+    const MIN = 260, hi0 = Math.max(MIN, Math.min(box.width, Math.max(460, box.height * 1.15)));
+    let lo = MIN, hi = hi0;
+    if (fits(hi)) return done();
+    if (!fits(lo)) {
+      // anche al minimo non entra (telefono girato con un gioco "alto"): larghezza comoda e si scorre in verticale
+      pl.classList.add('fs-scroll');
+      pl.style.setProperty('--game-w', `${Math.floor(Math.min(box.width, 340))}px`);
+      return done();
+    }
+    for (let i = 0; i < 10; i++) { const m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
+    fits(lo);
+    return done();
+    function done() {
+    selfResize = true;
+    G.dispatchEvent(new Event('resize'));                              // i giochi su canvas ridisegnano alla nuova misura
+    }
+  }
+  let fitT = 0, selfResize = false;
+  G.addEventListener('resize', () => { if (selfResize) { selfResize = false; return; } if (!isFull()) return; clearTimeout(fitT); fitT = setTimeout(fitFs, 120); });
   ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
     placeHud();
+    setTimeout(fitFs, 60);
     const b = $('#gFull');
     if (!b) return;
     b.innerHTML = isFull() ? ICON.unfull : ICON.full;

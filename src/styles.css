@@ -330,7 +330,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 }
 
 /* ---------- Boba Sort ---------- */
-.bb-wrap { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 22px 14px; max-width: min(580px, var(--game-w)); padding-top: 34px; }
+.bb-wrap { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 22px 14px; max-width: min(var(--game-max, 580px), var(--game-w)); padding-top: 34px; }
 .bb-cup { position: relative; width: 62px; padding: 0; border: 0; background: none; border-radius: 12px; transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
 .bb-cup .bb-svg, .bb-fly .bb-svg { width: 100%; height: auto; overflow: visible; }
 .bb-cup::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6px; height: 8px; border-radius: 50%; background: var(--line-2); filter: blur(2px); transition: transform .3s, opacity .3s; }
@@ -369,7 +369,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .lose-moves b { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--bad); }
 
 /* ---------- Lantern Glow ---------- */
-.ln-grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; width: min(var(--game-w), 420px); }
+.ln-grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; width: min(var(--game-w), var(--game-max, 420px)); }
 .ln-cell { position: relative; aspect-ratio: 5 / 7; padding: 3%; border: 0; border-radius: 16px; background: transparent; }
 .ln-cell:hover { background: rgba(255, 255, 255, .06); }
 .ln-cell svg, .ln-art { overflow: visible; }
@@ -640,7 +640,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   .app:has(> #game:not([hidden])) { padding-left: max(5px, env(safe-area-inset-left, 0px)); padding-right: max(5px, env(safe-area-inset-right, 0px)); }
   #game .plate { padding: 6px; border-radius: 22px; }
   #game .plate::before { inset: 3px; border-radius: 19px; }
-  .ln-grid { width: min(var(--game-w), 460px); }
+  .ln-grid { width: min(var(--game-w), var(--game-max, 460px)); }
   .bb-wrap { gap: 18px 8px; max-width: var(--game-w); }
   .bb-cup { width: 50px; }
   .tool { height: 44px; padding: 0 14px; }
@@ -681,7 +681,19 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .plate.night:fullscreen { background: radial-gradient(var(--plate-night-dot) 1px, transparent 1.6px) 0 0 / 22px 22px, linear-gradient(180deg, var(--plate-night-1), var(--plate-night-2)); }
 .plate:fullscreen::before, .plate:-webkit-full-screen::before { display: none; }
 .plate:fullscreen::backdrop { background: var(--bg); }
-.plate:fullscreen .board { flex: 1; align-content: center; }
+.plate:fullscreen .board { flex: 1; min-height: 0; align-content: center; overflow: hidden; }
+/* adattamento automatico: app.js sceglie la larghezza (--game-w) più grande che entra anche in altezza, senza tetto (--game-max) */
+.plate.fs-fit { --game-max: 9999px; }
+.plate.fs-scroll .board { overflow-y: auto; align-content: start; overscroll-behavior: contain; }
+/* schermo basso (telefono girato): indicatori nella stessa riga della barra, più spazio al gioco */
+@media (max-height: 520px) {
+  .plate:fullscreen .fs-bar { height: 38px; }
+  .plate:fullscreen .fs-logo { height: 38px; }
+  .plate:fullscreen .fs-logo > svg:first-child { width: 30px; height: 30px; }
+  .plate:fullscreen .fs-exit { width: 38px; height: 38px; }
+  .plate:fullscreen .fs-hud { position: absolute; top: max(14px, calc(env(safe-area-inset-top, 0px) + 6px)); left: 50%; transform: translateX(-50%); z-index: 5; max-width: calc(100% - 420px); }
+}
+.plate.fs-fit .lh-wrap { width: var(--game-w); margin-inline: auto; }
 .plate:fullscreen .fs-bar, .plate:-webkit-full-screen .fs-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; height: 44px; }
 .fs-logo {
   display: inline-flex; align-items: center; gap: 7px; height: 44px; min-width: 0; padding: 0 12px 0 4px; border: 0; border-radius: 22px; cursor: pointer;
