@@ -157,6 +157,31 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Taxi: 5 gradini di città (3×3 → 6×6 isolati), generazione < 10 ms, ogni fermata raggiungibile su strada,
+// tempo limite della prima corsa ≥ 1,5 × il percorso più corto a velocità massima, simulazione < 0,1 ms a fotogramma (1/60 s)
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/drive-logic.js'), 'utf8'), { filename: 'drive-logic.js' });
+  const { drive } = globalThis.HH;
+  for (const level of [1, 3, 6, 10, 14]) {
+    let ms = 0, good = 0, sim = 0, size = '';
+    const T = 20, c = drive.config(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const s = drive.newLevel(level, globalThis.HH.rng(level * 389 + k));
+      ms += performance.now() - t;
+      size = `${s.W}×${s.H}`;
+      const g = drive.geo(s), tile = (x, y) => Math.floor(y) * s.W + Math.floor(x);
+      const f = drive.field(s, tile(s.car.x, s.car.y));
+      const reach = g.spots.every((p) => f[tile(p.zx, p.zy)] >= 0);
+      const p = g.spots[s.trip.p], fp = drive.field(s, tile(p.zx, p.zy)), V = drive.VEH[s.veh];
+      const fair = s.trip.items.every((it) => it.lim >= 1.5 * (fp[tile(g.spots[it.d].zx, g.spots[it.d].zy)] / V.vmax));
+      if (reach && fair) good++;
+      if (k < 3) { s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) drive.step(s, 1 / 60, null); sim += performance.now() - t2; }
+    }
+    ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Taxi livello ${level} (gradino ${c.tier}, ${c.type}): città ${size}, ${c.cars} veicoli, ${c.peds} pedoni, ${c.jobs} consegne: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
+  }
+}
+
 // Hari Home (simulazione senza livelli): 4 fasi della vita + Hari da solo col libero arbitrio, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
 {
   for (const f of ['life-data.js', 'life-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });

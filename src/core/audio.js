@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -217,6 +217,13 @@
       mel: ['5 . 5 6 8 . 6 5', '6 . 8 . 9 8 6 .', '5 4 3 . 5 . 2 .', '3 5 8 . 5 - - .',
         '8 . 8 9 10 . 9 8', '6 . 8 6 4 . 6 .', '5 6 5 4 3 . 2 .', '1 . 5 . 1 - - .'],
     },
+    // Hari Taxi: giro in città, ritmo da canzoncina "on the road" con lo shuffle (pluck + marimba), basso che cammina
+    drive: {
+      bpm: 128, root: 64, lead: 'pluck', arp: 'marimba', swing: 0.16, perc: 'pop',
+      chords: [1, 4, 5, 1, 6, 2, 5, 1], bass: 'R . F . O . F .',
+      mel: ['1 3 5 . 6 5 3 .', '4 . 6 4 8 . 6 .', '5 . 7 5 9 8 7 5', '8 - 5 . 3 - - .',
+        '6 . 8 6 5 . 3 5', '2 4 6 . 4 . 2 .', '5 6 7 8 9 . 7 .', '8 . 5 . 1 - - .'],
+    },
     // Hari Home: vita tranquilla in casa, carillon e marimba col passo morbido della giornata
     life: {
       bpm: 88, root: 65, lead: 'musicbox', arp: 'marimba', swing: 0.16, perc: 'lullaby',
@@ -387,6 +394,17 @@
       V.bell(sfxBus, sc(12), t + 0.55, 0.5, 0.08);
     }),
     record: S((t) => [5, 6, 8, 10, 12].forEach((d, i) => V.bell(sfxBus, sc(d), t + i * 0.08, 0.1, 0.08))),
+    // clacson buffo "bip bip" (Hari Taxi)
+    honk: S((t) => [0, 0.16].forEach((dt, i) => {
+      const s0 = t + dt, f = i ? 494 : 523;
+      osc(lowpass(env(sfxBus, s0, 0.005, 0.05, s0 + 0.11), 1800), 'square', f, s0, s0 + 0.11);
+      osc(env(sfxBus, s0, 0.005, 0.04, s0 + 0.11), 'triangle', f * 1.5, s0, s0 + 0.11);
+    })),
+    // "bonk" morbido: rimbalzo di gomma
+    boing: S((t) => {
+      osc(env(sfxBus, t, 0.004, 0.13, t + 0.28), 'sine', 380, t, t + 0.28, 0, 120, 0.25);
+      osc(env(sfxBus, t + 0.02, 0.004, 0.05, t + 0.2), 'triangle', 760, t + 0.02, t + 0.2, 0, 300, 0.16);
+    }),
     setMuted(m) { sfxOn = !m; if (sfxBus) sfxBus.gain.value = sfxOn ? 1 : 0; },
     isMuted: () => !sfxOn,
   };

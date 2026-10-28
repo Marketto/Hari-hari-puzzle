@@ -20,7 +20,7 @@ Ogni gioco DEVE esporre `progress(s)`. Vittoria e "cuori finiti" abbassano la mu
 
 ## Effetti (`HH.audio.sfx`)
 Intonati sulla scala del brano in corso (`sc(grado)`). Esistenti: tap, mark, place, bad, heart, lose, pick, pour(ms), cupDone,
-lightOn(i), lightOff, star(i), giggle, blip, milestone, open, win, record.
+lightOn(i), lightOff, star(i), giggle, blip, milestone, open, win, record, honk, boing.
 
 ## Messaggi di Hari (`say(kind)` in `app.js`)
 Categorie: start, good, half, almost, oops, idle, poke, cheer → chiavi `m_*` in tutte le 43 lingue (skill `i18n`).

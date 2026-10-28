@@ -1,0 +1,171 @@
+/* Hari Taxi — stile.
+ * Città vista dall'alto disegnata su <canvas>: il canvas legge questi token con getComputedStyle e li usa per dipingere
+ * strade, marciapiedi, tetti e parchi e per "cuocere" gli SVG di veicoli, pedoni e icone: nessun colore nel JavaScript.
+ * Veicoli e personaggi hanno colori fissi; città, cielo notturno, lampioni e fari cambiano col tema.
+ */
+:root {
+  --tint-drive: #fff1b8;
+  /* personaggi e veicoli (uguali nei due temi) */
+  --dr-ink: #4a2c22; --dr-eye: #2a160e; --dr-hi: #ffffff; --dr-nose: #3a1e14; --dr-mouth: #ff7f98; --dr-blush: rgba(255, 130, 165, .72);
+  --dr-quill: #9a6342; --dr-quill-2: #714330; --dr-quill-3: #b97d58; --dr-face: #fff1e2; --dr-ear: #ffe4cc; --dr-ear-in: #ffadc0;
+  --dr-taxi: #ffd34d; --dr-taxi-2: #f0b322; --dr-check: #4a2c22; --dr-sign: #fff6d6;
+  --dr-scoot: #ff8fa8; --dr-scoot-2: #e2687f; --dr-box: #ffb35c; --dr-box-2: #e58a35;
+  --dr-van: #8fd3ff; --dr-van-2: #5fb2e6; --dr-van-3: #e7f6ff;
+  --dr-glass: #cfeaff; --dr-glass-2: #8fc4ec; --dr-tire: #3d3350; --dr-head: #fff6c8; --dr-tail: #ff6b81;
+  --dr-c1: #ff9eb5; --dr-c2: #9ee6c9; --dr-c3: #b9a7f5; --dr-c4: #ffc48a; --dr-c5: #8fc9ff; --dr-c6: #f5efe4;
+  --dr-bus: #6fd3b8; --dr-bus-2: #47b597; --dr-bus-3: #ffb36b; --dr-bike: #ff7f98; --dr-metal: #9a96b8;
+  /* animaletti pedoni e passeggeri */
+  --dr-bunny: #fffaf6; --dr-bunny-in: #ffb3c8; --dr-chick: #ffdc55; --dr-beak: #ff9a3d; --dr-pig: #ffbccb; --dr-pig-2: #f390a8;
+  --dr-bear: #c48a5f; --dr-muzzle: #f6dcbc; --dr-wool: #fffdf6; --dr-sheep: #f5cdbd; --dr-cat: #cbc4da; --dr-cat-in: #ffc2d4;
+  --dr-frog: #8fdc7a; --dr-frog-2: #5fb760; --dr-duck: #fff3a8; --dr-shirt-1: #8fc9ff; --dr-shirt-2: #ff9fbf; --dr-shirt-3: #a8e3cf;
+  /* icone delle consegne */
+  --dr-ramen: #ffd28a; --dr-ramen-2: #e85d5d; --dr-pizza: #ffc65c; --dr-pizza-2: #ff6b5c; --dr-rice: #fffaf0; --dr-nori: #2f3d34;
+  --dr-cake: #ffd1e0; --dr-cake-2: #ff7fa3; --dr-steam: rgba(255, 255, 255, .9); --dr-cold: #a8dcff;
+  --dr-p1: #e8b77a; --dr-p2: #ffb3c7; --dr-p3: #a8e3cf; --dr-p4: #c8b8f0; --dr-tape: #fff3d6;
+  /* segnali, effetti, interfaccia sul canvas */
+  --dr-go: #48d18a; --dr-amber: #ffc23d; --dr-stop: #ff5f7a; --dr-pole: #4f4a66;
+  --dr-zone: #ff6f9c; --dr-zone-2: rgba(255, 111, 156, .22); --dr-pin: #ff6f9c; --dr-pin-2: #ffffff; --dr-arrow: #ffd84a;
+  --dr-puff: #ffffff; --dr-star: #ffd84a; --dr-heart: #ff6f9c; --dr-text: #ffffff; --dr-text-line: #4a2c22; --dr-bonk: #fff6c8;
+  --dr-joy: rgba(255, 255, 255, .35); --dr-joy-2: rgba(255, 255, 255, .85);
+  --dr-mm: rgba(255, 250, 246, .9); --dr-mm-line: #4a2c22; --dr-mm-road: #a7a9c4; --dr-mm-bld: #f0d9c4; --dr-mm-park: #bfe8a0;
+  /* città (cambia col tema) */
+  --dr-grass: #bfe8a0; --dr-grass-2: #a9dc8a; --dr-path: #f6e7c6; --dr-pond: #9fd8f5; --dr-pond-2: #7cc4ec;
+  --dr-road: #a9abc6; --dr-road-2: #b4b6cf; --dr-mark: #fffbe9; --dr-zebra: rgba(255, 252, 240, .92);
+  --dr-walk: #f6e6d4; --dr-walk-2: #ead3bd; --dr-curb: #d6b99f;
+  --dr-r1: #ffb3c7; --dr-r2: #ffd5a3; --dr-r3: #c8b8f0; --dr-r4: #a8e3cf; --dr-r5: #ffe9a0; --dr-r6: #a9d5ff; --dr-r7: #f7c6e9; --dr-r8: #ffc9b0;
+  --dr-roof-shade: rgba(74, 44, 34, .16); --dr-roof-edge: rgba(74, 44, 34, .3); --dr-roof-hi: rgba(255, 255, 255, .45);
+  --dr-ac: #e9e4f2; --dr-ac-2: #b9b2cc; --dr-solar: #6a7fc9; --dr-solar-2: #a9b8ef;
+  --dr-shadow: rgba(70, 55, 110, .22); --dr-tree: #7fcf7a; --dr-tree-2: #5fb760; --dr-tree-hi: #b6eea0; --dr-trunk: #9a6342;
+  --dr-flower: #ff9fbf; --dr-flower-2: #fff2a0; --dr-bench: #c98f5f;
+  --dr-lamp: #fff2c4; --dr-glow: rgba(255, 214, 140, 0); --dr-beam: rgba(255, 246, 200, 0); --dr-awning: #ff7f98; --dr-awning-2: #fffaf0;
+  --dr-bar-1: #ffe6a6; --dr-bar-2: #fff7dd; --dr-veil: rgba(255, 250, 244, .62); --dr-dusk: rgba(30, 20, 60, 0); --dr-night: 0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-drive: #3b3554;
+    --dr-mm: rgba(36, 28, 58, .9); --dr-mm-line: #e9defa; --dr-mm-road: #6f6a93; --dr-mm-bld: #4e4468; --dr-mm-park: #2f5a48;
+    --dr-grass: #2f5a48; --dr-grass-2: #2a5141; --dr-path: #5b5070; --dr-pond: #345a86; --dr-pond-2: #2a4a72;
+    --dr-road: #4b4766; --dr-road-2: #54507a; --dr-mark: rgba(255, 240, 200, .6); --dr-zebra: rgba(255, 246, 225, .55);
+    --dr-walk: #6b5f82; --dr-walk-2: #5f5376; --dr-curb: #4a4064;
+    --dr-r1: #b8738e; --dr-r2: #b88e6a; --dr-r3: #7d6fb0; --dr-r4: #5f9e8c; --dr-r5: #b5a45e; --dr-r6: #6a8fbd; --dr-r7: #a67fa0; --dr-r8: #b88272;
+    --dr-roof-shade: rgba(0, 0, 0, .2); --dr-roof-edge: rgba(0, 0, 0, .38); --dr-roof-hi: rgba(255, 255, 255, .16);
+    --dr-ac: #8d86a6; --dr-ac-2: #6a6386; --dr-solar: #3f4f8f; --dr-solar-2: #6878b8;
+    --dr-shadow: rgba(0, 0, 0, .34); --dr-tree: #3f7f5c; --dr-tree-2: #336a4c; --dr-tree-hi: #5f9e7a; --dr-trunk: #6b4a3c;
+    --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
+    --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
+    --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-drive: #3b3554;
+  --dr-mm: rgba(36, 28, 58, .9); --dr-mm-line: #e9defa; --dr-mm-road: #6f6a93; --dr-mm-bld: #4e4468; --dr-mm-park: #2f5a48;
+  --dr-grass: #2f5a48; --dr-grass-2: #2a5141; --dr-path: #5b5070; --dr-pond: #345a86; --dr-pond-2: #2a4a72;
+  --dr-road: #4b4766; --dr-road-2: #54507a; --dr-mark: rgba(255, 240, 200, .6); --dr-zebra: rgba(255, 246, 225, .55);
+  --dr-walk: #6b5f82; --dr-walk-2: #5f5376; --dr-curb: #4a4064;
+  --dr-r1: #b8738e; --dr-r2: #b88e6a; --dr-r3: #7d6fb0; --dr-r4: #5f9e8c; --dr-r5: #b5a45e; --dr-r6: #6a8fbd; --dr-r7: #a67fa0; --dr-r8: #b88272;
+  --dr-roof-shade: rgba(0, 0, 0, .2); --dr-roof-edge: rgba(0, 0, 0, .38); --dr-roof-hi: rgba(255, 255, 255, .16);
+  --dr-ac: #8d86a6; --dr-ac-2: #6a6386; --dr-solar: #3f4f8f; --dr-solar-2: #6878b8;
+  --dr-shadow: rgba(0, 0, 0, .34); --dr-tree: #3f7f5c; --dr-tree-2: #336a4c; --dr-tree-hi: #5f9e7a; --dr-trunk: #6b4a3c;
+  --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
+  --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
+  --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+}
+
+.dr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- barra: missione, tempo della consegna, pausa ---------- */
+.dr-bar {
+  position: relative; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 6px; border-radius: 23px; overflow: hidden;
+  background: linear-gradient(180deg, var(--dr-bar-1), var(--dr-bar-2)); box-shadow: inset 0 0 0 2px var(--line-2), var(--shadow-s);
+}
+.dr-mis { position: relative; display: flex; align-items: center; gap: 3px; flex: none; padding: 0 10px 0 4px; height: 34px; border-radius: 17px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); }
+.dr-ic { display: grid; width: 28px; height: 28px; flex: none; }
+.dr-ic svg { width: 100%; height: 100%; }
+.dr-mis b, .dr-load b {
+  font-family: var(--font-display); font-weight: 400; font-size: 19px; line-height: 1; color: var(--dr-text);
+  -webkit-text-stroke: 4px var(--dr-text-line); paint-order: stroke fill; font-variant-numeric: tabular-nums;
+}
+.dr-mis.up b { display: inline-block; animation: dr-pop .5s cubic-bezier(.3, 1.8, .5, 1); color: var(--dr-star); }
+.dr-time { position: relative; display: flex; align-items: center; flex: 1; min-width: 40px; height: 34px; padding: 0 8px 0 4px; gap: 6px; border-radius: 17px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); }
+.dr-time .dr-ic { width: 26px; height: 26px; }
+.dr-track { position: relative; flex: 1; height: 12px; border-radius: 7px; background: var(--hair, rgba(0, 0, 0, .08)); box-shadow: inset 0 0 0 2px var(--line-2); overflow: hidden; }
+.dr-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 7px; background: linear-gradient(90deg, var(--dr-go), var(--dr-amber)); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35); transition: width .25s linear; }
+.dr-time.low .dr-fill { background: linear-gradient(90deg, var(--dr-stop), var(--dr-amber)); animation: dr-blink .5s steps(2) infinite; }
+.dr-time.idle .dr-track { background: repeating-linear-gradient(90deg, var(--line-2) 0 6px, transparent 6px 12px); opacity: .6; }
+.dr-load { display: flex; align-items: center; gap: 1px; flex: none; }
+.dr-load i { display: grid; width: 20px; height: 20px; }
+.dr-load i svg { width: 100%; height: 100%; }
+.dr-load i.done { opacity: .28; }
+.dr-pbtn {
+  position: relative; display: grid; place-items: center; flex: none; width: 34px; height: 34px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%;
+  background: var(--card-solid); color: var(--accent-2); box-shadow: 0 3px 0 var(--line-2); cursor: pointer;
+}
+.dr-pbtn svg { width: 18px; height: 18px; }
+.dr-pbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+
+/* ---------- palco: canvas della città ---------- */
+.dr-stage {
+  position: relative; width: 100%; aspect-ratio: 3 / 4; max-height: max(300px, min(72svh, 640px, calc(100svh - 330px))); border-radius: 22px; overflow: hidden; touch-action: none; cursor: grab;
+  background: var(--dr-grass); box-shadow: inset 0 0 0 2px var(--line-2), 0 5px 0 var(--line-2), var(--shadow-s);
+}
+.dr-stage:active { cursor: grabbing; }
+.dr-stage:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.dr-cv { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.dr-stage::after { content: ""; position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 2px var(--line-2); pointer-events: none; }
+.dr-stage.wobble { animation: dr-wobble .45s ease-in-out; }
+
+.dr-msg { position: absolute; inset: 0 0 auto; height: 44%; z-index: 5; display: grid; place-items: center; pointer-events: none; }
+.dr-msg b {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 11vw, 46px); color: var(--dr-text); opacity: 0;
+  -webkit-text-stroke: 7px var(--dr-text-line); paint-order: stroke fill; text-shadow: 0 5px 0 var(--dr-text-line);
+}
+.dr-msg.show b { animation: dr-msg .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.dr-msg b.ready { color: var(--dr-star); }
+.dr-msg.show b.ready { animation: dr-msg .5s cubic-bezier(.3, 1.6, .5, 1) both, dr-breathe .8s ease-in-out .5s infinite; }
+.dr-msg b.go { color: var(--dr-heart); }
+.dr-msg.show b.go { animation: dr-go .65s cubic-bezier(.3, 1.6, .5, 1) both; }
+.dr-msg b.hint, .dr-msg b.mission { max-width: 86%; font-size: clamp(18px, 5.4vw, 24px); line-height: 1.25; text-align: center; text-wrap: balance; -webkit-text-stroke-width: 5px; }
+.dr-msg.show b.hint { opacity: 1; animation: dr-hint 1.6s ease-in-out infinite; }
+.dr-msg b.mission { color: var(--dr-star); }
+.dr-msg.show b.mission { animation: dr-go 2.2s cubic-bezier(.3, 1.6, .5, 1) both; }
+
+.dr-pause {
+  position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: var(--dr-veil); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); color: var(--ink); text-align: center; cursor: pointer; animation: fade .25s;
+}
+.dr-pause b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.dr-pause small { font-weight: 800; font-size: 14px; color: var(--ink-2); }
+.dr-play { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: 0 5px 0 var(--accent-2), var(--shadow-s); animation: dr-breathe 1.6s ease-in-out infinite; }
+.dr-play svg { width: 30px; height: 30px; margin-left: 4px; }
+
+/* schermo intero del riquadro: la città occupa tutto lo spazio rimasto */
+.plate:fullscreen .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.plate:-webkit-full-screen .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.plate:fullscreen .dr-wrap, .plate:-webkit-full-screen .dr-wrap { flex: 1; min-height: 0; width: min(100%, 760px); }
+.plate:fullscreen .dr-stage, .plate:-webkit-full-screen .dr-stage { flex: 1; aspect-ratio: auto; max-height: none; min-height: 240px; }
+
+/* tutorial */
+.dr-tut-drive { animation: dr-drive 2.6s ease-in-out infinite; }
+.dr-tut-pin { animation: dr-bob 1s ease-in-out infinite alternate; }
+.dr-tut-ring { animation: dr-ring 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.dr-tut-hop { animation: dr-hop 1.2s ease-in-out infinite; }
+.dr-tut-bonk { animation: dr-bonk 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.dr-tut-bar { animation: dr-bar 3s linear infinite; transform-box: fill-box; transform-origin: left center; }
+
+@keyframes dr-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes dr-blink { 50% { opacity: .55; } }
+@keyframes dr-wobble { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-4px, 2px) rotate(-.6deg); } 75% { transform: translate(4px, -1px) rotate(.6deg); } }
+@keyframes dr-breathe { 50% { transform: scale(1.06); } }
+@keyframes dr-msg { 0% { opacity: 0; transform: scale(.4) rotate(-6deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes dr-go { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; transform: scale(1.12); } 75% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.08) translateY(-10px); } }
+@keyframes dr-hint { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes dr-drive { 0%, 100% { transform: translateX(-16px); } 50% { transform: translateX(18px); } }
+@keyframes dr-bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes dr-ring { 0% { transform: scale(.6); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes dr-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-9px); } 60% { transform: translateY(-9px); } }
+@keyframes dr-bonk { 0%, 60%, 100% { transform: scale(.2); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 90% { transform: scale(1); opacity: 1; } }
+@keyframes dr-bar { 0% { transform: scaleX(1); } 100% { transform: scaleX(.08); } }
+@media (prefers-reduced-motion: reduce) {
+  .dr-play, .dr-tut-drive, .dr-tut-pin, .dr-tut-ring, .dr-tut-hop, .dr-tut-bonk, .dr-tut-bar, .dr-time.low .dr-fill { animation: none !important; }
+  .dr-stage.wobble { animation: none; }
+}

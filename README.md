@@ -17,6 +17,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Hari Knots** | sposta i nodini delle corde nei fori liberi: le corde libere volano via, libera tutte le lastre |
 | **Yarn Link** | collega i gomitoli dello stesso colore riempiendo tutta la griglia (stile Flow) |
 | **Hari Snack Rush** | corri lungo il sentiero e lancia semi e frutta agli animaletti affamati; scegli le porte giuste e riempi la pancia dell'animalone goloso (azione stile mob control, senza violenza) |
+| **Hari Taxi** | guida per la città vista dall'alto: porta i passeggeri col taxi, il cibo caldo con lo scooter e i pacchi col furgone prima che scada il tempo, schivando auto, autobus, bici e pedoni (senza violenza) |
 | **Hari Home** | simulazione di vita isometrica senza livelli: ristruttura il monolocale decadente di Hari, arredalo, avvia un'attività, fai la spesa, vai dal dottore, fai sport e invita gli amici; Hari cresce fino a diventare nonno |
 
 ## Provalo
