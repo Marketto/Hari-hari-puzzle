@@ -25,6 +25,11 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## In revisione (prossima versione)
+- [x] Nuovo gioco **Hari Escape** (escape room kawaii, `since: '0.19.0'`): 1–3 stanze e 3–10 enigmi per livello generati da seme con un grafo di dipendenze (porta = radice, ogni enigma contiene il pezzo per il successivo), 18 tipi visivi e senza parole sbloccati coi livelli, nascondigli (tappeto, vaso, quadro, poltrona), oggetti da combinare (canna da pesca, torcia), stanze buie, temi casetta/castello/nave/laboratorio, aiuti a due livelli con la lampadina, uscita festosa di Hari; brano `escape`, effetto `unlock`, tutorial, test con bot esploratore indipendente
+- [ ] Testi di Hari Escape in 43 lingue (chiavi in inglese da tradurre: `r18`, `tu_escape_1..3`, `er_hint`, `er_close`, `er_bag`, `er_item`, `er_room`, `er_prev`, `er_next`: 11 chiavi)
+- [ ] Hari Escape su telefono vero: comodità dei tocchi su oggetti piccoli (quadri e indizi appesi) e leggibilità degli indizi in miniatura
+
 ## Fatto (v0.18.0)
 - [x] Nuovo gioco **Hari Airlines** (Hari assistente di volo, capitano gufo, passeggeri animaletti): ogni livello è un volo a fasi — imbarco da contare (gruppi, nascosti, chi torna indietro, lista del capitano), bagagli nelle cappelliere a capienza (risolutore nei test), cinture con testardi, ribelli e sobbalzo buffo, cucina (ricetta del capitano + fornetti con zona verde), servizio col carrello e pazienza, rifiuti differenziati (1 → 3 sacchi); fasi sbloccate gradualmente con "Nuovo!", tratte mare/montagne/città/notte, tema scuro = volo notturno; niente sconfitta (errori leggeri e passeggeri tristi = meno fragoline); brano `flight`, effetto `chime`, tutorial, test con bot
 - [x] Testi di Hari Airlines in 43 lingue (42 chiavi)

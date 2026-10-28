@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'flight', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'flight', 'escape', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -252,6 +252,13 @@
       mel: ['5 . 8 . 7 5 3 .', '6 . 8 6 5 . 3 .', '4 5 6 . 8 6 4 .', '5 - 3 . 2 - - .',
         '8 . 10 . 9 8 6 .', '6 8 9 . 8 6 5 .', '4 . 6 5 4 3 2 .', '1 . 5 . 8 - - .'],
     },
+    // Hari Escape: mistero allegro in minore-che-sorride (sesto grado), marimba che "cerca" e carillon che scopre gli indizi
+    escape: {
+      bpm: 104, root: 62, lead: 'marimba', arp: 'musicbox', swing: 0.18, perc: 'bubbly',
+      chords: [6, 4, 6, 5, 6, 4, 5, 1], bass: 'R . F . R . O .',
+      mel: ['6 . 8 . 10 . 9 8', '6 . . 4 3 . 4 .', '6 . 8 . 10 12 10 .', '9 - 8 . 5 - - .',
+        '13 . 12 10 9 . 10 .', '11 - 10 . 8 . 6 .', '5 . 7 . 9 . 12 .', '8 . 5 . 8 - - .'],
+    },
     // Hari Home: vita tranquilla in casa, carillon e marimba col passo morbido della giornata
     life: {
       bpm: 88, root: 65, lead: 'musicbox', arp: 'marimba', swing: 0.16, perc: 'lullaby',
@@ -435,6 +442,8 @@
     }),
     // "ding-dong" della cabina (segnale delle cinture, annunci di Hari Airlines)
     chime: S((t) => { V.bell(sfxBus, sc(10), t, 0.5, 0.08); V.bell(sfxBus, sc(8), t + 0.32, 0.7, 0.08); }),
+    // serratura che si apre (Hari Escape): "clic-clac" di legno + due campanelle
+    unlock: S((t) => { V.wood(sfxBus, t, 0.1, 1800); V.wood(sfxBus, t + 0.09, 0.1, 1200); V.bell(sfxBus, sc(5), t + 0.18, 0.25, 0.08); V.bell(sfxBus, sc(10), t + 0.3, 0.45, 0.08); }),
     // nota del navigatore (Hari Rally): due bip a destra o a sinistra (panorama), più bassi per le curve strette
     pace: S((t, dir = 0, g = 0) => {
       let d = sfxBus;
