@@ -12,6 +12,7 @@ Pulsanti separati in alto per **musica** e **effetti**, ricordati tra le session
 | boba | frizzante, con swing e bollicine | synth pizzicato | 112 | Sol |
 | lantern | notte giapponese, pentatonica | koto + campanelle | 76 | Re |
 | drive | giro in città con lo shuffle, basso che cammina | synth pizzicato + marimba | 128 | Mi |
+| rally | galoppo energico nel bosco con le sincopi, basso sulle ottave | synth pizzicato + marimba | 138 | Re |
 
 ## Musica dinamica
 Il gioco calcola `progress` (0 → 1) a ogni mossa e la musica aggiunge strati man mano:
@@ -31,7 +32,9 @@ Lantern = lanterne accese in più rispetto all'inizio. In vittoria e a cuori fin
 Intonati sulla scala del brano in corso: riccio messo (boing + marimba), segno ✕ (legnetto), errore (due note che scendono),
 cuore perso (campanelle discendenti), bicchiere scelto (din), travaso (gorgoglio di bolle), bicchiere completato (arpeggio),
 lanterna accesa (campanella che sale con il numero di lanterne accese), stelle, record, fanfara di vittoria, risatina di Hari,
-clacson "bip bip" (`honk`, il traffico di Hari Taxi), "bonk" di gomma (`boing`) e "ding-dong" di cabina (`chime`, segnale delle cinture di Hari Airlines).
+clacson "bip bip" (`honk`, il traffico di Hari Taxi) e "bonk" di gomma (`boing`), bip del navigatore di Hari Rally
+(`pace(dir, g)`: nell'orecchio del verso della curva, più gravi per le curve strette) e motore continuo
+(`HH.audio.engine(on, rpm, grit)`: ronzio leggero che segue i giri, ghiaia quando si scivola; spento in pausa e all'uscita), e "ding-dong" di cabina (`chime`, segnale delle cinture di Hari Airlines).
 
 ## Messaggi di Hari
 Fumetto con Hari animato in basso: all'inizio, a metà, quando manca poco, dopo un errore, dopo 30 s senza mosse,

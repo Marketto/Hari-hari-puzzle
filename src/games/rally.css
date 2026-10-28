@@ -1,0 +1,223 @@
+/* Hari Rally — stile.
+ * La scena 3D (three.js) legge questi token con getComputedStyle e li converte in colori dei materiali "toon":
+ * nessun colore nel JavaScript. Varianti di tappa su .ry-wrap[data-stage] (primavera, autunno, neve, tramonto);
+ * tema scuro = notte (cielo --ry-nsky-*, luci basse, fari accesi). I colori 3D sono esadecimali (#rrggbb).
+ */
+:root {
+  --tint-rally: #d8f3c8;
+  /* personaggi, macchinine e cruscotto (uguali nei due temi) */
+  --ry-ink: #4a2c22; --ry-eye: #2a160e; --ry-hi: #ffffff; --ry-nose: #3a1e14; --ry-mouth: #ff7f98; --ry-blush: rgba(255, 130, 165, .72);
+  --ry-quill: #9a6342; --ry-quill-2: #714330; --ry-face: #fff1e2; --ry-ear: #ffe4cc; --ry-ear-in: #ffadc0; --ry-paw: #b97d58; --ry-bean: #ffadc0;
+  --ry-car: #ff6f8e; --ry-car-2: #fff1f4; --ry-trim: #4f4a66; --ry-tire: #3d3350; --ry-glass: #bfe6ff; --ry-head: #fff3c4; --ry-tail: #ff4f6d;
+  --ry-bunny-car: #c7a8ff; --ry-fox-car: #7fc8ff; --ry-panda-car: #7fdcb0;
+  --ry-bunny: #fffaf6; --ry-bunny-in: #ffb3c8; --ry-fox: #ff9a4a; --ry-fox-2: #fff4ea; --ry-panda: #fffdf8; --ry-panda-2: #3d3448;
+  --ry-dash: #5a4560; --ry-dash-2: #775c7e; --ry-dash-hi: #9a7ea0; --ry-wheel: #4a3a52; --ry-wheel-2: #ff8fa8; --ry-gauge: #fff6e8; --ry-needle: #ff5f7a;
+  --ry-dust: #e9d2a8; --ry-leafp: #8fd36f; --ry-spark: #ffd84a;
+  /* interfaccia sopra la scena */
+  --ry-ui: rgba(255, 250, 246, .92); --ry-ui-2: rgba(255, 250, 246, .55); --ry-ui-line: #4a2c22; --ry-ui-ink: #4a2c22;
+  --ry-note: #fffaf0; --ry-note-line: #4a2c22; --ry-arrow: #ff6f8e; --ry-warn: #ffc23d; --ry-warn-2: #ff5f7a; --ry-go: #48d18a; --ry-stop: #ff5f7a; --ry-off: #6d6680;
+  --ry-text: #ffffff; --ry-text-line: #4a2c22; --ry-veil: rgba(255, 250, 244, .62); --ry-gold: #ffd84a; --ry-silver: #d9dbe8; --ry-bronze: #f0b27a;
+  --ry-me: #ff6f8e; --ry-p1: #c7a8ff; --ry-p2: #ff9a4a; --ry-p3: #3d3448;
+  /* bosco di primavera (giorno) */
+  --ry-sky-1: #8fd0ff; --ry-sky-2: #e6f6ff; --ry-sun: #fff4b8; --ry-cloud: #ffffff; --ry-hill: #b9dcc8;
+  --ry-grass: #9ed67a; --ry-grass-2: #8acb6a; --ry-verge: #c8e39a; --ry-dirt: #e3bf8c; --ry-dirt-2: #cfa271; --ry-dirt-3: #b9d683;
+  --ry-wood: #c98f5f; --ry-wood-2: #a8714a; --ry-water: #7fcdf5; --ry-water-2: #bfe9ff;
+  --ry-trunk: #9a6342; --ry-leaf-1: #6fcf6a; --ry-leaf-2: #9be07a; --ry-leaf-3: #ffb3cf; --ry-pine: #4fae6e; --ry-pine-2: #3f9a60; --ry-snow-cap: #4fae6e;
+  --ry-rock: #b7b3c9; --ry-rock-2: #9a96b8; --ry-cap: #ff6b6b; --ry-cap-dot: #fff6ee; --ry-stem: #fff1dc;
+  --ry-flower-1: #ff9fbf; --ry-flower-2: #fff2a0; --ry-flower-3: #c8b8f0; --ry-bush: #7fcf6f; --ry-shaft: #fff8d6;
+  --ry-chevron: #fffaf0; --ry-chevron-2: #ff6f8e; --ry-check-1: #fffaf0; --ry-check-2: #4a3a52; --ry-pole: #ff8fa8; --ry-flag: #ffd84a;
+  --ry-amb: 1.6; --ry-sunI: 1.9; --ry-night: 0; --ry-shafts: 1;
+  /* notte (tema scuro e, attenuata, al tramonto) */
+  --ry-nsky-1: #141235; --ry-nsky-2: #3a3170; --ry-nsun: #fff6d8; --ry-nhill: #2a2756; --ry-namb: .85; --ry-nsunI: .7;
+}
+.ry-wrap[data-stage="autumn"] {
+  --ry-sky-1: #9fc8f0; --ry-sky-2: #fff0dc; --ry-hill: #e3c9a8; --ry-grass: #c9c46a; --ry-grass-2: #b8b45c; --ry-verge: #e0cc8a;
+  --ry-leaf-1: #ff9a4a; --ry-leaf-2: #ffc84a; --ry-leaf-3: #e8645a; --ry-pine: #5f9e6a; --ry-pine-2: #4f8a5a; --ry-snow-cap: #5f9e6a;
+  --ry-bush: #e8a04a; --ry-flower-1: #ff8a5c; --ry-flower-2: #ffd36b; --ry-flower-3: #d98bb4; --ry-dirt-3: #d6c27a; --ry-leafp: #ffa64a;
+}
+.ry-wrap[data-stage="snow"] {
+  --ry-sky-1: #a9cdf0; --ry-sky-2: #f4f8ff; --ry-hill: #e4ecf8; --ry-grass: #f2f6ff; --ry-grass-2: #e2eaf8; --ry-verge: #e9eefa;
+  --ry-dirt: #d8c6b8; --ry-dirt-2: #bfa898; --ry-dirt-3: #eef2fb; --ry-leaf-1: #e9f0ff; --ry-leaf-2: #d4e2fa; --ry-leaf-3: #f6f9ff;
+  --ry-pine: #4f9a7a; --ry-pine-2: #3f8268; --ry-snow-cap: #ffffff; --ry-bush: #d9e6f7; --ry-flower-1: #ff9fbf; --ry-flower-2: #bfe6ff; --ry-flower-3: #ffffff;
+  --ry-water: #a9d8f5; --ry-water-2: #e6f6ff; --ry-dust: #ffffff; --ry-leafp: #ffffff; --ry-amb: 1.8; --ry-sunI: 1.5; --ry-shafts: 0;
+}
+.ry-wrap[data-stage="dusk"] {
+  --ry-sky-1: #7a6cc9; --ry-sky-2: #ffbf9a; --ry-sun: #ffcf8a; --ry-cloud: #ffd6e0; --ry-hill: #b58fb8;
+  --ry-grass: #8fbf7a; --ry-grass-2: #7fae6e; --ry-verge: #b9c98a; --ry-leaf-1: #5fae7a; --ry-leaf-2: #8fc98a; --ry-leaf-3: #ff9fbf;
+  --ry-amb: 1.3; --ry-sunI: 1.6; --ry-night: .5; --ry-shafts: 0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-rally: #2f4a40;
+    --ry-ui: rgba(40, 32, 66, .9); --ry-ui-2: rgba(40, 32, 66, .5); --ry-ui-line: #e9defa; --ry-ui-ink: #fff5ea; --ry-note: #fff8ec; --ry-veil: rgba(28, 21, 48, .66);
+    --ry-night: 1; --ry-shafts: 0;
+  }
+  :root:not([data-theme="light"]) .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+}
+:root[data-theme="dark"] {
+  --tint-rally: #2f4a40;
+  --ry-ui: rgba(40, 32, 66, .9); --ry-ui-2: rgba(40, 32, 66, .5); --ry-ui-line: #e9defa; --ry-ui-ink: #fff5ea; --ry-note: #fff8ec; --ry-veil: rgba(28, 21, 48, .66);
+  --ry-night: 1; --ry-shafts: 0;
+}
+:root[data-theme="dark"] .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
+
+.ry-wrap { position: relative; width: min(var(--game-w), 520px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.ry-stage {
+  position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: max(320px, min(72svh, 660px, calc(100svh - 300px))); border-radius: 22px; overflow: hidden;
+  touch-action: none; background: var(--ry-sky-2); box-shadow: inset 0 0 0 2px var(--line-2), 0 5px 0 var(--line-2), var(--shadow-s); outline: none;
+}
+.ry-stage:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ry-cv { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.ry-stage::after { content: ""; position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 2px var(--line-2); pointer-events: none; z-index: 9; }
+.ry-stage.bump { animation: ry-bump .32s ease-out; }
+
+/* ---------- cruscotto: volante con le zampine di Hari ---------- */
+.ry-dash { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; z-index: 2; pointer-events: none; }
+.ry-dash > svg { position: absolute; left: 50%; bottom: 0; height: 100%; width: auto; transform: translateX(-50%); overflow: visible; }
+.ry-wheelg { transform-box: view-box; transform-origin: 160px 112px; transition: transform .06s linear; }
+
+/* ---------- indicatori ---------- */
+.ry-top { position: absolute; inset: 8px 8px auto; z-index: 4; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; pointer-events: none; }
+.ry-left, .ry-right { display: flex; flex-direction: column; gap: 5px; flex: none; }
+.ry-right { align-items: flex-end; }
+.ry-pos { display: flex; align-items: baseline; gap: 1px; padding: 2px 10px 2px 8px; border-radius: 16px; background: var(--ry-ui); box-shadow: inset 0 0 0 2px var(--ry-ui-line); color: var(--ry-ui-ink); }
+.ry-pos b { font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1.05; color: var(--ry-text); -webkit-text-stroke: 5px var(--ry-text-line); paint-order: stroke fill; }
+.ry-pos small { font: 800 13px/1 var(--font-body); opacity: .75; }
+.ry-pos.up b { animation: ry-pop .5s cubic-bezier(.3, 1.8, .5, 1); color: var(--ry-gold); }
+.ry-rank { display: flex; flex-direction: column; gap: 2px; padding: 4px; border-radius: 14px; background: var(--ry-ui-2); }
+.ry-rank i { display: grid; width: 24px; height: 24px; border-radius: 50%; background: var(--ry-ui); box-shadow: 0 0 0 2px var(--ry-c, var(--ry-ui-line)); transition: transform .3s; }
+.ry-rank i.me { box-shadow: 0 0 0 2.5px var(--ry-me); }
+.ry-rank i svg { width: 100%; height: 100%; }
+.ry-time { padding: 3px 10px; border-radius: 14px; background: var(--ry-ui); box-shadow: inset 0 0 0 2px var(--ry-ui-line); color: var(--ry-ui-ink); font: 800 15px/1.2 var(--font-body); font-variant-numeric: tabular-nums; }
+.ry-btns { display: flex; gap: 5px; pointer-events: auto; }
+.ry-btn {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%; cursor: pointer;
+  background: var(--card-solid); color: var(--accent-2); box-shadow: 0 3px 0 var(--line-2);
+}
+.ry-btn svg { width: 20px; height: 20px; }
+.ry-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+.ry-btn.on { color: var(--accent-ink); background: var(--accent); }
+
+/* note del navigatore */
+.ry-notes { display: flex; gap: 6px; justify-content: center; flex: 1; min-width: 0; padding-top: 2px; }
+.ry-note {
+  position: relative; display: flex; flex-direction: column; align-items: center; width: 74px; padding: 4px 4px 6px; border-radius: 16px; background: var(--ry-note);
+  box-shadow: inset 0 0 0 2.5px var(--ry-note-line), 0 4px 0 var(--ry-note-line); color: var(--ry-note-line); animation: ry-in .35s cubic-bezier(.3, 1.6, .5, 1);
+}
+.ry-note.next { opacity: .82; transform: scale(.82); transform-origin: top center; animation: none; }
+.ry-note > svg { width: 54px; height: 44px; }
+.ry-note .ry-g { position: absolute; right: 4px; top: 2px; font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1; color: var(--ry-arrow); -webkit-text-stroke: 4px var(--ry-note); paint-order: stroke fill; }
+.ry-note.l .ry-g { right: auto; left: 4px; }
+.ry-mods { display: flex; gap: 2px; min-height: 0; }
+.ry-mods svg { width: 18px; height: 18px; }
+.ry-dist { position: absolute; left: 8px; right: 8px; bottom: 3px; height: 4px; border-radius: 2px; background: var(--ry-ui-2); overflow: hidden; }
+.ry-dist i { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--ry-arrow); }
+.ry-note.warn { box-shadow: inset 0 0 0 2.5px var(--ry-note-line), 0 4px 0 var(--ry-warn-2); }
+.ry-note.warn .ry-g { color: var(--ry-warn-2); }
+
+/* barra della tappa */
+.ry-prog { position: absolute; left: 16%; right: 16%; bottom: 20%; height: 8px; z-index: 3; border-radius: 4px; background: var(--ry-ui-2); box-shadow: inset 0 0 0 1.5px var(--ry-ui-line); pointer-events: none; }
+.ry-prog i { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--ry-c); box-shadow: 0 0 0 2px var(--ry-ui-line); }
+.ry-prog i.me { width: 16px; height: 16px; margin: -8px 0 0 -8px; z-index: 1; }
+.ry-prog b { position: absolute; right: -10px; top: -9px; width: 20px; height: 20px; }
+.ry-prog b svg { width: 100%; height: 100%; }
+
+/* comandi a tocco */
+.ry-touch { position: absolute; inset: 0; z-index: 1; display: flex; pointer-events: none; }
+.ry-zone { flex: 1; display: flex; align-items: center; padding: 0 10px 12%; opacity: 0; transition: opacity .2s; }
+.ry-zone.r { justify-content: flex-end; }
+.ry-zone svg { width: 40px; height: 40px; filter: drop-shadow(0 2px 0 var(--ry-ui-line)); }
+.ry-wrap.touch .ry-zone { opacity: .55; }
+.ry-zone.on { opacity: .95 !important; }
+.ry-pedal {
+  position: absolute; z-index: 5; left: 50%; bottom: 10px; display: grid; place-items: center; width: 74px; height: 58px; transform: translateX(-50%);
+  border-radius: 18px; background: var(--ry-ui); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 4px 0 var(--ry-ui-line); color: var(--ry-stop); pointer-events: none;
+}
+.ry-pedal svg { width: 40px; height: 40px; }
+.ry-pedal.on { transform: translateX(-50%) translateY(3px) scale(.96); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 1px 0 var(--ry-ui-line); background: var(--ry-stop); color: var(--ry-text); }
+.ry-wrap.tilt .ry-pedal { width: 64px; height: 50px; opacity: .8; }
+
+/* messaggi, semaforo di partenza */
+.ry-msg { position: absolute; inset: 22% 0 auto; z-index: 6; display: grid; place-items: center; pointer-events: none; }
+.ry-msg b {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 10vw, 50px); color: var(--ry-text); opacity: 0;
+  -webkit-text-stroke: 7px var(--ry-text-line); paint-order: stroke fill; text-shadow: 0 5px 0 var(--ry-text-line); text-align: center;
+}
+.ry-msg.show b { animation: ry-msg .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+.ry-msg b.go { color: var(--ry-go); }
+.ry-msg b.small { font-size: clamp(18px, 5.4vw, 26px); -webkit-text-stroke-width: 5px; max-width: 88%; }
+.ry-lights { display: flex; gap: 8px; padding: 8px 12px; border-radius: 20px; background: var(--ry-ui); box-shadow: inset 0 0 0 2.5px var(--ry-ui-line), 0 4px 0 var(--ry-ui-line); }
+.ry-lights i { width: 26px; height: 26px; border-radius: 50%; background: var(--ry-off); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18); }
+.ry-lights i.r { background: var(--ry-stop); }
+.ry-lights i.g { background: var(--ry-go); }
+
+/* pausa, fine gara, telefono da girare */
+.ry-veil {
+  position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px;
+  background: var(--ry-veil); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); color: var(--ink); text-align: center; animation: fade .25s;
+}
+.ry-veil[hidden] { display: none; }
+.ry-pause { cursor: pointer; }
+.ry-veil > b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.ry-veil small { font-weight: 800; font-size: 14px; color: var(--ink-2); }
+.ry-play { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: 0 5px 0 var(--accent-2), var(--shadow-s); animation: ry-breathe 1.6s ease-in-out infinite; }
+.ry-play svg { width: 30px; height: 30px; margin-left: 4px; }
+.ry-turn svg { width: 92px; height: 92px; animation: ry-turn 1.8s ease-in-out infinite; }
+.ry-end { gap: 4px; }
+.ry-end .ry-big { font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--ry-text); -webkit-text-stroke: 7px var(--ry-text-line); paint-order: stroke fill; }
+.ry-end .ry-big small { font-size: 22px; -webkit-text-stroke-width: 5px; }
+.ry-end ol { list-style: none; display: flex; flex-direction: column; gap: 4px; width: min(260px, 92%); margin: 4px 0; padding: 0; }
+.ry-end li { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px 0 4px; border-radius: 16px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); font: 800 14px/1 var(--font-body); color: var(--ink); animation: ry-in .4s cubic-bezier(.3, 1.6, .5, 1) both; }
+.ry-end li:nth-child(2) { animation-delay: .1s; } .ry-end li:nth-child(3) { animation-delay: .2s; } .ry-end li:nth-child(4) { animation-delay: .3s; }
+.ry-end li.me { box-shadow: inset 0 0 0 2.5px var(--ry-me); }
+.ry-end li em { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-style: normal; font-family: var(--font-display); font-weight: 400; color: var(--ry-ui-ink); background: var(--ry-ui-2); }
+.ry-end li:nth-child(1) em { background: var(--ry-gold); color: var(--ry-ink); } .ry-end li:nth-child(2) em { background: var(--ry-silver); color: var(--ry-ink); } .ry-end li:nth-child(3) em { background: var(--ry-bronze); color: var(--ry-ink); }
+.ry-end li i { display: grid; width: 26px; height: 26px; }
+.ry-end li i svg { width: 100%; height: 100%; }
+.ry-end li span { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+.ry-end .candy { margin-top: 6px; }
+.ry-loading { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; color: var(--ink-2); font-weight: 800; pointer-events: none; }
+
+/* schermo intero del riquadro: la strada occupa tutto, la barra del logo galleggia sopra */
+.plate:fullscreen:has(.ry-wrap), .plate:-webkit-full-screen:has(.ry-wrap) { padding: 0; gap: 0; }
+.plate:fullscreen:has(.ry-wrap) .fs-bar, .plate:-webkit-full-screen:has(.ry-wrap) .fs-bar {
+  position: absolute; z-index: 20; left: max(6px, env(safe-area-inset-left, 0px)); right: max(6px, env(safe-area-inset-right, 0px)); bottom: max(6px, env(safe-area-inset-bottom, 0px));
+  height: 40px; pointer-events: none;
+}
+.plate:fullscreen:has(.ry-wrap) .fs-bar > *, .plate:-webkit-full-screen:has(.ry-wrap) .fs-bar > * { pointer-events: auto; height: 40px; }
+.plate:fullscreen:has(.ry-wrap) .fs-logo b, .plate:fullscreen:has(.ry-wrap) .fs-logo .fs-lv { display: none; }
+.plate:fullscreen:has(.ry-wrap) .fs-logo > svg:first-child { width: 30px; height: 30px; }
+.plate:fullscreen:has(.ry-wrap) .fs-exit { width: 40px; }
+.plate:fullscreen:has(.ry-wrap) .fs-menu:not([hidden]) { top: auto; bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 48px); transform-origin: bottom left; }
+.plate:fullscreen:has(.ry-wrap) .fs-hud, .plate:-webkit-full-screen:has(.ry-wrap) .fs-hud { display: none; }
+.plate:fullscreen .board:has(> .ry-wrap), .plate:-webkit-full-screen .board:has(> .ry-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
+.plate:fullscreen .ry-wrap, .plate:-webkit-full-screen .ry-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; }
+.plate:fullscreen .ry-stage, .plate:-webkit-full-screen .ry-stage { width: 100%; height: 100%; aspect-ratio: auto; max-height: none; border-radius: 0; box-shadow: none; }
+.plate:fullscreen .ry-stage::after { display: none; }
+.plate:fullscreen .ry-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
+/* orizzontale basso: cruscotto più piccolo */
+@media (max-height: 520px) {
+  .plate:fullscreen .ry-dash { height: 34%; }
+  .plate:fullscreen .ry-note { width: 66px; }
+  .plate:fullscreen .ry-note > svg { width: 46px; height: 36px; }
+  .plate:fullscreen .ry-rank i { width: 20px; height: 20px; }
+}
+
+/* tutorial e card */
+.ry-tut-wheel { animation: ry-steer 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.ry-tut-note { animation: ry-bob 1.2s ease-in-out infinite alternate; }
+.ry-tut-car { animation: ry-sway 2.4s ease-in-out infinite; }
+
+@keyframes ry-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes ry-in { 0% { transform: translateY(-10px) scale(.7); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes ry-msg { 0% { transform: scale(.4); opacity: 0; } 25% { transform: scale(1.15); opacity: 1; } 75% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }
+@keyframes ry-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes ry-bump { 0%, 100% { transform: none; } 30% { transform: translate(3px, 1px); } 60% { transform: translate(-2px, -1px); } }
+@keyframes ry-turn { 0%, 20% { transform: rotate(0); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+@keyframes ry-steer { 0%, 100% { transform: rotate(-22deg); } 50% { transform: rotate(22deg); } }
+@keyframes ry-bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+@keyframes ry-sway { 0%, 100% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .ry-tut-wheel, .ry-tut-note, .ry-tut-car, .ry-play, .ry-turn svg { animation: none; }
+  .ry-stage.bump { animation: none; }
+}
