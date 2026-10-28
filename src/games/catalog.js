@@ -9,7 +9,7 @@
   const HH = (G.HH = G.HH || {});
   const f = (...names) => names.map((n) => 'src/games/' + n);
   HH.catalog = [
-    { id: 'hedgedoku', name: 'Hedgedoku', rules: 'r1', files: f('hedgedoku.css', 'hedgedoku-logic.js', 'hedgedoku-ui.js') },
+    { id: 'hedgedoku', name: 'Hedgedoku', rules: 'r1', files: f('hedgedoku.css', 'hedgedoku-logic.js', 'hog-kit.js', 'hedgedoku-ui.js') },
     { id: 'boba', name: 'Boba Sort', rules: 'r2', files: f('boba-logic.js', 'boba-ui.js') },
     { id: 'lantern', name: 'Lantern Glow', rules: 'r3', plate: 'night', files: f('lantern-logic.js', 'lantern-ui.js') },
     { id: 'sushi', name: 'Sushi Bar', rules: 'r4', files: f('sushi.css', 'sushi-logic.js', 'sushi-ui.js') },
@@ -30,6 +30,10 @@
     { id: 'flight', name: 'Hari Airlines', since: '0.18.0', rules: 'r17',
       rulesEn: 'Hari is the flight attendant! Count the passengers at boarding, stow the bags in the overhead bins, make sure every seatbelt is fastened, cook for the captain and heat the meals, serve what everyone asks for and collect the rubbish before landing.',
       files: f('flight.css', 'flight-logic.js', 'flight-art.js', 'flight-ui.js') },
+    { id: 'sudoku', name: 'Hari Sudoku', since: '0.19.0', rules: 'r19',
+      rulesEn: 'Classic sudoku with numbers: fill the 9×9 grid so that every row, every column and every 3×3 box holds 1 to 9 exactly once. Use the pencil for notes, the bulb when you are stuck, and listen to Hari: he cheers you on at every move! A wrong number costs a heart.',
+      // hedgedoku.css + hog-kit.js: il riccio animato e le sue espressioni sono gli stessi di Hedgedoku
+      files: f('hedgedoku.css', 'sudoku.css', 'hog-kit.js', 'sudoku-logic.js', 'sudoku-ui.js') },
     { id: 'life', name: 'Hari Home', since: '0.12.0', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },

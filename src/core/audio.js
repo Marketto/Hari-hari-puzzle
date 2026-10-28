@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'flight', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'flight', 'sudoku', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -258,6 +258,13 @@
       chords: [1, 4, 6, 5, 1, 4, 2, 1], bass: 'R . . F . R . .',
       mel: ['3 . 5 . 6 5 3 .', '4 . 6 . 8 - 6 .', '6 5 6 8 5 . 3 .', '2 . 3 4 5 - - .',
         '8 . 6 . 5 6 5 3', '4 . 6 . 5 4 3 .', '2 3 4 . 6 5 4 2', '1 . 3 . 1 - - .'],
+    },
+    // Hari Sudoku: carillon calmo e concentrato in Re, frasi che salgono a gradini come i numeri 1–9, poca percussione
+    sudoku: {
+      bpm: 78, root: 62, lead: 'musicbox', arp: 'marimba', swing: 0.06, perc: 'lullaby',
+      chords: [1, 6, 4, 5, 1, 4, 2, 1], bass: 'R . . . F . . .',
+      mel: ['1 . 2 . 3 . 5 .', '6 . 5 . 3 - - .', '4 . 5 . 6 . 8 .', '7 . 5 . 2 - - .',
+        '3 . 4 . 5 . 8 .', '9 . 8 . 6 - - .', '4 . 6 5 4 . 2 .', '1 . . . 1 - - .'],
     },
     lantern: {
       bpm: 76, root: 62, lead: 'koto', arp: 'koto', swing: 0, perc: 'night',

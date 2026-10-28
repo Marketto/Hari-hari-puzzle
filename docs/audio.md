@@ -39,3 +39,8 @@ clacson "bip bip" (`honk`, il traffico di Hari Taxi) e "bonk" di gomma (`boing`)
 ## Messaggi di Hari
 Fumetto con Hari animato in basso: all'inizio, a metà, quando manca poco, dopo un errore, dopo 30 s senza mosse,
 toccandolo nella home e nella finestra di vittoria. 14 frasi × 43 lingue.
+
+**Hari allenatore** (`coach: true` nella registrazione del gioco, es. Hari Sudoku): durante la partita il fumetto in basso
+tace per `start`, `good`, `half`, `almost`, `oops`, `idle` (filtro in `say()` di `app.js`, solo senza testo esplicito) e parla
+il Hari del gioco, accanto alla griglia, con pool di frasi proprie che riusano anche le chiavi `m_*` (vedi `docs/games/sudoku.md`).
+Restano i messaggi con testo esplicito (aggiornamenti, condivisione) e la frase della finestra di vittoria.

@@ -279,6 +279,9 @@ for (const level of [1, 4, 8, 16]) {
       if (want === B.ans && B.opts.includes(want) && bagsOk && meals === (s.plan.galley ? s.plan.galley.meals : 0)) good++;
     }
     ok(good === T && ms / T < 10, `Hari Airlines livello ${level}: ${c.rows} file, ${c.pax} passeggeri, fasi ${c.phases.join('·')}: ${good}/${T} ok, media ${(ms / T).toFixed(3)} ms`);
+  }
+}
+
 // Hari Rally: 5 gradini di tappa (1,3 → 4,3 km), generazione < 10 ms, curve mai sotto i 14 m di raggio, nessun tratto che
 // si riavvicina a meno di 30 m, ogni curva vera (R < 130 m) coperta da una nota, simulazione < 0,1 ms a fotogramma
 {
@@ -304,6 +307,27 @@ for (const level of [1, 4, 8, 16]) {
       if (k < 3) { const s = rally.newLevel(level, globalThis.HH.rng(level * 31 + k)); s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) rally.step(s, 1 / 60, { steer: 0.05, brake: 0 }); sim += performance.now() - t2; }
     }
     ok(good === T && ms / T < 10 && sim / 1800 < 0.1, `Hari Rally livello ${level} (gradino ${c.tier}, ${c.stage}): ${c.len} m, ${(notes / T).toFixed(1)} curve di cui ${(tight / T).toFixed(1)} strette, avversari ${c.ai.join('/')}: ${good}/${T} ok, generazione ${(ms / T).toFixed(2)} ms, ${(sim / 1800).toFixed(3)} ms a fotogramma`);
+  }
+}
+
+// Hari Sudoku: 4 fasce di difficoltà (single · pointing · coppie/triple · X-wing e oltre), soluzione unica per il
+// contatore a backtracking, risolti dal risolutore a tecniche entro la tecnica della fascia, media < 10 ms (livelli curati)
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/sudoku-logic.js'), 'utf8'), { filename: 'sudoku-logic.js' });
+  const { sudoku } = globalThis.HH;
+  sudoku.levelPuzzle(40, 1);                                   // riscaldamento del JIT
+  for (const [from, to] of [[1, 10], [11, 15], [16, 25], [26, 30]]) {
+    let ms = 0, good = 0, tech = 0, clues = 0;
+    for (let L = from; L <= to; L++) {
+      const t = performance.now();
+      const p = sudoku.levelPuzzle(L);
+      ms += performance.now() - t;
+      const T = sudoku.tierFor(L), r = sudoku.logicSolve(p.puzzle, T.maxTech);
+      if (r.ok && r.tech >= T.minTech && sudoku.countSolutions(p.puzzle, 2).count === 1) good++;
+      tech = Math.max(tech, p.tech); clues += p.clues;
+    }
+    const n = to - from + 1;
+    ok(good === n && ms / n < 10, `Hari Sudoku livelli ${from}–${to}: ${good}/${n} unici e logici, tecnica max ${tech}, ${(clues / n).toFixed(1)} indizi, media ${(ms / n).toFixed(2)} ms`);
   }
 }
 

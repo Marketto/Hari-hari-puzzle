@@ -1,5 +1,10 @@
 # TODO
 
+## In revisione (prossima versione)
+- [ ] Nuovo gioco **Hari Sudoku** (`since: '0.19.0'`): sudoku classico 9×9 coi numeri; 30 livelli curati da facile (soli single nascosti) a esperto (X-wing, swordfish, XY-wing), poi senza fine; soluzione unica verificata da oracolo indipendente; matita con note automatiche, gomma, annulla, evidenziazioni, contatori sui tasti, aiuto che spiega la tecnica, 3 cuori; Hari (riccio animato condiviso con Hedgedoku, `hog-kit.js`) reagisce a ogni mossa; brano `sudoku`; tutorial in 3 schede
+- [ ] Hari Sudoku: tradurre le 45 chiavi nuove (`r19`, `tu_sudoku_1..3`, `sk_*`) nelle 43 lingue (ora c'è il testo inglese di riserva)
+- [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
+
 ## In corso
 - [x] Repo pubblico collegato: https://github.com/Marketto/Hari-hari-puzzle (autori commit anonimizzati con noreply GitHub)
 - [x] GitHub Pages attivo: https://marketto.github.io/Hari-hari-puzzle/ (deploy automatico a ogni push su `main`)

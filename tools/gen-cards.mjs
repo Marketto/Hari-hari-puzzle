@@ -61,10 +61,12 @@ export function tokens(arts) {
   const c = vm.createContext({});
   vm.runInContext(read('src/games/catalog.js'), c);
   const out = [];
+  const seenCss = new Set();          // file CSS condivisi fra giochi (es. hedgedoku.css in Hari Sudoku): una volta sola
   for (const g of c.HH.catalog) {
     const used = new Set([...(arts[g.id] || '').matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1].split(/\s+/)));
     const keep = [], rules = [], frames = new Map();
-    for (const f of g.files.filter((x) => x.endsWith('.css'))) {
+    for (const f of g.files.filter((x) => x.endsWith('.css') && !seenCss.has(x))) {
+      seenCss.add(f);
       for (const { sel, body } of blocks(read(f))) {
         if (sel.startsWith(':root')) keep.push(`${sel} {${body}}`);
         else if (sel.startsWith('@media') && blocks(body).every((x) => x.sel.startsWith(':root'))) keep.push(`${sel} {${body}}`);
