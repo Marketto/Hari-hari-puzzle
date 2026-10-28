@@ -203,6 +203,27 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Memory: 4+ taglie (3×4 → 6×6), ogni mazzo con esattamente n coppie di soggetti distinti, generazione < 10 ms
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/memory-logic.js'), 'utf8'), { filename: 'memory-logic.js' });
+  const { memory } = globalThis.HH;
+  for (const level of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+    let ms = 0, good = 0;
+    const T = 50, t0 = memory.tierFor(level);
+    for (let k = 0; k < T; k++) {
+      const t = performance.now();
+      const s = memory.newGame(level, level * 733 + k);
+      ms += performance.now() - t;
+      const cnt = {};
+      s.key.forEach((x) => { cnt[x] = (cnt[x] || 0) + 1; });
+      if (s.deck.length === t0.cols * t0.rows && Object.values(cnt).length === t0.pairs && Object.values(cnt).every((c) => c === 2)
+        && new Set(s.deck).size === (s.mode === 'themed' ? s.deck.length : t0.pairs)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Memory livello ${level}: ${t0.cols}×${t0.rows}, ${t0.pairs} coppie, ${t0.mode}${t0.swap ? ' + swap' : ''}: ${good}/${T} ok, media ${(ms / T).toFixed(3)} ms`);
+  }
+}
+
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

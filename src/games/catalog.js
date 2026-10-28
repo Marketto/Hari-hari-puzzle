@@ -26,6 +26,9 @@
     { id: 'life', name: 'Hari Home', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },
+    { id: 'memory', name: 'Hari Memory', rules: 'r15',
+      rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
+      files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
   ];
 
   /* ---------- caricamento in lazy load ---------- */

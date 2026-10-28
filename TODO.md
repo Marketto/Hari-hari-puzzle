@@ -27,6 +27,9 @@
 - [ ] Traduzioni delle chiavi nuove di Hari Taxi (`r13`, `dr_*`, `tu_drive_1..3`) in 43 lingue (oggi fallback inglese)
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 
+## Fatto (v0.15.0)
+- [x] Nuovo gioco **Hari Memory**: 49 disegni del bosco (animali, semi, frutta secca, bacche, alberi, foglie, funghi), griglie da 3×4 a 6×6, dai livelli medi soggetti simili, coppie a tema (animale ↔ il suo cibo) e carte che scivolano dopo un errore; fragoline in base alle mosse (nessuna sconfitta); brano `memory`, tutorial, test con bot; testi in 43 lingue
+
 ## Fatto (v0.14.1)
 - [x] Schermo intero: ogni gioco si adatta allo spazio (larghezza e altezza): si cerca la larghezza più grande che entra anche in altezza; sui tablet i giochi crescono oltre i 460 px senza stirarsi (tetto ~1,15 × altezza); telefono girato: barra compatta con gli indicatori in riga e, se un gioco "alto" non entra, scorrimento verticale invece di tagliarlo
 
@@ -176,6 +179,7 @@
 - [x] Shell PWA, 3 giochi, 43 lingue + RTL, struttura agentica, CI e deploy Pages
 
 ## Verifiche
+- 2026-10-28 v0.15.0 · `npm test` · Hari Memory: partita completa, coppia, errore, scambio, vittoria, schermo intero; testi it/de/ja
 - 2026-10-28 v0.14.1 · `npm test` · schermo intero misurato in tutti i 13 giochi a 360×760, 800×380 e 1024×768: niente tagli né scorrimento orizzontale
 - 2026-10-28 v0.14.0 · `npm test` · Hari Taxi: tre mestieri, incidenti, scadenze, vittoria/sconfitta, chiaro/scuro, schermo intero; testi it/es/pl/ja senza chiavi mancanti né sbordamenti
 - 2026-10-28 v0.13.4 · `npm test` · evento di prova inviato a harihari.goatcounter.com

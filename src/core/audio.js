@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'memory', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -223,6 +223,13 @@
       chords: [1, 4, 5, 1, 6, 2, 5, 1], bass: 'R . F . O . F .',
       mel: ['1 3 5 . 6 5 3 .', '4 . 6 4 8 . 6 .', '5 . 7 5 9 8 7 5', '8 - 5 . 3 - - .',
         '6 . 8 6 5 . 3 5', '2 4 6 . 4 . 2 .', '5 6 7 8 9 . 7 .', '8 . 5 . 1 - - .'],
+    },
+    // Hari Memory: carillon tranquillo a "coppie" di frasi (ogni frase si ripete, come le carte uguali)
+    memory: {
+      bpm: 92, root: 67, lead: 'musicbox', arp: 'marimba', swing: 0.08, perc: 'lullaby',
+      chords: [1, 6, 4, 5, 1, 6, 2, 1], bass: 'R . . F . R . .',
+      mel: ['5 . 3 . 6 5 3 .', '5 . 3 . 6 5 3 .', '4 . 6 . 8 6 4 .', '5 - 3 . 2 - - .',
+        '8 . 6 . 9 8 6 .', '8 . 6 . 9 8 6 .', '4 5 6 5 4 3 2 .', '1 . 3 . 1 - - .'],
     },
     // Hari Home: vita tranquilla in casa, carillon e marimba col passo morbido della giornata
     life: {

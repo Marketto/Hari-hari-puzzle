@@ -1,0 +1,129 @@
+/* Hari Memory — stile.
+ * Carte con flip 3D (retro verde bosco con ghiande, foglie e Hari che sbircia; fronte color carta con il soggetto).
+ * Coppia trovata: le carte saltellano con un pop di cuori e stelline · errore: leggero scuotimento ·
+ * variante "swap": la carta che si sposta scivola al suo nuovo posto.
+ */
+:root {
+  --tint-memory: #dff0d2;
+  --mm-ink: #4a2c22; --mm-eye: #2a160e; --mm-hi: #ffffff; --mm-blush: rgba(255, 110, 145, .5); --mm-nose: #3a2018;
+  --mm-pink: #ffb9cc; --mm-pink-2: #f088a8; --mm-brown: #b07a4f; --mm-brown-2: #7c4c2f; --mm-cream: #fff0d8; --mm-tan: #e0b07c;
+  --mm-orange: #f59b48; --mm-orange-2: #d66a28; --mm-white: #fffaf3; --mm-black: #3b3040; --mm-grey: #bdb7c6; --mm-grey-2: #8c8597;
+  --mm-green: #7fc66b; --mm-green-2: #44904a; --mm-green-3: #3b8a55; --mm-green-hi: #b9e6a6; --mm-lime: #b8dc6a;
+  --mm-yellow: #ffd65a; --mm-gold: #e8a52c; --mm-sky: #d7efff; --mm-red: #f0575c; --mm-red-2: #b8323d;
+  --mm-blue: #6c8cf0; --mm-blue-2: #3f56b8; --mm-purple: #8a55b0; --mm-purple-2: #4c2a68;
+  --mm-pumpkin: #f2ead0; --mm-pumpkin-2: #dfe3b4; --mm-wood: #c98d55; --mm-wood-2: #8a5530; --mm-chestnut: #93432e;
+  --mm-maple: #f2713d; --mm-maple-2: #b8442a; --mm-oakleaf: #9ccd5c; --mm-ginkgo: #ffd34d; --mm-moon: #ffe58a;
+  --mm-water: #bfe3f2; --mm-egg: #a9dcf2;
+  /* carte e tavolo */
+  --mm-table: #f0e2c4; --mm-table-2: #e2cc9f; --mm-table-line: #c9a66e;
+  --mm-face: #fffaf0; --mm-face-2: #f5e6cc; --mm-face-line: #e3c99e;
+  --mm-back: #8ccb7e; --mm-back-2: #5ea85e; --mm-back-hi: #e6f7d8; --mm-back-dk: #3f7d45; --mm-back-line: #3f7d45;
+  --mm-found: #ffd84a; --mm-heart: #ff6f9c; --mm-star: #ffc93d; --mm-focus: #ff6f9c; --mm-text: #8b5a48;
+  --mm-new: #ff7fa3; --mm-new-text: #ffffff; --mm-track: #fff3e6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-memory: #2c4430;
+    --mm-table: #45345c; --mm-table-2: #33264a; --mm-table-line: #65508a;
+    --mm-face: #f3e8ee; --mm-face-2: #dccbd9; --mm-face-line: #a68fb4;
+    --mm-back: #4f8a5b; --mm-back-2: #356a44; --mm-back-hi: #c7ebc0; --mm-back-dk: #1f4a2c; --mm-back-line: #1f3f28;
+    --mm-found: #ffe07a; --mm-focus: #ff8fb3; --mm-text: #ffd6e6; --mm-track: #2a1f3d;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-memory: #2c4430;
+  --mm-table: #45345c; --mm-table-2: #33264a; --mm-table-line: #65508a;
+  --mm-face: #f3e8ee; --mm-face-2: #dccbd9; --mm-face-line: #a68fb4;
+  --mm-back: #4f8a5b; --mm-back-2: #356a44; --mm-back-hi: #c7ebc0; --mm-back-dk: #1f4a2c; --mm-back-line: #1f3f28;
+  --mm-found: #ffe07a; --mm-focus: #ff8fb3; --mm-text: #ffd6e6; --mm-track: #2a1f3d;
+}
+
+/* --cw = lato massimo di una carta: ≤ 120 px e griglia mai più alta di ~1,2 × la larghezza del gioco; il riquadro si stringe attorno alle carte */
+.mm-wrap {
+  --gw: min(var(--game-w), var(--game-max, 460px)); --cw: min(120px, var(--gw) * 1.2 / var(--rows));
+  display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(var(--gw), calc(var(--cols) * (var(--cw) + 7px) + 16px)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- barra: coppie trovate ---------- */
+.mm-bar { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; }
+.mm-track { position: relative; flex: 1; height: 12px; border-radius: 8px; background: var(--mm-track); box-shadow: inset 0 0 0 2px var(--mm-table-line); overflow: hidden; }
+.mm-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 8px; background: linear-gradient(90deg, var(--mm-back-2), var(--mm-back), var(--mm-found)); transition: width .4s cubic-bezier(.3, 1.4, .5, 1); }
+.mm-count { font-family: 'Mochiy Pop One', system-ui, sans-serif; font-size: 14px; color: var(--mm-text); min-width: 3.2em; text-align: end; }
+.mm-new { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--mm-new); color: var(--mm-new-text); font-weight: 800; font-size: 12px; box-shadow: 0 2px 0 var(--mm-pink-2); animation: mm-wiggle 1.6s ease-in-out infinite; }
+.mm-tip { margin: 0; font-size: 13px; text-align: center; color: var(--mm-text); }
+
+/* ---------- tavolo e carte ---------- */
+.mm-table {
+  width: 100%; padding: 8px; border-radius: 22px;
+  background: linear-gradient(180deg, var(--mm-table), var(--mm-table-2));
+  box-shadow: inset 0 0 0 2px var(--mm-table-line), var(--shadow-s);
+}
+.mm-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 7px; margin: 0 auto; perspective: 900px; max-width: calc(var(--cols) * var(--cw)); }
+.mm-grid.c5 { gap: 6px; }
+.mm-grid.c6 { gap: 5px; }
+.mm-card {
+  position: relative; aspect-ratio: 1; min-width: 0; padding: 0; border: 0; background: none; border-radius: 16%;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.mm-card:focus-visible { outline: 3px solid var(--mm-focus); outline-offset: 2px; z-index: 3; }
+.mm-in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .42s cubic-bezier(.4, 1.5, .5, 1); border-radius: inherit; }
+.mm-card.up .mm-in, .mm-card.found .mm-in { transform: rotateY(180deg); }
+.mm-side { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+.mm-back {
+  background: radial-gradient(circle at 50% 40%, var(--mm-back) 40%, var(--mm-back-2) 100%);
+  box-shadow: inset 0 0 0 2px var(--mm-back-line), inset 0 -4px 0 var(--mm-back-dk), 0 2px 0 var(--mm-table-line);
+}
+.mm-front {
+  transform: rotateY(180deg);
+  background: radial-gradient(circle at 50% 40%, var(--mm-face) 55%, var(--mm-face-2) 100%);
+  box-shadow: inset 0 0 0 2px var(--mm-face-line), inset 0 -4px 0 var(--mm-face-2), 0 2px 0 var(--mm-table-line);
+}
+.mm-back > .mm-backpic { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mm-front > .mm-pic { position: absolute; inset: 9%; width: 82%; height: 82%; overflow: visible; }
+.mm-card.found .mm-front { box-shadow: inset 0 0 0 3px var(--mm-found), inset 0 -4px 0 var(--mm-face-2), 0 2px 0 var(--mm-table-line); }
+.mm-card.found { cursor: default; }
+.mm-card:not(.up):not(.found):active .mm-in { transform: scale(.95); transition-duration: .08s; }
+
+/* coppia trovata: saltello + pop di cuori e stelline */
+.mm-card.pop .mm-in { animation: mm-hop .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes mm-hop { 0% { transform: rotateY(180deg) scale(1); } 40% { transform: rotateY(180deg) translateY(-14%) scale(1.08); } 100% { transform: rotateY(180deg) scale(1); } }
+.mm-burst { position: absolute; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; z-index: 4; }
+.mm-burst i { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; animation: mm-fly .9s ease-out forwards; animation-delay: calc(var(--k) * 40ms); }
+.mm-burst svg { width: 100%; height: 100%; display: block; }
+@keyframes mm-fly { 0% { transform: translate(0, 0) scale(.3); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.1) rotate(var(--r)); opacity: 0; } }
+/* errore: scuotimento */
+.mm-card.shake .mm-in { animation: mm-shake .45s ease-in-out; }
+@keyframes mm-shake { 0%, 100% { transform: rotateY(180deg) translateX(0); } 20% { transform: rotateY(180deg) translateX(-6%); } 40% { transform: rotateY(180deg) translateX(6%); } 60% { transform: rotateY(180deg) translateX(-4%); } 80% { transform: rotateY(180deg) translateX(3%); } }
+/* variante swap: la carta scivola dal vecchio posto (--dx, --dy) e brilla un momento */
+.mm-card.slide { z-index: 2; animation: mm-slide .55s cubic-bezier(.3, 1.2, .5, 1); }
+.mm-card.slide .mm-back { box-shadow: inset 0 0 0 3px var(--mm-found), inset 0 -4px 0 var(--mm-back-dk), 0 2px 0 var(--mm-table-line); }
+@keyframes mm-slide { from { transform: translate(var(--dx), var(--dy)); } to { transform: none; } }
+/* vittoria: ola */
+.mm-grid.solved .mm-card .mm-in { animation: mm-ola .7s ease-in-out; animation-delay: calc(var(--i) * 30ms); }
+@keyframes mm-ola { 0%, 100% { transform: rotateY(180deg); } 50% { transform: rotateY(180deg) translateY(-12%); } }
+@keyframes mm-wiggle { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+
+/* ---------- illustrazione della card e tutorial ---------- */
+.mm-art .mm-a-card { transform-box: fill-box; transform-origin: center; }
+.mm-art .mm-a-flip { animation: mm-a-flip 3.2s ease-in-out infinite; }
+@keyframes mm-a-flip { 0%, 40%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.05); } 60%, 90% { transform: scaleX(1); } }
+.mm-tu .mm-tu-a { animation: mm-tu-a 3s ease-in-out infinite; }
+.mm-tu .mm-tu-b { animation: mm-tu-b 3s ease-in-out infinite; }
+@keyframes mm-tu-a { 0%, 30% { opacity: 1; } 40%, 85% { opacity: 0; } 95%, 100% { opacity: 1; } }
+@keyframes mm-tu-b { 0%, 30% { opacity: 0; } 40%, 85% { opacity: 1; } 95%, 100% { opacity: 0; } }
+.mm-tu .mm-tu-hop { transform-box: fill-box; transform-origin: center bottom; animation: mm-tu-hop 1.2s ease-in-out infinite; }
+@keyframes mm-tu-hop { 0%, 100% { transform: none; } 50% { transform: translateY(-5px); } }
+
+/* telefono girato: contatore di lato, niente barra né suggerimento (la griglia usa tutta l'altezza) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .mm-wrap { flex-direction: row; align-items: center; }
+  .mm-bar { flex-direction: column; width: auto; flex: none; }
+  .mm-track, .mm-tip { display: none; }
+  .mm-table { flex: 1; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-in { transition: none; }
+  .mm-card.pop .mm-in, .mm-card.shake .mm-in, .mm-card.slide, .mm-grid.solved .mm-card .mm-in, .mm-new,
+  .mm-art .mm-a-flip, .mm-tu .mm-tu-a, .mm-tu .mm-tu-b, .mm-tu .mm-tu-hop { animation: none; }
+  .mm-burst { display: none; }
+}
