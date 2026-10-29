@@ -13,6 +13,7 @@
 | `mp-demo.html` | Demo del multigiocatore (due ricci e una fragola): `http://localhost:5173/tools/mp-demo.html` |
 | `mp-e2e.mjs` | Prova reale del multigiocatore con Playwright: due Chromium, microfono e fotocamera finti, percorsi suono/QR/codice, screenshot (`--shots DIR`) |
 | `street-e2e.mjs` | Prova reale di Hari Snack Street a due (modulo HH.mp vero, abbinamento col suono): viste coerenti, input dell'ospite, vittoria su entrambi, caduta del link → Kiki CPU (`--port`, `--shots DIR`) |
+| `rally-e2e.mjs` | Prova reale di Hari Rally a due (modulo HH.mp vero, abbinamento col suono): scelta del kart, input dell'ospite, viste coerenti, pausa/ripresa, stessa classifica, vittoria o rivincita, uscita dell'ospite → il suo kart all'IA (`--port`, `--shots DIR`, `--w`, `--h`) |
 
 ## Struttura agentica (Claude Code)
 ```

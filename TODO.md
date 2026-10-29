@@ -6,6 +6,21 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] **Hari Rally a due giocatori** (branch `wip/rallymp`): "Gioca insieme" (pulsante in alto prima del via e nel menu
+  di pausa) con due modi. **Due telefoni** su `HH.mp`: l'host (Hari, fragola) simula tutta la gara con 2 umani e manda
+  istantanee compatte (~400 B, < 1 KB; si manda solo il seme, mai la pista), l'ospite sceglie il kart (Micia sul nuovo
+  kart-mela, o Coniglietta, Volpe, Panda), interpola gli altri e predice il proprio con correzione morbida; via, pausa,
+  fine gara e classifica affidabili; link caduto → il kart dell'ospite passa all'IA, l'ospite torna alla sua gara.
+  **Schermo diviso** (tablet o telefono in orizzontale, solo dispositivi capaci): due viste nello stesso canvas, comandi
+  nella propria metà, P1 frecce + Invio, P2 WASD + spazio; pixel ratio ≤ 1, LOD e nebbia più vicini. 2 umani + 2
+  avversari; si vince insieme se uno dei due arriva primo, fragoline per ciascuno; la partita a due non si salva (si
+  riprende la gara in singolo). Logica generalizzata a N umani (`s.hu`), singolo identico bit per bit; test
+  `tests/rally-mp.test.mjs` (stub con orologio virtuale + modulo vero), prova reale `tools/rally-e2e.mjs`
+- [ ] Testi del rally a due: 21 chiavi nuove da tradurre in 43 lingue (`ry_mp_*`, `ry_who_*`, ora solo inglese)
+- [ ] Rally a due su telefoni veri: tempo di costruzione della pista al via (il link aspetta fino a 60 s), comodità dei
+  comandi sullo schermo diviso a 800 × 380, fluidità di due viste su un tablet medio
+
 ## Prossimo
 - [ ] Hari Snack Street su telefono vero: levetta e pulsanti col pollice, schermo diviso in due su tablet, fluidità del canvas
 - [ ] Multigiocatore su telefoni veri: abbinamento col suono in una stanza vera (volume, distanza, rumore), QR con fotocamera, reti ospiti/hotspot, iOS

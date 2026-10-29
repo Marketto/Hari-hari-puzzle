@@ -79,9 +79,15 @@
   const SELF = { off: 1, on: 1, jump: 1, drift: 1 };   // eventi che l'ospite ricava già dalla predizione
   const END = { finish: 1, win: 1, lose: 1 };
 
+  // costruire la pista 3D e compilare gli shader blocca il telefono per qualche secondo all'inizio di ogni gara (senza
+  // GPU, in Chromium headless, anche 15–20 s): il link (che si chiude dopo link.timeout ms di silenzio, 6 s di base)
+  // aspetta di più, e molto di più dal saluto/avvio della gara fino al semaforo verde (lenient)
+  const LINK_TIMEOUT = 15000, LINK_START = 60000;
+  const lenient = (link, on) => { link.timeout = on ? LINK_START : LINK_TIMEOUT; };
   function mkSession(link, o) {
     const mp = HH.mp;
     if (!mp || typeof mp.session !== 'function') throw new Error('HH.mp mancante');
+    if (!(link.timeout >= LINK_TIMEOUT)) link.timeout = LINK_TIMEOUT;
     return mp.session(link, Object.assign({ tick: TICK, sendEvery: SEND }, o));
   }
 
@@ -98,15 +104,7 @@
         const ia = unwire(a) || { steer: 0, gas: 0, brake: 0 }, ib = s.hu.length > 1 ? unwire(b) : null;
         if (a && a.u > uL) { ia.use = 1; uL = a.u; }
         if (ib && b.u > uR) { ib.use = 1; uR = b.u; }
-        const ev = P().step(s, dt, s.hu.length > 1 ? [ia, ib] : [ia]);
-        for (const e of ev) {
-          out.push(e);
-          if (o.onEvent) o.onEvent(e);
-          // all'ospite: i suoi eventi personali (by = 1), quelli dei kart (who: power-up, scontri, nuvolette) e quelli
-          // di tutti (semaforo); non quelli che ricava da sé con la predizione né la fine (arriva col messaggio fin)
-          if (END[e.type]) { /* niente */ } else if (e.by !== undefined) { if (e.by === 1 && !SELF[e.type]) pend.push(e); } else if (!(e.who === 1 && SELF[e.type])) pend.push(e);
-          if (e.type === 'finish') ctl.send({ ry: 'fin', res: s.res, ps: s.ps, won: s.won, t: s.fin, pos: s.pos });
-        }
+        run(dt, s.hu.length > 1 ? [ia, ib] : [ia]);
       },
       snapshot() {
         if (!s) return { k: ++k, idle: 1 };
@@ -117,25 +115,46 @@
         return encode(s, k, full);
       },
     });
-    session.on('event', (m) => { if (m && m.ry && o.onMsg) o.onMsg(m); });
-    link.on('close', (why) => {
+    // un passo della gara con gli input già pronti: eventi alla UI, quelli dell'ospite in coda per lui, fine gara
+    function run(dt, ins) {
+      const ev = P().step(s, dt, ins);
+      for (const e of ev) {
+        out.push(e);
+        if (o.onEvent) o.onEvent(e);
+        // all'ospite: i suoi eventi personali (by = 1), quelli dei kart (who: power-up, scontri, nuvolette) e quelli
+        // di tutti (semaforo); non quelli che ricava da sé con la predizione né la fine (arriva col messaggio fin)
+        if (END[e.type]) { /* niente */ } else if (e.by !== undefined) { if (e.by === 1 && !SELF[e.type]) pend.push(e); } else if (!(e.who === 1 && SELF[e.type])) pend.push(e);
+        if (e.type === 'finish') ctl.send({ ry: 'fin', res: s.res, ps: s.ps, won: s.won, t: s.fin, pos: s.pos });
+      }
+      return ev;
+    }
+    // l'ospite è uscito (quit) o il link è caduto: il suo kart passa all'IA, la gara continua
+    function gone(why) {
       if (closed) return;
       closed = true;
       if (s && !P().isOver(s) && s.hu && s.hu.length > 1) { P().toAI(s, 1); dropped = true; }
       if (o.onDrop) o.onDrop(why);
+    }
+    session.on('event', (m) => {
+      if (!m || !m.ry) return;
+      if (m.ry === 'quit') { gone('quit'); try { link.close(); } catch (e) { /* già chiuso */ } return; }
+      if (o.onMsg) o.onMsg(m);
     });
+    link.on('close', (why) => gone(why));
     let uc = 0, lastU = 0;
     Object.assign(ctl, {
       session,
       race(state) { s = state; k = 0; uL = 0; uR = 0; lastU = 0; uc = 0; pend = []; lastAg = ''; paused = false; out.length = 0; },
       state: () => s,
+      // QA: passi diretti (avanti veloce) con gli eventi inoltrati all'ospite come nei passi della sessione
+      stepLocal(dt, ins) { if (!s || P().isOver(s)) return []; const ev = run(dt, ins); out.length = 0; return ev; },
       dropped: () => dropped || closed,
       // input locale: il tasto del power-up diventa un contatore
       setInput(inp) { if (inp && inp.use && !lastU) uc++; lastU = inp && inp.use ? 1 : 0; local = wire(inp, uc); session.setInput(local); },
-      frame(now) { session.frame(now); },
+      frame(now) { if (s && s.ready <= 0 && link.timeout > LINK_TIMEOUT) lenient(link, false); session.frame(now); },
       take() { return out.splice(0, out.length); },
       pause(on) { paused = !!on; },
-      send(m) { if (!closed) session.event(m); },
+      send(m) { if (m && (m.ry === 'start' || m.ry === 'hello')) lenient(link, true); if (!closed) session.event(m); },
       start() { session.start(); },
       stop() { session.stop(); },
       close() { try { session.stop(); } catch (e) { /* già chiusa */ } closed = true; try { link.close(); } catch (e) { /* già chiuso */ } },
@@ -152,12 +171,15 @@
     const out = [];
     const ctl = { link, role: 'guest', me, events: out };
     const session = mkSession(link, {
-      apply(snap, alpha) {
+      // prev (terzo argomento, aggiunta del modulo): l'istantanea da cui interpolare; senza, la si cerca tra quelle viste
+      apply(snap, alpha, prev) {
         if (!sg || !snap || snap.idle || !snap.c) return;
-        if (!buf.some((q) => q.k === snap.k)) { buf.push(snap); buf.sort((x, y) => x.k - y.k); if (buf.length > 12) buf.shift(); }
         if (!latest || snap.k > latest.k) latest = snap;
-        let prev = null;
-        for (const q of buf) if (q.k < snap.k) prev = q;
+        if (prev === undefined) {
+          if (!buf.some((q) => q.k === snap.k)) { buf.push(snap); buf.sort((x, y) => x.k - y.k); if (buf.length > 12) buf.shift(); }
+          prev = null;
+          for (const q of buf) if (q.k < snap.k) prev = q;
+        } else if (!prev || prev === snap || prev.idle || !prev.c || prev.k >= snap.k) prev = null;
         decode(sg, prev, snap, alpha === undefined ? 1 : alpha, me);
         correct();
       },
@@ -167,6 +189,8 @@
         for (const e of ev) if (SELF[e.type]) { e.who = me; out.push(e); if (o.onEvent) o.onEvent(e); }
       },
     });
+    // l'ultima istantanea arrivata (senza il ritardo di interpolazione) per correggere il proprio kart (evento del modulo)
+    session.on('snapshot', (st) => { if (st && st.c && !st.idle && (!latest || st.k > latest.k)) latest = st; });
     // correzione morbida del kart predetto verso lo stato dell'host (portato avanti di mezzo giro di rete)
     function correct() {
       if (!latest || !sg) return;
@@ -187,6 +211,7 @@
     session.on('event', (m) => {
       if (!m || !m.ry) return;
       if (m.ry === 'ev') { for (const e of m.l || []) { out.push(e); if (o.onEvent) o.onEvent(e); } return; }
+      if (m.ry === 'start') lenient(link, true);
       if (m.ry === 'fin' && sg) {
         sg.res = m.res; sg.ps = m.ps; sg.won = !!m.won; sg.pos = m.pos; sg.fin = m.t;
         for (const r of m.res) if (sg.cars[r.id]) sg.cars[r.id].fin = r.t;
@@ -201,10 +226,10 @@
       error: () => err,
       dropped: () => closed,
       setInput(inp) { if (inp && inp.use && !lastU) uc++; lastU = inp && inp.use ? 1 : 0; session.setInput(wire(inp, uc)); },
-      frame(t) { lastNow = now || t; now = t; session.frame(t); },
+      frame(t) { if (sg && sg.ready <= 0 && sg.t > 0.5 && link.timeout > LINK_TIMEOUT) lenient(link, false); lastNow = now || t; now = t; session.frame(t); },
       take() { return out.splice(0, out.length); },
       pause(on) { paused = !!on; },
-      send(m) { if (!closed) session.event(m); },
+      send(m) { if (m && (m.ry === 'start' || m.ry === 'hello')) lenient(link, true); if (!closed) session.event(m); },
       start() { session.start(); },
       stop() { session.stop(); },
       close() { try { session.stop(); } catch (e) { /* già chiusa */ } closed = true; try { link.close(); } catch (e) { /* già chiuso */ } },

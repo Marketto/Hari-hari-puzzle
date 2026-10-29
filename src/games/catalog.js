@@ -8,12 +8,8 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
   const f = (...names) => names.map((n) => 'src/games/' + n);
-  // modulo multiplayer (src/net/*, contratto HH.mp v1, in arrivo dal suo worktree): va tra i file dei giochi a due
-  // nell'ordine del contratto. Finché i file non esistono resta commentato (il test della PWA e il build vogliono file
-  // veri): il rally funziona lo stesso, "Due telefoni" è spento perché HH.mp manca, lo schermo diviso c'è.
-  // Al merge: togliere il commento alla riga sotto e cancellare `const NET = [];`.
-  // const NET = ['src/net/sonic.js', 'src/net/qr.js', 'src/net/mp.js', 'src/net/mp-ui.js', 'src/net/mp.css'];
-  const NET = [];
+  // modulo multiplayer (src/net/*, contratto HH.mp): nei file dei giochi a due nell'ordine sonic, qr, mp, mp-ui, mp.css
+  const NET = ['src/net/sonic.js', 'src/net/qr.js', 'src/net/mp.js', 'src/net/mp-ui.js', 'src/net/mp.css'];
   HH.catalog = [
     { id: 'hedgedoku', name: 'Hedgedoku', rules: 'r1', files: f('hedgedoku.css', 'hedgedoku-logic.js', 'hog-kit.js', 'hedgedoku-ui.js') },
     { id: 'boba', name: 'Boba Sort', rules: 'r2', files: f('boba-logic.js', 'boba-ui.js') },

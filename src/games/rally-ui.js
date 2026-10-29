@@ -42,8 +42,8 @@
     ry_mp_left: 'Your friend left: the computer drives their kart', ry_mp_win: 'Team victory!', ry_mp_lose: 'So close! Race again?',
     ry_mp_again: 'Rematch', ry_mp_solo: 'Play alone', ry_mp_rule: 'Win together: one of you must finish first!',
     ry_mp_nosplit: 'Split screen needs a bigger, faster device', ry_mp_nonet: 'Two-phone play is not available yet',
-    ry_mp_p1: 'Player 1', ry_mp_p2: 'Player 2', ry_mp_keys: 'Player 1: arrows and Enter · Player 2: W A S D and Space',
-    ry_who_hari: 'Hari', ry_who_bunny: 'Bunny', ry_who_fox: 'Fox', ry_who_panda: 'Panda', ry_who_kitty: 'Kitty',
+    ry_mp_p2: 'Player 2', ry_mp_keys: 'Player 1: arrows and Enter · Player 2: W A S D and Space',
+    ry_who_bunny: 'Bunny', ry_who_fox: 'Fox', ry_who_panda: 'Panda', ry_who_kitty: 'Kitty',
     // già tradotte (Hari Parade, Hari Home, comuni)
     lf_cancel: 'Cancel',
     pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', retry: 'Try again', pa_left: 'Left', pa_right: 'Right',
@@ -2951,8 +2951,9 @@
     }
     // il collegamento è caduto (o l'altro è uscito): l'host continua (il kart dell'ospite ora è dell'IA), l'ospite
     // torna alla sua gara da solo
-    function netDrop() {
+    function netDrop(why) {
       const was = mpMode;
+      if (el._rally) el._rally.lastDrop = String(why || '');   // QA: motivo dell'ultima chiusura
       net = null;
       if (!alive) return;
       if (was === 'host' && s && s.hu && !P.isOver(s)) { say(L('ry_mp_left'), 'small', 2600); paintProg(); lastHud.rank = ''; return; }
@@ -2996,7 +2997,8 @@
       for (let t = 0; t < sec && !P.isOver(s); t += P.TICK) {
         if (s.hu) {
           const ins = s.hu.map((id, j) => Object.assign(autopilot(s.cars[id], j ? o2.p2 || {} : o2), { use: id === ME && useQ ? 1 : 0 }));
-          ev.push(...P.step(s, P.TICK, ins));
+          if (net && net.role === 'guest') break;
+          ev.push(...(net ? net.stepLocal(P.TICK, ins) : P.step(s, P.TICK, ins)));
         } else ev.push(...P.step(s, P.TICK, Object.assign(autopilot(s.cars[0], o2), { use: useQ ? 1 : 0 })));
         useQ = false;
       }
@@ -3025,7 +3027,7 @@
       mp: () => ({ mode: mpMode, me: ME, views: views.map((v) => v.rect), net: net ? net.role : '', solo: !!solo }), split: (p2 = 'kitty') => startSplit(p2), solo: () => endMP(), menu: mpMenu, netCtl: () => net,
       views: () => views.length, forceSplit: false, auto2: (on) => { qaAuto = !!on; },
       // QA: disegno con i contatori di three.js sommati su tutte le viste (draw call, triangoli) e tempo del disegno
-      info: () => { if (!R3) return null; const inf = R3.renderer.info; inf.autoReset = false; inf.reset(); const t0 = performance.now(); draw(0); const ms = performance.now() - t0; const r = { calls: inf.render.calls, tris: inf.render.triangles, ms, pr, views: Math.max(1, views.length) }; inf.autoReset = true; return r; } };
+      info: () => { if (!R3) return null; const inf = R3.renderer.info; inf.autoReset = false; inf.reset(); const gl = R3.renderer.getContext(); gl.finish(); const t0 = performance.now(); draw(0); gl.finish(); const ms = performance.now() - t0; const r = { calls: inf.render.calls, tris: inf.render.triangles, ms, pr, views: Math.max(1, views.length) }; inf.autoReset = true; return r; } };
     // la partita a due non si salva: si riprende la gara in singolo che era stata messa da parte
     const sv = saved && saved.hu ? saved.solo : saved;
     const migrated = sv && typeof sv.seed === 'number' && sv.L > 0 && Array.isArray(sv.cars) && sv.cars.length === 4 && !sv.hu ? P.migrate(sv) : null;

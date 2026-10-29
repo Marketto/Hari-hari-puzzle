@@ -12,7 +12,7 @@ tra kart sono spintarelle, i power-up fanno scivolare, appiccicare o rallentare 
 
 - id `rally`, brand **Hari Rally** (non tradotto), regole `r14`, brano `rally`, tinta `--tint-rally`, token `--ry-*`.
 - File: `src/games/rally-logic.js` (logica pura, niente DOM né THREE), `src/games/rally-ui.js` (three.js + HUD HTML),
-  `src/games/rally.css`, `src/vendor/three.min.js` + `src/vendor/three.LICENSE`, `tests/rally.test.mjs` +
+  `src/games/rally.css`, `src/games/rally-net.js` + `src/games/rally-mp.css` (a due giocatori, vedi sotto), `src/vendor/three.min.js` + `src/vendor/three.LICENSE`, `tests/rally.test.mjs` +
   `tests/_rally-bot.mjs` (bot pilota), blocco "Hari Rally" in `tools/selftest.mjs`.
 - Audio in `src/core/audio.js`: brano `rally`, `pace(dir, g)` (bip del navigatore a destra/sinistra),
   `HH.audio.engine(on, rpm, grit)` (motore con tre "marce", ghiaia quando si scivola) e gli effetti dei power-up
@@ -300,6 +300,93 @@ lunghezza / (62% della velocità massima). `progress` = metri fatti / lunghezza 
   se i fotogrammi superano ~26 ms e risale se c'è margine. Contesto WebGL liberato all'uscita (anche da partita in pausa).
 - Logica: un minuto di gara con 4 kart, power-up e sotto-passi 30–100 ms in Node (a regime 0,01–0,06 ms a fotogramma).
 - Senza WebGL compare un messaggio (`ry_nogl`).
+
+## A due giocatori
+"Gioca insieme" (pulsante in alto durante il conto alla rovescia, e nel menu di pausa) apre il veil `.ry-mpv` con
+**Due telefoni** (rete locale, modulo `HH.mp`, spento se il modulo manca) e **Schermo diviso** (spento sui dispositivi
+non capaci). Il secondo giocatore sceglie il personaggio: **Micia** sul nuovo **kart-mela** (5º kart, gialla con la
+guancia rossa, picciolo e foglia; Micia lilla con le orecchie a punta, le strisce e la coda) oppure Coniglietta, Volpe o
+Panda, che allora non corre come avversario. Token nuovi in `rally-mp.css`: `--ry-apple*`, `--ry-kitty*`, `--ry-p4`,
+`--ry-mate` (contorno dell'altro giocatore negli indicatori).
+
+**Regole.** 4 kart come in singolo: Hari (giocatore 1, fragola), il giocatore 2 e **2 avversari** con le due bravure
+più morbide della curva (`c.ai[0]`, `c.ai[1]`). Due e non tre: stessa griglia 2×2 e stessi pesi dei power-up per
+posizione, una vista in meno di kart vicini da disegnare sullo schermo diviso, istantanee più piccole, e una regola
+chiara: **si vince insieme se uno dei due arriva primo** (con due avversari almeno uno dei due umani sarebbe sempre sul
+podio). Fragoline per ciascuno secondo la propria posizione (1° = 3 … 4° = 0): `rate(s)` usa `s.me` (il giocatore di
+quel telefono), sullo schermo diviso il migliore dei due. Gli umani partono dietro. La gara finisce quando sono
+arrivati entrambi o `LATE` = 40 s dopo il primo (chi manca è classificato col tempo stimato, `late`). Rimasti in uno
+(link caduto) vale la regola del singolo (tra i primi 3).
+
+**Logica** (`rally-logic.js`, singolo identico bit per bit: stessi stati ed eventi su 14 gare del bot prima/dopo).
+`newLevel(level, rnd, { humans: 2, p2, seed })` → `s.hu = [0, 1]` (umani), `s.who` (personaggi), `s.ps` (posizioni
+degli umani), `car.hm = 1`; senza opzioni nessun campo nuovo. `step(s, dt, [inP1, inP2])` (input null = fermo, niente
+acceleratore automatico) passa per `tickMulti`: fisica del giocatore per ogni umano, IA per gli altri, power-up,
+note, checkpoint e sorpassi per ciascuno (eventi con `by`), traguardo. `toAI(s, id)` passa un umano all'IA (bravura
+`c.ai[1]`, nuvoletta in corso conclusa). `predict(s, id, dt, input)`: solo la fisica del proprio kart (ospite).
+`posOf`, `humans`, `upcoming(s, n, id)`. Nel singolo `!car.id` = "è Hari" è diventato `hum(s, car)`.
+
+**Rete** (`rally-net.js`, puro, testabile in Node; programma contro il contratto `HH.mp`). Sessione a 60 Hz,
+un'istantanea ogni 3 passi (20 al secondo).
+- **Host** = giocatore 1: `step(dt, [input host, input ospite])` fa correre la gara intera; `snapshot()` = istantanea
+  compatta (`encode`): per kart un array di 26 numeri arrotondati (posizione, deriva, velocità, salto, effetti, power-up,
+  ghiande, arrivo…), bucce/pozze, nuvolette, scatole in ricarica, classifica; le ghiande prese (`a`) solo quando
+  cambiano o ogni 15 invii. **~400 B** (mediana), massimo osservato ~500 B, caso peggiore costruito (10 bucce, 8
+  nuvolette, tutti i campi pieni) < 1,5 KB; col modulo vero, a delta, `maxBytes` < 1,1 KB.
+- **Ospite** = giocatore 2: stessa gara dallo stesso seme (si manda solo `{ level, seed, p2 }`), `apply(snap, alpha,
+  prev)` interpola gli altri kart (niente interpolazione oltre 12 m: nuvoletta), `predict` muove il proprio kart con la
+  fisica locale, e una **correzione morbida** (k = 1 − e^(−6·dt)) lo porta verso lo stato dell'host più recente
+  (evento `snapshot` del modulo) portato avanti di mezzo giro di rete; scarti > 7 m o > 2,6 m di lato, nuvoletta e
+  semaforo: si copia. Power-up, colpi, nuvoletta e arrivo del proprio kart sono dell'host.
+- **Input** sul filo `{ x, g, b, u }`: `u` è il **contatore** del tasto power-up (non si perde coi pacchetti persi).
+- **Eventi affidabili** (`session.event`, campo `ry`): `hello` (kart scelto), `start`, `pause`, `resume`, `ev` (eventi di
+  gioco dell'ospite e dei kart, semaforo), `fin` (classifica, posizioni, vittoria), `quit`. La pausa di uno mette in pausa
+  l'altro; la ripresa ha il conto alla rovescia dell'host.
+- **Link caduto** o `quit`: l'host passa il kart dell'ospite all'IA e continua (messaggio `ry_mp_left`); l'ospite torna
+  alla sua gara in singolo (`ry_mp_lost`). Il link resta paziente all'avvio di ogni gara (`link.timeout` 60 s dal saluto
+  al semaforo verde, poi 15 s): costruire la pista 3D e compilare gli shader può bloccare il telefono qualche secondo
+  (senza GPU, in Chromium headless, anche 17 s).
+- Rivincita e livello successivo li decide l'host (nuovo seme); l'ospite aspetta (`ry_mp_host`). La vittoria apre la
+  finestra dell'app su entrambi i telefoni (fragoline e livello di ciascuno).
+
+**Schermo diviso.** Due viste nello stesso canvas (`setViewport`/`setScissor`): in orizzontale affiancate, in
+verticale una sopra l'altra (giocatore 1 a sinistra / in alto). Ogni vista (`views[i]`) ha la sua camera a molla, il
+suo terreno (griglia che segue la camera), i suoi indicatori `.ry-v[data-v]` e i suoi comandi nella propria metà;
+`inView(i, fn)` scambia le variabili della vista. Tastiera: giocatore 1 **frecce + Invio**, giocatore 2 **W A S D +
+spazio/E**; niente sensori (sempre al tocco) né visuale pilota. Prestazioni: pixel ratio ≤ 1 (poi cala da solo fino a 0,6
+se i fotogrammi sono lenti), nebbia −15%, LOD dello scenario a 70% della distanza, kart lontani da 24 m, un solo blocco
+di scenario costruito per fotogramma, particelle e oggetti dei power-up aggiornati una volta. **Solo dispositivi
+capaci**: ≥ 4 core, ≥ 3 GB (`deviceMemory`), schermo ≥ 640 × 320 (due scene 3D raddoppiano draw call e triangoli; sui
+telefoni piccoli o lenti la gara scenderebbe sotto i 30 fps).
+
+| Chromium headless, 1024 × 768, mediana di 7 punti della gara (massimo) | singolo | schermo diviso (2 viste) |
+|---|---|---|
+| Livello 2: draw call / triangoli | 47 (56) / 110k (128k) | 101 (122) / 203k (264k) |
+| Livello 5 | 70 (118) / 173k (248k) | 148 (168) / 365k (408k) |
+| Livello 8 | 71 (72) / 164k (184k) | 144 (164) / 318k (360k) |
+| 800 × 380, livello 5 | 62 (123) / 161k (269k) | 155 (164) / 278k (325k) |
+
+Circa il doppio del singolo (una vista per giocatore costa poco meno di una vista singola), con metà dei pixel per vista
+a pixel ratio ≤ 1. Il tempo del disegno lato JavaScript passa da ~0,6 a ~1 ms per fotogramma.
+
+**Salvataggio.** La partita a due non si salva: `snapshot()` restituisce lo stato a due con dentro `solo` (la gara in
+singolo messa da parte, in pausa) e `mp`; riaprendo l'app si riprende `solo` (o una gara nuova). "Da solo" (menu di
+pausa o fine gara) torna alla gara in singolo.
+
+**File e caricamento.** `src/games/rally-net.js`, `src/games/rally-mp.css` e i file del modulo `src/net/sonic.js`,
+`qr.js`, `mp.js`, `mp-ui.js`, `mp.css` tra i `files` del rally nel catalogo (costante `NET`, nell'ordine del
+contratto; il build inline li include una volta sola, anche se li usa pure Hari Snack Street).
+
+**Prove.** `tests/rally-mp.test.mjs`: logica a 2 umani deterministica (anche da JSON a metà gara), bot come P2 (10 livelli
+× 3 combinazioni, vittoria di squadra in ≥ 50% e P2 primo ≥ 3 volte), regola dei 40 s, nessuna compenetrazione con due
+umani (oracolo nel mondo indipendente, 20 gare), host e ospite con lo stub `tests/_mp-stub.js` (orologio virtuale,
+latenza 25–110 ms, jitter 5–40 ms, perdite 0–20%: kart dell'ospite in media < 1,2 m dall'host, avversari < 0,35 m dalla
+posa dell'host di 60–420 ms prima, classifica identica), istantanee < 1 KB, link caduto, tempi (un minuto a due < 150 ms
+a regime) e la stessa gara col **modulo vero** (`src/net/mp.js`, loopback in tempo reale). Prova reale a due pagine:
+`node tools/rally-e2e.mjs [--port 5197] [--shots DIR] [--w 800 --h 400]` (abbinamento col suono col microfono finto come
+`tools/street-e2e.mjs`, scelta del kart, input dell'ospite, viste coerenti, pausa/ripresa, traguardo, vittoria o
+rivincita, uscita dell'ospite). QA: `el._rally.split(p2)`, `solo()`, `menu()`, `mp()`, `netCtl()`, `views()`, `auto2(on)`
+(autopilota attraverso l'input), `info()` (draw call e triangoli di tutte le viste), `forceSplit`, `lastDrop`.
 
 ## Salvataggio
 `snapshot` = stato JSON (< 4,5 KB) con `v: 3`: kart (con deriva `bet`, derapata `dr`, mini-spinta `mini`, nuvoletta `res`,

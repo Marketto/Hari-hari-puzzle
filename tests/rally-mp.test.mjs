@@ -289,3 +289,47 @@ test('tempi: un minuto a due umani < 150 ms (a regime), codifica e decodifica di
     assert.ok(per < 0.2 * SLOW, `istantanea ${per.toFixed(3)} ms`);
   }
 });
+
+test('col modulo vero (src/net/mp.js, loopback in tempo reale con latenza, jitter e perdite): l\'ospite segue l\'host', async () => {
+  // un altro "HH" con mp.js vero (lo stub resta nel primo): stessa logica del rally
+  const vm = await import('node:vm'), fs = await import('node:fs'), path = await import('node:path'), { root } = await import('./_load.mjs');
+  const ctxv = vm.createContext({ console, setTimeout, clearTimeout, setInterval, clearInterval, performance, Math, JSON, Date });
+  ctxv.globalThis = ctxv;
+  for (const f of ['src/core/rng.js', 'src/games/rally-logic.js', 'src/games/rally-net.js', 'src/net/mp.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctxv, { filename: f });
+  const H2 = ctxv.HH, R2 = H2.rally, N2 = H2.rallyNet;
+  assert.ok(H2.mp && !H2.mp.stub && typeof H2.mp.session === 'function');
+  const [hl, gl] = H2.mp.loopback({ latency: 45, jitter: 20, loss: 0.1, seed: 9 });
+  const msgs = [];
+  const Hc = N2.host(hl, {}), Gc = N2.guest(gl, { onMsg: (m) => msgs.push(m) });
+  Hc.start(); Gc.start();
+  const s = R2.newLevel(2, null, { humans: 2, p2: 'kitty', seed: 99 }), sg = R2.newLevel(2, null, { humans: 2, p2: 'kitty', seed: 99 });
+  s.ready = 0.2; sg.ready = 0.2;
+  Hc.race(s); Gc.race(sg);
+  Hc.send({ ry: 'start', level: 2, seed: 99, p2: 'kitty' });
+  const kit = botKit(H2), b0 = kit.makeBot(s, { seed: 1 }), b1 = kit.makeBot(sg, { seed: 2, id: 1 });
+  const errs = [], other = [], hist = [];
+  const t0 = performance.now();
+  await new Promise((done) => {
+    const iv = setInterval(() => {
+      const now = performance.now();
+      Hc.setInput(b0()); Gc.setInput(b1());
+      Hc.frame(now); Gc.frame(now);
+      hist.push({ t: now, c: s.cars.map((c) => [c.s, c.d]) });
+      if (s.t > 2 && sg.t > 2) {
+        errs.push(Math.hypot(sg.cars[1].s - s.cars[1].s, sg.cars[1].d - s.cars[1].d));
+        let best = Infinity;
+        for (let j = hist.length - 1; j >= Math.max(0, hist.length - 40); j--) best = Math.min(best, Math.max(...[0, 2, 3].map((i) => Math.hypot(hist[j].c[i][0] - sg.cars[i].s, hist[j].c[i][1] - sg.cars[i].d))));
+        other.push(best);
+      }
+      if (now - t0 > 7000 * SLOW) { clearInterval(iv); done(); }
+    }, 16);
+  });
+  Hc.close();
+  assert.ok(msgs.some((m) => m.ry === 'start'), 'evento affidabile arrivato');
+  assert.ok(errs.length > 100 && s.t > 4, `campioni ${errs.length}, tempo di gara ${s.t.toFixed(1)}`);
+  const mean = errs.reduce((a, b) => a + b, 0) / errs.length;
+  other.sort((a, b) => a - b);
+  assert.ok(mean < 1.5, `kart dell'ospite a ${mean.toFixed(2)} m in media`);
+  assert.ok(other[other.length >> 1] < 0.4, `avversari a ${other[other.length >> 1].toFixed(2)} m (mediana)`);
+  assert.ok(Hc.session.stats.maxBytes < 1100, `istantanea più grande sul filo ${Hc.session.stats.maxBytes} B`);
+});
