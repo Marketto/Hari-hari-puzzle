@@ -139,10 +139,9 @@
 .dr-play svg { width: 30px; height: 30px; margin-left: 4px; }
 
 /* schermo intero del riquadro: la città occupa tutto lo spazio rimasto */
-.plate:fullscreen .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
-.plate:-webkit-full-screen .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
-.plate:fullscreen .dr-wrap, .plate:-webkit-full-screen .dr-wrap { flex: 1; min-height: 0; width: min(100%, 760px); }
-.plate:fullscreen .dr-stage, .plate:-webkit-full-screen .dr-stage { flex: 1; aspect-ratio: auto; max-height: none; min-height: 240px; }
+.fs-on .plate .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.fs-on .plate .dr-wrap { flex: 1; min-height: 0; width: min(100%, 760px); }
+.fs-on .plate .dr-stage { flex: 1; aspect-ratio: auto; max-height: none; min-height: 240px; }
 
 /* tutorial */
 .dr-tut-drive { animation: dr-drive 2.6s ease-in-out infinite; }

@@ -105,3 +105,7 @@ Oracoli indipendenti: elenco delle coppie a tema riscritto nel test e un bot che
 - difficoltà monotona (≥ 4 gradini), ripresa da JSON identica, salvataggi rotti rifiutati
 - tutti i soggetti hanno un disegno diverso, solo token `--mm-*` definiti nel CSS, `--tint-memory` in entrambi i temi
 - generazione < 10 ms (× 3 in CI)
+
+## Schermo largo
+Quando lo schermo è più largo che alto e il tavolo ha più righe che colonne, righe e colonne si scambiano solo a
+video (`mm-tr`, griglia riempita per colonne): ogni carta resta la stessa, le frecce della tastiera seguono la vista.

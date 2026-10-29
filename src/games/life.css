@@ -74,6 +74,19 @@
 .lh-wrap { position: relative; display: flex; flex-direction: column; gap: 6px; width: 100%; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .lh-ic { width: 22px; height: 22px; flex: none; }
 
+/* schermo intero (contratto fill): il palco prende tutto lo spazio rimasto; col telefono girato i comandi stanno in
+ * una colonna a sinistra e la casa occupa il resto */
+.fs-on .plate.fs-fill .lh-wrap { height: 100%; }
+.fs-on .plate.fs-fill .lh-stage { flex: 1; min-height: 0; aspect-ratio: auto; max-height: none; }
+@media (orientation: landscape) {
+  .fs-on .plate.fs-fill .lh-wrap { display: grid; grid-template-columns: minmax(230px, 32%) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 10px; align-content: stretch; }
+  .fs-on .plate.fs-fill .lh-needs { grid-column: 1; grid-row: 1; }
+  .fs-on .plate.fs-fill .lh-row { grid-column: 1; grid-row: 2; flex-wrap: wrap; }
+  .fs-on .plate.fs-fill .lh-build { grid-column: 1; grid-row: 3; align-self: start; min-height: 0; overflow: auto; }
+  .fs-on .plate.fs-fill .lh-dock { grid-column: 1; grid-row: 4; }
+  .fs-on .plate.fs-fill .lh-stage { grid-column: 2; grid-row: 1 / -1; height: 100%; }
+}
+
 /* ---------- bisogni ---------- */
 .lh-needs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
 .lh-need { position: relative; display: grid; place-items: center; height: 40px; padding: 0; border: 0; border-radius: 12px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); cursor: pointer; }

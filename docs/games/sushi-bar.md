@@ -77,3 +77,6 @@ Scelto tra le proposte in `design/proposte-anime.html` (n. 2). Due strati come n
   e i clienti sono più pazienti (`max(26, 54 − 2,2·L)` s).
 - Ricette: 4 al livello 1 (onigiri, sake, maguro, ebi: tutte da 2 ingredienti), poi una nuova ogni 2 livelli.
 - Verificato dal bot dei test: vince i livelli 1–15 senza perdere clienti.
+
+## Schermo intero col telefono girato
+Locale e nastro a sinistra (sono un'unica scena), cucina e piatti serviti a destra (`sushi.css`).
