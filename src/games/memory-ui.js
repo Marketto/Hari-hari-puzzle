@@ -72,6 +72,7 @@
         ${tip ? `<p class="mm-tip">${tip}</p>` : ''}
       </div>`;
       grid = el.querySelector('.mm-grid');
+      orient();
       cards = [...grid.children];
       fillEl = el.querySelector('.mm-fill');
       countEl = el.querySelector('.mm-count');
@@ -180,11 +181,26 @@
       focusI = i; c.setAttribute('tabindex', 0);
       tap(i);
     };
+    /* schermo largo (telefono girato, schermo intero): tavolo "sdraiato", righe e colonne scambiate solo a video
+     * (la carta i resta la stessa: col flusso per colonne finisce in colonna r e riga c) */
+    let tr = false;
+    function orient() {
+      const w = el.querySelector('.mm-wrap');
+      if (!w || !grid) return;
+      tr = s.rows > s.cols && (G.innerWidth || 1) > (G.innerHeight || 1) * 1.15;
+      w.classList.toggle('mm-tr', tr);
+      w.style.setProperty('--cols', tr ? s.rows : s.cols);
+      w.style.setProperty('--rows', tr ? s.cols : s.rows);
+      grid.className = grid.className.replace(/\bc\d+\b/, `c${tr ? s.rows : s.cols}`);
+    }
+    const onResize = () => { if (!el.isConnected) { G.removeEventListener('resize', onResize); return; } if (s) orient(); };
+    G.addEventListener('resize', onResize);
     el.onkeydown = (e) => {
       const c = e.target.closest && e.target.closest('.mm-card');
       if (!c) return;
-      const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+      let mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
       if (!mv) return;
+      if (tr) mv = [mv[1], mv[0]];
       e.preventDefault();
       const i = +c.dataset.i, r = Math.max(0, Math.min(s.rows - 1, ((i / s.cols) | 0) + mv[0])), cc = Math.max(0, Math.min(s.cols - 1, (i % s.cols) + mv[1]));
       focusCard(r * s.cols + cc);

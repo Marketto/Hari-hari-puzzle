@@ -475,7 +475,10 @@
       W = stage.clientWidth || 300; H = stage.clientHeight || 450;
       dpr = Math.min(2, G.devicePixelRatio || 1);
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      yH = H * 0.3; yB = H * 0.885; RW = W * 0.47;
+      // vista "virtuale" 2:3 appoggiata in basso: in un palco più alto (schermo intero in verticale) cresce il cielo,
+      // in uno più largo (orizzontale) crescono i prati ai lati. Strada, sagome e gioco restano identici.
+      const Wv = Math.min(W, H * 2 / 3), Hv = Wv * 1.5;
+      yB = H - Hv * 0.115; yH = yB - Hv * 0.585; RW = Wv * 0.47;
       bg = null;
     }
 
@@ -888,7 +891,7 @@
     }
 
     function drawHari(t) {
-      const x = SX(s.px, 1), y = yB, w = W * 0.24;
+      const x = SX(s.px, 1), y = yB, w = RW * 0.51;
       shadow(x, y, w * 0.32);
       const running = !paused && s.ready <= 0 && !s.wait && !P.isOver(s) && !reduce();
       const fr = running ? Math.floor(t * 8) % 2 : 0;
@@ -1331,7 +1334,7 @@
     };
     el.onpointermove = (e) => {
       if (!drag || e.pointerId !== drag.id) return;
-      const dx = (e.clientX - drag.x0) / Math.max(1, W);
+      const dx = (e.clientX - drag.x0) / Math.max(1, RW / 0.47);   // in larghezze della vista 2:3: stessa risposta anche in orizzontale
       drag.tx = Math.max(-P.X_MAX, Math.min(P.X_MAX, drag.p0 + dx * 2.4));
       // oltre il bordo: si riparte da lì, così tornare indietro risponde subito
       if (drag.tx === P.X_MAX || drag.tx === -P.X_MAX) { drag.p0 = drag.tx; drag.x0 = e.clientX; }
@@ -1429,6 +1432,7 @@
     id: 'snack', name: 'Hari Snack Rush', rules: 'r11',
     rulesEn: 'Drag left and right: Hari tosses seeds and fruit to the hungry animals, who hop home happy once full. Pick the best gates for more snacks, dodge the big eater’s bubbles and fill its tummy!',
     art, create, lives: 3,
+    fill: true,                 // a schermo intero il palco riempie tutto il riquadro (vista 2:3 virtuale, vedi measure)
     tutorial: TUT,
     rate: (s) => HH.snack.rate(s),
     // durata del copione più il tempo medio per riempire l'animalone (circa 15–40 s)

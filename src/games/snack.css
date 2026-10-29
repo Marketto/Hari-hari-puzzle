@@ -144,6 +144,11 @@
 .sr-pbtn svg { width: 18px; height: 18px; }
 .sr-pbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
 
+/* schermo intero (contratto fill): barra in alto, il palco prende tutto lo spazio rimasto */
+.fs-on .plate.fs-fill .sr-wrap { height: 100%; }
+.fs-on .plate.fs-fill .sr-bar { flex: none; }
+.fs-on .plate.fs-fill .sr-stage { flex: 1; min-height: 0; aspect-ratio: auto; max-height: none; }
+
 /* ---------- palco: canvas del sentiero ---------- */
 .sr-stage {
   position: relative; width: 100%; aspect-ratio: 2 / 3; max-height: max(300px, min(74svh, 640px, calc(100svh - 345px))); border-radius: 22px; overflow: hidden; touch-action: none; cursor: grab;

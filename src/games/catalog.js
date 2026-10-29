@@ -41,7 +41,7 @@
       files: f('hedgedoku.css', 'sudoku.css', 'hog-kit.js', 'sudoku-logic.js', 'sudoku-ui.js') },
     { id: 'escape', name: 'Hari Escape', since: '0.19.0', rules: 'r18',
       rulesEn: 'Hari is locked in a cute house, castle, ship or lab: help him escape! Look around, find hidden objects, combine them and solve the puzzles with the clues in the rooms to open every door. The light bulb gives a hint, but costs strawberries.',
-      files: f('escape.css', 'escape-logic.js', 'escape-art.js', 'escape-ui.js') },
+      files: f('escape.css', 'escape-logic.js', 'escape-art.js', 'dom-patch.js', 'escape-ui.js') },
     { id: 'life', name: 'Hari Home', since: '0.12.0', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },

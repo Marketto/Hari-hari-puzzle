@@ -271,45 +271,45 @@
 .ry-loading { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; color: var(--ink-2); font-weight: 800; pointer-events: none; }
 
 /* schermo intero del riquadro: la strada occupa tutto, la barra del logo galleggia sopra */
-.plate:fullscreen:has(.ry-wrap), .plate:-webkit-full-screen:has(.ry-wrap) { padding: 0; gap: 0; }
-.plate:fullscreen:has(.ry-wrap) .fs-bar, .plate:-webkit-full-screen:has(.ry-wrap) .fs-bar {
+.fs-on .plate:has(.ry-wrap) { padding: 0; gap: 0; }
+.fs-on .plate:has(.ry-wrap) .fs-bar {
   position: absolute; z-index: 20; left: max(6px, env(safe-area-inset-left, 0px)); right: max(6px, env(safe-area-inset-right, 0px)); bottom: max(6px, env(safe-area-inset-bottom, 0px));
   height: 40px; pointer-events: none;
 }
-.plate:fullscreen:has(.ry-wrap) .fs-bar > *, .plate:-webkit-full-screen:has(.ry-wrap) .fs-bar > * { pointer-events: auto; height: 40px; }
-.plate:fullscreen:has(.ry-wrap) .fs-logo b, .plate:fullscreen:has(.ry-wrap) .fs-logo .fs-lv { display: none; }
-.plate:fullscreen:has(.ry-wrap) .fs-logo > svg:first-child { width: 30px; height: 30px; }
-.plate:fullscreen:has(.ry-wrap) .fs-exit { width: 40px; }
-.plate:fullscreen:has(.ry-wrap) .fs-menu:not([hidden]) { top: auto; bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 48px); transform-origin: bottom left; }
-.plate:fullscreen:has(.ry-wrap) .fs-hud, .plate:-webkit-full-screen:has(.ry-wrap) .fs-hud { display: none; }
-.plate:fullscreen .board:has(> .ry-wrap), .plate:-webkit-full-screen .board:has(> .ry-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
-.plate:fullscreen .ry-wrap, .plate:-webkit-full-screen .ry-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; }
-.plate:fullscreen .ry-stage, .plate:-webkit-full-screen .ry-stage { width: 100%; height: 100%; aspect-ratio: auto; max-height: none; border-radius: 0; box-shadow: none; }
-.plate:fullscreen .ry-stage::after { display: none; }
-.plate:fullscreen .ry-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
+.fs-on .plate:has(.ry-wrap) .fs-bar > * { pointer-events: auto; height: 40px; }
+.fs-on .plate:has(.ry-wrap) .fs-logo b, .fs-on .plate:has(.ry-wrap) .fs-logo .fs-lv { display: none; }
+.fs-on .plate:has(.ry-wrap) .fs-logo > svg:first-child { width: 30px; height: 30px; }
+.fs-on .plate:has(.ry-wrap) .fs-exit { width: 40px; }
+.fs-on .plate:has(.ry-wrap) .fs-menu:not([hidden]) { top: auto; bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 48px); transform-origin: bottom left; }
+.fs-on .plate:has(.ry-wrap) .fs-hud { display: none; }
+.fs-on .plate .board:has(> .ry-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
+.fs-on .plate .ry-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; }
+.fs-on .plate .ry-stage { width: 100%; height: 100%; aspect-ratio: auto; max-height: none; border-radius: 0; box-shadow: none; }
+.fs-on .plate .ry-stage::after { display: none; }
+.fs-on .plate .ry-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
 /* orizzontale basso: cruscotto più piccolo */
 @media (max-height: 520px) {
-  .plate:fullscreen .ry-dash { height: 34%; }
-  .plate:fullscreen .ry-note { width: 66px; }
-  .plate:fullscreen .ry-note > svg { width: 46px; height: 36px; }
-  .plate:fullscreen .ry-rank i { width: 20px; height: 20px; }
-  .plate:fullscreen .ry-item { width: 60px; height: 60px; bottom: 56px; right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
-  .plate:fullscreen .ry-wrap.touch .ry-item { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 172px); }
-  .plate:fullscreen .ry-item svg { width: 42px; height: 42px; }
-  .plate:fullscreen .ry-ped.gas { height: 100px; }
-  .plate:fullscreen .ry-spd { bottom: 56px; left: calc(max(10px, env(safe-area-inset-left, 0px)) + 164px); }
-  .plate:fullscreen .ry-wrap.tilt .ry-spd { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 92px); }
-  .plate:fullscreen .ry-wrap.chase .ry-prog { top: 78px; }
+  .fs-on .plate .ry-dash { height: 34%; }
+  .fs-on .plate .ry-note { width: 66px; }
+  .fs-on .plate .ry-note > svg { width: 46px; height: 36px; }
+  .fs-on .plate .ry-rank i { width: 20px; height: 20px; }
+  .fs-on .plate .ry-item { width: 60px; height: 60px; bottom: 56px; right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
+  .fs-on .plate .ry-wrap.touch .ry-item { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 172px); }
+  .fs-on .plate .ry-item svg { width: 42px; height: 42px; }
+  .fs-on .plate .ry-ped.gas { height: 100px; }
+  .fs-on .plate .ry-spd { bottom: 56px; left: calc(max(10px, env(safe-area-inset-left, 0px)) + 164px); }
+  .fs-on .plate .ry-wrap.tilt .ry-spd { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 92px); }
+  .fs-on .plate .ry-wrap.chase .ry-prog { top: 78px; }
 }
 /* a schermo intero l'uscita galleggia in basso agli angoli: pedali e frecce un po' più in alto e più grandi */
-.plate:fullscreen .ry-ped.gas { bottom: 56px; width: 78px; height: 112px; }
-.plate:fullscreen .ry-ped.gas svg { width: 52px; height: 70px; }
-.plate:fullscreen .ry-ped.brake { bottom: 56px; width: 76px; height: 70px; }
-.plate:fullscreen .ry-wrap.touch .ry-ped.brake { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
-.plate:fullscreen .ry-arr { bottom: 58px; width: 72px; height: 72px; }
-.plate:fullscreen .ry-arr.r { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 82px); }
-.plate:fullscreen .ry-item { bottom: 178px; }
-.plate:fullscreen .ry-spd { bottom: 138px; }
+.fs-on .plate .ry-ped.gas { bottom: 56px; width: 78px; height: 112px; }
+.fs-on .plate .ry-ped.gas svg { width: 52px; height: 70px; }
+.fs-on .plate .ry-ped.brake { bottom: 56px; width: 76px; height: 70px; }
+.fs-on .plate .ry-wrap.touch .ry-ped.brake { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 88px); }
+.fs-on .plate .ry-arr { bottom: 58px; width: 72px; height: 72px; }
+.fs-on .plate .ry-arr.r { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 82px); }
+.fs-on .plate .ry-item { bottom: 178px; }
+.fs-on .plate .ry-spd { bottom: 138px; }
 
 /* tutorial e card */
 .ry-tut-wheel { animation: ry-steer 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }

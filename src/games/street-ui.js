@@ -34,7 +34,8 @@
     'puff', 'zzz', 'tummy', 'tummy-bg', 'danger', 'wave', 'mark', 'p1', 'p2', 'melon', 'melon-2', 'straw', 'leaf', 'cookie', 'sakura', 'kiki', 'quill'];
   const reduce = () => !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const coarse = () => !!(G.matchMedia && G.matchMedia('(pointer: coarse)').matches);
-  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  // schermo intero dell'app (v0.20.1): è del documento, con la classe fs-on su <html>
+  const isFs = () => !!(G.document && document.documentElement.classList.contains('fs-on'));
   const sget = (k, d) => (HH.store ? HH.store.get(k, d) : d);
   const sset = (k, v) => { if (HH.store) HH.store.set(k, v); };
   // tastiera: [giocatore, comando] — comandi: mx/my = direzioni, 0 porgi, 1 lancia, 2 salta, 3 speciale
@@ -62,7 +63,7 @@
     const P = HH.street;
     let s = null, v = null, raf = 0, last = 0, paused = false, over = 0, party = 0, timers = [];
     let wrap, stage, cv, g, msgEl, pauseEl, modesEl, newEl, statusEl, padEl, pauseBtn;
-    let W = 320, H = 200, dpr = 1, k = 32, gy0 = 180, gyF = 110, worldH = 200, overlay = false, tall = false, visW = 10, rcam = 0;
+    let W = 320, H = 200, dpr = 1, k = 32, gy0 = 180, gyF = 110, worldH = 200, overlay = false, overlayFs = false, tall = false, visW = 10, rcam = 0;
     let C = {}, IMG = {}, sky = null, themeKey = '', themeAt = 0, touchSeen = coarse();
     let mode = sget('street:mode', 'solo');
     let net = null;                       // { link, sess, role }
@@ -166,7 +167,8 @@
     }
     function measure() {
       if (!stage) return;
-      const full = !!(fsEl() && fsEl().contains(wrap));
+      const full = isFs();
+      overlayFs = full;
       const land = (G.innerWidth || 1) > (G.innerHeight || 1);
       overlay = full || (land && touchSeen && (G.innerHeight || 999) < 560);
       wrap.classList.toggle('st-ov', overlay);
@@ -757,6 +759,7 @@
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
       last = now;
       if (now - themeAt > 1000) { themeAt = now; theme(false); }
+      if (isFs() !== overlayFs) measure();          // schermo intero acceso/spento dall'app (classe fs-on)
       if (shake > 0) shake = Math.max(0, shake - dt * 2.5);
       if (net) {
         net.sess.setInput(inputOf(net.role === 'guest' ? 1 : 0));
@@ -805,7 +808,6 @@
     function onVis() { if (!el.isConnected) { detach(); return; } if (document.hidden && !net) pause(); }
     function onResize() { measure(); draw(performance.now()); }
     function onFull() {
-      try { const so = G.screen && G.screen.orientation; if (fsEl() && fsEl().contains(wrap) && so && so.lock) so.lock('landscape').catch(() => {}); } catch (e) { /* non supportato */ }
       later(() => { measure(); draw(performance.now()); }, 120);
     }
     function onBlur() { pads.forEach((pd) => { pd.keys = {}; }); }
@@ -890,6 +892,7 @@
   HH.games.push({
     id: 'street', name: 'Hari Snack Street', rules: 'r20', rulesEn: RULES_EN,
     art: A.card, create, lives: 3,
+    fill: true,                 // a schermo intero la strada riempie tutto il riquadro (vedi measure: vista più stretta in verticale)
     tutorial: TUT,
     rate: (s) => HH.street.rate(s),
     parTime: (s) => HH.street.parTime(s),

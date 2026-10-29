@@ -671,30 +671,56 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 
 /* schermo intero */
 .icon-btn.full svg { width: 20px; height: 20px; }
-/* schermo intero del solo riquadro di gioco: barra con logo + titolo (menu) e uscita, indicatori compatti, gioco al centro */
+/* schermo intero, riquadro di gioco: barra con logo + titolo (menu) e uscita, indicatori compatti, gioco al centro */
 .fs-bar, .fs-hud, .fs-menu { display: none; }
-.plate:fullscreen, .plate:-webkit-full-screen {
-  display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100vw; height: 100dvh; max-width: none; margin: 0; border-radius: 0; overflow: auto;
+/* lo schermo intero è del documento (<html>): resta attivo tra un gioco e l'altro e le finestre (vittoria, tutorial…) restano
+ * visibili sopra; il riquadro di gioco copre la pagina con position: fixed */
+.fs-on:has(#game:not([hidden])) { overflow: hidden; }
+.fs-on:has(#game:not([hidden])) .say { display: none; }
+.fs-on .plate {
+  /* geometria con !important come il foglio del browser per :fullscreen: nessuna regola di un gioco la deve battere */
+  position: fixed !important; inset: 0 !important; z-index: 40; box-sizing: border-box !important;
+  width: 100% !important; height: 100% !important; min-width: 0 !important; max-width: none !important; min-height: 0 !important; max-height: none !important;
+  margin: 0 !important; transform: none !important;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; border-radius: 0; overflow: auto;
   padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: radial-gradient(var(--dots) 1.6px, transparent 2.2px) 0 0 / 28px 28px, linear-gradient(180deg, var(--sky-top) 0%, var(--bg) 70%);
 }
-.plate.night:fullscreen { background: radial-gradient(var(--plate-night-dot) 1px, transparent 1.6px) 0 0 / 22px 22px, linear-gradient(180deg, var(--plate-night-1), var(--plate-night-2)); }
-.plate:fullscreen::before, .plate:-webkit-full-screen::before { display: none; }
-.plate:fullscreen::backdrop { background: var(--bg); }
-.plate:fullscreen .board { flex: 1; min-height: 0; align-content: center; overflow: hidden; }
+.fs-on .plate.night { background: radial-gradient(var(--plate-night-dot) 1px, transparent 1.6px) 0 0 / 22px 22px, linear-gradient(180deg, var(--plate-night-1), var(--plate-night-2)); }
+.fs-on .plate::before { display: none; }
+.fs-on .plate .board { flex: 1; min-height: 0; align-content: center; overflow: hidden; }
 /* adattamento automatico: app.js sceglie la larghezza (--game-w) più grande che entra anche in altezza, senza tetto (--game-max) */
 .plate.fs-fit { --game-max: 9999px; }
+/* contratto fill: il contenitore del gioco occupa tutto lo spazio sotto la barra (la scena si adatta alla misura reale) */
+.fs-on .plate.fs-fill .board { display: flex; flex-direction: column; align-items: stretch; }
+.fs-on .plate.fs-fill .board > :first-child { flex: 1; min-height: 0; width: 100%; max-width: none; }
+/* disposizione a lato (riquadro largo): pezzo principale al centro alto quanto il riquadro, gli altri nelle colonne ai lati */
+.fs-on .plate .fs-side-c {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  grid-template-rows: 1fr repeat(var(--fs-rows, 1), auto) 1fr !important; grid-auto-flow: row;
+  align-items: center; column-gap: 14px; row-gap: 10px; width: 100% !important; max-width: none !important; height: 100%; margin: 0;
+}
+.fs-on .plate .fs-side-c > .fs-main { grid-column: 2; grid-row: 1 / -1; align-self: center; justify-self: center; width: var(--game-w); max-width: none; margin: 0; }
+.fs-on .plate .fs-side-c > .fs-a { grid-column: 1; justify-self: end; max-width: 100%; margin: 0; }
+.fs-on .plate .fs-side-c > .fs-b { grid-column: 3; justify-self: start; max-width: 100%; margin: 0; }
+/* pila "spread" (riquadro alto): niente fasce vuote tra la barra e il gioco */
+.fs-on .plate .board.fs-spread, .fs-on .plate .board:has(> .fs-spread), .fs-on .plate .board:has(> .fs-side-c) { display: flex; flex-direction: column; align-items: center; }
+.fs-on .plate .board > .fs-spread, .fs-on .plate .board > .fs-side-c { flex: 1; min-height: 0; }
+.fs-on .plate .fs-spread { display: flex !important; flex-direction: column !important; height: 100%; justify-content: flex-start; }
+/* i pezzi prima del principale restano in alto; il principale con quelli dopo forma un gruppo centrato nello spazio rimasto */
+.fs-on .plate .fs-spread > .fs-main { margin-top: auto; }
+.fs-on .plate .fs-spread::after { content: ""; flex: none; margin-top: auto; }
 .plate.fs-scroll .board { overflow-y: auto; align-content: start; overscroll-behavior: contain; }
 /* schermo basso (telefono girato): indicatori nella stessa riga della barra, più spazio al gioco */
 @media (max-height: 520px) {
-  .plate:fullscreen .fs-bar { height: 38px; }
-  .plate:fullscreen .fs-logo { height: 38px; }
-  .plate:fullscreen .fs-logo > svg:first-child { width: 30px; height: 30px; }
-  .plate:fullscreen .fs-exit { width: 38px; height: 38px; }
-  .plate:fullscreen .fs-hud { position: absolute; top: max(14px, calc(env(safe-area-inset-top, 0px) + 6px)); left: 50%; transform: translateX(-50%); z-index: 5; max-width: calc(100% - 420px); }
+  .fs-on .plate .fs-bar { height: 38px; }
+  .fs-on .plate .fs-logo { height: 38px; }
+  .fs-on .plate .fs-logo > svg:first-child { width: 30px; height: 30px; }
+  .fs-on .plate .fs-exit { width: 38px; height: 38px; }
+  .fs-on .plate .fs-hud { position: absolute; top: max(14px, calc(env(safe-area-inset-top, 0px) + 6px)); left: 50%; transform: translateX(-50%); z-index: 5; max-width: calc(100% - 420px); }
 }
 .plate.fs-fit .lh-wrap { width: var(--game-w); margin-inline: auto; }
-.plate:fullscreen .fs-bar, .plate:-webkit-full-screen .fs-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; height: 44px; }
+.fs-on .plate .fs-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; height: 44px; }
 .fs-logo {
   display: inline-flex; align-items: center; gap: 7px; height: 44px; min-width: 0; padding: 0 12px 0 4px; border: 0; border-radius: 22px; cursor: pointer;
   color: var(--ink); background: var(--card-solid); box-shadow: 0 0 0 2px var(--line), 0 3px 0 var(--line);
@@ -704,10 +730,10 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .fs-logo .fs-lv { flex: none; padding: 3px 8px; border-radius: 999px; font-weight: 800; font-size: 12px; color: var(--accent-ink); background: var(--accent); }
 .fs-logo .chev { width: 18px; height: 18px; flex: none; color: var(--ink-2); transition: transform .2s; }
 .fs-logo[aria-expanded="true"] .chev { transform: rotate(180deg); }
-.plate:fullscreen .fs-exit { flex: none; width: 44px; height: 44px; }
-.plate:fullscreen .fs-exit svg { width: 20px; height: 20px; }
+.fs-on .plate .fs-exit { flex: none; width: 44px; height: 44px; }
+.fs-on .plate .fs-exit svg { width: 20px; height: 20px; }
 /* indicatori compatti */
-.plate:fullscreen .fs-hud, .plate:-webkit-full-screen .fs-hud { display: block; flex: none; }
+.fs-on .plate .fs-hud { display: block; flex: none; }
 .fs-hud .hud { flex-wrap: nowrap; justify-content: center; gap: 5px; padding: 0; overflow-x: auto; scrollbar-width: none; }
 .fs-hud .hud::-webkit-scrollbar { display: none; }
 .fs-hud .hud .chip { height: 26px; padding: 0 8px; gap: 4px; font-size: 12.5px; box-shadow: none; flex: none; }
@@ -715,7 +741,7 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 .fs-hud .hud .stars .st { width: 14px; height: 14px; }
 .fs-hud .hud .lives svg { width: 14px; height: 14px; }
 /* menu del logo */
-.plate:fullscreen .fs-menu:not([hidden]) {
+.fs-on .plate .fs-menu:not([hidden]) {
   display: flex; flex-direction: column; position: absolute; z-index: 60; top: calc(max(8px, env(safe-area-inset-top, 0px)) + 50px); inset-inline-start: max(8px, env(safe-area-inset-left, 0px));
   min-width: 220px; padding: 6px; border-radius: 20px; background: var(--card-solid); box-shadow: var(--shadow), 0 0 0 2px var(--line);
   animation: pop-x .22s cubic-bezier(.3, 1.6, .5, 1); transform-origin: top left;

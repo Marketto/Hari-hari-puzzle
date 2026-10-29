@@ -323,19 +323,38 @@
     }));
   }
 
-  /* ---------- schermo intero (dove il browser lo permette; su iPhone il pulsante non compare) ---------- */
+  /* ---------- schermo intero (dove il browser lo permette; su iPhone il pulsante non compare) ----------
+   * A schermo intero va tutto il documento (<html>), non il solo riquadro di gioco: così sopravvive al cambio di gioco
+   * (il riquadro viene ricreato a ogni apertura) e le finestre di vittoria, sconfitta, tutorial e i dialoghi, che stanno
+   * nel <body>, restano visibili. Il riquadro di gioco si "ingrandisce" via CSS con la classe html.fs-on.
+   * Si resta a schermo intero finché il giocatore non esce (pulsante, menu del logo, Esc/indietro del sistema). */
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   const isFull = () => !!fsEl();
-  // a schermo intero va SOLO il riquadro di gioco; dentro c'è il pulsante per tornare alla vista classica
-  function exitFull() { if (isFull()) toggleFull(); }
-  function toggleFull() {
-    const d = document.querySelector('#gPlate') || document.documentElement;
-    try {
-      if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-      else { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
-    } catch (e) { /* non supportato */ }
+  // preferenza di sessione: true finché il giocatore non esce. Se il browser lo toglie mentre l'app è in background
+  // (cambio app su Android) la preferenza resta e al primo tocco successivo su un gioco si rientra.
+  const FS_KEY = 'hh-fs';
+  const sess = { get() { try { return G.sessionStorage.getItem(FS_KEY) === '1'; } catch (e) { return false; } }, set(v) { try { if (v) G.sessionStorage.setItem(FS_KEY, '1'); else G.sessionStorage.removeItem(FS_KEY); } catch (e) { /* niente storage */ } } };
+  function enterFull() {
+    const d = document.documentElement;
+    sess.set(true);
+    if (isFull()) return;
+    try { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (e) { /* non supportato */ }
   }
+  function exitFull() {
+    sess.set(false);
+    if (!isFull()) return;
+    try { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } catch (e) { /* non supportato */ }
+  }
+  function toggleFull() { if (isFull()) exitFull(); else enterFull(); }
+  // rientra se il giocatore lo voleva (va chiamata dentro un gesto: tocco su una card o su "Avanti")
+  function resumeFull() {
+    if (!canFull() || isFull() || !sess.get()) return;
+    const ua = G.navigator.userActivation;
+    if (ua && !ua.isActive) return;   // senza un tocco il browser rifiuterebbe: si riprova al prossimo
+    enterFull();
+  }
+  function fsClass() { document.documentElement.classList.toggle('fs-on', isFull()); }
   // a schermo intero la barra degli indicatori entra nel riquadro (compatta), all'uscita torna al suo posto
   function placeHud() {
     const hud = document.querySelector('#game .hud'), slot = $('#gFsHud'), plate = $('#gPlate');
@@ -366,49 +385,182 @@
     btn.setAttribute('aria-expanded', String(open));
   }
   /* schermo intero: il gioco si adatta allo spazio (larghezza E altezza). Si cerca la --game-w più grande per cui il
-   * contenuto entra nel riquadro: niente scorrimento in orizzontale (telefono girato) e giochi grandi sui tablet. */
+   * contenuto entra nel riquadro: niente scorrimento in orizzontale (telefono girato) e giochi grandi sui tablet.
+   * Tre modi (vedi docs/architecture.md, "Schermo intero"):
+   *  - fill: il gioco dichiara fill: true, il suo contenitore riempie tutto e la scena si adatta alla misura reale;
+   *  - side: riquadro largo (orizzontale) e gioco "a pila" (barra, griglia, piede): il pezzo più grande va al centro e
+   *          gli altri ai lati (quelli prima a sinistra, quelli dopo a destra), così la griglia usa tutta l'altezza;
+   *  - stack: la pila normale, centrata, alla larghezza più grande che entra. */
+  const SIDE = ['fs-side-c', 'fs-spread', 'fs-main', 'fs-a', 'fs-b'];
+  let sideOn = '';                       // '' · 'side' · 'spread'
+  function sideParts(bd) {
+    const flow = (e) => { const cs = getComputedStyle(e); return cs.display !== 'none' && cs.position !== 'absolute' && cs.position !== 'fixed'; };
+    let host = bd, kids = [...bd.children].filter(flow);
+    if (kids.length === 1) {
+      host = kids[0];
+      const cs = getComputedStyle(host);
+      // solo le pile verticali: chi ha già un suo layout (griglia, riga) se lo tiene
+      if (!(cs.display === 'flex' && cs.flexDirection === 'column') && !host.classList.contains('fs-side-c') && !host.classList.contains('fs-spread')) return null;
+      kids = [...host.children].filter(flow);
+    }
+    if (kids.length < 2) return null;
+    let main = kids[0], best = -1;
+    for (const k of kids) { const r = k.getBoundingClientRect(), a = r.width * r.height; if (a > best) { best = a; main = k; } }
+    return { host, kids, main };
+  }
+  function clearSide(bd) {
+    sideOn = '';
+    if (sideMO) sideMO.disconnect();
+    bd.querySelectorAll('.fs-side-c, .fs-spread, .fs-main, .fs-a, .fs-b').forEach((e) => { e.classList.remove(...SIDE); e.style.removeProperty('grid-row'); e.style.removeProperty('--fs-rows'); });
+    bd.classList.remove('fs-side-c', 'fs-spread'); bd.style.removeProperty('--fs-rows');
+  }
+  // side: colonne ai lati · spread: pila alta quanto il riquadro, i pezzi prima in alto (attaccati alla barra), quelli
+  // dopo in basso, il principale centrato nello spazio in mezzo
+  function tagSide(parts, mode = 'side') {
+    const { host, kids, main } = parts, m = kids.indexOf(main);
+    host.classList.remove('fs-side-c', 'fs-spread');
+    host.classList.add(mode === 'side' ? 'fs-side-c' : 'fs-spread');
+    host.style.setProperty('--fs-rows', Math.max(m, kids.length - 1 - m, 1));
+    kids.forEach((k, i) => {
+      k.classList.remove(...SIDE);
+      k.style.removeProperty('grid-row');
+      if (k === main) { k.classList.add('fs-main'); return; }
+      k.classList.add(i < m ? 'fs-a' : 'fs-b');
+      if (mode === 'side') k.style.gridRow = String(2 + (i < m ? i : i - m - 1));
+    });
+    sideOn = mode;
+    if (sideMO) { sideMO.disconnect(); sideMO.observe($('#board'), { childList: true }); if (host.id !== 'board') sideMO.observe(host, { childList: true }); }
+  }
+  // area "disegnata" di un pezzo: la somma dei suoi figli (pulsanti, icone), o il pezzo stesso se non ne ha
+  function inkArea(k) {
+    const kids = [...k.children];
+    if (!kids.length) { const r = k.getBoundingClientRect(); return r.width * r.height; }
+    return kids.reduce((a, c) => { const r = c.getBoundingClientRect(); return a + r.width * r.height; }, 0);
+  }
   function fitFs() {
     const pl = $('#gPlate'), bd = $('#board');
     if (!pl || !bd) return;
-    if (!isFull()) { pl.classList.remove('fs-fit', 'fs-scroll'); pl.style.removeProperty('--game-w'); return; }
+    clearSide(bd);
+    if (!isFull()) { pl.classList.remove('fs-fit', 'fs-scroll', 'fs-fill'); pl.style.removeProperty('--game-w'); pl.style.removeProperty('--fs-h'); return; }
     if (bd.querySelector(':scope > .dr-wrap')) return;               // Hari Taxi riempie già lo schermo da solo
     pl.classList.add('fs-fit');
-    const box = bd.getBoundingClientRect();
-    const fits = (w) => {
-      pl.style.setProperty('--game-w', `${Math.floor(w)}px`);
-      let top = Infinity, bottom = -Infinity, right = -Infinity, left = Infinity;
-      for (const c of bd.children) { const r = c.getBoundingClientRect(); if (!r.height) continue; top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); left = Math.min(left, r.left); right = Math.max(right, r.right); }
-      return bottom - top <= box.height + 1 && right - left <= box.width + 1;
-    };
     pl.classList.remove('fs-scroll');
-    // tetto: non oltre ~1,15 volte l'altezza (sui tablet i giochi non si "stirano"), mai sotto i 460 px se c'è spazio
-    const MIN = 260, hi0 = Math.max(MIN, Math.min(box.width, Math.max(460, box.height * 1.15)));
-    let lo = MIN, hi = hi0;
-    if (fits(hi)) return done();
-    if (!fits(lo)) {
-      // anche al minimo non entra (telefono girato con un gioco "alto"): larghezza comoda e si scorre in verticale
-      pl.classList.add('fs-scroll');
-      pl.style.setProperty('--game-w', `${Math.floor(Math.min(box.width, 340))}px`);
+    const box = bd.getBoundingClientRect();
+    pl.style.setProperty('--fs-h', `${Math.floor(box.height)}px`);
+    // contratto "fill": il contenitore del gioco riempie TUTTO il riquadro e la scena si adatta (ResizeObserver o resize)
+    if (S.game && S.game.fill) {
+      pl.classList.add('fs-fill');
+      pl.style.setProperty('--game-w', `${Math.floor(box.width)}px`);
       return done();
     }
-    for (let i = 0; i < 10; i++) { const m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
-    fits(lo);
+    pl.classList.remove('fs-fill');
+    const setW = (w) => pl.style.setProperty('--game-w', `${Math.floor(w)}px`);
+    const inBox = (r) => r.top >= box.top - 1 && r.bottom <= box.bottom + 1 && r.left >= box.left - 1 && r.right <= box.right + 1;
+    const fits = (w) => {
+      setW(w);
+      let top = Infinity, bottom = -Infinity, right = -Infinity, left = Infinity;
+      // figli e nipoti: un contenitore può essere più piccolo di quello che contiene
+      for (const c of bd.children) {
+        for (const e of [c, ...c.children]) {
+          if (e !== c) { const cs = getComputedStyle(e); if (cs.position === 'absolute' || cs.position === 'fixed') continue; }
+          const r = e.getBoundingClientRect(); if (!r.height) continue;
+          top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); left = Math.min(left, r.left); right = Math.max(right, r.right);
+        }
+      }
+      return bottom - top <= box.height + 1 && right - left <= box.width + 1;
+    };
+    // a lato: tutto dentro il riquadro, i pezzi laterali non invadono la colonna centrale
+    const fitsSide = (w, parts) => {
+      setW(w);
+      const mr = parts.main.getBoundingClientRect();
+      if (!inBox(mr)) return false;
+      return parts.kids.every((k) => {
+        if (k === parts.main) return true;
+        const r = k.getBoundingClientRect();
+        if (!r.height) return true;
+        if (!inBox(r)) return false;
+        // un pezzo laterale non si rimpicciolisce (un nastro, una scena che scala con la larghezza): se in colonna il suo
+        // contenuto occupa molta meno area che in pila è stato schiacciato, meglio la pila (testo e pulsanti si ridispongono)
+        if (inkArea(k) < (parts.a0.get(k) || 0) * 0.4) return false;
+        const left = k.classList.contains('fs-a');
+        // anche i figli (un pulsante che sborda dal suo contenitore conta)
+        return [r, ...[...k.children].map((c) => c.getBoundingClientRect()).filter((q) => q.width && q.height)]
+          .every((q) => inBox(q) && (left ? q.right <= mr.left + 1 : q.left >= mr.right - 1));
+      });
+    };
+    const search = (ok, lo, hi) => { for (let i = 0; i < 11; i++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; } return lo; };
+    // tetto: tutta la larghezza (l'altezza la limita fits); minimo basso (180) perché col telefono girato i giochi a
+    // griglia entrino interi invece di scorrere
+    const MIN = 180, hi0 = Math.max(MIN, box.width);
+    let wStack = 0;
+    if (fits(hi0)) wStack = hi0;
+    else if (fits(MIN)) wStack = search(fits, MIN, hi0);
+    // riquadro largo: si prova anche la disposizione a lato e si tiene quella col pezzo principale più grande
+    const parts = box.width > box.height * 1.25 ? sideParts(bd) : null;
+    if (parts) {
+      const area = () => { const r = parts.main.getBoundingClientRect(); return r.width * r.height; };
+      let aStack = 0;
+      fits(wStack || MIN);
+      if (wStack) aStack = area();
+      parts.a0 = new Map(parts.kids.map((k) => [k, inkArea(k)]));
+      tagSide(parts);
+      const hiS = box.width;
+      let wSide = 0;
+      if (fitsSide(hiS, parts)) wSide = hiS;
+      else if (fitsSide(MIN, parts)) wSide = search((w) => fitsSide(w, parts), MIN, hiS);
+      if (wSide) { fitsSide(wSide, parts); if (area() > aStack * 1.08) return done(); }
+      clearSide(bd);
+    }
+    if (wStack) {
+      fits(wStack);
+      const sp = sideParts(bd);
+      if (sp) tagSide(sp, 'spread');
+      return done();
+    }
+    // anche al minimo non entra (telefono girato con un gioco "alto"): larghezza comoda e si scorre in verticale
+    pl.classList.add('fs-scroll');
+    setW(Math.min(box.width, 340));
     return done();
     function done() {
     selfResize = true;
     G.dispatchEvent(new Event('resize'));                              // i giochi su canvas ridisegnano alla nuova misura
     }
   }
+  // i giochi che ridisegnano il proprio contenitore a ogni mossa perderebbero la disposizione a lato: la si rimette
+  // subito (il callback del MutationObserver gira prima del disegno, quindi niente salti)
+  // (si osservano solo i figli diretti della tavola e del contenitore, non tutto il sotto-albero: costa niente)
+  const sideMO = G.MutationObserver ? new G.MutationObserver(() => {
+    if (!sideOn) return;
+    const bd = $('#board');
+    if (!bd) return;
+    const host = bd.matches('.fs-side-c, .fs-spread') ? bd : bd.querySelector(':scope > .fs-side-c, :scope > .fs-spread');
+    if (host && [...host.children].every((k) => k.classList.contains('fs-main') || k.classList.contains('fs-a') || k.classList.contains('fs-b') || getComputedStyle(k).position === 'absolute' || getComputedStyle(k).display === 'none')) return;
+    const parts = sideParts(bd);
+    if (parts) tagSide(parts, sideOn); else refitSoon();
+  }) : null;
   let fitT = 0, selfResize = false;
   G.addEventListener('resize', () => { if (selfResize) { selfResize = false; return; } if (!isFull()) return; clearTimeout(fitT); fitT = setTimeout(fitFs, 120); });
+  // il bottone del gioco e quello della home rispecchiano lo stato
+  function fsButtons() {
+    const b = $('#gFull');
+    if (b) {
+      b.innerHTML = isFull() ? ICON.unfull : ICON.full;
+      b.setAttribute('aria-label', isFull() ? lab('fullExit', 'Exit full screen') : lab('full', 'Full screen'));
+    }
+    const h = $('#homeFsExit');
+    if (h) { h.hidden = !isFull(); h.setAttribute('aria-label', lab('fullExit', 'Exit full screen')); h.title = lab('fullExit', 'Exit full screen'); }
+  }
   ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+    // uscita fatta dal browser (Esc, indietro del sistema) = uscita esplicita; se invece l'app è in background no
+    if (!isFull() && !document.hidden) sess.set(false);
+    fsClass();
     placeHud();
     setTimeout(fitFs, 60);
-    const b = $('#gFull');
-    if (!b) return;
-    b.innerHTML = isFull() ? ICON.unfull : ICON.full;
-    b.setAttribute('aria-label', isFull() ? lab('fullExit', 'Exit full screen') : lab('full', 'Full screen'));
+    fsButtons();
   }));
+  // ogni nuovo livello (vittoria → avanti, ricomincia, nuovo) può cambiare misura: si riadatta il riquadro
+  let refitT = 0;
+  const refitSoon = () => { if (!isFull()) return; clearTimeout(refitT); refitT = setTimeout(fitFs, 80); };
 
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
@@ -435,6 +587,7 @@
       return;
     }
     persist();
+    resumeFull();                     // schermo intero voluto ma perso (app in background): si rientra con questo tocco
     S.game = g; S.inst = null; S.won = false;
     const saved = P.loadGame(id);
     S.elapsed = saved ? saved.elapsed || 0 : 0;
@@ -477,7 +630,7 @@
       sfx, react, win,
       changed(o) {
         const reset = !!(o && o.reset);
-        if (reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; $('#loseDlg').hidden = true; HH.music.duck(false); }
+        if (reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; $('#loseDlg').hidden = true; HH.music.duck(false); refitSoon(); }
         if (!S.inst) return;
         hud(); persist(); onProgress(reset);
       },
@@ -519,6 +672,8 @@
       G.scrollTo(0, 0);
     }
     keepAwake(true);
+    // già a schermo intero (dal gioco precedente): indicatori nel riquadro e misura adattata
+    if (isFull()) { placeHud(); refitSoon(); }
     // prima volta in questo gioco: tutorial PRIMA di creare la partita (così i giochi a tempo non partono dietro la finestra)
     if (g.tutorial && !HH.store.get('tut:' + g.id)) tutorial(g, () => { if (S.game === g) begin(); });
     else begin();
@@ -536,6 +691,7 @@
       S.inst = g.create($('#board'), ctx, null);
     }
     hud(); persist();
+    refitSoon();
     onProgress(true);
     HH.music.play(g.id, g.progress ? g.progress(S.inst.snapshot()) : 0);
     HH.music.duck(false);
@@ -556,7 +712,6 @@
    * Ogni gioco può dichiarare tutorial: [{ key, en, art }] (art = SVG 120×90 animato con CSS). */
   const lab = (k, en) => { const v = t(k); return v && v !== k ? v : en; };
   function tutorial(g, done) {
-    exitFull();
     const steps = g.tutorial;
     let i = 0;
     const dlg = $('#tutDlg'), box = $('#tutBox');
@@ -600,7 +755,6 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
   function goHome() {
-    exitFull();
     persist();
     hideSay();
     $('#loseDlg').hidden = true;
@@ -618,7 +772,6 @@
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
   function win() {
-    exitFull();
     const g = S.game;
     if (!g || S.won) return;
     S.won = true;
@@ -685,7 +838,6 @@
 
   /* ---------- Cuori finiti ---------- */
   function lose(kind = 'lives') {
-    exitFull();
     if (!S.game || S.won) return;
     hideSay();
     HH.music.duck(true);
@@ -773,6 +925,7 @@
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
     audioUI();
+    fsButtons();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
@@ -925,6 +1078,10 @@
     $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
     $('#audioBtn').innerHTML = ICON.audio;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
+    // uscita dallo schermo intero anche dalla home (lo schermo intero resta attivo tra un gioco e l'altro)
+    $('#homeFsExit').innerHTML = ICON.unfull;
+    $('#homeFsExit').onclick = () => { sfx.tap(); exitFull(); };
+    fsClass(); fsButtons();
     $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
     $('#home').addEventListener('click', (e) => {

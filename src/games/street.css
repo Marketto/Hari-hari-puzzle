@@ -148,26 +148,26 @@
   .st-wrap.two .st-knob { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
   .st-wrap.two .st-btns { grid-template-columns: repeat(2, 40px); grid-template-rows: repeat(2, 40px); gap: 5px; }
   .st-wrap.two .st-b svg { width: 24px; height: 24px; }
-  .plate:fullscreen .st-wrap.st-ov.two .st-pad { padding: 0 4px; }
+  .fs-on .plate .st-wrap.st-ov.two .st-pad { padding: 0 4px; }
 }
 
 /* ---------- schermo intero: la strada riempie tutto, i comandi stanno sopra ---------- */
-#game .plate:fullscreen:has(.st-wrap), #game .plate:-webkit-full-screen:has(.st-wrap) { padding: 0; gap: 0; }
-.plate:fullscreen:has(.st-wrap) .fs-bar, .plate:-webkit-full-screen:has(.st-wrap) .fs-bar { position: absolute; z-index: 6; right: max(8px, env(safe-area-inset-right, 0px)); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 48px); left: auto; bottom: auto; pointer-events: none; padding: 0; gap: 6px; }
-.plate:fullscreen:has(.st-wrap) .fs-bar > *, .plate:-webkit-full-screen:has(.st-wrap) .fs-bar > * { pointer-events: auto; height: 36px; }
-.plate:fullscreen:has(.st-wrap) .fs-logo b, .plate:fullscreen:has(.st-wrap) .fs-logo .fs-lv { display: none; }
-.plate:fullscreen:has(.st-wrap) .fs-menu:not([hidden]) { top: calc(max(8px, env(safe-area-inset-top, 0px)) + 92px); left: auto; right: max(8px, env(safe-area-inset-right, 0px)); transform-origin: top right; }
-.plate:fullscreen:has(.st-wrap) .fs-hud, .plate:-webkit-full-screen:has(.st-wrap) .fs-hud { display: none; }
-.plate:fullscreen .board:has(> .st-wrap), .plate:-webkit-full-screen .board:has(> .st-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
-.plate:fullscreen .st-wrap, .plate:-webkit-full-screen .st-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; gap: 0; }
-.plate:fullscreen .st-stage, .plate:-webkit-full-screen .st-stage { flex: 1; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; border: 0; box-shadow: none; }
-.plate:fullscreen .st-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
+.fs-on #game .plate:has(.st-wrap) { padding: 0; gap: 0; }
+.fs-on .plate:has(.st-wrap) .fs-bar { position: absolute; z-index: 6; right: max(8px, env(safe-area-inset-right, 0px)); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 48px); left: auto; bottom: auto; pointer-events: none; padding: 0; gap: 6px; }
+.fs-on .plate:has(.st-wrap) .fs-bar > * { pointer-events: auto; height: 36px; }
+.fs-on .plate:has(.st-wrap) .fs-logo b, .fs-on .plate:has(.st-wrap) .fs-logo .fs-lv { display: none; }
+.fs-on .plate:has(.st-wrap) .fs-menu:not([hidden]) { top: calc(max(8px, env(safe-area-inset-top, 0px)) + 92px); left: auto; right: max(8px, env(safe-area-inset-right, 0px)); transform-origin: top right; }
+.fs-on .plate:has(.st-wrap) .fs-hud { display: none; }
+.fs-on .plate .board:has(> .st-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
+.fs-on .plate .st-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; gap: 0; }
+.fs-on .plate .st-stage { flex: 1; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; border: 0; box-shadow: none; }
+.fs-on .plate .st-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
 /* comandi sovrapposti alla strada (a schermo intero e in orizzontale) */
 .st-wrap.st-ov .st-pad { position: absolute; left: 0; right: 0; bottom: max(8px, env(safe-area-inset-bottom, 0px)); padding: 0 max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; z-index: 3; }
 .st-wrap.st-ov .st-pad .st-stick, .st-wrap.st-ov .st-pad .st-b { pointer-events: auto; opacity: .82; }
 .st-wrap.st-ov .st-pad .st-b.sp:not(.ready) { opacity: .45; }
 .st-wrap.st-ov .st-half.p1 .st-btns { margin-inline-end: 0; }
-.plate:fullscreen .st-wrap.st-ov:not(.two) .st-half.p1 .st-stick { margin-inline-start: 44px; }
+.fs-on .plate .st-wrap.st-ov:not(.two) .st-half.p1 .st-stick { margin-inline-start: 44px; }
 
 @media (prefers-reduced-motion: reduce) {
   .st-b.sp.ready { animation: none; }
