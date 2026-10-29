@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hari — prova del multigiocatore</title>
+<!-- Pagina di sviluppo (non è nel catalogo né nella shell): node tools/serve.mjs → http://localhost:5173/tools/mp-demo.html
+     Mini gioco host-autoritativo: due ricci raccolgono fragole. "Gioca insieme" usa il vero abbinamento (suono → QR → frutti),
+     "In memoria" collega due giocatori finti con HH.mp.loopback per provare la sessione senza un secondo telefono. -->
+<link rel="stylesheet" href="../src/styles.css">
+<link rel="stylesheet" href="../src/net/mp.css">
+<style>
+  main { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  h1 { font-family: var(--font-display); font-weight: 400; margin: 0; font-size: 24px; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  canvas { width: 100%; max-width: 360px; aspect-ratio: 4 / 3; border-radius: 22px; border: 2px solid var(--line); background: var(--card-solid); touch-action: none; }
+  .pad { display: grid; grid-template-columns: repeat(3, 56px); gap: 6px; }
+  .pad button { height: 52px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); font-size: 22px; }
+  #stats { font: 600 12px/1.4 ui-monospace, monospace; color: var(--ink-2); min-height: 3em; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hari a due</h1>
+  <div class="bar">
+    <button class="candy" id="pair">🤝 Gioca insieme</button>
+    <button class="pill" id="loop"><span>In memoria</span></button>
+    <button class="pill" id="theme"><span>Tema</span></button>
+  </div>
+  <canvas id="cv" width="360" height="270"></canvas>
+  <div class="pad">
+    <span></span><button data-k="u">▲</button><span></span>
+    <button data-k="l">◀</button><button data-k="a">🍓</button><button data-k="r">▶</button>
+    <span></span><button data-k="d">▼</button><span></span>
+  </div>
+  <div id="stats">—</div>
+</main>
+<script src="../src/i18n/locales.js"></script>
+<script src="../src/core/rng.js"></script>
+<script src="../src/core/rules.js"></script>
+<script src="../src/core/core.js"></script>
+<script src="../src/core/mascot.js"></script>
+<script src="../src/core/audio.js"></script>
+<script src="../src/net/sonic.js"></script>
+<script src="../src/net/qr.js"></script>
+<script src="../src/net/mp.js"></script>
+<script src="../src/net/mp-ui.js"></script>
+<script>
+(function () {
+  const W = 360, H = 270, cv = document.getElementById('cv'), cx = cv.getContext('2d');
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const keys = {};
+  addEventListener('keydown', (e) => { const k = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', ' ': 'a' }[e.key]; if (k) keys[k] = true; });
+  addEventListener('keyup', (e) => { const k = { ArrowUp: 'u', ArrowDown: 'd', ArrowLeft: 'l', ArrowRight: 'r', ' ': 'a' }[e.key]; if (k) keys[k] = false; });
+  document.querySelectorAll('.pad button').forEach((b) => {
+    b.addEventListener('pointerdown', () => { keys[b.dataset.k] = true; });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, () => { keys[b.dataset.k] = false; }));
+  });
+  const input = () => ({ x: (keys.r ? 1 : 0) - (keys.l ? 1 : 0), y: (keys.d ? 1 : 0) - (keys.u ? 1 : 0), a: !!keys.a });
+
+  // logica (solo host): due ricci, una fragola, punti
+  let rnd = 1;
+  const rand = () => { rnd = (rnd * 16807) % 2147483647; return rnd / 2147483647; };
+  const st = { p: [{ x: 90, y: 135, s: 0, d: 1 }, { x: 270, y: 135, s: 0, d: -1 }], f: { x: 180, y: 70 }, t: 0 };
+  function step(dt, inputs) {
+    st.t++;
+    inputs.forEach((inp, i) => {
+      if (!inp) return;
+      const q = st.p[i], sp = inp.a ? 190 : 120;
+      q.x = Math.max(16, Math.min(W - 16, q.x + inp.x * sp * dt)); q.y = Math.max(16, Math.min(H - 16, q.y + inp.y * sp * dt));
+      if (inp.x) q.d = inp.x;
+      if (Math.hypot(q.x - st.f.x, q.y - st.f.y) < 24) { q.s++; st.f = { x: 30 + rand() * (W - 60), y: 30 + rand() * (H - 60) }; demo.session.event({ type: 'berry', who: i, score: q.s }); log('🍓 P' + (i + 1)); }
+    });
+  }
+  const snapshot = () => ({ p: st.p.map((q) => ({ x: q.x, y: q.y, s: q.s, d: q.d })), f: st.f, t: st.t });
+  let view = null;
+  function draw(v) {
+    cx.clearRect(0, 0, W, H);
+    if (!v) { cx.fillStyle = css('--ink-2'); cx.font = '16px sans-serif'; cx.textAlign = 'center'; cx.fillText('🦔  …  🦔', W / 2, H / 2); return; }
+    cx.font = '26px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('🍓', v.f.x, v.f.y);
+    v.p.forEach((q, i) => {
+      cx.fillStyle = i ? css('--mint') : css('--accent');
+      cx.beginPath(); cx.arc(q.x, q.y + 14, 13, 0, Math.PI * 2); cx.globalAlpha = .35; cx.fill(); cx.globalAlpha = 1;
+      cx.save(); cx.translate(q.x, q.y); cx.scale(q.d < 0 ? -1 : 1, 1); cx.fillText('🦔', 0, 0); cx.restore();
+      cx.fillStyle = css('--ink'); cx.font = '700 13px sans-serif'; cx.fillText('P' + (i + 1) + ' · ' + q.s, q.x, q.y - 24); cx.font = '26px sans-serif';
+    });
+  }
+  const events = [];
+  function log(t) { events.push(t); }
+  const demo = window.__demo = { link: null, session: null, events, view: () => view, state: () => st, closed: null };
+
+  function play(link) {
+    if (demo.session) demo.session.stop();
+    demo.link = link;
+    const host = link.role === 'host';
+    const s = demo.session = HH.mp.session(link, host
+      ? { tick: 30, sendEvery: 2, step, snapshot }
+      : { tick: 30, sendEvery: 2, apply: (snap, a, prev) => { view = HH.mp.lerp(prev, snap, a); } });
+    s.on('event', (e) => log(JSON.stringify(e)));
+    s.on('close', (why) => { demo.closed = why; log('close ' + why); });
+    s.start();
+    return s;
+  }
+  let loopGuest = null, bot = 0;
+  function frame(t) {
+    const s = demo.session;
+    if (s) {
+      s.setInput(input());
+      if (loopGuest) { bot += 0.02; loopGuest.setInput({ x: Math.sign(Math.sin(bot)), y: Math.sign(Math.cos(bot * 0.7)), a: false }); loopGuest.frame(t); }
+      s.frame(t);
+      if (s.role === 'host') view = snapshot();
+      const L = demo.link;
+      document.getElementById('stats').textContent = `${L.role} · ${L.peer.name || '?'} · rtt ${Math.round(L.rtt)} ms · persi ${s.stats.lost} · tick ${s.stats.tick}` + (s.stats.bytes ? ` · ${(s.stats.bytes / Math.max(1, s.stats.full + s.stats.delta)).toFixed(0)} B/istantanea` : '') + (demo.closed ? ' · chiuso: ' + demo.closed : '');
+    }
+    draw(view);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  document.getElementById('pair').addEventListener('click', async () => {
+    if (HH.audio) HH.audio.unlock();
+    const link = await HH.mp.pair({ game: 'demo', title: 'Hari a due', name: 'Hari ' + Math.floor(Math.random() * 90 + 10) });
+    if (link) { loopGuest = null; play(link); log('paired ' + link.role); }
+  });
+  document.getElementById('loop').addEventListener('click', () => {
+    const [h, g] = HH.mp.loopback({ latency: 60, jitter: 20, loss: 0.1 });
+    play(h);
+    loopGuest = HH.mp.session(g, { tick: 30, sendEvery: 2, apply: () => {} });
+    loopGuest.start();
+  });
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement, dark = r.dataset.theme === 'dark' || (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    r.dataset.theme = dark ? 'light' : 'dark';
+  });
+})();
+</script>
+</body>
+</html>

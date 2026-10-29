@@ -1021,6 +1021,7 @@
     id: 'life', name: 'Hari Home', rules: 'r12', endless: true,
     rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
     art: () => ART.card(), create, tutorial: TUT,
+    fill: true,                 // a schermo intero il palco prende tutto lo spazio (R.view inquadra la casa a ogni misura)
     rate: () => 3, parTime: () => 0,
     progress: (s) => L.progress(s),
     // header di gioco e card in home: età, giorno, ghiande (al posto di livello, tempo, mosse, fragoline)

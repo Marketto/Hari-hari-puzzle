@@ -27,6 +27,10 @@ ed effetto `unlock` in `src/core/audio.js`, tutorial `tu_escape_1..3`.
 - Un contenitore risolto si apre e mostra il premio (si tocca per metterlo in borsa); la porta aperta porta alla stanza
   successiva; l'uscita aperta fa scappare Hari (saltella verso la porta luminosa e ci sparisce dentro) → vittoria.
 - Tastiera: frecce nel labirinto, `Esc` chiude lo zoom. `prefers-reduced-motion`: niente animazioni continue.
+- **Niente sfarfallio**: il riquadro dello zoom si crea una volta per oggetto (animazione d'apertura una sola volta); a ogni
+  mossa si aggiornano solo attributi e testi cambiati (`HH.domPatch.patch`, `src/games/dom-patch.js`); lo stesso per
+  stanza, borsa e barra. La mascotte nella stanza si disegna una volta (i suoi id dei gradienti cambierebbero a ogni
+  chiamata). Test: `tests/dom-patch.test.mjs`.
 
 ## Tipi di enigma (sbloccati coi livelli)
 | Tipo | Da | Contenitore | Regola | Indizio |

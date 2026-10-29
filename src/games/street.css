@@ -1,0 +1,184 @@
+/* Hari Snack Street — stile.
+ * La strada è un <canvas> 2D: il canvas legge questi token con getComputedStyle e li usa per il fondale e per "cuocere"
+ * gli SVG dei personaggi (street-art.js). Nessun colore nel JavaScript. I personaggi hanno colori fissi; cielo, palazzi,
+ * bancarelle e marciapiede cambiano con l'ambientazione (mercato del bosco, città, porto, fiera, treno) e col tema.
+ * Prefisso: st-. Comandi touch: levetta a sinistra, pulsanti a destra (in 2 sullo stesso schermo: una metà a testa).
+ */
+:root {
+  --tint-street: #ffe6c9;
+  /* personaggi */
+  --st-ink: #4a2c22; --st-eye: #2a160e; --st-hi: #ffffff; --st-nose: #3a1e14; --st-mouth: #ff7f98; --st-tongue: #ff9ab2; --st-drool: #cfeaff;
+  --st-blush: rgba(255, 130, 165, .7);
+  --st-quill: #9a6342; --st-quill-2: #714330; --st-face: #fff1e2; --st-ear: #ffe4cc; --st-ear-in: #ffadc0; --st-sakura: #ffc2d4; --st-sakura-in: #ff7fa3;
+  --st-kiki: #f59a5b; --st-kiki-2: #d4753a; --st-kiki-tail: #f7a86c; --st-kiki-belly: #fff0dc; --st-scarf: #7fd0c0;
+  --st-bunny: #fffaf6; --st-bunny-in: #ffb3c8;
+  --st-rac: #a7a3b8; --st-rac-2: #6f6a85; --st-rac-mask: #4f4a63; --st-rac-belly: #f0eef6;
+  --st-boar: #c99470; --st-boar-2: #94664a; --st-boar-stripe: #f2d4b8; --st-snout: #ffb8a8; --st-tusk: #fffaf0;
+  --st-mag: #4c4f6e; --st-mag-belly: #ffffff; --st-mag-wing: #6f9be8; --st-beak: #ffb43c; --st-beak-2: #e2504a;
+  --st-fox: #ff9d4f; --st-fox-2: #d9732e; --st-fox-tip: #fff6ea; --st-fox-in: #ffd2c0;
+  --st-bear: #c48a5f; --st-bear-2: #96603f; --st-muzzle: #f6dcbc;
+  --st-gull: #ffffff; --st-gull-2: #b8c4d8; --st-panda: #fbfbff; --st-panda-2: #5d566e;
+  --st-bib: #fffaf6; --st-crown: #ffd84a; --st-gem: #ff6f9c; --st-heart: #ff6f9c; --st-gold: #ffd84a;
+  /* merende e oggetti */
+  --st-straw: #ff4f6d; --st-seed: #ffe9a8; --st-leaf: #6fd06f; --st-cookie: #e8b26a; --st-cookie-2: #c98b44; --st-choco: #7a4a2a;
+  --st-acorn: #c98a4b; --st-cap: #8a5a34; --st-cap-2: #6a4024; --st-apple: #ff5d5d; --st-stem: #8a5a3c;
+  --st-basket: #e8b77a; --st-basket-2: #b98451; --st-melon: #6cc65a; --st-melon-2: #2f8a3e; --st-melon-in: #ff7a8a;
+  --st-cake: #ffc2d4; --st-cake-2: #fff0f4; --st-cream: #ffffff;
+  --st-crate: #e0a868; --st-crate-2: #b97a42; --st-cart: rgba(160, 205, 255, .55); --st-cart-2: #6f8fb8;
+  /* interfaccia sul canvas */
+  --st-text: #ffffff; --st-text-line: #4a2c22; --st-spark: #ffd84a; --st-puff: #ffffff; --st-zzz: #8fb4ff;
+  --st-tummy: #ffb84d; --st-tummy-bg: rgba(255, 250, 246, .92); --st-danger: rgba(255, 92, 122, .8); --st-wave: rgba(255, 255, 255, .8);
+  --st-veil: rgba(255, 250, 244, .66); --st-mark: #b07cff; --st-p1: #ff8fb1; --st-p2: #7fd0c0; --st-shadow: rgba(60, 40, 30, .24);
+  /* mondo (cambia con ambientazione e tema) */
+  --st-sky-1: #8fd0ff; --st-sky-2: #d9f1ff; --st-sun: #ffd45e; --st-star: rgba(255, 255, 255, 0); --st-night: 0;
+  --st-far: #b9c9f0; --st-far-2: #a3b6e8; --st-mid: #ffe3c8; --st-mid-2: #f7c9a5; --st-awning: #ff8fb1; --st-awning-2: #fffaf6;
+  --st-window: #bfe7ff; --st-lamp: #ffd88a; --st-wall: #f4d8bc;
+  --st-ground-1: #f3dcc0; --st-ground-2: #e6c6a2; --st-curb: #d8b08a; --st-front: #c99c74;
+  --st-tree: #8fd36a; --st-tree-2: #69b84f; --st-water: #8fd3ff; --st-water-2: #d4f0ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-street: #3d2a4a;
+    --st-sky-1: #1f1a46; --st-sky-2: #4b3a7e; --st-sun: #fff4cf; --st-star: rgba(255, 246, 200, .95); --st-night: 1;
+    --st-far: #3d3470; --st-far-2: #332b62; --st-mid: #6f5e86; --st-mid-2: #5c4c74; --st-awning: #d9739a; --st-awning-2: #e8dcef;
+    --st-window: #ffe9a0; --st-lamp: #ffe9a8; --st-wall: #5c4c74;
+    --st-ground-1: #5f5078; --st-ground-2: #54466c; --st-curb: #463a5e; --st-front: #3d3252;
+    --st-tree: #2f6a44; --st-tree-2: #24553a; --st-water: #35407e; --st-water-2: #6f7fc8;
+    --st-shadow: rgba(0, 0, 0, .34); --st-veil: rgba(28, 21, 48, .66);
+  }
+}
+:root[data-theme="dark"] {
+  --tint-street: #3d2a4a;
+  --st-sky-1: #1f1a46; --st-sky-2: #4b3a7e; --st-sun: #fff4cf; --st-star: rgba(255, 246, 200, .95); --st-night: 1;
+  --st-far: #3d3470; --st-far-2: #332b62; --st-mid: #6f5e86; --st-mid-2: #5c4c74; --st-awning: #d9739a; --st-awning-2: #e8dcef;
+  --st-window: #ffe9a0; --st-lamp: #ffe9a8; --st-wall: #5c4c74;
+  --st-ground-1: #5f5078; --st-ground-2: #54466c; --st-curb: #463a5e; --st-front: #3d3252;
+  --st-tree: #2f6a44; --st-tree-2: #24553a; --st-water: #35407e; --st-water-2: #6f7fc8;
+  --st-shadow: rgba(0, 0, 0, .34); --st-veil: rgba(28, 21, 48, .66);
+}
+/* ambientazioni (tema chiaro; quello scuro resta "di notte" con le varianti sotto) */
+.st-wrap.st-city { --st-far: #c3c8e6; --st-far-2: #aab2dc; --st-mid: #ffd9e4; --st-mid-2: #f5bccd; --st-ground-1: #e8e2ec; --st-ground-2: #d7cfe0; --st-curb: #b8aec8; --st-front: #a89cbc; --st-awning: #7fc8ff; }
+.st-wrap.st-port { --st-sky-2: #e6f8ff; --st-far: #8fd3ff; --st-far-2: #6fbfee; --st-mid: #fff0d8; --st-mid-2: #e8cfa8; --st-ground-1: #e9d4ae; --st-ground-2: #d8be92; --st-curb: #b89a6c; --st-front: #8fbfe8; --st-awning: #ff8f6f; }
+.st-wrap.st-fair { --st-far: #ffd6ea; --st-far-2: #f5b8d6; --st-mid: #fff3c4; --st-mid-2: #ffe08a; --st-ground-1: #d8efc0; --st-ground-2: #c4e2a6; --st-curb: #a6c98a; --st-front: #8fbf6f; --st-awning: #b08cff; }
+.st-wrap.st-train { --st-far: #cfe9c0; --st-far-2: #b2d9a0; --st-mid: #ff9fb5; --st-mid-2: #e8809b; --st-ground-1: #ddd6cc; --st-ground-2: #c9c0b4; --st-curb: #a89c8e; --st-front: #8a7e72; --st-awning: #ffd84a; --st-window: #dff4ff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .st-wrap.st-city { --st-far: #2f2a5e; --st-mid: #5a4a7e; --st-mid-2: #4a3c6c; --st-ground-1: #4f4a6e; --st-ground-2: #45405f; --st-awning: #4f8fc8; }
+  :root:not([data-theme="light"]) .st-wrap.st-port { --st-far: #2a3a78; --st-far-2: #23306a; --st-mid: #5e5070; --st-ground-1: #5a4e66; --st-ground-2: #4e435a; --st-front: #2c3a74; --st-awning: #c8705a; }
+  :root:not([data-theme="light"]) .st-wrap.st-fair { --st-far: #4a2f62; --st-mid: #6a5a3e; --st-mid-2: #5a4a32; --st-ground-1: #3c5a48; --st-ground-2: #34503f; --st-front: #2c4636; --st-awning: #8f6fd8; }
+  :root:not([data-theme="light"]) .st-wrap.st-train { --st-far: #24443a; --st-mid: #8a4a62; --st-mid-2: #743c52; --st-ground-1: #545066; --st-ground-2: #4a4659; --st-front: #3a3648; --st-awning: #c8a83a; }
+}
+:root[data-theme="dark"] .st-wrap.st-city { --st-far: #2f2a5e; --st-mid: #5a4a7e; --st-mid-2: #4a3c6c; --st-ground-1: #4f4a6e; --st-ground-2: #45405f; --st-awning: #4f8fc8; }
+:root[data-theme="dark"] .st-wrap.st-port { --st-far: #2a3a78; --st-far-2: #23306a; --st-mid: #5e5070; --st-ground-1: #5a4e66; --st-ground-2: #4e435a; --st-front: #2c3a74; --st-awning: #c8705a; }
+:root[data-theme="dark"] .st-wrap.st-fair { --st-far: #4a2f62; --st-mid: #6a5a3e; --st-mid-2: #5a4a32; --st-ground-1: #3c5a48; --st-ground-2: #34503f; --st-front: #2c4636; --st-awning: #8f6fd8; }
+:root[data-theme="dark"] .st-wrap.st-train { --st-far: #24443a; --st-mid: #8a4a62; --st-mid-2: #743c52; --st-ground-1: #545066; --st-ground-2: #4a4659; --st-front: #3a3648; --st-awning: #c8a83a; }
+
+/* ---------- impaginazione ---------- */
+.st-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(var(--game-w), 760px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+.st-stage { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; border: 2px solid var(--line); box-shadow: var(--shadow); background: var(--card-solid); outline: none; }
+.st-stage:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+.st-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.st-wrap.wobble .st-stage { animation: st-wob .35s ease; }
+@keyframes st-wob { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.st-top { position: absolute; inset: 8px 8px auto 8px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; pointer-events: none; }
+.st-top > * { pointer-events: auto; }
+.st-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--card-solid); color: var(--ink); display: grid; place-items: center; box-shadow: var(--shadow); cursor: pointer; }
+.st-btn svg { width: 22px; height: 22px; }
+.st-btn.on { background: var(--accent); color: var(--accent-ink); }
+.st-tools { display: flex; gap: 6px; }
+
+/* messaggi al centro */
+.st-msg { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.st-msg b { font-family: var(--font-display); font-size: clamp(22px, 6vw, 40px); color: var(--st-text); -webkit-text-stroke: 5px var(--st-text-line); paint-order: stroke fill; opacity: 0; transform: scale(.6); transition: opacity .2s, transform .25s cubic-bezier(.3, 1.6, .5, 1); text-align: center; padding: 0 10%; }
+.st-msg.show b { opacity: 1; transform: scale(1); }
+.st-msg b.small { font-size: clamp(15px, 3.6vw, 24px); -webkit-text-stroke-width: 4px; }
+
+/* "Nuovo!" */
+.st-new { position: absolute; left: 0; right: 0; margin-inline: auto; width: max-content; top: 24%; transform: translateY(-8px); display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 18px; background: var(--card-solid); border: 2px solid var(--line); box-shadow: var(--shadow); opacity: 0; transition: opacity .2s, transform .25s; max-width: 86%; pointer-events: none; }
+.st-new.show { opacity: 1; transform: translateY(0); }
+.st-new-tag { font-family: var(--font-display); font-size: 12px; background: var(--accent); color: var(--accent-ink); padding: 3px 8px; border-radius: 10px; }
+.st-new-ic svg { width: 38px; height: 38px; display: block; }
+.st-new b { font-size: 14px; color: var(--ink); line-height: 1.2; }
+
+/* sovrapposizioni: pausa, scelta della modalità, gira il telefono */
+.st-over { position: absolute; inset: 0; display: grid; place-items: center; background: var(--st-veil); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 4; padding: 10px; }
+.st-over[hidden] { display: none; }
+.st-pause b { font-family: var(--font-display); font-size: 28px; color: var(--ink); }
+.st-pause small { display: block; color: var(--ink-2); margin-top: 4px; text-align: center; }
+.st-pause .st-play svg { width: 56px; height: 56px; color: var(--accent); }
+.st-pause > div { display: grid; justify-items: center; gap: 6px; }
+.st-modes { display: grid; justify-items: center; gap: 8px; width: min(100%, 460px); }
+.st-modes h3 { margin: 0; font-family: var(--font-display); font-size: clamp(16px, 4vw, 22px); color: var(--ink); text-align: center; }
+.st-mode-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.st-mode { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 18px; border: 2px solid var(--line); background: var(--card-solid); color: var(--ink); font: inherit; font-weight: 700; font-size: 14px; text-align: start; cursor: pointer; box-shadow: var(--shadow); min-height: 56px; }
+.st-mode svg { width: 44px; height: 44px; flex: none; }
+.st-mode.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
+.st-mode:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.st-mode[disabled] { opacity: .5; cursor: default; }
+.st-keys { font-size: 12px; color: var(--ink-2); text-align: center; margin: 0; }
+.st-status { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); padding: 4px 10px; border-radius: 12px; background: var(--card-solid); border: 2px solid var(--line); font-size: 12px; font-weight: 700; color: var(--ink); pointer-events: none; z-index: 3; }
+.st-status[hidden] { display: none; }
+
+/* ---------- comandi touch ---------- */
+.st-pad { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 4px 6px; touch-action: none; }
+.st-pad[hidden] { display: none; }
+.st-half { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 1; }
+.st-half.p2 { flex-direction: row-reverse; }
+.st-stick { position: relative; width: 112px; height: 112px; border-radius: 50%; background: var(--card-solid); border: 2px solid var(--line); box-shadow: var(--shadow); flex: none; }
+.st-stick::before { content: ''; position: absolute; inset: 22%; border-radius: 50%; border: 2px dashed var(--hair); }
+.st-knob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: var(--st-p, var(--st-p1)); border: 2px solid var(--st-ink); box-shadow: 0 3px 0 var(--st-shadow); transform: translate(var(--kx, 0px), var(--ky, 0px)); }
+.st-half.p2 .st-knob { --st-p: var(--st-p2); }
+.st-btns { display: grid; grid-template-columns: repeat(2, 58px); grid-template-rows: repeat(2, 58px); gap: 8px; }
+.st-b { position: relative; border-radius: 50%; border: 2px solid var(--line); background: var(--card-solid); color: var(--ink); display: grid; place-items: center; box-shadow: 0 4px 0 var(--hair); padding: 0; cursor: pointer; }
+.st-b svg { width: 34px; height: 34px; pointer-events: none; }
+.st-b small { position: absolute; bottom: -2px; font-size: 9px; font-weight: 800; color: var(--ink-2); pointer-events: none; }
+.st-b.press { transform: translateY(3px); box-shadow: 0 1px 0 var(--hair); }
+.st-b.feed { background: var(--st-p, var(--st-p1)); }
+.st-half.p2 .st-b.feed { --st-p: var(--st-p2); }
+.st-b.sp { opacity: .55; }
+.st-b.sp.ready { opacity: 1; background: var(--st-gold); animation: st-glow 1s ease-in-out infinite alternate; }
+@keyframes st-glow { to { box-shadow: 0 4px 0 var(--hair), 0 0 0 6px var(--st-gold); } }
+.st-wrap.two .st-stick { width: 92px; height: 92px; }
+.st-wrap.two .st-btns { grid-template-columns: repeat(2, 48px); grid-template-rows: repeat(2, 48px); gap: 6px; }
+.st-wrap.two .st-b svg { width: 28px; height: 28px; }
+/* in due su un telefono: comandi più piccoli, una metà a testa */
+@media (max-width: 600px) {
+  .st-wrap.two .st-pad { gap: 4px; padding: 4px 2px; }
+  .st-wrap.two .st-half { gap: 4px; }
+  .st-wrap.two .st-stick { width: 76px; height: 76px; }
+  .st-wrap.two .st-knob { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+  .st-wrap.two .st-btns { grid-template-columns: repeat(2, 40px); grid-template-rows: repeat(2, 40px); gap: 5px; }
+  .st-wrap.two .st-b svg { width: 24px; height: 24px; }
+  .fs-on .plate .st-wrap.st-ov.two .st-pad { padding: 0 4px; }
+}
+
+/* ---------- schermo intero: la strada riempie tutto, i comandi stanno sopra ---------- */
+.fs-on #game .plate:has(.st-wrap) { padding: 0; gap: 0; }
+.fs-on .plate:has(.st-wrap) .fs-bar { position: absolute; z-index: 6; right: max(8px, env(safe-area-inset-right, 0px)); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 48px); left: auto; bottom: auto; pointer-events: none; padding: 0; gap: 6px; }
+.fs-on .plate:has(.st-wrap) .fs-bar > * { pointer-events: auto; height: 36px; }
+.fs-on .plate:has(.st-wrap) .fs-logo b, .fs-on .plate:has(.st-wrap) .fs-logo .fs-lv { display: none; }
+.fs-on .plate:has(.st-wrap) .fs-menu:not([hidden]) { top: calc(max(8px, env(safe-area-inset-top, 0px)) + 92px); left: auto; right: max(8px, env(safe-area-inset-right, 0px)); transform-origin: top right; }
+.fs-on .plate:has(.st-wrap) .fs-hud { display: none; }
+.fs-on .plate .board:has(> .st-wrap) { display: flex; flex: 1; min-height: 0; padding: 0; }
+.fs-on .plate .st-wrap { flex: 1; width: 100%; height: 100%; min-height: 0; gap: 0; }
+.fs-on .plate .st-stage { flex: 1; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; border: 0; box-shadow: none; }
+.fs-on .plate .st-top { inset: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) auto max(8px, env(safe-area-inset-left, 0px)); }
+/* comandi sovrapposti alla strada (a schermo intero e in orizzontale) */
+.st-wrap.st-ov .st-pad { position: absolute; left: 0; right: 0; bottom: max(8px, env(safe-area-inset-bottom, 0px)); padding: 0 max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; z-index: 3; }
+.st-wrap.st-ov .st-pad .st-stick, .st-wrap.st-ov .st-pad .st-b { pointer-events: auto; opacity: .82; }
+.st-wrap.st-ov .st-pad .st-b.sp:not(.ready) { opacity: .45; }
+.st-wrap.st-ov .st-half.p1 .st-btns { margin-inline-end: 0; }
+.fs-on .plate .st-wrap.st-ov:not(.two) .st-half.p1 .st-stick { margin-inline-start: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-b.sp.ready { animation: none; }
+  .st-wrap.wobble .st-stage { animation: none; }
+}
+/* tutorial e card */
+.st-tut-walk { animation: st-tw 2.4s ease-in-out infinite; }
+@keyframes st-tw { 50% { transform: translateX(10px); } }
+.st-tut-pop { animation: st-tp 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes st-tp { 50% { transform: scale(1.15) translateY(-3px); } }
+.st-tut-jump { animation: st-tj 1.4s ease-in-out infinite; }
+@keyframes st-tj { 40% { transform: translateY(-14px); } 60% { transform: translateY(-14px); } }
+@media (prefers-reduced-motion: reduce) { .st-tut-walk, .st-tut-pop, .st-tut-jump { animation: none; } }
+@media (pointer: coarse) { .st-keys { display: none; } }

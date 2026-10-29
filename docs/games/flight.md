@@ -80,3 +80,8 @@ Bot con reazioni umane (un'azione ogni 0,55 s, legge solo ciò che è disegnato)
 senza pazienza finita né vassoi bruciati, con 3 fragoline; bot lento (0,9 s) vince i livelli 1–10. Inoltre: curva monotona,
 fasi e "Nuovo!" ai livelli giusti, determinismo, ripresa da JSON a metà del servizio (stessi eventi), errori che abbassano le
 fragoline senza far perdere, generazione < 10 ms, nessun colore letterale nei file JS. Blocco anche in `tools/selftest.mjs`.
+
+## Aereo
+Di lato (card della home e scena dell'atterraggio, `plane()` in `flight-art.js`) il muso è a sinistra: ali e piano di
+coda sono **a freccia all'indietro** (le punte stanno più verso la coda della radice), la deriva è inclinata verso la
+coda. L'icona della fase di atterraggio è vista dall'alto, muso in giù, con la stessa freccia.

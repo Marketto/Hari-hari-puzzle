@@ -168,3 +168,8 @@ Il bot e l'oracolo delle porte usano solo lo stato pubblico:
 - determinismo (stessi input = stessa partita, ripresa da JSON a metà, passi di durata diversa), ventaglio, fame,
   merenda rubata e sconfitta, via di fuga dai soffi, curva monotona con ≥ 4 gradini, `newLevel` < 10 ms (< 1 ms).
 `tools/selftest.mjs` (`npm run bench`) controlla 5 gradini (porte, varchi negli ostacoli, tempi).
+
+## Schermo intero
+`fill: true`: il palco riempie tutto il riquadro. `measure()` usa una vista 2:3 virtuale appoggiata in basso
+(`Wv = min(W, 2H/3)`): in verticale cresce il cielo, in orizzontale i prati ai lati; strada, sagome e sensibilità del
+trascinamento (in larghezze della vista virtuale) restano identiche, quindi il gioco non cambia.

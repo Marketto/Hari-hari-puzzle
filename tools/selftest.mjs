@@ -358,6 +358,29 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Snack Street: generazione del livello (< 10 ms), passo di simulazione (< 0,5 ms anche con 2 giocatori),
+// curva su 4 gradini (1, 4, 8, 12): più ondate, più animali, animalone più affamato; con 2 giocatori di più
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/street-logic.js'), 'utf8'), { filename: 'street-logic.js' });
+  const ST = globalThis.HH.street;
+  for (const level of [1, 4, 8, 12]) {
+    for (const np of [1, 2]) {
+      let gen = 0, sim = 0, ticks = 0;
+      const T = 8, c = ST.config(level, np);
+      for (let k = 0; k < T; k++) {
+        const t = performance.now();
+        const s = ST.newLevel(level, globalThis.HH.rng(level * 313 + k), { players: np, cpu: np === 2 });
+        gen += performance.now() - t;
+        s.players.forEach((p) => { p.cpu = 1; });
+        const t2 = performance.now();
+        for (let i = 0; i < 1800 && !ST.isOver(s); i++, ticks++) ST.step(s, 1 / 60, [null, null]);
+        sim += performance.now() - t2;
+      }
+      ok(gen / T < 10 && sim / ticks < 0.5, `Hari Snack Street livello ${level}, ${np} giocatori: ${c.waves} ondate × ${c.perWave} animali, animalone ${c.bossNeed} bocconi; generazione ${(gen / T).toFixed(2)} ms, passo ${(sim / ticks * 1000).toFixed(0)} µs`);
+    }
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

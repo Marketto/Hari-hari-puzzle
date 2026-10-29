@@ -163,11 +163,14 @@
   const beltOff = svg('0 0 40 14', `<path d="M1 5q6 2 9 8" fill="none" stroke="var(--fl-belt)" stroke-width="4.6" stroke-linecap="round"/><path d="M39 5q-6 2-9 8" fill="none" stroke="var(--fl-belt)" stroke-width="4.6" stroke-linecap="round"/><rect x="25" y="8" width="8" height="6" rx="1.6" fill="var(--fl-buckle)" ${o(1)}/>`, 'fl-belt off');
   const beltSign = svg('0 0 36 22', `<rect x="1" y="1" width="34" height="20" rx="6" fill="var(--fl-sign)" ${o(1.4)}/><circle cx="12" cy="7" r="2.6" fill="var(--fl-sign-ic)"/><path d="M8 19v-6q0-3 4-3t4 3v6" fill="var(--fl-sign-ic)"/><path d="M6 15h12" stroke="var(--fl-sign)" stroke-width="2"/><path d="M21 9h10M21 13h8" stroke="var(--fl-sign-ic)" stroke-width="2" stroke-linecap="round"/>`, 'fl-signsvg');
 
-  /* ---------- aereo (illustrazione della card e dell'atterraggio, viewBox 120×90) ---------- */
+  /* ---------- aereo (illustrazione della card e dell'atterraggio, viewBox 120×90) ----------
+   * Di lato, muso a sinistra: ali e piano di coda "a freccia" all'indietro (le punte stanno più verso la coda della
+   * radice, il bordo d'attacco sale verso la coda), deriva inclinata verso la coda. */
   function plane(extra = '') {
     return `<path d="M14 58q8-12 22-13h52q16 0 22 10q-6 9-22 9H36q-14 0-22-6z" fill="var(--fl-plane)" ${o(2)}/>
-      <path d="M86 45l14-22h7l-6 22z" fill="var(--fl-tail)" ${o(1.8)}/><path d="M56 56l-14 20h9l20-20z" fill="var(--fl-wing)" ${o(1.8)}/>
-      <path d="M58 45l-8-11h7l12 11z" fill="var(--fl-wing)" ${o(1.6)}/>
+      <path d="M86 45l14-22h7l-6 22z" fill="var(--fl-tail)" ${o(1.8)}/><path d="M90 58l12 9h6l-3-10z" fill="var(--fl-wing)" ${o(1.4)}/>
+      <path d="M48 57l18 21h9l-4-21z" fill="var(--fl-wing)" ${o(1.8)}/>
+      <path d="M52 45l11-12h6l1 12z" fill="var(--fl-wing)" ${o(1.6)}/>
       <path d="M18 54q4-5 10-6v6z" fill="var(--fl-sky-d)" ${o(1.4)}/>
       ${[40, 52, 64, 76].map((x) => `<circle cx="${x}" cy="52" r="3.6" fill="var(--fl-sky-d)" ${o(1.2)}/>`).join('')}
       <path d="M36 60h52" stroke="var(--fl-stripe)" stroke-width="3" stroke-linecap="round"/>
