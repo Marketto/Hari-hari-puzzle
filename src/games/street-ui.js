@@ -27,6 +27,7 @@
     pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause',
   };
   const L = (k) => label(k, EN[k] || k);
+  const PHONE = '<svg viewBox="0 0 100 100" aria-hidden="true"><g class="st-phone-g"><rect x="30" y="12" width="40" height="76" rx="9" fill="var(--card-solid)" stroke="var(--ink)" stroke-width="4"/><rect x="36" y="22" width="28" height="52" rx="3" fill="var(--accent)" opacity=".35"/><circle cx="50" cy="81" r="3" fill="var(--ink)"/></g></svg>';
 
   const A = HH.streetArt;
   const TOKENS = ['ink', 'text', 'text-line', 'hi', 'sky-1', 'sky-2', 'sun', 'star', 'night', 'far', 'far-2', 'mid', 'mid-2', 'awning', 'awning-2',
@@ -63,7 +64,7 @@
     const P = HH.street;
     let s = null, v = null, raf = 0, last = 0, paused = false, over = 0, party = 0, timers = [];
     let wrap, stage, cv, g, msgEl, pauseEl, modesEl, newEl, statusEl, padEl, pauseBtn;
-    let W = 320, H = 200, dpr = 1, k = 32, gy0 = 180, gyF = 110, worldH = 200, overlay = false, overlayFs = false, tall = false, visW = 10, rcam = 0;
+    let W = 320, H = 200, dpr = 1, k = 32, gy0 = 180, gyF = 110, worldH = 200, overlay = false, overlayFs = false, lockedFs = false, turnEl = null, tall = false, visW = 10, rcam = 0;
     let C = {}, IMG = {}, sky = null, themeKey = '', themeAt = 0, touchSeen = coarse();
     let mode = sget('street:mode', 'solo');
     let net = null;                       // { link, sess, role }
@@ -86,6 +87,7 @@
           <div class="st-msg" aria-live="polite"></div>
           <div class="st-new" aria-live="polite" hidden><span class="st-new-tag"></span><span class="st-new-ic"></span><b></b></div>
           <div class="st-status" hidden></div>
+          <div class="st-over st-turn" hidden><div><span class="st-phone">${PHONE}</span><b>${L('ry_turn')}</b></div></div>
           <div class="st-over st-pause" hidden><div><span class="st-play">${IC.play}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small></div></div>
           <div class="st-over st-modes-o" hidden><div class="st-modes"></div></div>
         </div>
@@ -99,6 +101,7 @@
       newEl = el.querySelector('.st-new');
       statusEl = el.querySelector('.st-status');
       pauseEl = el.querySelector('.st-pause');
+      turnEl = el.querySelector('.st-turn');
       modesEl = el.querySelector('.st-modes-o');
       padEl = el.querySelector('.st-pad');
       pauseBtn = el.querySelector('.st-pbtn');
@@ -169,6 +172,7 @@
       if (!stage) return;
       const full = isFs();
       overlayFs = full;
+      if (full !== lockedFs) { lockedFs = full; orient(full); }
       const land = (G.innerWidth || 1) > (G.innerHeight || 1);
       overlay = full || (land && touchSeen && (G.innerHeight || 999) < 560);
       wrap.classList.toggle('st-ov', overlay);
@@ -759,7 +763,7 @@
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
       last = now;
       if (now - themeAt > 1000) { themeAt = now; theme(false); }
-      if (isFs() !== overlayFs) measure();          // schermo intero acceso/spento dall'app (classe fs-on)
+      if (isFs() !== overlayFs) { measure(); checkTurn(); }          // schermo intero acceso/spento dall'app (classe fs-on)
       if (shake > 0) shake = Math.max(0, shake - dt * 2.5);
       if (net) {
         net.sess.setInput(inputOf(net.role === 'guest' ? 1 : 0));
@@ -806,15 +810,32 @@
     const toggle = () => (paused ? resume() : pause());
 
     function onVis() { if (!el.isConnected) { detach(); return; } if (document.hidden && !net) pause(); }
-    function onResize() { measure(); draw(performance.now()); }
+    function onResize() { measure(); checkTurn(); draw(performance.now()); }
     function onFull() {
-      later(() => { measure(); draw(performance.now()); }, 120);
+      later(() => { measure(); checkTurn(); draw(performance.now()); }, 120);
+    }
+    // a schermo intero si gioca in orizzontale, come il rally: blocco dell'orientamento dove il browser lo permette
+    // (Android a schermo intero), altrimenti un velo che invita a girare il telefono
+    function orient(on) {
+      try {
+        const so = G.screen && G.screen.orientation;
+        if (on && so && so.lock) so.lock('landscape').catch(() => {});
+        else if (!on && so && so.unlock) so.unlock();
+      } catch (e) { /* non supportato */ }
+    }
+    function checkTurn() {
+      if (!turnEl) return;
+      const coarse = !!(G.matchMedia && G.matchMedia('(pointer: coarse)').matches);
+      const need = isFs() && coarse && (G.innerHeight || 0) > (G.innerWidth || 0);
+      if (need && turnEl.hidden) { turnEl.hidden = false; if (!net) pause(); }
+      else if (!need && !turnEl.hidden) turnEl.hidden = true;
     }
     function onBlur() { pads.forEach((pd) => { pd.keys = {}; }); }
     const mq = G.matchMedia ? G.matchMedia('(prefers-color-scheme: dark)') : null;
     function onTheme() { themeAt = 0; }
     function detach() {
       stop();
+      if (lockedFs) { lockedFs = false; orient(false); }
       leaveNet();
       G.removeEventListener('keydown', onKey); G.removeEventListener('keyup', onKeyUp); G.removeEventListener('blur', onBlur); G.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVis);

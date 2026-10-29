@@ -25,6 +25,9 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.22.1)
+- [x] Hari Snack Street a schermo intero in orizzontale come Hari Rally (blocco dell'orientamento, velo "Gira il telefono" se resta in verticale)
+
 ## Fatto (v0.22.0)
 - [x] **Hari Rally a due giocatori**: "Gioca insieme" (pulsante in alto prima del via e nel menu
   di pausa) con due modi. **Due telefoni** su `HH.mp`: l'host (Hari, fragola) simula tutta la gara con 2 umani e manda

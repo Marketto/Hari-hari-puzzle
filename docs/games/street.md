@@ -140,6 +140,7 @@ attacchi (per esempio orso: angurie+piccoli → angurie+pestone+piccoli → pest
   SVG in stile cel (street-art.js) cotti in bitmap con i colori dei token (tema chiaro/scuro e ambientazione), ordinati
   per profondità, specchiati secondo la direzione. Indicatori sul canvas: energia e speciale per giocatore, cuori della
   squadra, pancia del golosone, "GO →".
+- A schermo intero si gioca in orizzontale, come Hari Rally: `screen.orientation.lock('landscape')` dove il browser lo permette (Android a schermo intero), sblocco all'uscita dallo schermo intero o dal gioco; se il telefono resta in verticale compare il velo "Gira il telefono in orizzontale" (chiave `ry_turn`) e la partita va in pausa (non in rete).
 - In verticale a schermo intero la vista si stringe a 6,5 m attorno ai giocatori (personaggi più grandi) e i comandi
   stanno sotto; in orizzontale la strada riempie tutto e i comandi sono sovrapposti. `prefers-reduced-motion`: niente
   oscillazioni, scossoni, pioggia di frutti animata.

@@ -102,6 +102,13 @@
 /* sovrapposizioni: pausa, scelta della modalità, gira il telefono */
 .st-over { position: absolute; inset: 0; display: grid; place-items: center; background: var(--st-veil); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 4; padding: 10px; }
 .st-over[hidden] { display: none; }
+.st-turn { z-index: 5; }
+.st-turn > div { display: grid; justify-items: center; gap: 8px; }
+.st-turn b { font-family: var(--font-display); font-size: 24px; color: var(--ink); text-align: center; }
+.st-phone svg { width: 84px; height: 84px; }
+.st-phone-g { transform-origin: 50px 50px; animation: st-turn 1.8s ease-in-out infinite; }
+@keyframes st-turn { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+@media (prefers-reduced-motion: reduce) { .st-phone-g { animation: none; transform: rotate(-90deg); } }
 .st-pause b { font-family: var(--font-display); font-size: 28px; color: var(--ink); }
 .st-pause small { display: block; color: var(--ink-2); margin-top: 4px; text-align: center; }
 .st-pause .st-play svg { width: 56px; height: 56px; color: var(--accent); }
