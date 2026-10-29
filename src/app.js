@@ -123,14 +123,20 @@
     return Array.from({ length: max }, (_, i) => `<span class="lv${i < left ? ' on' : ''}${i === lost ? ' lost' : ''}">${ICON.heart}</span>`).join('');
   }
 
+  // "posto" dei progressi e del salvataggio: di solito l'id del gioco; un gioco può averne più d'uno (g.slot(),
+  // es. Hari Taxi: una mappa = livelli e partita propri; la città di Hari resta su 'drive')
+  const slot = (g) => (g && typeof g.slot === 'function' ? g.slot() : g.id);
   function persist() {
     if (!S.game || !S.inst || S.won) return;
     const state = S.inst.snapshot();
-    P.saveGame(S.game.id, { level: P.get(S.game.id).level, elapsed: S.elapsed, state, meta: S.game.meta ? S.game.meta(state) : undefined });
+    if (!state) return;
+    const k = slot(S.game);
+    P.saveGame(k, { level: P.get(k).level, elapsed: S.elapsed, state, meta: S.game.meta ? S.game.meta(state) : undefined });
   }
   function hud() {
     if (!S.inst) return;
     const snap = S.inst.snapshot();
+    if (!snap) return;                   // partita non ancora pronta (es. dati di una mappa in download)
     if (S.game.endless) { const h = $('#hMeta'); if (h && S.game.meta) h.innerHTML = metaHTML(S.game.meta(snap), true); return; }
     const m = $('#hMoves'), tm = $('#hTime'), st = $('#hStars');
     if (m) m.textContent = nf(snap.moves);
@@ -589,10 +595,10 @@
     persist();
     resumeFull();                     // schermo intero voluto ma perso (app in background): si rientra con questo tocco
     S.game = g; S.inst = null; S.won = false;
-    const saved = P.loadGame(id);
+    const saved = P.loadGame(slot(g));
     S.elapsed = saved ? saved.elapsed || 0 : 0;
     HH.store.set('screen', id);
-    const p = P.get(id);
+    const p = P.get(slot(g));
     $('#home').hidden = true;
     const scr = $('#game');
     scr.hidden = false;
@@ -626,7 +632,10 @@
       </div>
       <aside class="rules"><div class="rules-hari">${HH.mascot.svg({ cls: 'hari' })}</div><p>${lab(g.rules, g.rulesEn || g.rules)}</p></aside>`;
     const ctx = {
-      get level() { return P.get(g.id).level; },
+      get level() { return P.get(slot(g)).level; },
+      // cambia "posto" (es. un'altra mappa di Hari Taxi): salva la partita di adesso, poi riapre il gioco sul nuovo
+      // (S.inst = null: openGame non deve risalvare la partita vecchia nel posto nuovo)
+      reslot(fn) { persist(); S.inst = null; if (fn) fn(); openGame(g.id, false); },
       sfx, react, win,
       changed(o) {
         const reset = !!(o && o.reset);
@@ -776,7 +785,8 @@
     if (!g || S.won) return;
     S.won = true;
     const snap = S.inst.snapshot();
-    const p = P.get(g.id);
+    const k = slot(g);
+    const p = P.get(k);
     const level = p.level;
     const st = g.rate(snap);
     const timeBonus = Math.max(0, Math.round((g.parTime(snap) - S.elapsed) * 2));
@@ -786,8 +796,8 @@
       level: level + 1, wins: p.wins + 1, total: p.total + score, stars: p.stars + st, last: st,
       best: Math.max(p.best, score), bestTime: p.bestTime ? Math.min(p.bestTime, S.elapsed) : S.elapsed,
     });
-    P.set(g.id, p);
-    P.clearGame(g.id);
+    P.set(k, p);
+    P.clearGame(k);
     updateScore();
     react('win');
     hideSay();
@@ -824,7 +834,7 @@
     $('#winNext').focus();
     $('#winNext').onclick = () => {
       $('#winDlg').hidden = true;
-      $('#gLevel').textContent = `${t('level')} ${P.get(g.id).level}`;
+      $('#gLevel').textContent = `${t('level')} ${P.get(slot(g)).level}`;
       HH.music.duck(false);
       S.inst.fresh();
       setTimeout(() => say('start', true), 500);

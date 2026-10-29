@@ -61,12 +61,17 @@ test('lazy load: catalogo completo, file esistenti, card e token generati aggior
       assert.ok(!html.includes(f), `${f} caricato all'avvio da index.html`);
       assert.ok(!SHELL.includes(f), `${f} nella shell (deve essere lazy)`);
     }
+    // file extra caricati su richiesta (es. mappe reali di Hari Taxi): esistono e sono lazy anche loro
+    for (const f of g.extra || []) {
+      assert.ok(fs.existsSync(path.join(root, f)), `${f} non esiste`);
+      assert.ok(!html.includes(f) && !SHELL.includes(f), `${f} deve essere lazy`);
+    }
     // logic prima di ui
     const js = g.files.filter((f) => f.endsWith('.js'));
     assert.ok(js[js.length - 1].endsWith('-ui.js'), `${g.id}: la UI deve essere l'ultimo script`);
   }
   // ogni file di gioco del repo è in un catalogo (niente giochi dimenticati)
-  const all = new Set(HH.catalog.flatMap((g) => g.files));
+  const all = new Set(HH.catalog.flatMap((g) => [...g.files, ...(g.extra || [])]));
   for (const f of fs.readdirSync(path.join(root, 'src/games'))) {
     if (['catalog.js', 'cards.js', 'tokens.css'].includes(f)) continue;
     assert.ok(all.has('src/games/' + f), `src/games/${f} non è in nessun gioco del catalogo`);

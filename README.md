@@ -42,5 +42,9 @@ npm run icons   # icone dalla mascotte
 Nessuna dipendenza. Documentazione in [docs/](docs/README.md), lavoro corrente in [TODO.md](TODO.md), piano in [ROADMAP.md](ROADMAP.md).
 Il progetto è pronto per lavorare con agenti: [CLAUDE.md](CLAUDE.md) contiene il router verso agenti e skill in `.claude/`.
 
-## Licenza
-MIT
+## Licenza e crediti
+Codice MIT.
+
+Le mappe reali di Hari Taxi (Ostia, Desenzano del Garda) sono dati derivati da **OpenStreetMap**,
+© OpenStreetMap contributors, disponibili con licenza [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)
+(https://www.openstreetmap.org/copyright). Fonte, date e come rigenerarle: [docs/osm-attribution.md](docs/osm-attribution.md).

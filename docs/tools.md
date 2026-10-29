@@ -49,3 +49,16 @@ In `.claude/settings.json` puoi far girare il controllo traduzioni a ogni modifi
 
 ## gen-cards.mjs (`npm run cards`)
 Genera `src/games/cards.js` (illustrazioni SVG delle card, estratte da `art()` di ogni gioco) e `src/games/tokens.css` (token di colore dei giochi in tema chiaro/scuro + regole CSS usate dalle illustrazioni). Va rilanciato dopo aver cambiato `art`, colori o nome di un gioco; un test controlla che i file siano aggiornati.
+
+## Mappe reali di Hari Taxi (OpenStreetMap)
+Solo per lo sviluppo: il gioco non scarica mai nulla, i dati derivati sono file statici caricati in lazy load.
+| Script | Cosa fa |
+|---|---|
+| `osm-taxi-maps.mjs` | Configurazione delle mappe: area scaricata (`bbox`) e usata (`crop`), metri per casella, semi del mare/lago, luoghi notevoli attesi, ordine dei punti di partenza dei livelli |
+| `osm-taxi-fetch.mjs` | `node tools/osm-taxi-fetch.mjs --cache DIR [id…]`: scarica dall'API OSM 0.6 a tasselli da 0,01° (divisi in 4 se l'API risponde 400), in sequenza con pausa di ~1 s, User-Agent descrittivo, mai due volte lo stesso tassello. Dietro un proxy: `NODE_USE_ENV_PROXY=1` |
+| `osm-xml.mjs` | Lettore minimo dell'XML OSM (nodi, vie, relazioni), fonde i tasselli per id |
+| `osm-taxi.mjs` | `node tools/osm-taxi.mjs --cache DIR [id…] [--png DIR]`: dall'XML in cache a `src/games/drive-map-<id>.js` (zone a corse, grafo stradale, edifici, pontili/binari/castelli, luoghi, nomi; varint + base64) e `src/games/drive-maps.js` (elenco e anteprime). `--png` salva il raster per un controllo a occhio. Stampa dimensioni e statistiche |
+| `drive-maps-e2e.mjs` | Prova reale con Playwright: selettore, Ostia (lungomare, Pontile, spiaggia), Desenzano (porto, lago, castello), minimappa, un livello vinto dal bot su ogni mappa, tema scuro, schermo intero orizzontale, nessun errore in console (`--port`, `--shots DIR`) |
+
+Attribuzione e licenza dei dati: `docs/osm-attribution.md`. Dopo aver rigenerato: `npm test` (dimensioni, connessione,
+raggiungibilità, bot) e `npm run build`.

@@ -27,9 +27,12 @@
     { id: 'street', name: 'Hari Snack Street', since: '0.21.0', rules: 'r20',
       rulesEn: 'Side-scrolling street adventure with Hari and Kiki the squirrel: hungry animals block the way and you "fight" by feeding them! Tap close up, toss from afar, jump, grab a dizzy one for a whole basket and charge a special. Every animal has its own trick, and at the end a big eater rolls melons. Play alone, with a CPU friend or with two players.',
       files: [...f('street.css', 'street-logic.js', 'street-art.js'), 'src/net/sonic.js', 'src/net/qr.js', 'src/net/mp.js', 'src/net/mp-ui.js', 'src/net/mp.css', ...f('street-ui.js')] },
+    // mappe reali (dati OpenStreetMap, ODbL): file extra scaricati solo scegliendo quella mappa (HH.loadFile);
+    // slots = progressi separati per mappa (prog:drive@ostia …), contati nel punteggio totale
     { id: 'drive', name: 'Hari Taxi', since: '0.14.0', rules: 'r13',
       rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
-      files: f('drive.css', 'drive-logic.js', 'drive-ui.js') },
+      files: f('drive.css', 'drive-logic.js', 'drive-maps.js', 'drive-ui.js'),
+      extra: f('drive-map-ostia.js', 'drive-map-desenzano.js'), slots: ['drive@ostia', 'drive@desenzano'] },
     { id: 'spot', name: 'Hari Spot', since: '0.16.0', rules: 'r16',
       rulesEn: 'Two pictures of the city or the forest, almost the same: find every difference! Tap it on either picture to circle it. The magnifier shows where to look, but costs a strawberry; random taps cost a little time.',
       files: f('spot.css', 'spot-logic.js', 'spot-art.js', 'spot-ui.js') },
@@ -82,6 +85,12 @@
       .then(() => { const g = HH.gameLoaded(id); if (!g) throw new Error('game not registered ' + id); return g; })
       .finally(() => { delete loading[id]; });
     return loading[id];
+  };
+  // file extra di un gioco (es. una mappa reale di Hari Taxi), scaricato una volta sola su richiesta → Promise
+  const extra = {};
+  HH.loadFile = function (src) {
+    if (!extra[src]) extra[src] = addFile(src).catch((e) => { delete extra[src]; throw e; });
+    return extra[src];
   };
   // il gioco è già disponibile offline? (file nella cache del service worker o già caricato)
   HH.gameOffline = function (id) {

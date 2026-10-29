@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Hari Taxi, mappe reali su telefono vero: fluidità del canvas nelle zone dense, leggibilità dei cartelli
 - [ ] Rally a due su telefoni veri: tempo di costruzione della pista al via (il link aspetta fino a 60 s), comodità dei
   comandi sullo schermo diviso a 800 × 380, fluidità di due viste su un tablet medio
 - [ ] Hari Snack Street su telefono vero: levetta e pulsanti col pollice, schermo diviso in due su tablet, fluidità del canvas
@@ -24,6 +25,9 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.23.0)
+- [x] Hari Taxi, mappe reali da OpenStreetMap: **Ostia** (Lido, dal Porticciolo all'Idroscalo, 5,6 × 4,4 km) e **Desenzano del Garda** (centro, porto vecchio, castello, lungolago, Rivoltella, stazione, 6,2 × 3,3 km) in stile kawaii; selettore all'avvio e dal pulsante mappa, livelli/progressi/salvataggi per mappa (la città di Hari resta su `drive`), attribuzione ODbL in gioco, nel selettore, nella minimappa e in `docs/osm-attribution.md`; testi in 43 lingue
 
 ## Fatto (v0.22.1)
 - [x] Hari Snack Street a schermo intero in orizzontale come Hari Rally (blocco dell'orientamento, velo "Gira il telefono" se resta in verticale)

@@ -21,6 +21,10 @@
     dr_board: 'City: touch and drag to drive', dr_start: 'Touch and drag to drive!',
     dr_m_taxi: 'Pick up the passengers!', dr_m_food: 'Deliver the hot food!', dr_m_parcel: 'Deliver the parcels!',
     dr_thanks: 'Thank you!', dr_late: 'Too late!', dr_time: 'Time left',
+    // mappe (i nomi delle località reali restano quelli di OpenStreetMap, non si traducono)
+    dr_maps: 'Choose the map', dr_map: 'Map', dr_map_hari: 'Hari City', dr_map_real: 'Real streets, kawaii style',
+    dr_loading: 'Loading the map…', dr_map_err: 'This map downloads the first time: connect to the internet and try again!',
+    er_close: 'Close', play: 'Play', level: 'Level',
     // già tradotte (Hari Parade)
     pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause',
   };
@@ -213,7 +217,27 @@
     'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'roof-shade', 'roof-edge', 'roof-hi', 'ac', 'ac-2', 'solar', 'solar-2', 'shadow',
     'tree', 'tree-2', 'tree-hi', 'trunk', 'flower', 'flower-2', 'bench', 'lamp', 'glow', 'beam', 'awning', 'awning-2', 'go', 'amber', 'stop', 'pole',
     'zone', 'zone-2', 'pin', 'pin-2', 'arrow', 'puff', 'star', 'heart', 'text', 'text-line', 'bonk', 'joy', 'joy-2', 'cold', 'steam',
-    'mm', 'mm-line', 'mm-road', 'mm-bld', 'mm-park', 'dusk', 'night', 'taxi', 'scoot', 'van'];
+    'mm', 'mm-line', 'mm-road', 'mm-bld', 'mm-park', 'dusk', 'night', 'taxi', 'scoot', 'van',
+    // mappe reali
+    'sea', 'sea-2', 'foam', 'sand', 'sand-2', 'field', 'field-2', 'parking', 'rail', 'rail-2', 'wood', 'wood-2', 'boat', 'boat-2', 'sail',
+    'umb-1', 'umb-2', 'umb-3', 'castle', 'castle-2', 'mm-water', 'mm-sand', 'street', 'street-ink',
+    'pizza', 'pizza-2', 'p1', 'cake-2', 'ramen', 'tape', 'check', 'bus', 'glass', 'head'];
+  const OSM_ATTR = '© OpenStreetMap contributors';   // attribuzione obbligatoria (ODbL): mai tradotta
+  /* mappe: "hari" = città procedurale (predefinita, progressi su 'drive'); le altre = HH.driveMapList (drive-maps.js) */
+  const mapList = () => [{ id: 'hari' }].concat(HH.driveMapList || []);
+  const mapMeta = (id) => mapList().find((m) => m.id === id) || null;
+  const mapName = (id) => (id === 'hari' ? L('dr_map_hari') : (mapMeta(id) || {}).name || id);
+  const storeGet = (k, d) => { try { return HH.store && HH.store.get ? HH.store.get(k, d) : d; } catch (e) { return d; } };
+  const storeSet = (k, v) => { try { if (HH.store && HH.store.set) HH.store.set(k, v); } catch (e) { /* niente salvataggio */ } };
+  const curMap = () => { const id = storeGet('drive:map', 'hari'); return mapMeta(id) ? id : 'hari'; };
+  const slotOf = (id) => (id === 'hari' ? 'drive' : 'drive@' + id);
+  // file dati della mappa (lazy load, una volta sola; nel file unico è già dentro)
+  function loadMap(id) {
+    if (id === 'hari' || (HH.driveMaps && HH.driveMaps[id])) return Promise.resolve();
+    const m = mapMeta(id);
+    if (!m || !HH.loadFile) return Promise.reject(new Error('map ' + id));
+    return HH.loadFile(m.file).then(() => { if (!HH.driveMaps || !HH.driveMaps[id]) throw new Error('map ' + id); });
+  }
   const CH = 8;              // caselle per blocco di città in cache
 
   function create(el, ctx, saved) {
@@ -223,7 +247,7 @@
     let W = 300, H = 400, dpr = 1, TS = 40, rs = 1, camX = 0, camY = 0;
     let C = {}, IMG = {}, themeKey = '', themeAt = 0, bakedAt = '', chunks = new Map(), mini = null, showMap = true;
     let joy = null, keys = {}, lastChanged = 0, parts = [], ghosts = [], routeAt = 0, routePt = null, shake = 0;
-    let lastBar = '', mmRect = null, sndHonk = 0;
+    let peekPt = null, lastBar = '', mmRect = null, sndHonk = 0, streetAt = 0, streetKey = '', budget = 0, mapsEl = null, mbtn, streetEl;
     const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
     try { showMap = !(HH.store && HH.store.get && HH.store.get('drive:nomap')); } catch (e) { showMap = true; }
@@ -235,12 +259,14 @@
         <div class="dr-bar">
           <span class="dr-mis" role="img" aria-label="${L('dr_m_' + s.type)}"><span class="dr-ic">${svgIc(ICON[s.type])}</span><b></b></span>
           <span class="dr-time idle" role="img" aria-label="${L('dr_time')}"><span class="dr-ic"></span><span class="dr-track"><i class="dr-fill"></i></span><span class="dr-load"></span></span>
+          <button class="dr-mbtn" type="button" aria-label="${L('dr_map')}: ${esc(mapName(s.mapId || 'hari'))}">${MAPIC}</button>
           <button class="dr-pbtn" type="button" aria-label="${L('pa_pause')}">${PAUSE}</button>
         </div>
         <div class="dr-stage" tabindex="0" role="application" aria-label="${L('dr_board')}">
           <canvas class="dr-cv"></canvas>
           <div class="dr-msg" aria-live="polite"></div>
           <div class="dr-pause" hidden><span class="dr-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small></div>
+          ${P.isOsm(s) ? `<div class="dr-street" hidden>${PINIC}<span></span></div><div class="dr-osm">${OSM_ATTR}</div>` : ''}
         </div>
       </div>`;
       wrap = el.querySelector('.dr-wrap');
@@ -254,6 +280,9 @@
       misEl = el.querySelector('.dr-mis');
       timeEl = el.querySelector('.dr-time');
       loadEl = el.querySelector('.dr-load');
+      mbtn = el.querySelector('.dr-mbtn');
+      streetEl = el.querySelector('.dr-street');
+      streetKey = ''; mapsEl = null;
       parts = []; ghosts = []; party = 0; over = 0; lastBar = ''; routePt = null;
       g0 = P.geo(s);
       theme(true);
@@ -280,6 +309,8 @@
       chunks.clear(); mini = null; bakedAt = '';
       if (stage) bakeAll();
     }
+    // token senza partita (selettore delle mappe prima di cominciare)
+    function theme0() { wrap = el.querySelector('.dr-wrap'); theme(true); }
     function bakeAll() {
       const ppt = Math.round(TS * Math.min(2, dpr));
       const want = `${ppt}|${themeKey}`;
@@ -316,7 +347,8 @@
       W = stage.clientWidth || 300; H = stage.clientHeight || 400;
       dpr = Math.min(2, G.devicePixelRatio || 1);
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      const nt = Math.max(34, Math.min(58, Math.round(Math.min(W, H * 0.95) / 8.2)));
+      // mappe reali: un filo più di città sullo schermo (le vie vere sono più lunghe e curve)
+      const nt = P.isOsm(s) ? Math.max(30, Math.min(50, Math.round(Math.min(W, H * 0.95) / 11))) : Math.max(34, Math.min(58, Math.round(Math.min(W, H * 0.95) / 8.2)));
       if (nt !== TS) { TS = nt; chunks.clear(); }
       rs = Math.min(dpr, 1.5);
       bakeAll();
@@ -334,12 +366,15 @@
       const k = cx + ',' + cy;
       let c = chunks.get(k);
       if (c) return c;
-      if (chunks.size > 16) chunks.delete(chunks.keys().next().value);
+      // mappe reali: al massimo pochi blocchi nuovi per fotogramma (niente scatti quando si entra in una zona nuova)
+      if (g0.osm && budget <= 0) return null;
+      budget--;
+      if (chunks.size > (g0.osm ? 28 : 16)) chunks.delete(chunks.keys().next().value);
       c = document.createElement('canvas');
       c.width = c.height = Math.ceil(CH * TS * rs);
       const b = c.getContext('2d');
       b.setTransform(TS * rs, 0, 0, TS * rs, -cx * CH * TS * rs, -cy * CH * TS * rs);
-      paintArea(b, cx * CH, cy * CH, CH, CH);
+      if (g0.osm) paintOsm(b, cx * CH, cy * CH, CH, CH); else paintArea(b, cx * CH, cy * CH, CH, CH);
       chunks.set(k, c);
       return c;
     }
@@ -524,6 +559,406 @@
       b.restore();
     }
 
+    /* ---------- mappe reali (OpenStreetMap) dipinte in stile kawaii ----------
+     * Stessa resa della città di Hari: zone a "bolle" morbide dal raster (parchi con alberi tondi, campi a righe,
+     * spiaggia con ombrelloni, mare/lago con increspature, pontili di legno), edifici come tetti pastello con ombra,
+     * marciapiedi con cordolo e asfalto dal grafo stradale (curve vere), strisce e semafori agli incroci, lampioni,
+     * icone dei luoghi. Tutto a blocchi in cache come la città di Hari; a ogni fotogramma solo onde, barchette,
+     * cartelli dei luoghi notevoli e il traffico. */
+    let OS = null;
+    const LANDMARK = new Set(['pier', 'castle', 'harbour', 'station', 'square', 'sight', 'beach', 'park', 'taxi']);
+    const BADGE = new Set(['food', 'cafe', 'gelato', 'bakery', 'shop', 'depot', 'taxi', 'station', 'beach', 'pier', 'castle', 'harbour', 'sight']);
+    function osmPrep() {
+      if (OS && OS.id === s.mapId) return OS;
+      const md = P.mapData(s.mapId), blds = P.buildings(md), BC = 8, Wm = md.W, Hm = md.H;
+      const bw = Math.ceil(Wm / BC), bh = Math.ceil(Hm / BC);
+      const grid = () => Array.from({ length: bw * bh }, () => []);
+      const put = (gr, x0, y0, x1, y1, id) => {
+        for (let cy = Math.max(0, Math.floor(y0 / BC)); cy <= Math.min(bh - 1, Math.floor(y1 / BC)); cy++) for (let cx = Math.max(0, Math.floor(x0 / BC)); cx <= Math.min(bw - 1, Math.floor(x1 / BC)); cx++) gr[cy * bw + cx].push(id);
+      };
+      const bgrid = grid(), pgrid = grid();
+      for (const b of blds) {
+        let a = 0, cx = 0, cy = 0;
+        for (let i = 0, j = b.p.length - 1; i < b.p.length; j = i++) { const f = b.p[j][0] * b.p[i][1] - b.p[i][0] * b.p[j][1]; a += f; cx += (b.p[j][0] + b.p[i][0]) * f; cy += (b.p[j][1] + b.p[i][1]) * f; }
+        b.area = Math.abs(a / 2); b.cx = a ? cx / (3 * a) : b.p[0][0]; b.cy = a ? cy / (3 * a) : b.p[0][1];
+        put(bgrid, b.x0 - 0.5, b.y0 - 0.5, b.x1 + 0.8, b.y1 + 0.8, b.id);
+      }
+      for (const p of md.pois) if (BADGE.has(p.k)) put(pgrid, p.x - 1, p.y - 1, p.x + 1, p.y + 1, p.id);
+      // barchette: al largo vicino alla riva e attorno ai porti (ormeggiate)
+      const boats = [], A = P.AR, area = md.area;
+      const water = (x, y) => x >= 0 && y >= 0 && x < Wm && y < Hm && area[y * Wm + x] === A.WATER;
+      const openWater = (x, y, r) => { for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (!water(x + dx, y + dy)) return false; return true; };
+      for (let y = 2; y < Hm - 2; y += 3) for (let x = 2; x < Wm - 2; x += 3) {
+        if (!water(x, y) || hash(x, y, 11) > 0.035 || !openWater(x, y, 2)) continue;
+        let shore = false;
+        for (let r = 3; r <= 30 && !shore; r += 3) if (!water(x + r, y) || !water(x - r, y) || !water(x, y + r) || !water(x, y - r)) shore = true;
+        if (shore) boats.push({ x: x + 0.5, y: y + 0.5, a: hash(y, x, 3) * 6.28, k: hash(x, y, 4) < 0.5 ? 0 : 1, ph: hash(x, y, 9) * 6 });
+      }
+      for (const p of md.pois) if (p.k === 'harbour') {
+        let n = 0;
+        for (let r = 1; r <= 7 && n < 5; r++) for (let k = 0; k < 8 && n < 5; k++) {
+          const x = Math.round(p.x + Math.cos(k * 0.785 + r) * r), y = Math.round(p.y + Math.sin(k * 0.785 + r) * r);
+          if (water(x, y) && openWater(x, y, 0) && !boats.some((q) => Math.hypot(q.x - x, q.y - y) < 1.4)) { boats.push({ x: x + 0.5, y: y + 0.5, a: k * 0.785, k: 1 - (n % 2), ph: n, moor: true }); n++; }
+        }
+      }
+      OS = { id: s.mapId, md, blds, BC, bw, bh, bgrid, pgrid, boats, labels: md.pois.filter((p) => LANDMARK.has(p.k) && p.name) };
+      return OS;
+    }
+    function cellIds(gr, O, x0, y0, x1, y1, seen) {
+      const out = [];
+      for (let cy = Math.max(0, Math.floor(y0 / O.BC)); cy <= Math.min(O.bh - 1, Math.floor(y1 / O.BC)); cy++) for (let cx = Math.max(0, Math.floor(x0 / O.BC)); cx <= Math.min(O.bw - 1, Math.floor(x1 / O.BC)); cx++) {
+        for (const id of gr[cy * O.bw + cx]) if (!seen.has(id)) { seen.add(id); out.push(id); }
+      }
+      return out;
+    }
+    function edgesIn(x0, y0, x1, y1) {
+      const G = g0, seen = new Set(), out = [];
+      for (let cy = Math.max(0, Math.floor(y0 / G.EC)); cy <= Math.min(G.eh - 1, Math.floor(y1 / G.EC)); cy++) for (let cx = Math.max(0, Math.floor(x0 / G.EC)); cx <= Math.min(G.ew - 1, Math.floor(x1 / G.EC)); cx++) {
+        for (const id of G.egrid[cy * G.ew + cx]) if (!seen.has(id)) { seen.add(id); out.push(G.edges[id]); }
+      }
+      return out;
+    }
+    // poligono con gli angoli arrotondati (raggio al massimo r, mai oltre metà lato): tetti e pontili morbidi
+    function roundPoly(b, pts, r) {
+      const n = pts.length;
+      const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+      const m0 = mid(pts[n - 1], pts[0]);
+      b.moveTo(m0[0], m0[1]);
+      for (let i = 0; i < n; i++) {
+        const p = pts[i], q = pts[(i + 1) % n], pr = pts[(i - 1 + n) % n];
+        const rr = Math.min(r, Math.hypot(p[0] - pr[0], p[1] - pr[1]) / 2, Math.hypot(q[0] - p[0], q[1] - p[1]) / 2);
+        b.arcTo(p[0], p[1], q[0], q[1], rr);
+      }
+      b.closePath();
+    }
+    const polyPath = (b, pts) => { b.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) b.lineTo(pts[i][0], pts[i][1]); };
+    // tratto di mezzeria tra t0 e t1 (per la linea tratteggiata)
+    function subLine(e, t0, t1) { const out = []; const C0 = g0.center[e.id]; for (let t = t0; t < t1; t += 0.5) out.push(P.along(C0, t)); out.push(P.along(C0, t1)); return out; }
+    function paintOsm(b, x0, y0, w, h) {
+      const O = osmPrep(), G = g0, md = O.md, A = P.AR, Wm = md.W, Hm = md.H, area = md.area;
+      const X0 = Math.max(0, x0 - 2), Y0 = Math.max(0, y0 - 2), X1 = Math.min(Wm, x0 + w + 2), Y1 = Math.min(Hm, y0 + h + 2);
+      const at = (x, y) => (x < 0 || y < 0 || x >= Wm || y >= Hm ? -1 : area[y * Wm + x]);
+      b.fillStyle = C.grass; b.fillRect(x0 - 1, y0 - 1, w + 2, h + 2);
+      // zone dal raster, ma con il bordo morbido: campo levigato (finestra 4×4 con pesi 1-3-3-1) e "marching squares"
+      // interpolati a metà, così coste, rive e spiagge sono curve e non scalini. Pontili e binari sono vettoriali.
+      const WT = [1, 3, 3, 1];
+      // (sotto i pontili c'è acqua: il pontile vettoriale ci va sopra)
+      const mem = (c, x, y) => { const v = area[Math.min(Hm - 1, Math.max(0, y)) * Wm + Math.min(Wm - 1, Math.max(0, x))]; return v === c || (c === A.WATER && v === A.PIER) ? 1 : 0; };
+      const fieldOf = (c) => {
+        const fw = X1 - X0 + 1, fh = Y1 - Y0 + 1, f = new Float32Array(fw * fh);
+        for (let j = 0; j < fh; j++) for (let i = 0; i < fw; i++) {
+          let v = 0;
+          for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) v += WT[dx] * WT[dy] * mem(c, X0 + i + dx - 2, Y0 + j + dy - 2);
+          f[j * fw + i] = v / 64;
+        }
+        return { f, fw };
+      };
+      const ORDER = [[A.FIELD, C.field], [A.PARK, C['grass-2']], [A.PARKING, C.parking], [A.PLAZA, C.walk], [A.SAND, C.sand], [A.WATER, C.sea]];
+      const inside = {};
+      for (const [c, col] of ORDER) {
+        let any = false;
+        for (let y = Y0 - 2; y < Y1 + 2 && !any; y++) for (let x = X0 - 2; x < X1 + 2; x++) if (mem(c, x, y)) { any = true; break; }
+        if (!any) continue;
+        const { f, fw } = fieldOf(c), V = (i, j) => f[(j - Y0) * fw + (i - X0)];
+        // soglia: l'acqua (sopra a tutto) al bordo vero; le altre zone un filo più larghe, così sotto l'acqua o tra
+        // spiaggia e mare non resta una striscia d'erba
+        const TH = c === A.WATER ? 0.5 : 0.32;
+        inside[c] = (x, y) => V(x, y) >= 0.5 && V(x + 1, y) >= 0.5 && V(x, y + 1) >= 0.5 && V(x + 1, y + 1) >= 0.5;
+        const foam = [];
+        b.fillStyle = col; b.beginPath();
+        for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
+          const cs = [[x, y, V(x, y)], [x + 1, y, V(x + 1, y)], [x + 1, y + 1, V(x + 1, y + 1)], [x, y + 1, V(x, y + 1)]];
+          const ins = cs.map((q) => q[2] >= TH);
+          if (!ins.some(Boolean)) continue;
+          if (ins.every(Boolean)) { b.rect(x - 0.01, y - 0.01, 1.02, 1.02); continue; }
+          const poly = [];
+          for (let k = 0; k < 4; k++) {
+            const A0 = cs[k], B0 = cs[(k + 1) % 4];
+            if (ins[k]) poly.push([A0[0], A0[1], 0]);
+            if (ins[k] !== ins[(k + 1) % 4]) { const t = (TH - A0[2]) / (B0[2] - A0[2]); poly.push([A0[0] + (B0[0] - A0[0]) * t, A0[1] + (B0[1] - A0[1]) * t, 1]); }
+          }
+          b.moveTo(poly[0][0], poly[0][1]);
+          for (let k = 1; k < poly.length; k++) b.lineTo(poly[k][0], poly[k][1]);
+          b.closePath();
+          if (c === A.WATER) for (let k = 0; k < poly.length; k++) { const P0 = poly[k], P1 = poly[(k + 1) % poly.length]; if (P0[2] && P1[2]) foam.push(P0, P1); }
+        }
+        b.fill();
+        // schiuma lungo la riva
+        if (foam.length) {
+          b.strokeStyle = C.foam; b.lineWidth = 0.14; b.lineCap = 'round'; b.beginPath();
+          for (let k = 0; k < foam.length; k += 2) { b.moveTo(foam[k][0], foam[k][1]); b.lineTo(foam[k + 1][0], foam[k + 1][1]); }
+          b.stroke();
+        }
+      }
+      const deep = (c, x, y) => !!inside[c] && inside[c](x, y);
+      // binari e pontili vettoriali (estremi tondi)
+      const vec = P.vectors(md).filter((v) => v.pts.some(([px, py]) => px > x0 - 12 && px < x0 + w + 12 && py > y0 - 12 && py < y0 + h + 12));
+      b.lineCap = 'round'; b.lineJoin = 'round';
+      for (const v of vec) if (v.k === 'rail') {
+        b.strokeStyle = C.rail; b.lineWidth = 0.9; b.beginPath(); polyPath(b, v.pts); b.stroke();
+        b.strokeStyle = C['rail-2']; b.lineWidth = 0.5; b.setLineDash([0.1, 0.22]); b.beginPath(); polyPath(b, v.pts); b.stroke(); b.setLineDash([]);
+        for (const off of [-0.2, 0.2]) { b.strokeStyle = C.pole; b.lineWidth = 0.05; b.beginPath(); polyPath(b, P.offsetLine(v.pts, off)); b.stroke(); }
+      }
+      for (const v of vec) if (v.k === 'pierArea') {
+        b.fillStyle = C.shadow; b.beginPath(); b.save(); b.translate(0.08, 0.12); roundPoly(b, v.pts, 0.25); b.restore(); b.fill();
+        b.fillStyle = C.wood; b.beginPath(); roundPoly(b, v.pts, 0.25); b.fill();
+        b.save(); b.clip(); b.strokeStyle = C['wood-2']; b.lineWidth = 0.035; b.beginPath();
+        let mx0 = 1e9, my0 = 1e9, mx1 = -1e9, my1 = -1e9; for (const [px, py] of v.pts) { mx0 = Math.min(mx0, px); my0 = Math.min(my0, py); mx1 = Math.max(mx1, px); my1 = Math.max(my1, py); }
+        const horiz = mx1 - mx0 < my1 - my0;
+        if (horiz) for (let q = my0; q < my1; q += 0.28) { b.moveTo(mx0, q); b.lineTo(mx1, q); } else for (let q = mx0; q < mx1; q += 0.28) { b.moveTo(q, my0); b.lineTo(q, my1); }
+        b.stroke(); b.restore();
+        b.strokeStyle = C['wood-2']; b.lineWidth = 0.06; b.beginPath(); roundPoly(b, v.pts, 0.25); b.stroke();
+      }
+      for (const v of vec) if (v.k === 'pier') {
+        b.strokeStyle = C['wood-2']; b.lineWidth = 1.0; b.beginPath(); polyPath(b, v.pts); b.stroke();
+        b.strokeStyle = C.wood; b.lineWidth = 0.86; b.beginPath(); polyPath(b, v.pts); b.stroke();
+        b.strokeStyle = C['wood-2']; b.lineWidth = 0.6; b.setLineDash([0.04, 0.24]); b.lineCap = 'butt'; b.beginPath(); polyPath(b, v.pts); b.stroke(); b.setLineDash([]); b.lineCap = 'round';
+      }
+      // dettagli delle zone (solo ben dentro la zona disegnata)
+      for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
+        const c = area[y * Wm + x], hv = hash(x, y, 21);
+        if (!deep(c, x, y)) continue;
+        if (c === A.WATER) {
+          if (hv < 0.08) { b.strokeStyle = C['sea-2']; b.lineWidth = 0.06; b.lineCap = 'round'; b.beginPath(); const cx = x + 0.2 + hash(y, x) * 0.6, cy = y + 0.3 + hash(x, y, 2) * 0.5; b.arc(cx, cy, 0.18, 3.6, 5.8); b.stroke(); }
+        } else if (c === A.SAND) {
+          if (hv < 0.35) { b.fillStyle = C['sand-2']; b.beginPath(); b.arc(x + hash(y, x, 3), y + hash(x, y, 4), 0.04, 0, 7); b.fill(); }
+          if (hv > 0.9 && deep(A.SAND, x, y - 1) && deep(A.SAND, x, y + 1) && !G.road[y * Wm + x]) umbrella(b, x + 0.5, y + 0.5, hash(x, y, 7));
+        } else if (c === A.FIELD) {
+          b.strokeStyle = C['field-2']; b.lineWidth = 0.08; b.lineCap = 'round';
+          b.beginPath(); for (let k = 0; k < 3; k++) { b.moveTo(x + 0.1, y + 0.2 + k * 0.3); b.lineTo(x + 0.9, y + 0.2 + k * 0.3); } b.stroke();
+        } else if (c === A.PARKING) {
+          b.strokeStyle = C.mark; b.globalAlpha = 0.6; b.lineWidth = 0.05; b.beginPath(); b.moveTo(x + 0.5, y + 0.15); b.lineTo(x + 0.5, y + 0.85); b.stroke(); b.globalAlpha = 1;
+        }
+      }
+      // castelli: cortile e mura merlate (sotto gli edifici del castello, se mappati)
+      for (const v of vec) if (v.k === 'castle') {
+        b.fillStyle = C.shadow; b.beginPath(); b.save(); b.translate(0.15, 0.2); roundPoly(b, v.pts, 0.3); b.restore(); b.fill();
+        b.fillStyle = C.castle; b.beginPath(); roundPoly(b, v.pts, 0.3); b.fill();
+        b.strokeStyle = C['castle-2']; b.lineWidth = 0.5; b.setLineDash([0.32, 0.22]); b.lineCap = 'butt'; b.beginPath(); roundPoly(b, v.pts, 0.3); b.stroke(); b.setLineDash([]);
+        b.strokeStyle = C.ink; b.lineWidth = 0.05; b.lineCap = 'round'; b.beginPath(); roundPoly(b, v.pts, 0.3); b.stroke();
+        b.save(); b.beginPath(); roundPoly(b, v.pts.map(([px, py]) => [px, py]), 0.3); b.clip();
+        b.fillStyle = C['grass-2']; b.beginPath(); let cx = 0, cy = 0; for (const [px, py] of v.pts) { cx += px; cy += py; } cx /= v.pts.length; cy /= v.pts.length; b.arc(cx, cy, 0.9, 0, 7); b.fill(); b.restore();
+      }
+      // edifici: tetti pastello con ombra
+      const seen = new Set(), pal = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'];
+      const bl = cellIds(O.bgrid, O, x0 - 1, y0 - 1, x0 + w + 1, y0 + h + 1, seen).map((i) => O.blds[i]);
+      b.lineJoin = 'round'; b.lineCap = 'round';
+      for (const B of bl) {
+        const tall = 0.07 + Math.min(6, B.lv) * 0.035;
+        b.fillStyle = C.shadow; b.beginPath(); b.save(); b.translate(tall, tall * 1.2); roundPoly(b, B.p, 0.22); b.restore(); b.fill();
+      }
+      for (const B of bl) {
+        const hv = hash(B.id, 7, 3);
+        const col = B.kind === 1 ? C.r7 : B.kind === 2 ? C.ac : C[pal[Math.floor(hv * pal.length)]];
+        b.fillStyle = col; b.beginPath(); roundPoly(b, B.p, 0.22); b.fill();
+        // bordo interno chiaro (tetto "imbottito"): il contorno ripassato largo, solo dentro il poligono
+        b.save(); b.clip(); b.strokeStyle = C['roof-hi']; b.lineWidth = Math.min(0.32, 0.12 + B.area * 0.01); b.stroke(); b.restore();
+        b.strokeStyle = C['roof-edge']; b.lineWidth = 0.05; b.stroke();
+        if (B.area > 2.5) {
+          if (B.kind === 2) { b.strokeStyle = C['ac-2']; b.lineWidth = 0.05; b.beginPath(); for (let i = -2; i <= 2; i++) { b.moveTo(B.cx - 0.6, B.cy + i * 0.25); b.lineTo(B.cx + 0.6, B.cy + i * 0.25); } b.stroke(); }
+          else if (hv * 7 % 1 < 0.35 && B.area > 4) { b.fillStyle = C.ac; rrect(b, B.cx - 0.2, B.cy - 0.15, 0.4, 0.3, 0.06); b.fill(); b.fillStyle = C['ac-2']; b.beginPath(); b.arc(B.cx, B.cy, 0.09, 0, 7); b.fill(); }
+          else if (hv * 7 % 1 < 0.55 && B.area > 4) { for (let i = 0; i < 3; i++) { b.fillStyle = C.solar; b.fillRect(B.cx - 0.5 + i * 0.36, B.cy - 0.18, 0.3, 0.36); b.fillStyle = C['solar-2']; b.fillRect(B.cx - 0.5 + i * 0.36, B.cy - 0.18, 0.3, 0.05); } }
+          else if (hv * 7 % 1 < 0.65) { b.fillStyle = C['grass-2']; b.beginPath(); b.arc(B.cx, B.cy, Math.min(0.5, Math.sqrt(B.area) * 0.18), 0, 7); b.fill(); b.fillStyle = C.flower; b.beginPath(); b.arc(B.cx + 0.1, B.cy - 0.06, 0.07, 0, 7); b.fill(); }
+        }
+        if (B.kind === 1) { b.strokeStyle = C.hi; b.lineWidth = 0.09; b.beginPath(); b.moveTo(B.cx, B.cy - 0.3); b.lineTo(B.cx, B.cy + 0.3); b.moveTo(B.cx - 0.2, B.cy - 0.1); b.lineTo(B.cx + 0.2, B.cy - 0.1); b.stroke(); }
+      }
+      // alberi tondi nei parchi (non attaccati alle strade)
+      for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
+        if (area[y * Wm + x] !== A.PARK || hash(x, y, 31) > 0.42) continue;
+        let near = false;
+        for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1; dx++) { const i = (y + dy) * Wm + x + dx; if (G.road[i]) { near = true; break; } }
+        if (near) continue;
+        tree(b, x + 0.5 + (hash(y, x, 5) - 0.5) * 0.4, y + 0.5 + (hash(x, y, 6) - 0.5) * 0.4, 0.34 + hash(x, y, 3) * 0.16, hash(x, y, 9));
+      }
+      // strade: cordolo e marciapiede, poi asfalto (vie pedonali lastricate), incroci, mezzeria, strisce
+      const es = edgesIn(x0 - 3, y0 - 3, x0 + w + 3, y0 + h + 3);
+      b.lineCap = 'round'; b.lineJoin = 'round';
+      const strokeAll = (list, width, col) => { b.strokeStyle = col; for (const e of list) { b.lineWidth = width(e); b.beginPath(); polyPath(b, e.pts); b.stroke(); } };
+      const fast = es.filter((e) => !e.slow), slow = es.filter((e) => e.slow);
+      strokeAll(fast, (e) => 2 * (e.hw + P.ASPH + 0.62), C.curb);
+      strokeAll(fast, (e) => 2 * (e.hw + P.ASPH + 0.55), C.walk);
+      strokeAll(slow, (e) => 2 * (e.hw + P.ASPH), C['walk-2']);
+      strokeAll(slow, (e) => 2 * (e.hw + P.ASPH) - 0.14, C.walk);
+      strokeAll(fast, (e) => 2 * (e.hw + P.ASPH), C.road);
+      const nodes = new Set();
+      for (const e of es) { nodes.add(e.a); nodes.add(e.b); }
+      for (const n of nodes) {
+        const N = G.nodes[n];
+        if (N.deg < 3) continue;
+        b.fillStyle = C['road-2']; b.beginPath(); b.arc(N.x, N.y, N.hw + P.ASPH * 0.6, 0, 7); b.fill();
+      }
+      b.strokeStyle = C.mark; b.lineWidth = 0.07; b.setLineDash([0.42, 0.38]);
+      for (const e of fast) {
+        if (e.one || e.hw < 0.85) continue;
+        const t0 = G.nodes[e.a].r + 0.3, t1 = e.len - G.nodes[e.b].r - 0.3;
+        if (t1 - t0 < 0.8) continue;
+        b.beginPath(); polyPath(b, subLine(e, t0, t1)); b.stroke();
+      }
+      b.setLineDash([]);
+      for (const n of nodes) {
+        const N = G.nodes[n];
+        if (!N.lit || N.deg > 4) continue;
+        for (const i of N.inc) {
+          const e = G.edges[i];
+          if (e.slow || e.len < 2 * N.r + 1) continue;
+          const t = e.a === n ? N.r - 0.4 : e.len - N.r + 0.4;
+          if (t < 0.3 || t > e.len - 0.3) continue;
+          const [x, y, a] = P.along(G.center[e.id], t), half = e.hw + P.ASPH - 0.12;
+          b.save(); b.translate(x, y); b.rotate(a);
+          b.fillStyle = C.zebra;
+          for (let v = -half; v <= half - 0.12; v += 0.27) b.fillRect(-0.3, v, 0.6, 0.15);
+          // linea d'arresto per chi arriva (sul suo lato destro)
+          const into = e.a === n ? -1 : 1;
+          b.fillStyle = C.mark; b.fillRect(into > 0 ? -0.42 : 0.35, into > 0 ? 0 : -half, 0.07, half);
+          b.restore();
+        }
+      }
+      // lampioni lungo i marciapiedi
+      for (const e of fast) for (let t = 2; t < e.len - 1; t += 4) {
+        const [x, y, a] = P.along(G.center[e.id], t), sd = Math.floor(t / 4) % 2 ? 1 : -1, off = e.hw + P.ASPH + 0.3;
+        const lx = x - Math.sin(a) * off * sd, ly = y + Math.cos(a) * off * sd;
+        if (lx < x0 - 2 || lx > x0 + w + 2 || ly < y0 - 2 || ly > y0 + h + 2) continue;
+        b.fillStyle = C.pole; b.beginPath(); b.arc(lx, ly, 0.06, 0, 7); b.fill();
+        b.fillStyle = C.lamp; b.beginPath(); b.arc(lx, ly, 0.1, 0, 7); b.fill();
+        if (C.night) { const gr = b.createRadialGradient(lx, ly, 0, lx, ly, 1.5); gr.addColorStop(0, C.glow); gr.addColorStop(1, 'rgba(0,0,0,0)'); b.fillStyle = gr; b.globalCompositeOperation = 'lighter'; b.fillRect(lx - 1.5, ly - 1.5, 3, 3); b.globalCompositeOperation = 'source-over'; }
+      }
+      // ristoranti e deposito del livello: tendina a righe / portone sul lato verso le case
+      for (const id of s.rest) shopSignO(b, G.spots[id], 'food');
+      if (s.depot >= 0) shopSignO(b, G.spots[s.depot], 'depot');
+      // icone dei luoghi
+      const ps = cellIds(O.pgrid, O, x0 - 1, y0 - 1, x0 + w + 1, y0 + h + 1, new Set()).map((i) => md.pois[i]);
+      for (const p of ps) poiIcon(b, p.k, p.x, p.y, ['pier', 'castle', 'harbour', 'station'].includes(p.k) ? 0.42 : 0.3);
+    }
+    function umbrella(b, x, y, hv) {
+      const cols = [C['umb-1'], C['umb-2'], C['umb-3']], r = 0.34;
+      b.fillStyle = C.shadow; b.beginPath(); b.ellipse(x + 0.12, y + 0.14, r, r * 0.8, 0, 0, 7); b.fill();
+      for (let k = 0; k < 8; k++) { b.fillStyle = k % 2 ? C.hi : cols[Math.floor(hv * 3)]; b.beginPath(); b.moveTo(x, y); b.arc(x, y, r, (k * Math.PI) / 4, ((k + 1) * Math.PI) / 4); b.closePath(); b.fill(); }
+      b.strokeStyle = C['roof-edge']; b.lineWidth = 0.03; b.beginPath(); b.arc(x, y, r, 0, 7); b.stroke();
+      b.fillStyle = C.ink; b.beginPath(); b.arc(x, y, 0.04, 0, 7); b.fill();
+      if (hv > 0.5) { b.fillStyle = cols[(Math.floor(hv * 3) + 1) % 3]; rrect(b, x + 0.28, y - 0.05, 0.22, 0.42, 0.05); b.fill(); }
+    }
+    // icone dei luoghi: piccolo bollino tondo con il disegno (solo forme, colori dai token)
+    function poiIcon(b, k, x, y, r) {
+      if (!BADGE.has(k)) return;
+      b.save(); b.translate(x, y);
+      b.fillStyle = C.shadow; b.beginPath(); b.arc(r * 0.18, r * 0.24, r, 0, 7); b.fill();
+      b.fillStyle = C['pin-2']; b.strokeStyle = C.ink; b.lineWidth = 0.04; b.beginPath(); b.arc(0, 0, r, 0, 7); b.fill(); b.stroke();
+      const s0 = r / 0.3; b.scale(s0, s0); b.lineWidth = 0.035;
+      const ink = () => { b.strokeStyle = C.ink; b.stroke(); };
+      if (k === 'food') { b.fillStyle = C.pizza; b.beginPath(); b.moveTo(0, 0.2); b.lineTo(-0.16, -0.14); b.quadraticCurveTo(0, -0.24, 0.16, -0.14); b.closePath(); b.fill(); ink(); b.fillStyle = C['pizza-2']; b.beginPath(); b.arc(-0.03, -0.06, 0.035, 0, 7); b.arc(0.04, 0.04, 0.03, 0, 7); b.fill(); }
+      else if (k === 'gelato') { b.fillStyle = C.p1; b.beginPath(); b.moveTo(-0.1, -0.02); b.lineTo(0.1, -0.02); b.lineTo(0, 0.22); b.closePath(); b.fill(); ink(); b.fillStyle = C['cake-2']; b.beginPath(); b.arc(0, -0.08, 0.11, 0, 7); b.fill(); ink(); }
+      else if (k === 'cafe') { b.fillStyle = C.ac; rrect(b, -0.13, -0.08, 0.2, 0.22, 0.05); b.fill(); ink(); b.beginPath(); b.arc(0.1, 0.02, 0.06, -1.4, 1.4); ink(); b.strokeStyle = C.steam; b.beginPath(); b.moveTo(-0.05, -0.12); b.quadraticCurveTo(-0.01, -0.18, -0.05, -0.24); b.stroke(); }
+      else if (k === 'bakery') { b.fillStyle = C.ramen; b.beginPath(); b.ellipse(0, 0.02, 0.18, 0.1, 0, 0, 7); b.fill(); ink(); b.strokeStyle = C.p1; b.beginPath(); b.moveTo(-0.06, -0.06); b.lineTo(-0.03, 0.1); b.moveTo(0.06, -0.06); b.lineTo(0.03, 0.1); b.stroke(); }
+      else if (k === 'shop') { b.fillStyle = C.awning; rrect(b, -0.14, -0.06, 0.28, 0.24, 0.04); b.fill(); ink(); b.beginPath(); b.arc(0, -0.06, 0.08, Math.PI, 0); ink(); }
+      else if (k === 'depot') { b.fillStyle = C.p1; b.beginPath(); b.moveTo(-0.16, -0.06); b.lineTo(0, -0.14); b.lineTo(0.16, -0.06); b.lineTo(0.16, 0.12); b.lineTo(0, 0.2); b.lineTo(-0.16, 0.12); b.closePath(); b.fill(); ink(); b.strokeStyle = C.tape; b.lineWidth = 0.05; b.beginPath(); b.moveTo(-0.08, -0.1); b.lineTo(0.08, -0.02); b.stroke(); }
+      else if (k === 'taxi') { b.fillStyle = C.taxi; rrect(b, -0.16, -0.1, 0.32, 0.2, 0.05); b.fill(); ink(); b.fillStyle = C.check; for (let i = 0; i < 4; i++) b.fillRect(-0.12 + i * 0.06 + (i % 2) * 0.0, -0.02, 0.03, 0.04); }
+      else if (k === 'station') { b.fillStyle = C.bus; rrect(b, -0.14, -0.17, 0.28, 0.3, 0.07); b.fill(); ink(); b.fillStyle = C.glass; b.fillRect(-0.09, -0.12, 0.18, 0.09); b.fillStyle = C.head; b.beginPath(); b.arc(-0.07, 0.07, 0.03, 0, 7); b.arc(0.07, 0.07, 0.03, 0, 7); b.fill(); b.strokeStyle = C.ink; b.beginPath(); b.moveTo(-0.1, 0.2); b.lineTo(-0.06, 0.13); b.moveTo(0.1, 0.2); b.lineTo(0.06, 0.13); b.stroke(); }
+      else if (k === 'beach') { b.fillStyle = C['umb-1']; b.beginPath(); b.arc(0, -0.02, 0.18, Math.PI, 0); b.closePath(); b.fill(); ink(); b.strokeStyle = C.ink; b.beginPath(); b.moveTo(0, -0.02); b.lineTo(0, 0.2); b.stroke(); b.fillStyle = C.sand; b.fillRect(-0.18, 0.15, 0.36, 0.06); }
+      else if (k === 'pier') { b.fillStyle = C.wood; b.fillRect(-0.06, -0.2, 0.12, 0.4); b.strokeStyle = C['wood-2']; b.beginPath(); for (let i = -1; i <= 1; i++) { b.moveTo(-0.06, i * 0.1); b.lineTo(0.06, i * 0.1); } b.stroke(); b.fillStyle = C.sea; b.fillRect(-0.2, -0.04, 0.12, 0.08); b.fillRect(0.08, -0.04, 0.12, 0.08); }
+      else if (k === 'castle') { b.fillStyle = C.castle; b.beginPath(); b.moveTo(-0.16, 0.18); b.lineTo(-0.16, -0.1); b.lineTo(-0.1, -0.1); b.lineTo(-0.1, -0.05); b.lineTo(-0.03, -0.05); b.lineTo(-0.03, -0.1); b.lineTo(0.03, -0.1); b.lineTo(0.03, -0.05); b.lineTo(0.1, -0.05); b.lineTo(0.1, -0.1); b.lineTo(0.16, -0.1); b.lineTo(0.16, 0.18); b.closePath(); b.fill(); ink(); b.fillStyle = C['castle-2']; rrect(b, -0.04, 0.06, 0.08, 0.12, 0.04); b.fill(); b.fillStyle = C.stop; b.beginPath(); b.moveTo(0, -0.1); b.lineTo(0, -0.24); b.lineTo(0.1, -0.2); b.lineTo(0, -0.17); b.fill(); }
+      else if (k === 'harbour') { b.fillStyle = C.sail; b.beginPath(); b.moveTo(0, -0.2); b.lineTo(0, 0.04); b.lineTo(0.14, 0.04); b.closePath(); b.fill(); ink(); b.fillStyle = C['boat-2']; b.beginPath(); b.moveTo(-0.16, 0.07); b.lineTo(0.16, 0.07); b.lineTo(0.1, 0.16); b.lineTo(-0.1, 0.16); b.closePath(); b.fill(); ink(); }
+      else if (k === 'sight') { b.fillStyle = C.star; b.beginPath(); for (let i = 0; i < 10; i++) { const a = (i * Math.PI) / 5 - Math.PI / 2, q = i % 2 ? 0.08 : 0.18; b.lineTo(Math.cos(a) * q, Math.sin(a) * q); } b.closePath(); b.fill(); ink(); }
+      b.restore();
+    }
+    function shopSignO(b, sp, kind) {
+      if (!sp) return;
+      let nx = sp.x - sp.zx, ny = sp.y - sp.zy;
+      const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+      const cx = sp.x + nx * 0.5, cy = sp.y + ny * 0.5, w = 1.3, d = 0.34;
+      b.save(); b.translate(cx, cy); b.rotate(Math.atan2(ny, nx) - Math.PI / 2 + Math.PI);
+      if (kind === 'food') {
+        for (let i = 0; i < 6; i++) { b.fillStyle = i % 2 ? C['awning-2'] : C.awning; b.fillRect(-w / 2 + (i * w) / 6, 0, w / 6 + 0.01, d); }
+        b.strokeStyle = C.ink; b.lineWidth = 0.04; b.strokeRect(-w / 2, 0, w, d);
+        b.fillStyle = C.awning; for (let i = 0; i < 6; i++) { b.beginPath(); b.arc(-w / 2 + (i + 0.5) * (w / 6), d, w / 12, 0, Math.PI); b.fill(); }
+      } else {
+        b.fillStyle = C.ac; b.fillRect(-w / 2, 0, w, d + 0.1);
+        b.strokeStyle = C['ac-2']; b.lineWidth = 0.05;
+        for (let i = 1; i < 4; i++) { b.beginPath(); b.moveTo(-w / 2, (i * (d + 0.1)) / 4); b.lineTo(w / 2, (i * (d + 0.1)) / 4); b.stroke(); }
+        b.strokeStyle = C.ink; b.lineWidth = 0.04; b.strokeRect(-w / 2, 0, w, d + 0.1);
+      }
+      b.restore();
+    }
+    // a ogni fotogramma: onde, barchette che dondolano, cartelli dei luoghi notevoli
+    function drawSea(t, inView, vx0, vy0, vx1, vy1) {
+      const O = osmPrep(), md = O.md, A = P.AR, Wm = md.W, rm = reduce();
+      g.strokeStyle = C.foam; g.lineWidth = 0.06; g.lineCap = 'round';
+      g.beginPath();
+      for (let y = Math.max(0, Math.floor(vy0)); y < Math.min(md.H, Math.ceil(vy1)); y++) for (let x = Math.max(0, Math.floor(vx0)); x < Math.min(Wm, Math.ceil(vx1)); x++) {
+        if (md.area[y * Wm + x] !== A.WATER) continue;
+        const hv = hash(x, y, 41);
+        if (hv > 0.07) continue;
+        const ph = rm ? 0 : t * 1.3 + hv * 90, dx = Math.sin(ph) * 0.15, cx = x + 0.3 + hash(y, x, 2) * 0.4 + dx, cy = y + 0.5;
+        g.moveTo(cx - 0.22, cy); g.quadraticCurveTo(cx - 0.11, cy - 0.12, cx, cy); g.quadraticCurveTo(cx + 0.11, cy - 0.12, cx + 0.22, cy);
+      }
+      g.stroke();
+      for (const q of O.boats) {
+        if (!inView(q.x, q.y, 2)) continue;
+        const bob = rm ? 0 : Math.sin(t * 1.6 + q.ph) * 0.06, a = q.a + (rm || q.moor ? 0 : Math.sin(t * 0.3 + q.ph) * 0.15);
+        g.save(); g.translate(q.x, q.y + bob); g.rotate(a);
+        g.fillStyle = C.shadow; g.beginPath(); g.ellipse(0.06, 0.08, 0.5, 0.2, 0, 0, 7); g.fill();
+        g.fillStyle = q.k ? C['boat-2'] : C.boat; g.strokeStyle = C.ink; g.lineWidth = 0.035;
+        g.beginPath(); g.moveTo(-0.45, -0.16); g.lineTo(0.3, -0.16); g.quadraticCurveTo(0.55, 0, 0.3, 0.16); g.lineTo(-0.45, 0.16); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = C.sail; g.beginPath(); g.moveTo(-0.15, -0.02); g.lineTo(0.2, 0); g.lineTo(-0.15, 0.1); g.closePath(); g.fill(); g.stroke();
+        if (!q.moor && !rm) { g.strokeStyle = C.foam; g.beginPath(); g.moveTo(-0.55, -0.1); g.lineTo(-0.85, -0.18); g.moveTo(-0.55, 0.1); g.lineTo(-0.85, 0.18); g.stroke(); }
+        g.restore();
+      }
+    }
+    function drawLabels(inView) {
+      const O = osmPrep(), c = s.car, list = O.labels.filter((p) => inView(p.x, p.y, 1)).sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y)).slice(0, 6);
+      if (!list.length) return;
+      screen();
+      const fs = Math.max(10, Math.min(13, TS * 0.3));
+      g.font = `800 ${fs}px "M PLUS Rounded 1c", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      for (const p of list) {
+        const [px0, sy0] = toS(p.x, p.y), sy = sy0 - TS * 0.62, tw = Math.min(g.measureText(p.name).width, W * 0.5), pw = tw + 14, ph = fs + 8;
+        const sx = Math.max(pw / 2 + 4, Math.min(W - pw / 2 - 4, px0));
+        g.fillStyle = C.street; g.strokeStyle = C['street-ink']; g.lineWidth = 1.2; g.globalAlpha = 0.95;
+        rr(sx - pw / 2, sy - ph / 2, pw, ph, ph / 2); g.fill(); g.stroke();
+        const tx = Math.max(sx - pw / 2 + 8, Math.min(sx + pw / 2 - 8, px0));
+        g.beginPath(); g.moveTo(tx - 4, sy + ph / 2 - 0.5); g.lineTo(tx, sy + ph / 2 + 5); g.lineTo(tx + 4, sy + ph / 2 - 0.5); g.fill();
+        g.globalAlpha = 1; g.fillStyle = C['street-ink']; g.fillText(p.name, sx, sy + 0.5, W * 0.5);
+      }
+      world();
+    }
+    function drawLightsO(inView) {
+      const G = g0;
+      for (let n = 0; n < G.nodes.length; n++) {
+        const N = G.nodes[n];
+        if (!N.lit || !inView(N.x, N.y, 2)) continue;
+        const Lg = P.light(s, n);
+        for (const i of N.inc) {
+          const e = G.edges[i];
+          if (e.slow) continue;
+          const din = 2 * i + (e.b === n ? 0 : 1), t = e.a === n ? Math.min(e.len, N.r + 0.15) : Math.max(0, e.len - N.r - 0.15);
+          const [x, y, a] = P.along(G.center[i], t), dirIn = e.a === n ? a + Math.PI : a, off = e.hw + P.ASPH + 0.25;
+          // sull'angolo a destra di chi arriva
+          const px = x - Math.sin(dirIn) * off, py = y + Math.cos(dirIn) * off;
+          const col = Lg.ph === G.grp[din] ? (Lg.left < 1.3 ? C.amber : C.go) : C.stop;
+          g.fillStyle = C.pole; rr(px - 0.15, py - 0.1, 0.3, 0.2, 0.08); g.fill();
+          g.fillStyle = col; g.beginPath(); g.arc(px, py, 0.075, 0, 7); g.fill();
+          if (C.night) { g.globalAlpha = 0.35; g.beginPath(); g.arc(px, py, 0.2, 0, 7); g.fill(); g.globalAlpha = 1; }
+        }
+      }
+    }
+    // minimappa delle mappe reali: immagine a 1 pixel per casella, se ne mostra una finestra attorno a Hari
+    function paintMiniOsm() {
+      const md = P.mapData(s.mapId), A = P.AR, Wm = md.W, Hm = md.H;
+      mini = document.createElement('canvas'); mini.width = Wm; mini.height = Hm;
+      const b = mini.getContext('2d');
+      const col = { [A.LAND]: C['mm-bld'], [A.PARK]: C['mm-park'], [A.FIELD]: C['mm-park'], [A.SAND]: C['mm-sand'], [A.WATER]: C['mm-water'], [A.PLAZA]: C.walk, [A.PIER]: C.wood, [A.PARKING]: C['mm-bld'], [A.RAIL]: C['mm-bld'] };
+      for (let y = 0; y < Hm; y++) {
+        let x = 0;
+        while (x < Wm) {
+          const i = y * Wm + x, c = g0.road[i] ? 'r' : md.area[i];
+          let j = x + 1;
+          while (j < Wm && (g0.road[y * Wm + j] ? 'r' : md.area[y * Wm + j]) === c) j++;
+          b.fillStyle = c === 'r' ? C['mm-road'] : col[c] || C['mm-bld'];
+          b.fillRect(x, y, j - x, 1);
+          x = j;
+        }
+      }
+    }
+
     /* ---------- minimappa (una volta per livello e tema) ---------- */
     function paintMini() {
       const k = 3;
@@ -563,12 +998,14 @@
       world();
       const vx0 = camX - W / 2 / TS - 1, vy0 = camY - H / 2 / TS - 1, vx1 = camX + W / 2 / TS + 1, vy1 = camY + H / 2 / TS + 1;
       g.imageSmoothingEnabled = true;
+      budget = 3;
       for (let cy = Math.floor(vy0 / CH); cy <= Math.floor(vy1 / CH); cy++) for (let cx = Math.floor(vx0 / CH); cx <= Math.floor(vx1 / CH); cx++) {
         if (cx < 0 || cy < 0 || cx * CH > s.W || cy * CH > s.H) continue;
-        g.drawImage(chunk(cx, cy), cx * CH, cy * CH, CH + 0.02, CH + 0.02);
+        const ck = chunk(cx, cy);
+        if (ck) g.drawImage(ck, cx * CH, cy * CH, CH + 0.02, CH + 0.02);
       }
       const inView = (x, y, m = 1.5) => x > vx0 - m && x < vx1 + m && y > vy0 - m && y < vy1 + m;
-      drawLights(inView);
+      if (g0.osm) { drawSea(t, inView, vx0, vy0, vx1, vy1); drawLightsO(inView); } else drawLights(inView);
       drawZones(t, inView);
       // pedoni e passeggeri in attesa, poi i veicoli (i pedoni che saltano sopra a tutto)
       const peds = s.peds.filter((p) => inView(p.x, p.y)).sort((a, b) => a.y - b.y);
@@ -580,6 +1017,7 @@
       for (const p of peds) if (p.st === 3) drawPed(p, t);
       drawGhosts(t);
       drawParts(t);
+      if (g0.osm) drawLabels(inView);
       screen();
       if (+C.night) { g.fillStyle = C.dusk; g.fillRect(0, 0, W, H); }
       drawArrow(t);
@@ -641,7 +1079,12 @@
       const fr = run && p.st !== 1 ? Math.floor(t * 6 + p.id) % 2 : 0;
       let y = p.y, name = `p${p.k}${fr ? 'b' : 'a'}`;
       const sz = 0.62;
-      if (p.st === 3) {
+      if (p.st === 0 && p.scared > 0) {
+        // mappe reali: sfiorato sul marciapiede, fa un saltello
+        const e = Math.max(0, Math.min(1, 1 - p.scared / 1.2));
+        y -= Math.sin(e * Math.PI) * 0.4;
+        name = `p${p.k}o`;
+      } else if (p.st === 3) {
         // salto spaventato con "!" e stelline (mai investito)
         const e = Math.max(0, Math.min(1, 1 - p.scared / 1.2));
         y -= Math.sin(e * Math.PI) * 0.55 + 0.1;
@@ -788,6 +1231,7 @@
       }
     }
     function drawMini(t) {
+      if (g0.osm) { drawMiniO(t); return; }
       const mw = Math.min(W * 0.3, 112), mh = (mw * s.H) / s.W, x0 = W - mw - 8, y0 = 8;
       mmRect = { x: x0, y: y0, w: mw, h: showMap ? mh : 22 };
       if (!showMap) {
@@ -820,6 +1264,146 @@
       g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(s.car.a) * 6, cy + Math.sin(s.car.a) * 6); g.stroke();
       g.restore();
       g.strokeStyle = C['mm-line']; g.globalAlpha = 0.6; g.lineWidth = 1.5; rr(x0 - 3, y0 - 3, mw + 6, mh + 6, 9); g.stroke(); g.globalAlpha = 1;
+    }
+    function drawMiniO(t) {
+      const mw = Math.min(W * 0.3, 118), mh = mw, x0 = W - mw - 8, y0 = 8, VW = 72;
+      if (!showMap) { drawMini0(); return; }
+      mmRect = { x: x0, y: y0, w: mw, h: mh };
+      if (!mini) paintMiniOsm();
+      // finestra di VW caselle attorno alla camera, dentro la mappa
+      const sx = Math.max(0, Math.min(s.W - VW, camX - VW / 2)), sy = Math.max(0, Math.min(s.H - VW, camY - VW / 2)), k = mw / VW;
+      g.save();
+      g.fillStyle = C.mm; rr(x0 - 3, y0 - 3, mw + 6, mh + 6, 9); g.fill();
+      rr(x0, y0, mw, mh, 6); g.clip();
+      g.imageSmoothingEnabled = false;
+      g.globalAlpha = 0.95; g.drawImage(mini, sx, sy, VW, VW, x0, y0, mw, mh); g.globalAlpha = 1;
+      g.imageSmoothingEnabled = true;
+      const at = (x, y) => [x0 + (x - sx) * k, y0 + (y - sy) * k];
+      const clampIn = ([x, y], m) => [Math.max(x0 + m, Math.min(x0 + mw - m, x)), Math.max(y0 + m, Math.min(y0 + mh - m, y))];
+      for (const id of s.rest) { const [x, y] = clampIn(at(g0.spots[id].x, g0.spots[id].y), 3); g.fillStyle = C.awning; g.fillRect(x - 2.5, y - 2.5, 5, 5); }
+      if (s.depot >= 0) { const [x, y] = clampIn(at(g0.spots[s.depot].x, g0.spots[s.depot].y), 3); g.fillStyle = C.van; g.fillRect(x - 3, y - 3, 6, 6); }
+      g.strokeStyle = C['mm-line']; g.globalAlpha = 0.35; g.lineWidth = 1;
+      const [vx, vy] = at(camX - W / 2 / TS, camY - H / 2 / TS); g.strokeRect(vx, vy, (W / TS) * k, (H / TS) * k); g.globalAlpha = 1;
+      for (const tg of P.targets(s)) {
+        const [x, y] = clampIn(at(tg.x, tg.y), 4), r = 3 + (reduce() ? 0 : (Math.sin(t * 6) + 1) * 1.2);
+        g.fillStyle = C.pin; g.strokeStyle = C['mm-line']; g.lineWidth = 1; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke();
+      }
+      const [cx, cy] = at(s.car.x, s.car.y);
+      g.fillStyle = C[s.veh === 'scooter' ? 'scoot' : s.veh] || C.star; g.strokeStyle = C['mm-line']; g.lineWidth = 1.2;
+      g.beginPath(); g.arc(cx, cy, 3.6, 0, 7); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(s.car.a) * 6, cy + Math.sin(s.car.a) * 6); g.stroke();
+      // attribuzione nell'angolo della minimappa
+      g.font = '700 8px "M PLUS Rounded 1c", sans-serif'; g.textAlign = 'right'; g.textBaseline = 'bottom';
+      g.fillStyle = C.mm; g.globalAlpha = 0.85; g.fillRect(x0 + mw - g.measureText('© OpenStreetMap').width - 6, y0 + mh - 11, mw, 11); g.globalAlpha = 1;
+      g.fillStyle = C['mm-line']; g.fillText('© OpenStreetMap', x0 + mw - 3, y0 + mh - 1.5);
+      g.restore();
+      g.strokeStyle = C['mm-line']; g.globalAlpha = 0.6; g.lineWidth = 1.5; rr(x0 - 3, y0 - 3, mw + 6, mh + 6, 9); g.stroke(); g.globalAlpha = 1;
+    }
+    // minimappa nascosta: pulsantino a forma di cartina
+    function drawMini0() {
+      g.fillStyle = C.mm; g.strokeStyle = C['mm-line']; g.lineWidth = 1.5;
+      rr(W - 34, 8, 26, 22, 7); g.fill(); g.stroke();
+      g.strokeStyle = C['mm-line']; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(W - 29, 13); g.lineTo(W - 23, 15); g.lineTo(W - 18, 13); g.lineTo(W - 13, 15); g.lineTo(W - 13, 25); g.lineTo(W - 18, 23); g.lineTo(W - 23, 25); g.lineTo(W - 29, 23); g.closePath(); g.stroke();
+      mmRect = { x: W - 34, y: 8, w: 26, h: 22 };
+    }
+    // cartello della via (o del luogo notevole) vicino a Hari: dati OSM, non tradotti
+    function updateStreet(now) {
+      if (!streetEl || now - streetAt < 400) return;
+      streetAt = now;
+      const c = s.car, O = osmPrep();
+      let name = '';
+      let bl = 4.5;
+      for (const p of O.labels) { const d = Math.hypot(p.x - c.x, p.y - c.y); if (d < bl) { bl = d; name = p.name; } }
+      if (!name) {
+        let bd = 2.6;
+        for (const e of edgesIn(c.x - 3, c.y - 3, c.x + 3, c.y + 3)) {
+          if (!e.name) continue;
+          for (let i = 1; i < e.pts.length; i++) {
+            const [ax, ay] = e.pts[i - 1], [bx, by] = e.pts[i], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1e-9;
+            const u = Math.max(0, Math.min(1, ((c.x - ax) * dx + (c.y - ay) * dy) / L2)), d = Math.hypot(c.x - ax - u * dx, c.y - ay - u * dy);
+            if (d < bd) { bd = d; name = e.name; }
+          }
+        }
+      }
+      if (name === streetKey) return;
+      streetKey = name;
+      if (name) streetEl.querySelector('span').textContent = name;
+      streetEl.hidden = !name;
+    }
+
+    /* ---------- selettore delle mappe ---------- */
+    function previewCanvas(m) {
+      const cv2 = document.createElement('canvas'), pv = m.preview, k = 3;
+      cv2.width = pv.w * k; cv2.height = pv.h * k;
+      const b = cv2.getContext('2d'), A = P.AR;
+      const col = { [A.LAND]: C['mm-bld'], [A.PARK]: C['grass-2'], [A.FIELD]: C.field, [A.SAND]: C.sand, [A.WATER]: C.sea, [A.PLAZA]: C.walk, [A.PIER]: C.wood, [A.PARKING]: C.parking, [A.RAIL]: C.rail, 9: C.road };
+      const bytes = G.atob ? G.atob(pv.rle) : '';
+      let i = 0, n = 0;
+      const u = () => { let v = 0, mm = 1, ch; do { ch = bytes.charCodeAt(i++); v += (ch & 127) * mm; mm *= 128; } while (ch & 128); return v; };
+      while (i < bytes.length && n < pv.w * pv.h) { const v = u(), c = v % 16, len = Math.floor(v / 16); b.fillStyle = col[c] || C.grass; for (let q = 0; q < len; q++, n++) b.fillRect((n % pv.w) * k, Math.floor(n / pv.w) * k, k, k); }
+      return cv2;
+    }
+    function showMaps(first, err) {
+      if (mapsEl) mapsEl.remove();
+      const stageEl = el.querySelector('.dr-stage') || el;
+      const cur = s ? s.mapId || 'hari' : curMap();
+      mapsEl = document.createElement('div');
+      mapsEl.className = 'dr-maps';
+      mapsEl.setAttribute('role', 'dialog');
+      mapsEl.setAttribute('aria-label', L('dr_maps'));
+      mapsEl.innerHTML = `<div class="dr-maps-box">
+        <div class="dr-maps-head"><b>${L('dr_maps')}</b>${first ? '' : `<button class="dr-maps-x" type="button" aria-label="${L('er_close')}">✕</button>`}</div>
+        ${err ? `<p class="dr-maps-err">${L('dr_map_err')}</p>` : ''}
+        <div class="dr-maps-list">${mapList().map((m) => {
+          const lv = HH.progress && HH.progress.get ? HH.progress.get(slotOf(m.id)).level : 1;
+          return `<button class="dr-map-card${m.id === cur ? ' on' : ''}" type="button" data-map="${m.id}">
+            <span class="dr-map-art">${m.id === 'hari' ? cityArt('') : ''}</span>
+            <b>${esc(mapName(m.id))}</b><small>${L('level')} ${lv}</small>${m.id === 'hari' ? '' : `<i>${(m.W * m.m / 1000).toFixed(1)}×${(m.H * m.m / 1000).toFixed(1)} km</i>`}</button>`;
+        }).join('')}</div>
+        <p class="dr-maps-osm">${L('dr_map_real')} · ${OSM_ATTR}</p></div>`;
+      mapList().forEach((m) => { if (m.id !== 'hari' && m.preview) mapsEl.querySelector(`[data-map="${m.id}"] .dr-map-art`).appendChild(previewCanvas(m)); });
+      stageEl.appendChild(mapsEl);
+      const x = mapsEl.querySelector('.dr-maps-x');
+      if (x) x.onclick = (e) => { e.stopPropagation(); sfx('tap'); mapsEl.remove(); mapsEl = null; };
+      mapsEl.onpointerdown = (e) => e.stopPropagation();
+      mapsEl.querySelectorAll('[data-map]').forEach((bt) => { bt.onclick = (e) => { e.stopPropagation(); sfx('tap'); pickMap(bt.dataset.map, first); }; });
+      const on = mapsEl.querySelector('.dr-map-card.on') || mapsEl.querySelector('.dr-map-card');
+      if (on) on.focus({ preventScroll: true });
+    }
+    function pickMap(id, first) {
+      storeSet('drive:mapSeen', 1);
+      const was = s ? s.mapId || 'hari' : null;
+      if (mapsEl) { mapsEl.remove(); mapsEl = null; }
+      if (was === id) { if (paused) resume(); return; }
+      // un'altra mappa = altri livelli e altra partita: l'app salva questa e riapre il gioco sulla nuova
+      if (ctx.reslot && slotOf(id) !== slotOf(curMap())) { ctx.reslot(() => storeSet('drive:map', id)); return; }
+      storeSet('drive:map', id);
+      startMap(id, null);
+    }
+    function loadingView(on) {
+      let lv = el.querySelector('.dr-loadmap');
+      if (!on) { if (lv) lv.remove(); return; }
+      if (!lv) {
+        lv = document.createElement('div'); lv.className = 'dr-loadmap';
+        lv.innerHTML = `${svgIc(HARI('taxi', 'joy'))}<span>${L('dr_loading')}</span>`;
+        (el.querySelector('.dr-stage') || el).appendChild(lv);
+      }
+    }
+    // avvia la mappa id (scaricandone i dati se serve) con lo stato salvato oppure un livello nuovo
+    function startMap(id, st, held = false) {
+      if (id !== 'hari' && !(HH.driveMaps && HH.driveMaps[id])) {
+        if (!el.querySelector('.dr-wrap')) el.innerHTML = '<div class="dr-wrap" dir="ltr"><div class="dr-stage"></div></div>';
+        loadingView(true);
+        loadMap(id).then(() => { loadingView(false); startMap(id, st); }).catch(() => {
+          loadingView(false);
+          storeSet('drive:map', 'hari');
+          showMaps(true, true);
+        });
+        return;
+      }
+      if (st && (st.mapId || 'hari') === id && okSaved(st)) begin(Object.assign({}, st), true);
+      else { begin(P.newLevel(ctx.level, Math.random, id), held); ctx.changed({ reset: true }); }
     }
     function drawJoy() {
       if (!joy) return;
@@ -1028,10 +1612,11 @@
       if (shake > 0) shake = Math.max(0, shake - dt);
       // camera: segue il veicolo con un po' di anticipo
       const c = s.car, lead = Math.min(2.2, Math.abs(c.v) * 0.45) * Math.sign(c.v || 1);
-      const tx = c.x + Math.cos(c.a) * lead, ty = c.y + Math.sin(c.a) * lead, k = dt > 0 ? 1 - Math.exp(-dt * 5) : 1;
+      const tx = peekPt ? peekPt.x : c.x + Math.cos(c.a) * lead, ty = peekPt ? peekPt.y : c.y + Math.sin(c.a) * lead, k = dt > 0 ? 1 - Math.exp(-dt * 5) : 1;
       camX += (tx - camX) * k; camY += (ty - camY) * k;
       clampCam();
       draw(now);
+      if (streetEl) updateStreet(now);
       const live = !paused && (!P.isOver(s) || (party && now - party < 1600) || (over && now - over < 1200));
       raf = live ? requestAnimationFrame(loop) : 0;
     }
@@ -1066,6 +1651,8 @@
     const local = (e) => { const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
     el.onpointerdown = (e) => {
       if (e.target.closest('.dr-pbtn')) { e.preventDefault(); toggle(); return; }
+      if (e.target.closest('.dr-mbtn')) { e.preventDefault(); if (!paused && !P.isOver(s)) pause(); sfx('tap'); showMaps(false); return; }
+      if (e.target.closest('.dr-maps')) return;
       if (!e.target.closest('.dr-stage')) return;
       e.preventDefault();
       if (paused) { resume(); return; }
@@ -1145,16 +1732,29 @@
       // le bitmap si cuociono in modo asincrono: un paio di ridisegni anche da fermi
       later(() => { if (!raf) draw(performance.now()); }, 150);
     }
-    function fresh() { begin(P.newLevel(ctx.level, Math.random)); ctx.changed({ reset: true }); }
+    function fresh() { const id = s ? s.mapId || 'hari' : curMap(); begin(P.newLevel(ctx.level, Math.random, id)); ctx.changed({ reset: true }); }
+    // salvataggio valido: città di Hari con la mappa nello stato, oppure mappa reale (solo l'id) con le stesse misure
+    function okSaved(st) {
+      if (!st || st.v !== 1 || !Array.isArray(st.npcs) || !st.car || !(st.N > 0) || P.isOver(st)) return false;
+      if (st.mapId && st.mapId !== 'hari') { const md = P.mapData(st.mapId); return !!md && md.W === st.W && md.H === st.H; }
+      return typeof st.map === 'string' && st.map.length === st.W * st.H;
+    }
 
-    el._drive = { state: () => s, geo: () => g0 };   // per i controlli di qualità (Playwright): stato vivo della partita
-    const ok = saved && saved.v === 1 && typeof saved.map === 'string' && saved.map.length === saved.W * saved.H && Array.isArray(saved.npcs) && saved.car && saved.N > 0;
-    if (ok && !P.isOver(saved)) begin(Object.assign({}, saved), true);
-    else fresh();
+    // per i controlli di qualità (Playwright): stato vivo della partita, geometria, scelta della mappa
+    // peek(x, y): la camera guarda un punto (per le foto dei luoghi notevoli lontani dalla strada), peek() torna su Hari
+    el._drive = { state: () => s, geo: () => g0, maps: () => showMaps(false), pick: (id) => pickMap(id, false), peek: (x, y) => { peekPt = x == null ? null : { x, y }; } };
+    {
+      // la mappa del salvataggio (i vecchi salvataggi, senza mapId, sono della città di Hari)
+      const id = saved && saved.mapId ? saved.mapId : curMap();
+      const first = !storeGet('drive:mapSeen', 0);
+      // prima volta con le mappe: la partita (città di Hari) parte in pausa e sopra c'è il selettore, già sulla città di Hari
+      startMap(id, saved, first);
+      if (first) { storeSet('drive:mapSeen', 1); if (s) showMaps(true); }
+    }
 
     return {
       fresh,
-      restart() { begin(P.newLevel(s.level, Math.random)); ctx.changed({ reset: true }); },
+      restart() { begin(P.newLevel(s.level, Math.random, s.mapId)); ctx.changed({ reset: true }); },
       // in tempo reale non si torna indietro: "Annulla" mette in pausa / riprende
       undo() { toggle(); },
       pause() { pause(); },          // usato dall'app quando si apre il tutorial
@@ -1162,6 +1762,9 @@
       snapshot: () => s,
     };
   }
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const MAPIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.2l5-2 7 2 5-2v13.6l-5 2-7-2-5 2z" fill="var(--dr-sea)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 4.2v13.6M15.5 6.2v13.6" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10.5" r="2.2" fill="var(--dr-pin)"/></svg>';
+  const PINIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7.2 7-12.2A7 7 0 0 0 5 9.8C5 14.8 12 22 12 22z" fill="var(--dr-pin)"/><circle cx="12" cy="9.8" r="2.6" fill="var(--dr-pin-2)"/></svg>';
   VEHS.car = { w: 120, h: 70, svg: (c) => carSVG(c || 'var(--dr-c1)', 'var(--dr-roof-shade)') };
   const PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg>';
   const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13c0 .8.9 1.3 1.6.8l10-6.5c.6-.4.6-1.2 0-1.6l-10-6.5C8.9 4.2 8 4.7 8 5.5z" fill="currentColor"/></svg>';
@@ -1187,8 +1790,11 @@
     rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
     art, create, lives: 3,
     tutorial: TUT,
-    rate: (s) => HH.drive.rate(s),
-    parTime: (s) => HH.drive.par(s),
-    progress: (s) => HH.drive.progress(s),
+    // progressi e salvataggio per mappa: la città di Hari resta su 'drive' (vecchi salvataggi compresi)
+    slot: () => slotOf(curMap()),
+    // (s assente solo per un attimo: mappa reale ancora in download)
+    rate: (s) => (s ? HH.drive.rate(s) : 0),
+    parTime: (s) => (s ? HH.drive.par(s) : 0),
+    progress: (s) => (s ? HH.drive.progress(s) : 0),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

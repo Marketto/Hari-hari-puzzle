@@ -19,7 +19,7 @@
     del(k) { try { G.localStorage.removeItem(PREFIX + k); } catch (e) { /* storage bloccato */ } },
   };
 
-  HH.VERSION = '0.22.1';                     // versione dell'app (un test la confronta con package.json e sw.js)
+  HH.VERSION = '0.23.0';                     // versione dell'app (un test la confronta con package.json e sw.js)
   const SAVE_VERSION = 2;
   HH.progress = {
     get(id) {
@@ -27,7 +27,8 @@
       return Object.assign(base, HH.store.get('prog:' + id, {}));
     },
     set(id, p) { HH.store.set('prog:' + id, p); },
-    totalScore() { return (HH.catalog || HH.games || []).reduce((s, g) => s + (HH.progress.get(g.id).total || 0), 0); },
+    // anche i progressi "secondari" di un gioco (slots, es. le mappe reali di Hari Taxi)
+    totalScore() { return (HH.catalog || HH.games || []).reduce((s, g) => s + [g.id, ...(g.slots || [])].reduce((a, id) => a + (HH.progress.get(id).total || 0), 0), 0); },
     // I salvataggi di versioni precedenti passano dalle migrazioni (MIGRATE[v] porta da v a v+1);
     // se una migrazione manca il salvataggio resta intatto in memoria ma non viene caricato.
     loadGame(id) {
