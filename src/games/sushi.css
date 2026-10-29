@@ -211,6 +211,14 @@
   .su-item .su-plate { width: 46px; height: 18px; }
   .su-item .su-ing { width: 34px; height: 34px; left: 7px; }
 }
+/* schermo intero col telefono girato: locale e nastro a sinistra (sono un'unica scena), cucina e piatti serviti a destra */
+@media (orientation: landscape) {
+  .fs-on .plate .su-wrap { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(200px, 1fr); grid-template-rows: auto auto; align-content: center; align-items: center; column-gap: 14px; width: min(var(--game-w), 1100px); }
+  .fs-on .plate .su-shop { grid-column: 1; grid-row: 1; }
+  .fs-on .plate .su-belt { grid-column: 1; grid-row: 2; }
+  .fs-on .plate .su-kitchen { grid-column: 2; grid-row: 1; align-self: end; }
+  .fs-on .plate .su-served { grid-column: 2; grid-row: 2; }
+}
 @media (prefers-reduced-motion: reduce) {
   .su-wrap .su-bob, .su-wrap .su-eye, .su-wrap .su-lantern, .su-wrap .su-flap, .su-wrap .su-tails, .su-wrap .mini-hari, .su-wrap .su-hachi, .su-belt-track, .su-wisp { animation: none !important; }
 }

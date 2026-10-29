@@ -2406,6 +2406,8 @@
       G.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVis);
       ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.removeEventListener(ev, onFull));
+      // lo schermo intero resta attivo anche fuori dal gioco: si sblocca l'orizzontale imposto dal rally
+      try { const so = G.screen && G.screen.orientation; if (so && so.unlock) so.unlock(); } catch (e) { /* non supportato */ }
       if (mq && mq.removeEventListener) mq.removeEventListener('change', onTheme);
       if (el._ryRO) { el._ryRO.disconnect(); el._ryRO = null; }
       clearInterval(watch);
@@ -2632,6 +2634,8 @@
     const migrated = saved && typeof saved.seed === 'number' && saved.L > 0 && Array.isArray(saved.cars) && saved.cars.length === 4 ? P.migrate(saved) : null;
     if (migrated && !P.isOver(migrated)) begin(migrated, true);
     else fresh();
+    // aperto quando lo schermo intero è già attivo (resta acceso tra un gioco e l'altro): orizzontale e misure subito
+    if (fsEl()) onFull();
 
     return {
       fresh,

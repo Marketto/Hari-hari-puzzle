@@ -46,11 +46,12 @@
   /* ---------- gioco ---------- */
   function create(el, ctx, saved) {
     let s, Lv, zoom = null, sel = null, won = false, bump = null, lastAct = null, clock = 0;
-    let wrap, stageSvg, zoomEl, invEl, barEl;
+    let wrap, stageSvg, zoomEl, invEl, barEl, hariArt = '';
     const timers = new Set();
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers.clear(); };
     const $ = (q) => el.querySelector(q);
+    const patch = (n, html) => HH.domPatch.patch(n, html);
     const retrigger = (n, cls) => { if (!n) return; n.classList.remove(cls); void n.getBoundingClientRect(); n.classList.add(cls); };
     const sfx = (k, ...a) => { const f = ctx.sfx && ctx.sfx[k]; if (f) f(...a); };
 
@@ -102,11 +103,11 @@
       const R = Lv.rooms.length, reach = E().reach(s), hv = hintView();
       const navHl = (d) => (hv && hv.room !== s.room && Math.sign(hv.room - s.room) === d ? ' er-hl' : '');
       const solved = Object.keys(s.solved).length;
-      barEl.innerHTML = `${R > 1 ? `<button type="button" class="er-nav${navHl(-1)}" data-nav="-1" aria-label="${L_('er_prev')}" ${s.room > 0 ? '' : 'disabled'}>${ARROW(-1)}</button>
+      patch(barEl, `${R > 1 ? `<button type="button" class="er-nav${navHl(-1)}" data-nav="-1" aria-label="${L_('er_prev')}" ${s.room > 0 ? '' : 'disabled'}>${ARROW(-1)}</button>
         <span class="er-rooms" aria-hidden="true">${Lv.rooms.map((_, i) => `<i class="${i === s.room ? 'cur' : i <= reach ? 'on' : ''}"></i>`).join('')}</span>
         <button type="button" class="er-nav${navHl(1)}" data-nav="1" aria-label="${L_('er_next')}" ${s.room < reach ? '' : 'disabled'}>${ARROW(1)}</button>` : '<span></span>'}
         <span class="er-locks" role="status" aria-label="${solved}/${Lv.n}"><i class="${solved ? 'on' : ''}">${LOCK(solved >= Lv.n)}</i><b>${solved}/${Lv.n}</b><span class="er-track"><span style="width:${Math.round((100 * solved) / Lv.n)}%"></span></span></span>
-        <button type="button" class="er-hint${hv ? ' er-on' : ''}" data-hint="1" aria-label="${L_('er_hint')}">${BULB}${s.hv || s.hp ? `<b>${s.hv + s.hp}</b>` : ''}</button>`;
+        <button type="button" class="er-hint${hv ? ' er-on' : ''}" data-hint="1" aria-label="${L_('er_hint')}">${BULB}${s.hv || s.hp ? `<b>${s.hv + s.hp}</b>` : ''}</button>`);
     }
 
     function renderRoom() {
@@ -118,14 +119,16 @@
       const view = { L: Lv, s, hl };
       let svg = A().room(view, s.room);
       // Hari, vicino alla porta (salta di gioia quando si apre l'uscita)
-      if (HH.mascot) svg += `<g class="er-hari${won ? ' er-out' : ''}" pointer-events="none">${A().nest(HH.mascot.svg({ cls: 'hari er-hari-svg' }), 292, 232, 58, 58)}</g>`;
+      // (disegnato una volta sola: la mascotte ha id dei gradienti nuovi a ogni chiamata e verrebbe ricreata a ogni mossa)
+      if (HH.mascot && !hariArt) hariArt = A().nest(HH.mascot.svg({ cls: 'hari er-hari-svg' }), 292, 232, 58, 58);
+      if (HH.mascot) svg += `<g class="er-hari${won ? ' er-out' : ''}" pointer-events="none">${hariArt}</g>`;
       hl.forEach((id) => { const ob = Lv.o[id]; if (!ob || ob.room !== s.room) return; const b = A().hitBox(ob); svg += `<rect x="${b[0] - 3}" y="${b[1] - 3}" width="${b[2] + 6}" height="${b[3] + 6}" rx="14" class="er-ring" pointer-events="none"/>`; });
       // manina dell'aiuto preciso su oggetti da cercare/raccogliere/usare
       if (hv && hv.lvl === 2 && hv.room === s.room && hv.obj && HH.tutHand) {
         const ob = Lv.o[hv.obj], b = A().hitBox(ob);
         svg += `<g pointer-events="none" class="er-hand">${HH.tutHand(b[0] + b[2] / 2, b[1] + b[3] / 2)}</g>`;
       }
-      stageSvg.innerHTML = svg;
+      patch(stageSvg, svg);
       stageSvg.classList.toggle('er-dim', !E().lit(s, s.room));
     }
 
@@ -141,7 +144,7 @@
         const it = Lv.items[id];
         h += `<button type="button" role="listitem" class="er-slot${sel === id ? ' sel' : ''}${hlIt.has(id) ? ' er-hl' : ''}" data-inv="${id}" aria-pressed="${sel === id}" aria-label="${L_('er_item')} ${i + 1}">${A().item(it)}</button>`;
       }
-      invEl.innerHTML = h;
+      patch(invEl, h);
     }
 
     /* ---------- zoom ---------- */
@@ -158,8 +161,17 @@
       }
       zoomEl.hidden = false;
       wrap.classList.add('er-zoomed');
-      zoomEl.innerHTML = `<div class="er-zcard${cls}" data-zoom="${zoom.obj || zoom.item}"><svg class="er-zsvg" viewBox="0 0 400 300" dir="ltr">${inner}</svg>
+      // il riquadro si crea UNA volta per oggetto (animazione di apertura una sola volta); a ogni mossa si aggiornano
+      // solo i pezzi cambiati dell'enigma: niente sfarfallio, niente animazioni che ripartono, il focus resta
+      const key = String(zoom.obj || zoom.item);
+      let card = zoomEl.firstElementChild;
+      if (!card || card.dataset.zoom !== key) {
+        zoomEl.innerHTML = `<div class="er-zcard" data-zoom="${key}"><svg class="er-zsvg" viewBox="0 0 400 300" dir="ltr"></svg>
         <button type="button" class="er-close" data-close="1" aria-label="${L_('er_close')}">${CLOSE}</button></div>`;
+        card = zoomEl.firstElementChild;
+      }
+      card.className = 'er-zcard' + cls;
+      patch(card.querySelector('.er-zsvg'), inner);
       if (bump) { const n = zoomEl.querySelector(bump); retrigger(n, 'er-shake'); bump = null; }
       if (lastAct) { const n = zoomEl.querySelector(`[data-a="${lastAct}"]`); if (n) retrigger(n, 'er-press'); lastAct = null; }
     }

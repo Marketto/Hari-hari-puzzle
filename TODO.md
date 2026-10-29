@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Da provare su telefono vero: schermo intero tra più giochi, tasto indietro di Android a schermo intero
 - [ ] Hari Rally 3 su telefono vero: comodità dei pedali col tocco multiplo, sensibilità del trascinamento, fluidità con 4 kart vicini
 - [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
 - [ ] Hari Escape su telefono vero: comodità dei tocchi su oggetti piccoli (quadri e indizi appesi) e leggibilità degli indizi in miniatura
@@ -19,6 +20,21 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.20.1)
+- [x] **Schermo intero persistente**: lo schermo intero è del documento (`<html>`, classe `fs-on`) e non del riquadro: resta
+  attivo tra vittoria, sconfitta, livello successivo, ricomincia, tutorial, home e cambio di gioco finché il giocatore non
+  esce (pulsante, menu del logo, nuovo pulsante nella barra della home, Esc/indietro); finestre e dialoghi visibili sopra
+  al gioco; preferenza in `sessionStorage` (rientro al primo tocco se il browser l'aveva tolto con l'app in background);
+  il rally sblocca l'orizzontale quando si esce dal gioco
+- [x] **Schermo intero che usa tutto lo spazio**: contratto `fill` (Hari Snack Rush con vista 2:3 virtuale, Hari Home con
+  comandi in colonna col telefono girato), disposizione automatica "a lato" per i giochi a pila col telefono girato,
+  pila "spread" senza fascia vuota tra HUD e gioco, niente più scorrimento in orizzontale (minimo 180 px), layout
+  dedicati per Sushi Bar (orizzontale) e Memory (tavolo sdraiato); vedi `docs/architecture.md` → "Schermo intero"
+- [x] **Hari Escape senza sfarfallio**: lo zoom degli enigmi non si ricrea più a ogni tocco (prima ~40–150 nodi sostituiti
+  e animazione d'apertura ripartita a ogni mossa, ora 0–6 nodi e nessuna ripartenza); stanza, borsa e barra aggiornate in
+  place con `src/games/dom-patch.js`; test `tests/dom-patch.test.mjs`
+- [x] **Hari Airlines**: aereo di lato con ali e piano di coda a freccia all'indietro (card della home, atterraggio)
 
 ## Fatto (v0.20.0)
 - [x] **Hari Rally 3**: visuale in terza persona predefinita (camera a molla, inclinazione in curva, campo visivo col turbo, scossoni) con Hari al volante, pulsante e tasto C per la visuale pilota (scelta salvata); kart a forma di frutto (fragola di Hari, pesca, mandarino, fetta d'anguria) con foglia che sventola, sospensioni, faretti e ombra, LOD da lontano; collisioni risolte nel piano del mondo con sotto-passi (prima in (s, d), che in curva deformava i rettangoli: fino a 24 cm di compenetrazione disegnata); fuori strada vero (erba, marciapiede, sabbia, neve alta), alberi, rocce e cumuli che fermano, guardrail a imbuto prima di ponti e gallerie, nuvoletta che riporta in pista; aderenza limitata con derapata, mini-spinta e sbandata; acceleratore e freno/retromarcia manuali (pedali, frecce, trascinamento, sensori, tastiera ↑↓←→ + spazio/E), acceleratore automatico come opzione (acceso solo al livello 1); avversari più forti dal livello 3 con rubber band moderato; salvataggi v2 → v3

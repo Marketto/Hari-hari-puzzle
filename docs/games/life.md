@@ -176,3 +176,7 @@ visite e telefonate, invecchiamento monotono con le 4 fasi, pensione e nuova gen
 JSON, migrazione, regole di costruzione e trasloco, bollette e debito, attività dal banchetto al negozio, prestazioni
 (un giorno simulato < 10 ms), libero arbitrio (da solo per giorni, frigo vuoto → avviso una volta, interruttore),
 comandi e coda (precedenza al giocatore, annulla, azioni rapide, menu di Hari completo), migrazione v1 → v2.
+
+## Schermo intero
+`fill: true`: il palco prende tutto lo spazio (la casa si inquadra con `R.view` a ogni misura); col telefono girato
+bisogni, orologio, cantiere e menu stanno in una colonna a sinistra e la casa occupa il resto.

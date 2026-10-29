@@ -42,6 +42,38 @@ e `hog-kit.js`, il riccio animato di Hedgedoku). `build-inline.mjs` li include u
 di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gioco ha un suo Hari che parla sulla griglia
 (vedi `docs/audio.md`).
 
+## Schermo intero
+- **Bersaglio**: `document.documentElement` (non il riquadro di gioco). Così lo schermo intero sopravvive al cambio di
+  gioco (il riquadro `#gPlate` viene ricreato a ogni apertura e, se fosse lui l'elemento a schermo intero, il browser ne
+  uscirebbe) e le finestre di vittoria, sconfitta, tutorial e i dialoghi, che stanno nel `<body>` con `z-index` più alto,
+  restano visibili sopra al gioco. A schermo intero `<html>` ha la classe `fs-on`: `.fs-on .plate` copre la pagina con
+  `position: fixed` (geometria con `!important`, come il foglio del browser per `:fullscreen`). Le regole di schermo
+  intero dei giochi si scrivono `.fs-on .plate …` (stessa specificità del vecchio `.plate:fullscreen`).
+- **Persistenza**: si esce SOLO col pulsante (riquadro, menu del logo, `#homeFsExit` nella barra della home) o col tasto
+  Esc/indietro del sistema. Vittoria, sconfitta, livello successivo, ricomincia, tutorial, home e cambio di gioco non
+  escono. La preferenza è in `sessionStorage` (`hh-fs`): un'uscita fatta dal browser con l'app in primo piano conta come
+  esplicita; se il browser la toglie con l'app in background, al primo tocco su un gioco si rientra (`resumeFull`, solo
+  con `navigator.userActivation.isActive`, così non compaiono errori in console).
+- **Adattamento** (`fitFs` in `app.js`, rilanciato a ogni apertura, nuovo livello, ricomincia e `resize`):
+  - **fill** (contratto opzionale, `fill: true` nella voce di `HH.games`): il contenitore del gioco (primo figlio di
+    `#board`) riempie tutto lo spazio sotto la barra (`.plate.fs-fill`), e il CSS del gioco dice quale pezzo cresce
+    (`flex: 1; aspect-ratio: auto`). La scena si adatta alla misura reale con un `ResizeObserver` sul palco (o
+    all'evento `resize`, che `fitFs` lancia sempre alla fine). Se più spazio cambierebbe il gioco, si scala la **vista**,
+    non il gioco: Hari Snack Rush disegna una vista 2:3 "virtuale" appoggiata in basso (in verticale cresce il cielo, in
+    orizzontale crescono i prati ai lati; strada, sagome e sensibilità del trascinamento restano identiche); Hari Home
+    inquadra la casa con `R.view(s, W, H)` e col telefono girato mette i comandi in una colonna a sinistra.
+    Usano fill: `snack`, `life`; `drive` e `rally` riempiono già da soli con regole proprie.
+  - **side** (riquadro largo, automatico): se il gioco è una pila verticale (barra, griglia, piede), il pezzo più grande
+    va al centro alto quanto il riquadro e gli altri nelle colonne ai lati (quelli prima a sinistra, quelli dopo a
+    destra). Si tiene solo se il pezzo principale viene più grande che in pila e nessun pezzo laterale sborda o si
+    rimpicciolisce (area "disegnata" ≥ 40% di quella in pila: un nastro che scala con la larghezza non va di lato).
+  - **spread** (pila normale, tipicamente in verticale): larghezza massima che entra, i pezzi prima del principale
+    attaccati alla barra in alto (niente fascia vuota tra HUD e gioco), il principale e i successivi centrati nel resto.
+  - Un `MutationObserver` sui figli diretti di `#board` e del contenitore rimette le classi se il gioco ridisegna il
+    proprio contenitore a ogni mossa (il callback gira prima del disegno: niente salti).
+  - Layout specifici: Hari Sushi Bar col telefono girato (locale e nastro a sinistra, cucina e piatti a destra), Hari
+    Memory col tavolo "sdraiato" (righe e colonne scambiate solo a video) quando lo schermo è largo.
+
 ## Offline
 - Shell e icone: precache in `sw.js` (`SHELL`). **Aggiorna `VERSION`** a ogni release.
 - **Giochi in lazy load**: all'avvio si caricano solo `src/games/catalog.js` (elenco dei giochi e dei loro file),
