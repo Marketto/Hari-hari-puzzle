@@ -75,6 +75,11 @@
   const CAR_L = 3.2, CAR_W = 1.8, HL = CAR_L / 2, HW = CAR_W / 2;
   const E_CAR = 0.25, MU_CAR = 0.3, E_WALL = 0.2;
   const WHO = ['hari', 'bunny', 'fox', 'panda'];
+  // a due giocatori: il secondo umano sceglie un personaggio (la Micia sul kart-mela, oppure uno dei tre animaletti, che
+  // allora non corre come avversario); gli avversari restano due (4 kart in tutto, come in singolo)
+  const CHARS = ['hari', 'bunny', 'fox', 'panda', 'kitty'];
+  const KART = { hari: 'straw', bunny: 'peach', fox: 'mand', panda: 'melon', kitty: 'apple' };
+  const LATE = 40;              // a due: chi non è arrivato 40 s dopo il primo umano viene classificato a tempo stimato
   // gravità delle note (rally: 6 = quasi piena, 1 = la più stretta): raggio minimo della curva in metri
   const BANDS = [[1, 0, 24], [2, 24, 40], [3, 40, 62], [4, 62, 95], [5, 95, 140], [6, 140, 1e9]];
   // ambientazioni a rotazione: [luogo, stagione/variante, ora]
@@ -672,9 +677,12 @@
       it: 0, hold: 0, ac: 0, boost: 0, sh: 0, slip: 0, slow: 0, mag: 0, spr: 0, ovS: 0, ovT: 0, use: 0,
       dr: 0, mini: 0, res: 0, gh: 0, stuck: 0 };
   }
-  function newLevel(level, rnd = Math.random) {
-    const seed = Math.floor(rnd() * 2147483647) >>> 0;
+  // o (facoltativo) = { humans: 2, p2: 'kitty' | 'bunny' | 'fox' | 'panda', seed }: gara a due giocatori. Lo stesso
+  // seme (e le stesse opzioni) dà la stessa gara su due telefoni: in rete si manda solo il seme.
+  function newLevel(level, rnd = Math.random, o) {
+    const seed = o && o.seed != null ? o.seed >>> 0 : Math.floor(rnd() * 2147483647) >>> 0;
     const c = config(level);
+    if (o && o.humans === 2) return twoUp(level, seed, c, o);
     const s = {
       v: 3, level: c.level, seed, L: c.len, t: 0, ready: READY, acc: 0, rs: (seed ^ 0x9e3779b9) >>> 0,
       cars: [], rank: [], fin: -1, pos: 4, res: null, won: false, moves: 0, called: 0, cd: 4,
@@ -689,6 +697,46 @@
     s.rank = ranking(s).map((x) => x.id);
     geo(s);
     return s;
+  }
+  // a due: 0 = Hari (fragola), 1 = il secondo giocatore (personaggio a scelta), 2 e 3 = avversari (i due più "morbidi"
+  // della curva di difficoltà). I due umani partono dietro, gli avversari davanti.
+  function twoUp(level, seed, c, o) {
+    const p2 = CHARS.indexOf(o.p2) > 0 ? o.p2 : 'kitty';
+    const ais = ['bunny', 'fox', 'panda'].filter((w) => w !== p2).slice(0, 2);
+    const s = {
+      v: 3, level: c.level, seed, L: c.len, t: 0, ready: READY, acc: 0, rs: (seed ^ 0x9e3779b9) >>> 0,
+      cars: [], rank: [], fin: -1, pos: 4, res: null, won: false, moves: 0, called: 0, cd: 4,
+      offT: 0, boingT: 0, bumpT: 0, inp: null, wait: false,
+      hz: [], cl: [], bx: [], ag: '', chk: 0, nhz: 0, nres: 0,
+      hu: [0, 1], who: ['hari', p2, ais[0], ais[1]], ps: [4, 3], end: -1,
+    };
+    const grid = [[PREROLL - 2, 1.7], [PREROLL - 2, -1.7], [PREROLL - 8, 1.7], [PREROLL - 9, -1.7]];
+    [2, 3, 1, 0].forEach((id, j) => {
+      const car = carOf(id, grid[j][0], grid[j][1], id >= 2 ? c.ai[id - 2] : 1);
+      if (id < 2) { car.hm = 1; car.nc = 0; car.ck = 0; }
+      s.cars.push(car);
+    });
+    s.cars.sort((a, b) => a.id - b.id);
+    s.rank = ranking(s).map((x) => x.id);
+    s.ps = s.hu.map((id) => s.rank.indexOf(id) + 1);
+    s.pos = s.ps[0];
+    geo(s);
+    return s;
+  }
+  // il link è caduto: il kart di quel giocatore continua guidato dall'IA (la gara diventa a un giocatore)
+  function toAI(s, id) {
+    if (!s.hu) return false;
+    const j = s.hu.indexOf(id);
+    if (j < 0 || s.hu.length < 2) return false;
+    s.hu.splice(j, 1);
+    if (Array.isArray(s.inp)) s.inp.splice(j, 1);
+    if (Array.isArray(s.ps)) s.ps.splice(j, 1);
+    const car = s.cars[id], c = config(s.level);
+    car.hm = 0; car.skill = c.ai[1]; car.bet = 0; car.dr = 0; car.err = 0; car.ovT = 0; car.use = 0; car.hold = 0;
+    car.lane = clamp(car.d, -2, 2);
+    // a metà nuvoletta: posato subito (l'IA non la usa), "fantasma" finché non è libero
+    if (car.res > 0) { car.res = 0; car.gh = 1; car.v = 0; car.psi = 0; car.d = clamp(car.d, -HALF + 1, HALF - 1); }
+    return true;
   }
   // salvataggi vecchi: v1 (prima dei power-up) e v2 (auto più grandi, muri invisibili, acceleratore automatico).
   // Aggiunge i campi nuovi, rimette le auto dentro i bordi nuovi e separa chi si tocca; la gara riprende da lì.
@@ -714,6 +762,9 @@
     return s;
   }
   const me = (s) => s.cars[0];
+  // umano? In singolo solo l'auto 0 (Hari); a due (s.hu = id degli umani) chi ha hm = 1
+  const hum = (s, car) => (s.hu ? car.hm === 1 : car.id === 0);
+  const humans = (s) => s.hu || [0];
 
   // classifica: chi ha finito (per tempo), poi chi è più avanti
   function ranking(s) {
@@ -819,7 +870,7 @@
       if (over <= 0) continue;
       if (!hard) {
         // niente muro: Hari, uscito troppo, viene riportato in pista dalla nuvoletta (gli avversari restano dentro)
-        if (car.id || car.fin >= 0) car.d -= sg * over;
+        if (!hum(s, car) || car.fin >= 0) car.d -= sg * over;
         else if (main) rescue(s, g, car, ev);
         continue;
       }
@@ -831,7 +882,7 @@
         car.bet *= 0.5;
         car.pd = -sg * Math.min(2, vn * E_WALL);
         car.v = car.v >= 0 ? Math.max(car.v * 0.4, car.v - 0.9 * vn) : Math.min(0, car.v + 0.9 * vn);
-        if (!car.id && vn > 4.5 && car.fin < 0) car.slip = Math.max(car.slip, 0.45);
+        if (hum(s, car) && vn > 4.5 && car.fin < 0) car.slip = Math.max(car.slip, 0.45);
         if (main && car.wall <= 0 && vn > 0.8) { car.wall = 0.45; const e = edgeAt(g, car.s); ev.push({ type: 'boing', who: car.id, side: sg, kind: e.kind, bridge: e.kind === 'rail' }); }
       }
       if (main && car.v > 5) car.v -= 12 * h;     // strisciando contro il muro si frena forte
@@ -864,7 +915,7 @@
       const jt = clamp(vt, -MU_CAR * (1 + e) * vn, MU_CAR * (1 + e) * vn);
       setVelW(car, P, wx - (1 + e) * vn * hit.nx - jt * tx, wy - (1 + e) * vn * hit.ny - jt * ty);
       car.bet *= 0.5;
-      if (!soft && !car.id && vn > 5 && car.fin < 0) car.slip = Math.max(car.slip, 0.5);
+      if (!soft && hum(s, car) && vn > 5 && car.fin < 0) car.slip = Math.max(car.slip, 0.5);
       if (main && car.wall <= 0 && vn > 0.8) { car.wall = 0.5; ev.push({ type: 'rock', who: car.id, k: ob.k || 'rock' }); }
     }
     return pose(g, car);
@@ -989,13 +1040,18 @@
     for (const cr of g.crests) {
       if (s0 < cr.s && car.s >= cr.s && car.v > 16.5 && car.air <= 0) {
         car.air = car.airT = +Math.min(0.6, 0.15 + (car.v - 16.5) * 0.06).toFixed(3);
-        ev.push({ type: 'jump', v: car.v });
+        ev.push(s.hu ? { type: 'jump', v: car.v, who: car.id } : { type: 'jump', v: car.v });
       }
     }
     edges(s, g, car, ev, true, h);
     if (car.res > 0) return;
     const nowOff = isOff(car);
-    if (nowOff !== car.off) { car.off = nowOff; ev.push(nowOff ? { type: 'off', surf: sf.k } : { type: 'on' }); }
+    if (nowOff !== car.off) {
+      car.off = nowOff;
+      const e = nowOff ? { type: 'off', surf: sf.k } : { type: 'on' };
+      if (s.hu) e.who = car.id;
+      ev.push(e);
+    }
     if (nowOff) s.offT += h;
     // fermi fuori strada (incastrati tra gli alberi): dopo un po' arriva la nuvoletta
     if (nowOff && !done && va < 1.5 && (gas > 0 || brake)) car.stuck += h; else car.stuck = Math.max(0, car.stuck - h);
@@ -1004,12 +1060,18 @@
 
   /* ---------- avversari ---------- */
   const ghost = (s, car) => (car.fin >= 0 && car.s > PREROLL + s.L + 15) || car.res > 0;
+  // a due: l'umano più avanti ancora in gara (riferimento del rubber band)
+  function lead(s) {
+    let b = null;
+    for (const id of s.hu) { const c = s.cars[id]; if (c.fin < 0 && (!b || c.s > b.s)) b = c; }
+    return b;
+  }
   function driveAI(s, g, c, car, ev, solo, h = TICK) {
     const dt = h, done = car.fin >= 0;
     const i = clamp(Math.round(car.s), 0, g.N);
     // rubber band moderato: chi è indietro rispetto a Hari va un po' più forte; chi è davanti non rallenta mai
-    const p = s.cars[0];
-    const rb = !solo && !done && p.fin < 0 ? 1 + c.rb * clamp((p.s - car.s - 12) / 70, 0, 1) : 1;
+    const p = s.hu ? lead(s) : s.cars[0];
+    const rb = !solo && !done && p && p.fin < 0 ? 1 + c.rb * clamp((p.s - car.s - 12) / 70, 0, 1) : 1;
     // velocità: profilo sulla traiettoria ideale × bravura, rettilinei quasi a tavoletta
     const look = clamp(Math.round(car.s + 2 + car.v * 0.25), 0, g.N);
     let vt = Math.min(g.prof[i], g.prof[look]) * Math.min(1.02, car.skill * rb);
@@ -1040,7 +1102,7 @@
     // spazio si resta in scia senza tamponare
     if (car.ovT > 0) car.ovT -= dt;
     for (const o of s.cars) {
-      if (o === car || (solo && !o.id) || ghost(s, o)) continue;
+      if (o === car || (solo && hum(s, o)) || ghost(s, o)) continue;
       const ds = o.s - car.s;
       if (ds > 0 && ds < 14 + car.v * 0.45 && Math.abs(o.d - tgt) < CAR_W + 0.6) {
         const closing = car.v - o.v;
@@ -1091,7 +1153,7 @@
   }
   function rollItem(s, c, car, place) {
     const w = IW[clamp(place, 1, 4)].slice();
-    if (car.id) for (let j = 0; j < 7; j++) if (OFFENSIVE[j + 1]) w[j] *= c.aiItem;
+    if (!hum(s, car)) for (let j = 0; j < 7; j++) if (OFFENSIVE[j + 1]) w[j] *= c.aiItem;
     let tot = 0;
     for (const x of w) tot += x;
     let u = rngNext(s) * tot;
@@ -1159,7 +1221,7 @@
     const cars = s.cars;
     // scatole-sorpresa
     for (const car of cars) {
-      if ((solo && !car.id) || car.fin >= 0 || car.res > 0) continue;
+      if ((solo && hum(s, car)) || car.fin >= 0 || car.res > 0) continue;
       for (let r = 0; r < g.boxes.length; r++) {
         const row = g.boxes[r];
         if (Math.abs(row.s - car.s) > 3) continue;
@@ -1178,7 +1240,7 @@
     }
     // ghiande bonus (la calamita le attira da lontano)
     for (const car of cars) {
-      if ((solo && !car.id) || car.fin >= 0 || car.res > 0) continue;
+      if ((solo && hum(s, car)) || car.fin >= 0 || car.res > 0) continue;
       const R2 = car.mag > 0 ? PU.magR : 0;
       for (let j = 0; j < g.acorns.length; j++) {
         const a = g.acorns[j];
@@ -1198,7 +1260,7 @@
     for (let q = s.hz.length - 1; q >= 0; q--) {
       const h = s.hz[q];
       for (const car of cars) {
-        if ((solo && !car.id) || ghost(s, car) || car.air > 0.15) continue;
+        if ((solo && hum(s, car)) || ghost(s, car) || car.air > 0.15) continue;
         if (Math.abs(h.s - car.s) > 5) continue;
         if (h.k === 'b') {
           if (!hitCircle(car, h.s, h.d, PU.bananaR)) continue;
@@ -1220,7 +1282,7 @@
     for (let q = s.cl.length - 1; q >= 0; q--) {
       const cl = s.cl[q];
       const o = cl.to >= 0 ? cars[cl.to] : null;
-      if (!o || o.fin >= 0 || o.res > 0 || s.t > cl.t || (solo && !o.id)) {
+      if (!o || o.fin >= 0 || o.res > 0 || s.t > cl.t || (solo && hum(s, o))) {
         // nessun bersaglio: vola avanti ancora un po' e svanisce
         cl.to = -1; cl.s += PU.cloudV * TICK;
         cl.life = (cl.life === undefined ? 1.5 : cl.life) - TICK;
@@ -1261,7 +1323,7 @@
       MV[0] = MV[1] = MV[2] = MV[3] = false;
       for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
         const A = cs[a], B = cs[b];
-        if (solo && (!A.id || !B.id)) continue;
+        if (solo && (hum(s, A) || hum(s, B))) continue;
         if (ghost(s, A) || ghost(s, B)) continue;
         if ((A.spr && A.air > 0.2) || (B.spr && B.air > 0.2)) continue;   // salto a molla: si passa sopra
         if (Math.abs(A.s - B.s) > CAR_L + 4 || Math.abs(A.d - B.d) > CAR_L + 1) continue;
@@ -1286,7 +1348,14 @@
           if (vn > 0.5) {
             if (wA === 0) shielded(A, ev); else if (wB === 0) shielded(B, ev);
           }
-          if ((!A.id || !B.id) && s.bumpT <= 0 && vn > 0.3) { s.bumpT = 0.6; ev.push({ type: 'bump', who: A.id === 0 ? B.id : A.id, a: A.id, b: B.id, vn }); }
+          if (s.hu) {
+            // a due: l'evento va a ciascun umano coinvolto (by), con l'altro kart in who
+            if (s.bumpT <= 0 && vn > 0.3 && (hum(s, A) || hum(s, B))) {
+              s.bumpT = 0.6;
+              if (hum(s, A)) ev.push({ type: 'bump', who: B.id, a: A.id, b: B.id, vn, by: A.id });
+              if (hum(s, B)) ev.push({ type: 'bump', who: A.id, a: A.id, b: B.id, vn, by: B.id });
+            }
+          } else if ((!A.id || !B.id) && s.bumpT <= 0 && vn > 0.3) { s.bumpT = 0.6; ev.push({ type: 'bump', who: A.id === 0 ? B.id : A.id, a: A.id, b: B.id, vn }); }
         }
         PS[a] = pose(g, A); PS[b] = pose(g, B);
         MV[a] = MV[b] = true;
@@ -1361,42 +1430,141 @@
     }
     return ev;
   }
-  // a gara finita per Hari: gli avversari ancora in corsa arrivano (simulati senza Hari) per la classifica finale
+  // a gara finita per Hari (a due: per entrambi): gli avversari ancora in corsa arrivano (simulati senza gli umani) per
+  // la classifica finale
   function finishAll(s, g, c) {
-    const fin = PREROLL + s.L, p = me(s);
-    const ps = p.s, pv = p.v, pd = p.d;
-    p.s = fin + RUNOFF; p.d = 0;
+    const fin = PREROLL + s.L, hs = humans(s).map((id) => s.cars[id]);
+    const keep = hs.map((p) => [p.s, p.v, p.d]);
+    for (const p of hs) { p.s = fin + RUNOFF; p.d = 0; }
     const hz = s.hz;
     for (let n = 0; n < 60 * 400 && s.cars.some((x) => x.fin < 0); n++) {
       s.t += TICK;
       const ev = [], ns = subs(s), h = TICK / ns;
       for (const car of s.cars) if (car.wall > 0) car.wall -= TICK;
       for (let k = 0; k < ns; k++) {
-        for (const car of s.cars) if (car.id && car.fin < 0) driveAI(s, g, c, car, ev, true, h);
+        for (const car of s.cars) if (!hum(s, car) && car.fin < 0) driveAI(s, g, c, car, ev, true, h);
         contacts(s, g, ev, true);
       }
-      for (const car of s.cars) if (car.id && car.fin < 0) aiItems(s, g, c, car, ev);
+      for (const car of s.cars) if (!hum(s, car) && car.fin < 0) aiItems(s, g, c, car, ev);
       items(s, g, c, ev, true);
-      for (const car of s.cars) if (car.id && car.fin < 0 && car.s >= fin) car.fin = +(s.t - (car.s - fin) / Math.max(1, car.v)).toFixed(3);
+      for (const car of s.cars) if (!hum(s, car) && car.fin < 0 && car.s >= fin) car.fin = +(s.t - (car.s - fin) / Math.max(1, car.v)).toFixed(3);
     }
     for (const car of s.cars) if (car.fin < 0) car.fin = +(s.t + 999).toFixed(3);
     s.t = s.fin;
     s.hz = hz.filter((h2) => h2.t > s.t); s.cl = [];
-    p.s = ps; p.v = pv; p.d = pd;
+    hs.forEach((p, j) => { [p.s, p.v, p.d] = keep[j]; });
+  }
+
+  /* ---------- passo fisso a due giocatori ---------- */
+  // come tick(), con N umani (s.hu) che guidano con la fisica del giocatore, ognuno col suo input (s.inp[j]);
+  // note, checkpoint e sorpassi per ciascuno (by = id dell'umano). La gara finisce quando sono arrivati tutti gli
+  // umani (o LATE secondi dopo il primo: chi manca viene classificato col tempo stimato); si vince insieme se uno
+  // dei due arriva primo (rimasto da solo, dopo un link caduto: tra i primi 3 come in singolo).
+  const NOGAS = { steer: 0, gas: 0, brake: 0, use: 0 };
+  function tickMulti(s) {
+    const ev = [], H = s.hu;
+    const g = geo(s), c = config(s.level);
+    const ins = H.map((id, j) => (s.inp && s.inp[j] ? cleanInput(s.inp[j]) : NOGAS));
+    s.t += TICK;
+    if (s.bumpT > 0) s.bumpT -= TICK;
+    for (const car of s.cars) if (car.wall > 0) car.wall -= TICK;
+    const n = subs(s), h = TICK / n;
+    for (let k = 0; k < n; k++) {
+      for (const car of s.cars) {
+        const j = H.indexOf(car.id);
+        if (j >= 0) drivePlayer(s, g, c, car, ins[j], ev, h); else driveAI(s, g, c, car, ev, false, h);
+      }
+      contacts(s, g, ev);
+    }
+    H.forEach((id, j) => {
+      const p = s.cars[id];
+      if (ins[j].use && p.fin < 0 && !(p.res > 0)) useItem(s, g, c, p, ev);
+      if (s.inp && s.inp[j]) s.inp[j].use = 0;
+    });
+    for (const car of s.cars) if (!hum(s, car)) aiItems(s, g, c, car, ev);
+    items(s, g, c, ev);
+    const fin = PREROLL + s.L;
+    for (const car of s.cars) {
+      if (car.fin < 0 && car.s >= fin) {
+        const over = (car.s - fin) / Math.max(1, car.v);
+        car.fin = +(s.t - over).toFixed(3);
+      }
+      if (car.s > fin + RUNOFF - 10) { car.s = fin + RUNOFF - 10; car.v = 0; }
+    }
+    // note del navigatore e checkpoint di ciascun umano
+    for (const id of H) {
+      const p = s.cars[id];
+      p.nc = p.nc || 0; p.ck = p.ck || 0;
+      while (p.nc < g.notes.length && p.s >= g.notes[p.nc].call) { ev.push({ type: 'call', i: p.nc, by: id }); p.nc++; }
+      while (p.ck < g.checks.length && p.s >= g.checks[p.ck]) { p.ck++; ev.push({ type: 'check', n: p.ck, pos: placeOf(s, id), by: id }); }
+    }
+    const p0 = s.cars[0];
+    if (p0.hm) { s.called = p0.nc; s.chk = p0.ck; }
+    // classifica e sorpassi di ciascun umano
+    let rk = order(s);
+    if (rk.every((x, j) => x === s.rank[j])) rk = s.rank;
+    for (const id of H) {
+      const was = s.rank.indexOf(id), now = rk.indexOf(id), p = s.cars[id];
+      if (now === was || p.fin >= 0) continue;
+      if (now < was) { if (id === 0) s.moves += was - now; ev.push({ type: 'pass', up: true, who: s.rank[now], by: id }); }
+      else ev.push({ type: 'pass', up: false, who: rk[was], by: id });
+    }
+    s.rank = rk;
+    s.ps = H.map((id) => rk.indexOf(id) + 1);
+    s.pos = rk.indexOf(0) + 1;
+    // traguardo: tutti gli umani arrivati (o il ritardo massimo dopo il primo)
+    if (!s.res) {
+      const done = H.filter((id) => s.cars[id].fin >= 0);
+      if (done.length && !(s.end >= 0)) s.end = +s.t.toFixed(3);
+      if (done.length === H.length || (s.end >= 0 && s.t - s.end > LATE)) {
+        for (const id of H) {
+          const car = s.cars[id];
+          if (car.fin < 0) { car.fin = +(s.t + Math.max(0, fin - car.s) / Math.max(4, 0.6 * c.vmax)).toFixed(3); car.late = 1; }
+        }
+        s.fin = +s.t.toFixed(3);
+        finishAll(s, g, c);
+        s.res = ranking(s).map((x) => ({ id: x.id, t: x.fin }));
+        s.ps = H.map((id) => s.res.findIndex((r) => r.id === id) + 1);
+        s.pos = s.res.findIndex((r) => r.id === 0) + 1;
+        s.won = H.length > 1 ? s.ps.some((q) => q === 1) : s.ps[0] <= 3;
+        ev.push({ type: 'finish', pos: s.pos, ps: s.ps.slice() });
+        ev.push({ type: s.won ? 'win' : 'lose' });
+      }
+    }
+    return ev;
+  }
+  // predizione locale (ospite in rete): solo la fisica del proprio kart (niente contatti né power-up: arrivano
+  // dall'host), un passo fisso per volta
+  function predict(s, id, dt, input) {
+    const g = geo(s), c = config(s.level), car = s.cars[id], ev = [];
+    if (!car || s.ready > 0 || s.fin >= 0 || car.res > 0) return ev;
+    const inp = input ? cleanInput(input) : NOGAS;
+    for (let t = 0; t < dt - 1e-9; t += TICK) drivePlayer(s, g, c, car, inp, ev, Math.min(TICK, dt - t));
+    return ev;
   }
 
   /* ---------- tempo reale ---------- */
   function step(s, dt, input) {
     const ev = [];
     if (isOver(s) || !(dt > 0)) return ev;
-    if (input !== undefined) {
+    if (input !== undefined && s.hu) {
+      // a due: un input per umano (nell'ordine di s.hu); null = nessun comando (fermi, senza acceleratore automatico)
+      const arr = Array.isArray(input) ? input : [input], prev = Array.isArray(s.inp) ? s.inp : [];
+      s.inp = s.hu.map((id, j) => {
+        if (!arr[j]) return Object.assign({}, NOGAS, { use: prev[j] && prev[j].use ? 1 : 0 });
+        const ci = cleanInput(arr[j]);
+        if (prev[j] && prev[j].use && !ci.use) ci.use = 1;
+        return ci;
+      });
+    } else if (input !== undefined) {
       const ci = cleanInput(input);
       // il tasto del power-up resta "in coda" finché un passo fisso non lo usa
       if (s.inp && s.inp.use && !ci.use) ci.use = 1;
       s.inp = ci;
     }
     if (s.ready > 0) {
-      if (s.inp) s.inp.use = 0;
+      if (Array.isArray(s.inp)) s.inp.forEach((q) => { q.use = 0; });
+      else if (s.inp) s.inp.use = 0;
       s.ready -= dt;
       const n = Math.ceil(s.ready - 0.2);
       if (n < s.cd && n >= 1 && n <= 3) { s.cd = n; ev.push({ type: 'count', n }); }
@@ -1406,15 +1574,15 @@
     s.acc += Math.min(dt, 0.1);
     while (s.acc >= TICK - 1e-9) {
       s.acc -= TICK;
-      ev.push(...tick(s));
+      ev.push(...(s.hu ? tickMulti(s) : tick(s)));
       if (isOver(s)) break;
     }
     return ev;
   }
 
   // prossime note (al massimo n) entro la distanza di chiamata, con i metri che mancano
-  function upcoming(s, n = 2) {
-    const g = geo(s), p = me(s), out = [];
+  function upcoming(s, n = 2, id = 0) {
+    const g = geo(s), p = s.cars[id] || me(s), out = [];
     for (const nt of g.notes) {
       if (nt.end < p.s) continue;
       if (nt.at - p.s > CALL) break;
@@ -1427,11 +1595,19 @@
   const isOver = (s) => s.fin >= 0;
   const isWon = (s) => !!s.won;
   const isLost = (s) => isOver(s) && !s.won;
-  // fragoline per posizione: 1° = 3, 2° = 2, 3° = 1, 4° = 0 (anche in tempo reale, per l'indicatore)
-  const rate = (s) => Math.max(0, 4 - (s.pos || 4));
+  // posizione di un umano (a due: s.ps; in singolo s.pos)
+  const posOf = (s, id = 0) => { if (!s.hu) return s.pos || 4; const j = s.hu.indexOf(id); return j >= 0 && s.ps ? s.ps[j] || 4 : placeOf(s, id); };
+  // fragoline per posizione: 1° = 3, 2° = 2, 3° = 1, 4° = 0 (anche in tempo reale, per l'indicatore). A due: quelle del
+  // giocatore di questo telefono (s.me), sullo schermo diviso quelle del migliore dei due
+  const rate = (s) => {
+    if (!s.hu) return Math.max(0, 4 - (s.pos || 4));
+    const pos = s.me != null ? posOf(s, s.me) : Math.min(...s.hu.map((id) => posOf(s, id)), 4);
+    return Math.max(0, 4 - pos);
+  };
   function progress(s) {
     if (s.won) return 1;
-    const p = me(s);
+    let p = me(s);
+    if (s.hu) p = s.cars[s.me != null ? s.me : 0];
     return clamp((p.s - PREROLL) / s.L, 0, s.fin >= 0 ? 0.99 : 0.98);
   }
   // tempo di riferimento (s): tappa a ~62% della velocità massima
@@ -1440,6 +1616,7 @@
   HH.rally = {
     TICK, SUB, READY, HALF, SHOULDER, WALL, WALLS, HARD, SURF, RAIL, TUBE, KMAX, GRIP, ACC, BRAKE, REV, OFFCAP, CALL, RUNOFF, PREROLL,
     CAR_L, CAR_W, DRIFT, RESCUE, PROP_IN, SOFT, FUN, WHO, BANDS, STAGES, THEMES, TIMES, ROT, ITEMS, PU, IW,
+    CHARS, KART, LATE, toAI, predict, humans, posOf, tickMulti,
     solveLine, config, newLevel, migrate, track, geo, notes, deriveNotes, world, pose, nearest, height, kAt, bankAt, edgeAt, sideAt,
     gradeOf, ranking, placeOf, upcoming, obb, overlap, overlapW, hitCircle, hitCircleW, extent, acornTaken, aheadOf, isOff,
     step, tick, isOver, isWon, isLost, rate, progress, par,

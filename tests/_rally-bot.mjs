@@ -19,12 +19,12 @@ export function botKit(HH) {
     const area2 = Math.abs((bx - ax) * (cy - ay) - (by - ay) * (cx - ax));
     return area2 < 1e-6 ? 1e6 : (a * b * c) / (2 * area2);
   }
-  // items = false: il bot ignora i power-up (non li usa mai)
-  function makeBot(s, { react = 0.22, grip = 8.4, dec = 7.5, seed = 1, wobble = 0.08, items = true, dodge = true } = {}) {
+  // items = false: il bot ignora i power-up (non li usa mai); id = kart guidato (0 = Hari, 1 = il secondo giocatore)
+  function makeBot(s, { react = 0.22, grip = 8.4, dec = 7.5, seed = 1, wobble = 0.08, items = true, dodge = true, id = 0 } = {}) {
     const g = R.geo(s), rnd = HH.rng(seed), cg = R.config(s.level).grip;
     let next = 0, inp = { steer: 0, brake: 0, use: 0 }, held = 0, lane = 0;
     return function drive() {
-      const c = s.cars[0];
+      const c = s.cars[id];
       if (inp.use) inp = Object.assign({}, inp, { use: 0 });
       if (s.t < next && s.ready <= 0) return inp;
       next = s.t + react * (0.8 + 0.4 * rnd());
@@ -58,8 +58,8 @@ export function botKit(HH) {
         held += react;
         let straight = true;
         for (let x = 0; x < 70; x += 7) if (radius(g, c.s + x) < 150) { straight = false; break; }
-        const behind = s.cars.some((o) => o.id && c.s - o.s > 4 && c.s - o.s < 30);
-        const ahead = s.cars.some((o) => o.id && o.fin < 0 && o.s > c.s && o.s - c.s < 150);
+        const behind = s.cars.some((o) => o.id !== id && c.s - o.s > 4 && c.s - o.s < 30);
+        const ahead = s.cars.some((o) => o.id !== id && o.fin < 0 && o.s > c.s && o.s - c.s < 150);
         if (it === 'carrot') use = straight || held > 8 ? 1 : 0;
         else if (it === 'bubble' || it === 'magnet') use = held > 0.5 ? 1 : 0;
         else if (it === 'banana' || it === 'honey') use = behind || held > 6 ? 1 : 0;
