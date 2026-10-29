@@ -10,6 +10,8 @@
 | `gen-icons.mjs` | Icone SVG (standard, maskable, mascotte) dal disegno di Hari |
 | `rasterize-icons.py` | PNG 180/192/512 + maskable (richiede `pip install cairosvg`) |
 | `serve.mjs` | Server statico locale senza dipendenze |
+| `mp-demo.html` | Demo del multigiocatore (due ricci e una fragola): `http://localhost:5173/tools/mp-demo.html` |
+| `mp-e2e.mjs` | Prova reale del multigiocatore con Playwright: due Chromium, microfono e fotocamera finti, percorsi suono/QR/codice, screenshot (`--shots DIR`) |
 
 ## Struttura agentica (Claude Code)
 ```
