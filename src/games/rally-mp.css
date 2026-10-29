@@ -64,6 +64,16 @@
   .ry-wrap.ry-split.chase .ry-v .ry-prog { top: 58px; }
 }
 
+/* schermo intero (html.fs-on): la barra del logo e l'uscita galleggiano in basso agli angoli (rally.css), sopra la
+   freccia sinistra del giocatore 1 e il pedale del giocatore 2: i comandi in basso salgono come nel singolo */
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-ped, .fs-on .plate .ry-wrap.ry-split .ry-v .ry-arr { bottom: 56px; }
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-item, .fs-on .plate .ry-wrap.ry-split.touch .ry-v .ry-item { right: 8px; bottom: 132px; }
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-spd { bottom: 114px; }
+@media (max-height: 420px) {
+  .fs-on .plate .ry-wrap.ry-split .ry-v .ry-ped, .fs-on .plate .ry-wrap.ry-split .ry-v .ry-arr { bottom: 52px; }
+  .fs-on .plate .ry-wrap.ry-split .ry-v .ry-item, .fs-on .plate .ry-wrap.ry-split.touch .ry-v .ry-item { bottom: 116px; }
+}
+
 /* ---------- veil "gioca insieme": rete o schermo diviso, scelta del kart, attesa ---------- */
 .ry-mpv { z-index: 10; }
 .ry-mpv > small { max-width: 92%; }

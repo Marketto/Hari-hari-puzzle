@@ -346,6 +346,8 @@ un'istantanea ogni 3 passi (20 al secondo).
   alla sua gara in singolo (`ry_mp_lost`). Il link resta paziente all'avvio di ogni gara (`link.timeout` 60 s dal saluto
   al semaforo verde, poi 15 s): costruire la pista 3D e compilare gli shader può bloccare il telefono qualche secondo
   (senza GPU, in Chromium headless, anche 17 s).
+- L'host rimasto senza amico (gara in corso, kart dell'ospite all'IA) può riaprire "Gioca insieme": oltre a **Da
+  solo** ritrova **Due telefoni** e **Schermo diviso** (nuovo abbinamento; la gara in singolo messa da parte resta quella).
 - Rivincita e livello successivo li decide l'host (nuovo seme); l'ospite aspetta (`ry_mp_host`). La vittoria apre la
   finestra dell'app su entrambi i telefoni (fragoline e livello di ciascuno).
 
@@ -358,6 +360,8 @@ se i fotogrammi sono lenti), nebbia −15%, LOD dello scenario a 70% della dista
 di scenario costruito per fotogramma, particelle e oggetti dei power-up aggiornati una volta. **Solo dispositivi
 capaci**: ≥ 4 core, ≥ 3 GB (`deviceMemory`), schermo ≥ 640 × 320 (due scene 3D raddoppiano draw call e triangoli; sui
 telefoni piccoli o lenti la gara scenderebbe sotto i 30 fps).
+A **schermo intero** (`html.fs-on`) la barra del logo e l'uscita galleggiano negli angoli in basso: sullo schermo diviso
+pedali, frecce, power-up e contachilometri di entrambe le viste salgono di ~48 px (`rally-mp.css`), come nel singolo.
 
 | Chromium headless, 1024 × 768, mediana di 7 punti della gara (massimo) | singolo | schermo diviso (2 viste) |
 |---|---|---|
@@ -385,7 +389,7 @@ posa dell'host di 60–420 ms prima, classifica identica), istantanee < 1 KB, li
 a regime) e la stessa gara col **modulo vero** (`src/net/mp.js`, loopback in tempo reale). Prova reale a due pagine:
 `node tools/rally-e2e.mjs [--port 5197] [--shots DIR] [--w 800 --h 400]` (abbinamento col suono col microfono finto come
 `tools/street-e2e.mjs`, scelta del kart, input dell'ospite, viste coerenti, pausa/ripresa, traguardo, vittoria o
-rivincita, uscita dell'ospite). QA: `el._rally.split(p2)`, `solo()`, `menu()`, `mp()`, `netCtl()`, `views()`, `auto2(on)`
+rivincita, uscita dell'ospite, poi secondo abbinamento e pagina dell'ospite chiusa a metà gara → `lost`, kart all'IA). QA: `el._rally.split(p2)`, `solo()`, `menu()`, `mp()`, `netCtl()`, `views()`, `auto2(on)`
 (autopilota attraverso l'input), `info()` (draw call e triangoli di tutte le viste), `forceSplit`, `lastDrop`.
 
 ## Salvataggio

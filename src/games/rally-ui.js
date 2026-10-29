@@ -2849,12 +2849,15 @@
     function mpMenu() {
       if (!s) return;
       if (!paused && !P.isOver(s)) pause();
-      if (mpMode) { mpEl.innerHTML = `<b>${L('ry_mp')}</b><div class="ry-mpbtns"><button class="ry-opt" type="button" data-mp="solo">${DUO}<span>${L('ry_mp_solo')}</span></button><button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button></div>`; mpEl.hidden = false; return; }
+      // a due (schermo diviso o link vivo): solo "da solo" o annulla; l'host rimasto senza amico (link caduto, il suo
+      // kart guida l'IA) può invece riabbinarsi o passare allo schermo diviso, e anche tornare alla sua gara
+      if (mpMode && (mpMode === 'split' || net)) { mpEl.innerHTML = `<b>${L('ry_mp')}</b><div class="ry-mpbtns"><button class="ry-opt" type="button" data-mp="solo">${DUO}<span>${L('ry_mp_solo')}</span></button><button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button></div>`; mpEl.hidden = false; return; }
       const canNet = !!(HH.mp && HH.mp.pair && HH.rallyNet), canSplit = splitOK();
       mpEl.innerHTML = `<b>${L('ry_mp')}</b>
         <div class="ry-mpbtns">
           <button class="ry-opt" type="button" data-mp="net"${canNet ? '' : ' disabled'}>${PHONES}<span>${L('ry_mp_net')}</span></button>
           <button class="ry-opt" type="button" data-mp="split"${canSplit ? '' : ' disabled'}>${SPLIT}<span>${L('ry_mp_split')}</span></button>
+          ${mpMode ? `<button class="ry-opt" type="button" data-mp="solo">${DUO}<span>${L('ry_mp_solo')}</span></button>` : ''}
         </div>
         ${canNet ? '' : `<small>${L('ry_mp_nonet')}</small>`}${canSplit ? '' : `<small>${L('ry_mp_nosplit')}</small>`}
         <small class="ry-rule">${L('ry_mp_rule')}</small>

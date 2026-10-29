@@ -7,6 +7,7 @@
 // - pausa dall'ospite → anche l'host; ripresa dall'host → anche l'ospite;
 // - traguardo: stessa classifica su entrambi, vittoria di squadra (se uno dei due è primo) su entrambi;
 // - l'ospite esce: sull'host il suo kart passa all'IA e la gara continua; l'ospite torna alla sua gara da solo;
+// - secondo abbinamento, poi la pagina dell'ospite si chiude di colpo: il link cade (lost) e sull'host il suo kart va all'IA;
 // - nessun errore in console.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -204,6 +205,27 @@ try {
   const gb = await view(B);
   ok(!gb.hu && gb.mp.mode === '', 'l\'ospite gioca da solo');
   await Promise.all([shot(A, 'rally-e2e-left-host.png'), shot(B, 'rally-e2e-left-guest.png')]);
+  // il link cade davvero: secondo abbinamento, poi la pagina dell'ospite si chiude di colpo a metà gara
+  await RY(A, () => document.querySelector('#board')._rally.ff(0.1));
+  await openNet(B);
+  await B.page.waitForSelector('.mp-choose'); await B.page.click('[data-act="join"]');
+  await B.page.waitForSelector('.mp-listen', { timeout: 8000 });
+  await openNet(A);
+  await A.page.waitForSelector('.mp-choose'); await A.page.click('[data-act="host"]');
+  await Promise.all([A.page.waitForSelector('.mp-sas', { timeout: 60000 }), B.page.waitForSelector('.mp-sas', { timeout: 60000 })]);
+  await A.page.click('[data-act="sas-yes"]'); await B.page.click('[data-act="sas-yes"]');
+  await B.page.waitForSelector('.ry-pick', { timeout: 15000 });
+  await B.page.click('[data-mp="pick:kitty"]');
+  await A.page.waitForFunction(() => { const r = document.querySelector('#board')._rally, s = r.state(); return s.hu && s.hu.length === 2 && r.mp().net && s.ready <= 0; }, null, { timeout: 120000 });
+  const tk = (await view(A)).t;
+  await A.page.waitForFunction((t) => document.querySelector('#board')._rally.state().t > t + 1, tk, { timeout: 60000 });
+  await B.ctx.close();
+  await A.page.waitForFunction(() => { const r = document.querySelector('#board')._rally; return !r.mp().net && r.state().hu && r.state().hu.length === 1; }, null, { timeout: 40000 });
+  const why = await RY(A, () => document.querySelector('#board')._rally.lastDrop);
+  const msg = await RY(A, () => document.querySelector('.ry-msg').innerText);
+  await shot(A, 'rally-e2e-drop-host.png');
+  const t3 = (await view(A)).t; await A.page.waitForTimeout(3000); const v4 = await view(A);
+  ok(v4.t > t3 + 0.3 && v4.hu.join() === '0', `link caduto (${why}): sull'host Micia passa all'IA, la gara continua (t ${t3.toFixed(1)} → ${v4.t.toFixed(1)}), messaggio "${msg.trim()}"`);
 } catch (e) { console.error(e); failed++; }
 await browser.close();
 const real = errors.filter((e) => !/favicon/.test(e));
