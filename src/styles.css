@@ -846,3 +846,45 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 }
 .new-tag svg { width: 13px; height: 13px; }
 .view-list .new-tag { bottom: 8px; inset-inline-end: 6px; font-size: 10.5px; padding: 3px 8px 4px 6px; }
+
+/* ---------- finestre di fine livello e tutorial col telefono girato (schermo basso e largo) ----------
+ * vittoria/sconfitta su due colonne (Hari e titolo a sinistra, risultato e pulsanti a destra), tutorial con
+ * illustrazione a sinistra e testo a destra: tutto entra in altezza senza scorrere */
+@media (orientation: landscape) and (max-height: 560px) {
+  .overlay { padding-top: max(8px, env(safe-area-inset-top, 0px)); padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
+  .win-box {
+    width: min(720px, 100%); max-height: calc(100dvh - 16px); padding: 12px 20px 14px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 18px; align-items: center; justify-items: center;
+    grid-template-areas: "hari stars" "hari rec" "ribbon stats" "cheer actions";
+  }
+  .win-rays { left: 24%; top: 34%; }
+  .win-hari { grid-area: hari; align-self: end; }
+  .win-hari .hari { width: min(120px, 30dvh); height: min(120px, 30dvh); }
+  .win-box .ribbon { grid-area: ribbon; margin: -4px 0 0; }
+  .win-box .ribbon span { font-size: 23px; padding: 6px 30px 9px; }
+  .win-box .cheer { grid-area: cheer; margin: 2px 0 0; align-self: start; }
+  .win-box .win-stars { grid-area: stars; margin: 0; }
+  .win-box .newrec { grid-area: rec; margin: 2px 0; }
+  .win-box .win-stats { grid-area: stats; margin: 6px 0 8px; }
+  .win-box .win-stats div { padding: 5px 4px; }
+  .win-box .win-stats dd { font-size: 19px; }
+  .win-box .win-actions { grid-area: actions; }
+  .ws .st { width: 40px; height: 40px; }
+  .ws:nth-child(2) .st { width: 52px; height: 52px; margin-bottom: 6px; }
+  /* sconfitta */
+  .lose-box { grid-template-areas: "hari title" "hari meter" "hari text" "hari actions"; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  .lose-box .lose-hari { grid-area: hari; align-self: center; }
+  .lose-hari .hari { width: min(130px, 36dvh); height: min(130px, 36dvh); }
+  .lose-box h2 { grid-area: title; }
+  .lose-box .lose-hearts, .lose-box .lose-moves { grid-area: meter; }
+  .lose-box p { grid-area: text; margin: 2px 0 10px; }
+  /* tutorial */
+  .tut-box {
+    width: min(760px, 100%); max-height: calc(100dvh - 16px); padding-bottom: 12px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "head head" "stage text" "stage foot"; align-items: center;
+  }
+  .tut-box .sheet-head { grid-area: head; padding: 10px 16px 4px; }
+  .tut-box .tut-stage { grid-area: stage; margin: 0 8px 0 16px; aspect-ratio: auto; height: min(calc(100dvh - 110px), 260px); }
+  .tut-box .tut-text { grid-area: text; margin: 0 16px; font-size: 15.5px; align-self: end; min-height: 0; }
+  .tut-box .tut-foot { grid-area: foot; padding: 10px 16px 0; align-self: start; }
+}
