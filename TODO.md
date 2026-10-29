@@ -6,6 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [ ] Nuovo gioco **Hari Snack Street** (`since: '0.21.0'`, regole `r20`): picchiaduro a scorrimento senza violenza con Hari e Kiki; 6 animali con comportamenti diversi, 5 ambientazioni con golosoni a schema (angurie su tutta la strada, pestone, carica, picchiata, risucchio), cassette, carrelli, presa col cesto, speciali; da soli, con Kiki CPU, in due sullo stesso dispositivo (tastiera o schermo diviso); brano `street`, tutorial in 4 schede, test con bot
+  - [ ] traduzioni: 44 chiavi nuove (`st_*`, `tu_street_1..4`, `r20`) da portare nelle 43 lingue (`i18n-translator`); finché mancano si vede l’inglese
+  - [ ] merge col modulo multigiocatore (hh-mp): file `src/net/*` nel catalogo di street, "Gioca insieme" attivo, prova su due telefoni nella stessa rete
+  - [ ] prova su telefono vero: levetta e pulsanti col pollice, schermo diviso in due su tablet, fluidità del canvas
+
 ## Prossimo
 - [ ] Hari Rally 3 su telefono vero: comodità dei pedali col tocco multiplo, sensibilità del trascinamento, fluidità con 4 kart vicini
 - [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato

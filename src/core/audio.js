@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'drive', 'rally', 'memory', 'spot', 'flight', 'sudoku', 'escape', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'street', 'drive', 'rally', 'memory', 'spot', 'flight', 'sudoku', 'escape', 'life')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -216,6 +216,13 @@
       chords: [1, 4, 5, 1, 6, 4, 5, 1], bass: 'R . O . F . O .',
       mel: ['5 . 5 6 8 . 6 5', '6 . 8 . 9 8 6 .', '5 4 3 . 5 . 2 .', '3 5 8 . 5 - - .',
         '8 . 8 9 10 . 9 8', '6 . 8 6 4 . 6 .', '5 6 5 4 3 . 2 .', '1 . 5 . 1 - - .'],
+    },
+    // Hari Snack Street: passeggiata energica per le strade (beat 'em up tenero), pluck saltellante + marimba, basso che marcia sulle ottave
+    street: {
+      bpm: 136, root: 65, lead: 'pluck', arp: 'marimba', swing: 0.08, perc: 'pop',
+      chords: [1, 6, 4, 5, 1, 6, 2, 1], bass: 'R O F O R O F O',
+      mel: ['8 . 8 5 6 . 8 .', '9 8 6 . 5 . 3 .', '4 . 6 . 8 6 4 .', '5 - 7 . 9 - - .',
+        '8 . 10 8 9 . 8 6', '6 . 8 . 5 . 3 5', '6 8 9 . 8 6 5 .', '8 . 5 . 8 - - .'],
     },
     // Hari Taxi: giro in città, ritmo da canzoncina "on the road" con lo shuffle (pluck + marimba), basso che cammina
     drive: {

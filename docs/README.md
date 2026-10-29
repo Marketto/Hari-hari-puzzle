@@ -25,6 +25,7 @@
 | [games/flight.md](games/flight.md) | Hari Airlines: volo a fasi (imbarco, bagagli, cinture, cucina, servizio, rifiuti), regole, curva di difficoltà, generatore, bot di test |
 | [games/sudoku.md](games/sudoku.md) | Hari Sudoku: sudoku classico 9×9, risolutore a tecniche, curva di difficoltà, semi curati, Hari che reagisce a ogni mossa |
 | [games/escape.md](games/escape.md) | Hari Escape: escape room a stanze, 18 tipi di enigmi visivi, generazione all'indietro con grafo delle dipendenze, bot esploratore dei test, aiuti, curva di difficoltà |
+| [games/street.md](games/street.md) | Hari Snack Street: picchiaduro a scorrimento senza violenza (si sfama), Hari e Kiki, animali con comportamenti diversi, golosoni a schema, modalità 1/2 giocatori e CPU, integrazione multigiocatore (contratto HH.mp), curva di difficoltà, bot di test |
 | [games/snack.md](games/snack.md) | Hari Snack Rush: sentiero in prospettiva, merende, porte, animalone goloso, curva di difficoltà, bot di test |
 | [games/life.md](games/life.md) | Hari Home: simulazione di vita isometrica senza fine (bisogni, casa da ristrutturare, attività, quartiere, età, traguardi, scala del tempo, bilanciamento) |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |

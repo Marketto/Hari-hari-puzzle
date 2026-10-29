@@ -21,6 +21,11 @@
     { id: 'yarn', name: 'Yarn Link', rules: 'r9', files: f('yarn.css', 'yarn-logic.js', 'yarn-ui.js') },
     { id: 'ropes', name: 'Hari Knots', rules: 'r10c', files: f('ropes.css', 'ropes-logic.js', 'ropes-ui.js') },
     { id: 'snack', name: 'Hari Snack Rush', since: '0.10.0', rules: 'r11', files: f('snack.css', 'snack-logic.js', 'snack-ui.js') },
+    // multigiocatore: al merge col modulo hh-mp aggiungere qui (prima di street-ui.js) 'src/net/sonic.js', 'src/net/qr.js',
+    // 'src/net/mp.js', 'src/net/mp-ui.js' e 'src/net/mp.css' (contratto HH.mp v1); senza HH.mp il gioco nasconde "Gioca insieme"
+    { id: 'street', name: 'Hari Snack Street', since: '0.21.0', rules: 'r20',
+      rulesEn: 'Side-scrolling street adventure with Hari and Kiki the squirrel: hungry animals block the way and you "fight" by feeding them! Tap close up, toss from afar, jump, grab a dizzy one for a whole basket and charge a special. Every animal has its own trick, and at the end a big eater rolls melons. Play alone, with a CPU friend or with two players.',
+      files: f('street.css', 'street-logic.js', 'street-art.js', 'street-ui.js') },
     { id: 'drive', name: 'Hari Taxi', since: '0.14.0', rules: 'r13',
       rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
       files: f('drive.css', 'drive-logic.js', 'drive-ui.js') },
