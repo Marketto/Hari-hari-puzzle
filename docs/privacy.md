@@ -5,6 +5,16 @@
 - Tempo di gioco e numero di partite per ogni gioco (`harihari:use:<gioco>`), mostrati in **Progressi**.
 - Niente di tutto questo viene inviato.
 
+## Gioco in due (rete locale)
+Il multigiocatore ([multiplayer.md](multiplayer.md)) collega due telefoni **direttamente**, sulla stessa Wi-Fi o hotspot:
+- **nessun dato esce dalla rete locale**: niente server di gioco, niente STUN/TURN, nessuna richiesta a internet;
+- il **microfono** serve solo ad ascoltare la melodia dell'altro telefono durante l'abbinamento: il suono si analizza in
+  memoria, non si registra né si invia, e il microfono si spegne appena i telefoni sono collegati (lo stesso per la
+  **fotocamera** quando si inquadra il QR); il permesso si chiede solo in quel momento, con una spiegazione;
+- la melodia, il QR e il codice testuale contengono solo l'impronta di un certificato temporaneo, gli indirizzi IP locali
+  e le porte: valgono per quella sola partita;
+- i messaggi di gioco viaggiano cifrati (DTLS) tra i due telefoni; i 4 frutti confermano che l'altro è proprio il telefono accanto.
+
 ## Statistiche anonime (facoltative)
 `src/core/usage.js` può inviare conteggi anonimi a [GoatCounter](https://www.goatcounter.com) (servizio senza cookie):
 - si attiva solo se nel file è impostato `CODE` (il nome del sito GoatCounter, es. `harihari` per `https://harihari.goatcounter.com`);
