@@ -716,6 +716,49 @@
 :root[data-theme="dark"] .st-wrap.st-port { --st-far: #2a3a78; --st-far-2: #23306a; --st-mid: #5e5070; --st-ground-1: #5a4e66; --st-ground-2: #4e435a; --st-front: #2c3a74; --st-awning: #c8705a; }
 :root[data-theme="dark"] .st-wrap.st-fair { --st-far: #4a2f62; --st-mid: #6a5a3e; --st-mid-2: #5a4a32; --st-ground-1: #3c5a48; --st-ground-2: #34503f; --st-front: #2c4636; --st-awning: #8f6fd8; }
 :root[data-theme="dark"] .st-wrap.st-train { --st-far: #24443a; --st-mid: #8a4a62; --st-mid-2: #743c52; --st-ground-1: #545066; --st-ground-2: #4a4659; --st-front: #3a3648; --st-awning: #c8a83a; }
+:root {
+  --mp-scrim: rgba(40, 20, 40, .5);
+  --mp-sheet: var(--card-solid, #fffaf6);
+  --mp-sheet-2: color-mix(in srgb, var(--mp-sheet) 86%, var(--mp-accent));
+  --mp-ink: var(--ink, #4b2e28); --mp-ink-2: var(--ink-2, #8b6a60);
+  --mp-line: var(--line, rgba(75, 46, 40, .14));
+  --mp-accent: var(--accent, #ff6f9c); --mp-accent-2: var(--accent-2, #d9497a); --mp-accent-ink: var(--accent-ink, #ffffff);
+  --mp-mint: var(--mint, #4fc7ab); --mp-mint-2: var(--mint-2, #2b9e85); --mp-on-mint: var(--on-mint, #133f36);
+  --mp-hint-bg: color-mix(in srgb, var(--sun, #ffc95e) 30%, var(--mp-sheet)); --mp-hint-ink: var(--ink, #4b2e28);
+  --mp-bad: var(--bad, #ff4f6d);
+  --mp-note-1: var(--accent, #ff6f9c); --mp-note-2: var(--mint, #4fc7ab); --mp-note-3: var(--sun-2, #e9a12a);
+  --mp-bar-bg: rgba(75, 46, 40, .1); --mp-bar: linear-gradient(90deg, var(--mp-accent), var(--sun, #ffc95e));
+  --mp-level: var(--mint, #4fc7ab);
+  --mp-glow: rgba(255, 111, 156, .28);
+  --mp-fruit-bg: #ffffff;
+  --mp-qr-ink: #3d2519; --mp-qr-paper: #fffaf2;
+  --mp-cam-bg: #2a1a26; --mp-cam-frame: #ffffff;
+  --mp-shadow: var(--shadow, 0 14px 32px -16px rgba(130, 60, 70, .5));
+  --mp-font-display: var(--font-display, "Mochiy Pop One", system-ui, sans-serif);
+  --mp-font-body: var(--font-body, "M PLUS Rounded 1c", system-ui, sans-serif);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mp-scrim: rgba(8, 4, 18, .62);
+    --mp-sheet: var(--card-solid, #2e2242);
+    --mp-ink: var(--ink, #fbeee8); --mp-ink-2: var(--ink-2, #cbb6c4); --mp-line: var(--line, rgba(255, 230, 240, .15));
+    --mp-accent: var(--accent, #ff8fb3); --mp-accent-2: var(--accent-2, #c95a85); --mp-accent-ink: var(--accent-ink, #2a1626);
+    --mp-mint: var(--mint, #6fdcc3); --mp-mint-2: var(--mint-2, #3aa88f); --mp-on-mint: var(--on-mint, #0f2e27);
+    --mp-hint-bg: color-mix(in srgb, var(--sun, #ffd27d) 18%, var(--mp-sheet)); --mp-hint-ink: var(--ink, #fbeee8);
+    --mp-bar-bg: rgba(255, 230, 240, .12); --mp-glow: rgba(255, 143, 179, .2);
+    --mp-fruit-bg: #3a2c52;
+  }
+}
+:root[data-theme="dark"] {
+  --mp-scrim: rgba(8, 4, 18, .62);
+  --mp-sheet: var(--card-solid, #2e2242);
+  --mp-ink: var(--ink, #fbeee8); --mp-ink-2: var(--ink-2, #cbb6c4); --mp-line: var(--line, rgba(255, 230, 240, .15));
+  --mp-accent: var(--accent, #ff8fb3); --mp-accent-2: var(--accent-2, #c95a85); --mp-accent-ink: var(--accent-ink, #2a1626);
+  --mp-mint: var(--mint, #6fdcc3); --mp-mint-2: var(--mint-2, #3aa88f); --mp-on-mint: var(--on-mint, #0f2e27);
+  --mp-hint-bg: color-mix(in srgb, var(--sun, #ffd27d) 18%, var(--mp-sheet)); --mp-hint-ink: var(--ink, #fbeee8);
+  --mp-bar-bg: rgba(255, 230, 240, .12); --mp-glow: rgba(255, 143, 179, .2);
+  --mp-fruit-bg: #3a2c52;
+}
 /* drive */
 :root {
   --tint-drive: #fff1b8;

@@ -1,12 +1,10 @@
 // Unit test Hari Snack Street: logica deterministica e ripresa da JSON, ogni livello completabile da un bot (1 e 2
 // giocatori, anche col compagno CPU), l'animalone si batte, la difficoltà sale, gli attacchi del boss che non si evitano
-// camminando, la vista compatta per la rete e la partita a due via HH.mp.loopback (modulo vero se c'è, altrimenti lo stub).
+// camminando, la vista compatta per la rete e la partita a due via HH.mp.loopback (modulo vero src/net/mp.js).
 // Il bot (tests/_street-bot.mjs) usa solo lo stato pubblico e regole riscritte lì: non chiama cpuInput() né il generatore.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { load, root } from './_load.mjs';
+import { load } from './_load.mjs';
 import { streetBot } from './_street-bot.mjs';
 // i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
 const SLOW = process.env.CI ? 3 : 1;
@@ -214,10 +212,7 @@ test('vista compatta per la rete: JSON piccolo, senza copione, con ciò che serv
 });
 
 test('due giocatori via HH.mp.loopback con latenza e perdite: l’ospite vede lo stato dell’host e muove Kiki', async () => {
-  const real = path.join(root, 'src/net/mp.js'), stub = path.join(root, 'src/net/mp-stub.js');
-  const file = fs.existsSync(real) ? 'src/net/mp.js' : fs.existsSync(stub) ? 'src/net/mp-stub.js' : null;
-  if (!file) return;
-  const H = load(file);
+  const H = load('src/net/mp.js');
   const [hl, gl] = H.mp.loopback({ latency: 30, jitter: 15, loss: 0.15 });
   const s = fresh(2, 9, { players: 2 });
   s.players[0].cpu = 1;

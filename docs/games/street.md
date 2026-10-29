@@ -11,7 +11,7 @@ livello arriva un **golosone** (animalone col bavaglino e la coroncina) con atta
   *Street* richiama i picchiaduro di strada a scorrimento. Corto, leggibile su una card e uguale in tutte le lingue.
 - File: `src/games/street-logic.js` (logica pura), `src/games/street-art.js` (disegni SVG), `src/games/street-ui.js`
   (canvas, comandi, modalità, rete), `src/games/street.css`, `tests/street.test.mjs`, `tests/_street-bot.mjs` (bot dei
-  test), `src/net/mp-stub.js` (stub di sviluppo del multigiocatore, **non** nel catalogo).
+  test), `tools/street-e2e.mjs` (prova reale a due in Chromium). Il multigiocatore usa i file condivisi `src/net/*`.
 
 ## Regole
 - La strada è un piano pseudo-3D: `x` lungo la strada, `y` profondità del marciapiede (0 davanti … 3 m in fondo),
@@ -84,7 +84,8 @@ La scelta resta salvata (`street:mode`).
 
 ## Multigiocatore in rete (contratto HH.mp v1)
 L'abbinamento (suono, QR di riserva, codice di 4 frutti) e il trasporto WebRTC sono del modulo `src/net/*` (lavoro
-separato, vedi `docs/multiplayer.md` quando arriva). Il gioco usa solo il contratto:
+condiviso, vedi [multiplayer.md](../multiplayer.md)). Nel catalogo i file `src/net/sonic.js`, `qr.js`, `mp.js`,
+`mp-ui.js`, `mp.css` stanno prima di `street-ui.js`. Il gioco usa solo il contratto:
 - "Gioca insieme" → `HH.mp.pair({ game: 'street', players: 2, title })` → `Link` (oppure `null` = annullato).
 - `HH.mp.session(link, { tick: 60, sendEvery: 3, step, snapshot, apply, predict })`:
   - **host = P1 (Hari)**: `step(dt, [inputP1, inputP2])` chiama `HH.street.step`; `snapshot()` = `HH.street.view(s)`,
@@ -99,11 +100,10 @@ separato, vedi `docs/multiplayer.md` quando arriva). Il gioco usa solo il contra
 - **Caduta del link**: sull'host Kiki diventa CPU e si continua; l'ospite riparte in locale con Kiki CPU.
 - Salvataggio: l'host salva lo stato completo; l'ospite salva solo i numeri della vista (alla riapertura si riparte in
   locale).
-- **Stub di sviluppo** `src/net/mp-stub.js` (non nel catalogo): `loopback()` con latenza/perdite (test Node),
-  `session()` del contratto, e `pair()` tra due pagine dello stesso browser via BroadcastChannel (Playwright:
-  `HH.mpStubRole = 'host' | 'guest'`). Non tocca nulla se il modulo vero è già caricato.
-- Al merge col modulo: aggiungere nel catalogo, prima di `street-ui.js`, i file `src/net/sonic.js`, `src/net/qr.js`,
-  `src/net/mp.js`, `src/net/mp-ui.js`, `src/net/mp.css`.
+- **Prova reale**: `node tools/street-e2e.mjs --port 5197 [--shots DIR]` (con `node tools/serve.mjs 5197`): due contesti
+  Chromium separati si abbinano col suono (microfono finto che riceve il PCM cantato dall'altro, come
+  `tools/mp-e2e.mjs`), confermano i 4 frutti e giocano: viste coerenti, input dell'ospite che arrivano, vittoria su
+  entrambi, caduta del link → Kiki CPU.
 
 ## Curva di difficoltà
 `config(level, np)` è monotona (verificato fino al 30):
@@ -151,5 +151,5 @@ attacchi (per esempio orso: angurie+piccoli → angurie+pestone+piccoli → pest
 bot da solo e in due (e con Kiki CPU 1–8); livelli 13–16 completabili; ogni golosone battuto con le sue fasi; angurie
 che coprono tutta la profondità e onda del pestone che raggiunge ogni punto (un bot che non salta prende molti più
 morsi); curva monotona, più morsi nei livelli alti, più animali in due; chi non fa niente perde; vista compatta
-< 6 KB; partita a due via `HH.mp.loopback` con 15% di perdite (modulo vero se presente, altrimenti lo stub); tempi.
+< 6 KB; partita a due via `HH.mp.loopback` con 15% di perdite (modulo vero `src/net/mp.js`); tempi.
 `tools/selftest.mjs`: 4 gradini × 1/2 giocatori, generazione < 10 ms, passo < 0,5 ms.
