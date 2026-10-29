@@ -1164,6 +1164,12 @@
 }
 :root[data-theme="dark"] .ry-wrap[data-stage] { --ry-night: 1; --ry-shafts: 0; }
 :root[data-theme="dark"] .ry-wrap[data-stage="sea"] { --ry-sea: #5fc8e6; }
+:root {
+  
+  --ry-apple: #ffd23f; --ry-apple-2: #fff3b0; --ry-apple-3: #ff8f6b;
+  --ry-kitty: #d9c8f7; --ry-kitty-2: #fff6fb; --ry-kitty-3: #b39ae6; --ry-kitty-in: #ffb3c8;
+  --ry-p4: #ffd23f; --ry-mate: #7fcfff;
+}
 /* memory */
 :root {
   --tint-memory: #dff0d2;

@@ -36,7 +36,16 @@
     ry_item: 'Use power-up', ry_acorns: 'Acorns',
     ry_pu_carrot: 'Carrot turbo!', ry_pu_bubble: 'Bubble shield!', ry_pu_banana: 'Banana peel!', ry_pu_honey: 'Honey puddle!',
     ry_pu_cloud: 'Flower cloud!', ry_pu_magnet: 'Acorn magnet!', ry_pu_spring: 'Spring jump!',
-    // già tradotte (Hari Parade, comuni)
+    // a due giocatori (rete locale e schermo diviso)
+    ry_mp: 'Play together', ry_mp_net: 'Two phones', ry_mp_split: 'Split screen', ry_mp_pick: 'Choose your kart',
+    ry_mp_wait: 'Waiting for your friend…', ry_mp_host: 'Waiting for the host…', ry_mp_lost: 'Connection lost: you are racing alone',
+    ry_mp_left: 'Your friend left: the computer drives their kart', ry_mp_win: 'Team victory!', ry_mp_lose: 'So close! Race again?',
+    ry_mp_again: 'Rematch', ry_mp_solo: 'Play alone', ry_mp_rule: 'Win together: one of you must finish first!',
+    ry_mp_nosplit: 'Split screen needs a bigger, faster device', ry_mp_nonet: 'Two-phone play is not available yet',
+    ry_mp_p2: 'Player 2', ry_mp_keys: 'Player 1: arrows and Enter · Player 2: W A S D and Space',
+    ry_who_bunny: 'Bunny', ry_who_fox: 'Fox', ry_who_panda: 'Panda', ry_who_kitty: 'Kitty',
+    // già tradotte (Hari Parade, Hari Home, comuni)
+    lf_cancel: 'Cancel',
     pa_ready: 'Ready?', pa_go: 'Go!', pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', retry: 'Try again', pa_left: 'Left', pa_right: 'Right',
   };
   const L = (k) => label(k, EN[k]);
@@ -73,10 +82,20 @@
       <ellipse cx="38" cy="58" rx="8" ry="10" transform="rotate(25 38 58)" fill="var(--ry-panda-2)"/><ellipse cx="62" cy="58" rx="8" ry="10" transform="rotate(-25 62 58)" fill="var(--ry-panda-2)"/>
       ${j ? eyes(50, 58, 12, true) : `<circle cx="39" cy="58" r="3.4" fill="var(--ry-hi)"/><circle cx="61" cy="58" r="3.4" fill="var(--ry-hi)"/>${blush(30, 70, 4.6)}${blush(70, 70, 4.6)}`}
       <ellipse cx="50" cy="70" rx="3.6" ry="2.6" fill="var(--ry-nose)"/>`,
+    // Micia (la quinta pilota, sul kart-mela: la sceglie il secondo giocatore)
+    kitty: (j) => `<path d="M21 52L25 14L49 34Z" fill="var(--ry-kitty)" ${o(2)}/><path d="M28 42L29 24L42 34Z" fill="var(--ry-kitty-in)"/>
+      <path d="M79 52L75 14L51 34Z" fill="var(--ry-kitty)" ${o(2)}/><path d="M72 42L71 24L58 34Z" fill="var(--ry-kitty-in)"/>
+      <ellipse cx="50" cy="60" rx="30" ry="26" fill="var(--ry-kitty)" ${o(2.4)}/><path d="M43 37l2 7M50 35v8M57 37l-2 7" stroke="var(--ry-kitty-3)" stroke-width="2.6" stroke-linecap="round"/>
+      <ellipse cx="50" cy="71" rx="12" ry="8" fill="var(--ry-kitty-2)"/>${eyes(50, 57, 11, j)}<path d="M46.8 66h6.4l-3.2 3.2z" fill="var(--ry-kitty-in)"/>
+      <path d="M31 69H18M31 73l-12 3.4M69 69h13M69 73l12 3.4" stroke="var(--ry-ink)" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>`,
   };
   const WHO = ['hari', 'bunny', 'fox', 'panda'];
-  const CCOL = ['var(--ry-me)', 'var(--ry-p1)', 'var(--ry-p2)', 'var(--ry-p3)'];
-  const face = (id, j) => `<svg viewBox="0 0 100 100" aria-hidden="true">${FACE[WHO[id]](j)}</svg>`;
+  // personaggi (anche la Micia, a due giocatori), il loro kart-frutto e il loro colore negli indicatori
+  const CHARS = ['hari', 'bunny', 'fox', 'panda', 'kitty'];
+  const FRUITW = { hari: 'straw', bunny: 'peach', fox: 'mand', panda: 'melon', kitty: 'apple' };
+  const CCOLW = { hari: 'var(--ry-me)', bunny: 'var(--ry-p1)', fox: 'var(--ry-p2)', panda: 'var(--ry-p3)', kitty: 'var(--ry-p4)' };
+  const CCOL = WHO.map((w) => CCOLW[w]);
+  const faceW = (w, j) => `<svg viewBox="0 0 100 100" aria-hidden="true">${FACE[w](j)}</svg>`;
 
   // power-up (viewBox 48): disegni buffi e innocui
   const PU_ART = {
@@ -146,6 +165,9 @@
     pilot: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M4 11.2h16M12 12v8" stroke="currentColor" stroke-width="2.6"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg>',
   };
   const AUTO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.5" y="2.5" width="9" height="15" rx="3.4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10.4 7h3.2M10.4 10h3.2M10.4 13h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 20.5q7-3.4 14 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M16.6 17.6l2.6 2.9-3.6 1.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const DUO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="9" width="9" height="5" rx="2.5" fill="currentColor"/><circle cx="6" cy="6" r="2.6" fill="currentColor"/><rect x="13.5" y="9" width="9" height="5" rx="2.5" fill="currentColor" opacity=".7"/><circle cx="18" cy="6" r="2.6" fill="currentColor" opacity=".7"/><path d="M3 18.5h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/></svg>';
+  const PHONES = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="8" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="5" width="8" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 9.5q1.5-1.5 3 0M9.6 7.4q2.4-2.4 4.8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const SPLIT = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4v16" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="13" r="2" fill="currentColor"/><circle cx="17" cy="13" r="2" fill="currentColor" opacity=".7"/></svg>';
   const ZONE = (d) => `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--ry-ui)" stroke="var(--ry-ui-line)" stroke-width="2.5"/><path d="${d > 0 ? 'M16 11l9 9-9 9' : 'M24 11l-9 9 9 9'}" fill="none" stroke="var(--ry-arrow)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const PHONE = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="30" y="12" width="40" height="76" rx="9" fill="var(--card-solid)" stroke="var(--ry-ink)" stroke-width="4"/><rect x="36" y="22" width="28" height="52" rx="3" fill="var(--ry-sky-1)"/><path d="M38 70l12-30 12 30Z" fill="var(--ry-dirt)"/><circle cx="50" cy="81" r="3" fill="var(--ry-ink)"/></svg>`;
 
@@ -174,7 +196,6 @@
   const pine = (x, y, k) => `<path d="M${x} ${y - 16 * k}L${x + 7 * k} ${y}H${x - 7 * k}Z" fill="var(--ry-pine)" ${o(1.2)}/><rect x="${x - 1.2 * k}" y="${y}" width="${2.4 * k}" height="${3 * k}" fill="var(--ry-trunk)"/>`;
   const roundT = (x, y, k, c = 'var(--ry-leaf-1)') => `<rect x="${x - 1.3 * k}" y="${y - 3 * k}" width="${2.6 * k}" height="${6 * k}" fill="var(--ry-trunk)"/><circle cx="${x}" cy="${y - 8 * k}" r="${7 * k}" fill="${c}" ${o(1.2)}/>`;
   // kart-frutto visto da dietro (card e tutorial): fragola, pesca, mandarino, fetta d'anguria, col pilota che spunta
-  const FRUIT = ['straw', 'peach', 'mand', 'melon'];
   const dots = (pts, c, r = 1) => pts.map(([a, b]) => `<ellipse cx="${a}" cy="${b}" rx="${f1(r * 0.8)}" ry="${f1(r * 1.15)}" fill="var(--ry-${c})"/>`).join('');
   const leafFan = (cx, cy, n, len, a0, a1) => Array.from({ length: n }, (_, i) => { const a = a0 + ((a1 - a0) * i) / Math.max(1, n - 1); return `<ellipse cx="${cx}" cy="${f1(cy - len / 2)}" rx="${f1(len * 0.28)}" ry="${f1(len / 2)}" transform="rotate(${f1(a)} ${cx} ${cy})" fill="var(--ry-kleaf)" ${o(1.1)}/>`; }).join('');
   const BACK = {
@@ -182,6 +203,7 @@
     peach: () => `<ellipse cx="0" cy="-1" rx="13" ry="10" fill="var(--ry-peach)" ${o(1.4)}/><ellipse cx="-5" cy="1" rx="6" ry="5" fill="var(--ry-peach-2)" opacity=".55"/><path d="M1 -11Q-2 -1 1 9" fill="none" stroke="var(--ry-peach-2)" stroke-width="1.6" stroke-linecap="round"/>`,
     mand: () => `<ellipse cx="0" cy="-0.5" rx="13.5" ry="9.5" fill="var(--ry-mand)" ${o(1.4)}/>${[[-8, -3], [-3, 3], [3, -4], [8, 2], [0, 6], [-9, 4], [6, -1]].map(([a, b]) => `<circle cx="${a}" cy="${b}" r=".7" fill="var(--ry-mand-2)"/>`).join('')}`,
     melon: () => `<path d="M-14 7A14 14 0 0 1 14 7Z" fill="var(--ry-melon-rind)" ${o(1.4)}/><path d="M-12 7A12 12 0 0 1 12 7Z" fill="var(--ry-melon-w)"/><path d="M-10.6 7A10.6 10.6 0 0 1 10.6 7Z" fill="var(--ry-melon)"/>${dots([[-6, 3], [-2, -1], [3, 0], [6, 4], [0, 4], [-3, -4.5], [3, -5]], 'mseed', 0.8)}`,
+    apple: () => `<path d="M0 -8C-4 -11 -13.5 -10 -13.5 -1C-13.5 6 -6 9.5 0 8.4C6 9.5 13.5 6 13.5 -1C13.5 -10 4 -11 0 -8Z" fill="var(--ry-apple)" ${o(1.4)}/><ellipse cx="-6.5" cy="-3" rx="3" ry="4.2" fill="var(--ry-apple-2)" opacity=".75"/><ellipse cx="7" cy="2" rx="3.4" ry="2.2" fill="var(--ry-apple-3)" opacity=".55"/>`,
   };
   // spoiler a foglia (davanti al pilota, visto da dietro)
   const SPOIL = {
@@ -189,12 +211,14 @@
     peach: () => `<path d="M2 -9v-4" stroke="var(--ry-trunk)" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="7" cy="-13" rx="2.6" ry="6" transform="rotate(60 2 -11)" fill="var(--ry-kleaf)" ${o(1.1)}/>`,
     mand: () => `<path d="M0 -9v-3" stroke="var(--ry-kleaf-2)" stroke-width="1.8" stroke-linecap="round"/>${leafFan(0, -11, 2, 8, -60, 60)}`,
     melon: () => `<path d="M0 -7q-3-3 0-5t0-5" fill="none" stroke="var(--ry-melon-rind-2)" stroke-width="1.4" stroke-linecap="round"/>${leafFan(0, -10, 1, 7, 40, 40)}`,
+    apple: () => `<path d="M0 -8.5v-4.5" stroke="var(--ry-trunk)" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="4.4" cy="-13" rx="2.4" ry="5" transform="rotate(58 3.4 -12)" fill="var(--ry-kleaf)" ${o(1.1)}/>`,
   };
-  const kartBack = (x, y, k, id, tilt = 0) => `<g transform="translate(${x} ${y}) scale(${k}) rotate(${tilt})">
+  const kartBack = (x, y, k, id, tilt = 0) => kartBackW(x, y, k, WHO[id], tilt);
+  const kartBackW = (x, y, k, w, tilt = 0) => `<g transform="translate(${x} ${y}) scale(${k}) rotate(${tilt})">
     <ellipse cx="0" cy="10" rx="16" ry="3" fill="var(--ry-shadow)" opacity=".25"/>
     <rect x="-16" y="1" width="6.5" height="9" rx="2.6" fill="var(--ry-tire)" ${o(1.2)}/><rect x="9.5" y="1" width="6.5" height="9" rx="2.6" fill="var(--ry-tire)" ${o(1.2)}/>
     <rect x="-12" y="3" width="24" height="4" rx="2" fill="var(--ry-chassis)" ${o(1.1)}/>
-    ${BACK[FRUIT[id]]()}<svg x="-8.5" y="-25" width="17" height="17" viewBox="0 0 100 100">${FACE[WHO[id]](false)}</svg>${SPOIL[FRUIT[id]]()}
+    ${BACK[FRUITW[w]]()}<svg x="-8.5" y="-25" width="17" height="17" viewBox="0 0 100 100">${FACE[w](false)}</svg>${SPOIL[FRUITW[w]]()}
     <rect x="-11" y="-1" width="3.4" height="2" rx="1" fill="var(--ry-tail)"/><rect x="7.6" y="-1" width="3.4" height="2" rx="1" fill="var(--ry-tail)"/></g>`;
   function forest(extra, under = '') {
     return `<svg viewBox="0 0 120 90" aria-hidden="true">
@@ -233,7 +257,7 @@
     'chevron', 'chevron-2', 'check-1', 'check-2', 'pole', 'flag', 'car', 'car-2', 'trim', 'tire', 'glass', 'head', 'tail',
     'straw', 'straw-2', 'seed', 'kleaf', 'kleaf-2', 'peach', 'peach-2', 'mand', 'mand-2', 'melon', 'melon-w', 'melon-rind', 'melon-rind-2', 'mseed', 'chassis', 'shadow',
     'quill', 'quill-2', 'face', 'ear', 'paw', 'nose', 'hi', 'wheel',
-    'bunny', 'bunny-in', 'fox', 'fox-2', 'panda', 'panda-2', 'dust', 'leafp', 'spark', 'nsky-1', 'nsky-2', 'nsun', 'nhill',
+    'bunny', 'bunny-in', 'fox', 'fox-2', 'panda', 'panda-2', 'apple', 'apple-2', 'apple-3', 'kitty', 'kitty-2', 'kitty-3', 'kitty-in', 'dust', 'leafp', 'spark', 'nsky-1', 'nsky-2', 'nsun', 'nhill',
     'gift-1', 'gift-2', 'gift-3', 'gift-4', 'ribbon', 'acorn', 'acorn-cap', 'banana', 'banana-2', 'honey', 'honey-2', 'bubble', 'petal', 'petal-2', 'carrot', 'carrot-leaf', 'spring',
     'road', 'road-2', 'paint', 'paint-2', 'curb', 'curb-2', 'walk', 'walk-2', 'plaza', 'bld-1', 'bld-2', 'bld-3', 'bld-4', 'bld-5', 'bld-6', 'roof', 'roof-2',
     'win', 'win-on', 'win-off', 'awn-1', 'awn-2', 'awn-3', 'sign', 'barrier-1', 'barrier-2', 'lamp', 'bulb', 'glow', 'tl-red', 'tl-amber', 'tl-green',
@@ -247,9 +271,18 @@
     // la camera sta un po' dietro il centro dell'auto: il bordo del cofano (2,9 m davanti all'occhio) è il muso dell'auto
     const EYE_BACK = 2.9 - P.CAR_L / 2;
     let s = null, g = null, cfg = null, raf = 0, last = 0, paused = false, over = 0, timers = [], lastChanged = 0, alive = true;
-    let wrap, stage, cv, needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pauseEl, endEl, turnEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl, optsEl, glErr = false;
+    let wrap, stage, cv, needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pauseEl, endEl, turnEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl, optsEl, mpEl, glErr = false;
     let W = 300, H = 400, pr = 1, slowF = 0, fastF = 0;
-    let keys = {}, ptrs = new Map(), steerV = 0, brakeOn = false, gasOn = false, hdgS = null, camRoll = 0, useQ = false, fovK = 0, shake = 0, lastDrawn = null;
+    // tasti: KS[0] = giocatore 1, KS[1] = giocatore 2 (schermo diviso: frecce e WASD separati)
+    const KS = [{}, {}];
+    let keys = KS[0], ptrs = new Map(), steerV = 0, brakeOn = false, gasOn = false, hdgS = null, camRoll = 0, useQ = false, fovK = 0, shake = 0, lastDrawn = null;
+    const clearKeys = () => { for (const k of KS) for (const x in k) delete k[x]; };
+    /* a due giocatori: ME = kart di chi guarda (0 = Hari; 1 = l'ospite in rete o il giocatore 2 sullo schermo diviso).
+     * mpMode: '' (singolo), 'split' (schermo diviso), 'host' o 'guest' (rete locale, net = controllo di HH.rallyNet).
+     * Sullo schermo diviso ogni vista (views[i]) ha la sua camera, il suo terreno, i suoi indicatori e i suoi comandi:
+     * inView(i, fn) scambia le variabili della vista corrente (camera a molla, sterzo, pedali, elementi HTML) e chiama fn.
+     * La partita a due non si salva: solo = la gara in singolo messa da parte, che si riprende uscendo (o riaprendo). */
+    let ME = 0, VI = 0, views = [], mpMode = '', net = null, solo = null, quiet = false, fno = 0, mpBusy = false;
     const sget = (k, d) => { try { const v = HH.store && HH.store.get && HH.store.get(k); return v === undefined || v === null ? d : v; } catch (e) { return d; } };
     const sset = (k, v) => { try { if (HH.store && HH.store.set) HH.store.set(k, v); } catch (e) { /* niente salvataggio */ } };
     let pref = sget('rally:ctl', 'tilt');
@@ -259,15 +292,23 @@
     let autoPref = sget('rally:auto', null);
     const autoGas = () => (autoPref === null ? !!(cfg && cfg.autoGas) : !!autoPref);
     // camera da dietro: posizione e velocità della molla, punto guardato
-    const CH = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, lx: 0, ly: 0, lz: 0, ok: false };
+    let CH = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, lx: 0, ly: 0, lz: 0, ok: false };
     const sensor = { at: 0, raw: 0, zero: 0, val: 0, asked: false };
     let lastHud = { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' };
-    let rollUntil = 0, seenPu = {}, qaHold = false;
-    const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+    let rollUntil = 0, seenPu = {}, qaHold = false, qaAuto = false;
+    // (sullo schermo diviso il callback gira nella vista in cui è stato chiesto)
+    const later = (fn, ms) => { const vi = VI; const id = setTimeout(() => (views.length > 1 && views[vi] ? inView(vi, fn) : fn()), ms); timers.push(id); return id; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
-    const sfx = (k, ...a) => { if (ctx.sfx && typeof ctx.sfx[k] === 'function') ctx.sfx[k](...a); };
+    const sfx = (k, ...a) => { if (!quiet && ctx.sfx && typeof ctx.sfx[k] === 'function') ctx.sfx[k](...a); };
     const audio = () => HH.audio || {};
-    const asfx = (k, ...a) => { const A = audio(); if (A.sfx && typeof A.sfx[k] === 'function') A.sfx[k](...a); };
+    const asfx = (k, ...a) => { const A = audio(); if (!quiet && A.sfx && typeof A.sfx[k] === 'function') A.sfx[k](...a); };
+    // personaggi e umani (a due: s.who, s.hu)
+    const whoOf = (id) => (s && s.who ? s.who[id] : WHO[id]);
+    const face = (id, j) => faceW(whoOf(id), j);
+    const colOf = (id) => CCOLW[whoOf(id)];
+    const isHum = (id) => (s && s.hu ? s.hu.indexOf(id) >= 0 : id === 0);
+    const split = () => views.length > 1;
+    const posMe = () => (s ? P.posOf(s, ME) : 4);
 
     /* ---------- 3D: stato della scena ---------- */
     let R3 = null;      // { renderer, scene, camera, ... }
@@ -287,10 +328,41 @@
 
     /* ---------- costruzione del DOM ---------- */
     function build() {
-      const GAUGE = `<svg viewBox="-24 -24 48 48" aria-hidden="true"><circle r="21" fill="var(--ry-gauge)" ${o(2.4)}/><path d="M-14 6A15 15 0 1 1 14 6" fill="none" stroke="var(--ry-dash-2)" stroke-width="3" stroke-dasharray="2 4"/><g class="ry-needle2"><path d="M0 0L-12 -6" stroke="var(--ry-needle)" stroke-width="3.4" stroke-linecap="round"/></g><circle r="3.6" fill="var(--ry-ink)"/></svg>`;
       el.innerHTML = `<div class="ry-wrap" dir="ltr">
         <div class="ry-stage" tabindex="0" role="application" aria-label="${L('ry_board')}">
           <canvas class="ry-cv"></canvas>
+          ${hudHTML(0)}
+          <div class="ry-veil ry-pause" hidden><span class="ry-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small>
+            <div class="ry-opts">
+              <button class="ry-opt" type="button" data-opt="cam"></button>
+              <button class="ry-opt" type="button" data-opt="auto">${AUTO}<span>${L('ry_auto')}</span><i class="ry-sw" aria-hidden="true"></i></button>
+              <button class="ry-opt" type="button" data-opt="ctl"></button>
+              <button class="ry-opt ry-mpopt" type="button" data-opt="mp">${DUO}<span>${L('ry_mp')}</span></button>
+            </div></div>
+          <div class="ry-veil ry-turn" hidden>${PHONE}<b>${L('ry_turn')}</b></div>
+          <div class="ry-veil ry-end" hidden></div>
+          <div class="ry-veil ry-mpv" hidden></div>
+        </div></div>`;
+      wrap = el.querySelector('.ry-wrap');
+      stage = el.querySelector('.ry-stage');
+      cv = el.querySelector('.ry-cv');
+      pauseEl = el.querySelector('.ry-pause');
+      endEl = el.querySelector('.ry-end');
+      turnEl = el.querySelector('.ry-turn');
+      optsEl = el.querySelector('.ry-opts');
+      mpEl = el.querySelector('.ry-mpv');
+      hudEls(el.querySelector('.ry-v'));
+      renderMode();
+      if (G.ResizeObserver) {
+        if (el._ryRO) el._ryRO.disconnect();
+        el._ryRO = new G.ResizeObserver(() => measure());
+        el._ryRO.observe(stage);
+      }
+    }
+    // indicatori e comandi di una vista (sullo schermo diviso ce ne sono due, ognuno nella sua metà)
+    function hudHTML(vi) {
+      const GAUGE = `<svg viewBox="-24 -24 48 48" aria-hidden="true"><circle r="21" fill="var(--ry-gauge)" ${o(2.4)}/><path d="M-14 6A15 15 0 1 1 14 6" fill="none" stroke="var(--ry-dash-2)" stroke-width="3" stroke-dasharray="2 4"/><g class="ry-needle2"><path d="M0 0L-12 -6" stroke="var(--ry-needle)" stroke-width="3.4" stroke-linecap="round"/></g><circle r="3.6" fill="var(--ry-ink)"/></svg>`;
+      return `<div class="ry-v" data-v="${vi}">
           <div class="ry-fxo" aria-hidden="true"></div>
           <div class="ry-dash">${DASH}</div>
           <div class="ry-prog" aria-hidden="true">${[3, 2, 1, 0].map((i) => `<i class="${i ? '' : 'me'}" data-id="${i}" style="--ry-c:${CCOL[i]}"></i>`).join('')}<b>${FLAG}</b></div>
@@ -298,6 +370,7 @@
             <div class="ry-left"><div class="ry-pos" role="status"><b>4</b><small>/4</small></div><div class="ry-rank" aria-hidden="true"></div></div>
             <div class="ry-notes" aria-live="polite"></div>
             <div class="ry-right"><div class="ry-btns">
+              <button class="ry-btn ry-mpbtn" type="button" aria-label="${L('ry_mp')}" title="${L('ry_mp')}">${DUO}</button>
               <button class="ry-btn ry-cam" type="button"></button>
               <button class="ry-btn ry-mode" type="button"></button>
               <button class="ry-btn ry-pbtn" type="button" aria-label="${L('pa_pause')}">${PAUSE}</button></div>
@@ -313,47 +386,62 @@
           </div>
           <button class="ry-item empty" type="button" aria-label="${L('ry_item')}">${puSvg('gift')}</button>
           <div class="ry-msg" aria-live="polite"></div>
-          <div class="ry-veil ry-pause" hidden><span class="ry-play">${PLAY}</span><b>${L('pa_paused')}</b><small>${L('pa_tap')}</small>
-            <div class="ry-opts">
-              <button class="ry-opt" type="button" data-opt="cam"></button>
-              <button class="ry-opt" type="button" data-opt="auto">${AUTO}<span>${L('ry_auto')}</span><i class="ry-sw" aria-hidden="true"></i></button>
-              <button class="ry-opt" type="button" data-opt="ctl"></button>
-            </div></div>
-          <div class="ry-veil ry-turn" hidden>${PHONE}<b>${L('ry_turn')}</b></div>
-          <div class="ry-veil ry-end" hidden></div>
-        </div></div>`;
-      wrap = el.querySelector('.ry-wrap');
-      stage = el.querySelector('.ry-stage');
-      cv = el.querySelector('.ry-cv');
-      needle = el.querySelector('.ry-needle');
-      wheelG = el.querySelector('.ry-wheelg');
-      posEl = el.querySelector('.ry-pos');
-      rankEl = el.querySelector('.ry-rank');
-      timeEl = el.querySelector('.ry-time');
-      notesEl = el.querySelector('.ry-notes');
-      progEl = el.querySelector('.ry-prog');
-      msgEl = el.querySelector('.ry-msg');
-      pauseEl = el.querySelector('.ry-pause');
-      endEl = el.querySelector('.ry-end');
-      turnEl = el.querySelector('.ry-turn');
-      pedalEl = el.querySelector('.ry-ped.brake');
-      gasEl = el.querySelector('.ry-ped.gas');
-      arrL = el.querySelector('.ry-arr.l');
-      arrR = el.querySelector('.ry-arr.r');
-      modeBtn = el.querySelector('.ry-mode');
-      camBtn = el.querySelector('.ry-cam');
-      pauseBtn = el.querySelector('.ry-pbtn');
-      itemBtn = el.querySelector('.ry-item');
-      acornEl = el.querySelector('.ry-acorn');
-      fxoEl = el.querySelector('.ry-fxo');
-      spdEl = el.querySelector('.ry-needle2');
-      optsEl = el.querySelector('.ry-opts');
-      renderMode();
-      if (G.ResizeObserver) {
-        if (el._ryRO) el._ryRO.disconnect();
-        el._ryRO = new G.ResizeObserver(() => measure());
-        el._ryRO.observe(stage);
+        </div>`;
+    }
+    function hudEls(v) {
+      const q = (sel) => v.querySelector(sel);
+      needle = q('.ry-needle'); wheelG = q('.ry-wheelg'); posEl = q('.ry-pos'); rankEl = q('.ry-rank'); timeEl = q('.ry-time');
+      notesEl = q('.ry-notes'); progEl = q('.ry-prog'); msgEl = q('.ry-msg'); pedalEl = q('.ry-ped.brake'); gasEl = q('.ry-ped.gas');
+      arrL = q('.ry-arr.l'); arrR = q('.ry-arr.r'); modeBtn = q('.ry-mode'); camBtn = q('.ry-cam'); pauseBtn = q('.ry-pbtn');
+      itemBtn = q('.ry-item'); acornEl = q('.ry-acorn'); fxoEl = q('.ry-fxo'); spdEl = q('.ry-needle2');
+    }
+    /* ---------- viste (schermo diviso) ---------- */
+    function saveV(v) {
+      Object.assign(v, { ME, CH, hdgS, camRoll, fovK, shake, baseFov, steerV, gasOn, brakeOn, useQ, rollUntil, seenPu, lastHud, keys });
+      v.el = { needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl };
+      if (R3) { v.cam = R3.camera; v.ground = R3.ground; }
+    }
+    function loadV(v) {
+      ({ ME, CH, hdgS, camRoll, fovK, shake, baseFov, steerV, gasOn, brakeOn, useQ, rollUntil, seenPu, lastHud, keys } = v);
+      ({ needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl } = v.el);
+      if (R3) { if (v.cam) R3.camera = v.cam; if (v.ground) R3.ground = v.ground; }
+    }
+    function inView(i, fn) {
+      if (views.length < 2 || i === VI || !views[i]) return fn();
+      saveV(views[VI]); loadV(views[i]); VI = i;
+      return fn();
+    }
+    const eachView = (fn) => { if (views.length < 2) return fn(0); for (let i = 0; i < views.length; i++) inView(i, () => fn(i)); inView(0, () => 0); return 0; };
+    // vista che guarda il kart id (-1 se nessuna)
+    const viewOf = (id) => (views.length < 2 ? (id === ME ? 0 : -1) : views.findIndex((v, i) => (i === VI ? ME : v.ME) === id));
+    // schermo diviso: due viste (giocatore 1 e 2), ognuna con camera, terreno e indicatori; one = torna a una vista
+    function setViews(n) {
+      if (n === views.length || (n < 2 && views.length < 2)) return;
+      inView(0, () => 0);
+      wrap.querySelectorAll('.ry-v[data-v="1"]').forEach((x) => x.remove());
+      if (n < 2) {
+        if (views[1] && views[1].ground && R3 && R3.scene) R3.scene.remove(views[1].ground.m);
+        views = []; VI = 0; ME = 0; keys = KS[0];
+        wrap.classList.remove('ry-split');
+        const v0 = wrap.querySelector('.ry-v'); v0.style.cssText = '';
+        return;
       }
+      const v0 = {}; saveV(v0);
+      stage.querySelector('.ry-v').insertAdjacentHTML('afterend', hudHTML(1));
+      const v1 = { ME: 1, CH: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, lx: 0, ly: 0, lz: 0, ok: false }, hdgS: null, camRoll: 0, fovK: 0, shake: 0, baseFov: 64, steerV: 0, gasOn: false, brakeOn: false, useQ: false, rollUntil: 0, seenPu: {}, lastHud: { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' }, keys: KS[1] };
+      const cur = { needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl };
+      hudEls(stage.querySelector('.ry-v[data-v="1"]'));
+      v1.el = { needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl };
+      ({ needle, wheelG, posEl, rankEl, timeEl, notesEl, progEl, msgEl, pedalEl, gasEl, arrL, arrR, modeBtn, camBtn, pauseBtn, itemBtn, acornEl, fxoEl, spdEl } = cur);
+      if (R3) v1.cam = new T.PerspectiveCamera(66, 1, 0.1, 900);
+      views = [v0, v1]; VI = 0;
+      wrap.classList.add('ry-split');
+    }
+    // capace di due viste 3D? (telefoni piccoli o lenti: no)
+    function splitOK() {
+      const nav = G.navigator || {}, cores = nav.hardwareConcurrency || 4, mem = nav.deviceMemory || 4;
+      const a = Math.max(G.innerWidth || 0, G.innerHeight || 0), b = Math.min(G.innerWidth || 0, G.innerHeight || 0);
+      return (cores >= 4 && mem >= 3 && a >= 640 && b >= 320) || !!(el._rally && el._rally.forceSplit);
     }
 
     /* ---------- 3D: renderer e materiali ---------- */
@@ -364,7 +452,7 @@
       try {
         renderer = new T.WebGLRenderer({ canvas: cv, antialias: (G.devicePixelRatio || 1) < 2, powerPreference: 'high-performance' });
       } catch (e) { glErr = true; return false; }
-      pr = Math.min(1.5, G.devicePixelRatio || 1);
+      pr = Math.min(prMax(), G.devicePixelRatio || 1);
       renderer.setPixelRatio(pr);
       const grad = new T.DataTexture(new Uint8Array([128, 128, 128, 255, 196, 196, 196, 255, 255, 255, 255, 255]), 3, 1, T.RGBAFormat);
       grad.minFilter = grad.magFilter = T.NearestFilter; grad.generateMipmaps = false; grad.needsUpdate = true;
@@ -373,6 +461,8 @@
       cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); pause(); }, false);
       return true;
     }
+    // pixel ratio massimo: 1,5 (una vista), 1 sullo schermo diviso (due viste da disegnare)
+    const prMax = () => (split() ? 1 : 1.5);
     const keep = (x) => { R3.disp.push(x); return x; };
     const toon = (o2) => keep(new T.MeshToonMaterial(Object.assign({ gradientMap: R3.grad }, o2)));
     const basic = (o2) => keep(new T.MeshBasicMaterial(o2));
@@ -514,6 +604,7 @@
 
     /* ---------- scena ---------- */
     function buildWorld() {
+      if (VI) { inView(0, buildWorld); return; }
       disposeWorld();
       readTheme();
       geos();
@@ -549,11 +640,14 @@
         R3.head = sl;
       }
       scene.add(R3.camera);
+      // schermo diviso: la camera della seconda vista (porta i fari quando si disegna quella vista)
+      for (const v of views) if (v.cam && v.cam !== R3.camera) { v.cam.far = 900; v.cam.updateProjectionMatrix(); scene.add(v.cam); }
       // ponti: dati per il ruscello (e i canali in città, le insenature al mare)
       SD.clear();
       BR = g.bridges.map((b) => { const m = (b.s0 + b.s1) / 2, w = P.world(g, m); return { x: w.x, y: w.y, tx: Math.cos(w.th), ty: Math.sin(w.th), m, th: w.th }; });
       buildGlow();
       buildGround();
+      if (split()) { const g0 = R3.ground; buildGround(); views[1].ground = R3.ground; R3.ground = g0; }
       if (isSea) {
         // il mare: un piano che segue la camera, sotto il livello della strada
         const sea = new T.Mesh(GEO.plane, toon({ color: C.sea }));
@@ -572,6 +666,7 @@
       // primi blocchi subito (la partenza si vede intera)
       for (let i = 0; i < Math.min(3, R3.chunks.length); i++) buildChunk(R3.chunks[i]);
       hdgS = null;
+      for (const v of views) v.hdgS = null;
     }
     // cielo: cupola sfumata, sole o luna, nuvole, profilo lontano (colline, città, isole o montagne), stelle di notte
     function buildSky(skyTop, skyLow, dark) {
@@ -1612,7 +1707,7 @@
     const MQ = (x, y, z, dx, dy, dz, sx, sy, sz) => { const d = new T.Vector3(dx, dy, dz).normalize(); return new T.Matrix4().compose(new T.Vector3(x + d.x * sy, y + d.y * sy, z + d.z * sy), new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), d), new T.Vector3(sx, sy, sz)); };
     const DRV = [0, 0.86, -0.22];      // perno del pilota (sedile)
     const LEAF = [0, 1.0, -0.98];      // perno della foglia-spoiler (dietro, in alto)
-    function kartParts(id) {
+    function kartParts(id, who) {
       const body = [], leaf = [], drv = [], lod = [];
       const add = (L) => (geo, c, m, ol = 0) => L.push({ geo, c, m, ol });
       const B = add(body), F = add(leaf), D = add(drv), Lo = add(lod);
@@ -1629,7 +1724,7 @@
       Lo(GEO.box, C.tire, M4(0, 0.3, 0, 0, 0, 0, P.CAR_W - 0.1, 0.5, P.CAR_L - 0.9));
       // seme / poro sulla buccia di un ellissoide (centro c, semiassi a), a quota (u, w) = frazioni di x e z
       const onShell = (cx, cy, cz, ax, ay, az, u, w, col, k) => { const q = 1 - u * u - w * w; if (q < 0.05) return; const y = cy + ay * Math.sqrt(q); B(GEO.sph0, col, M4(cx + ax * u * 1.01, y + 0.01, cz + az * w, 0, 0, 0, k[0], k[1], k[2])); };
-      const f = FRUIT[id];
+      const f = FRUITW[who];
       if (f === 'straw') {
         // fragola: ellissoide largo dietro e punta davanti, semini gialli, corona di foglie come spoiler
         B(GEO.sph2, C.straw, M4(0, 0.72, -0.05, 0, 0, 0, 0.74, 0.44, 1.16), 0.05);
@@ -1657,6 +1752,15 @@
         for (const sx of [-1, 1]) F(GEO.sph, C.kleaf, MQ(0, 0.12, 0, sx * 0.55, 0.65, -0.5, 0.11, 0.26, 0.04), 0.03);
         F(GEO.cyl, C['kleaf-2'], M4(0, 0.08, 0, 0, 0, 0, 0.045, 0.2, 0.045), 0.02);
         Lo(GEO.sph0, C.mand, M4(0, 0.7, 0.04, 0, 0, 0, 0.82, 0.44, 1.3));
+      } else if (f === 'apple') {
+        // mela: tonda e un po' schiacciata, il lato lucido e la guancia rossa, picciolo e una foglia come spoiler
+        B(GEO.sph2, C.apple, M4(0, 0.74, 0, 0, 0, 0, 0.8, 0.5, 1.22), 0.05);
+        B(GEO.sph2, C['apple-2'], M4(-0.34, 0.86, 0.3, 0, 0, 0, 0.36, 0.3, 0.6));
+        B(GEO.sph2, C['apple-3'], M4(0.38, 0.72, -0.25, 0, 0, 0, 0.36, 0.3, 0.62));
+        B(GEO.sph0, C['kleaf-2'], M4(0, 0.74, 1.23, 0, 0, 0, 0.07, 0.07, 0.04));
+        F(GEO.cyl, C.trunk, M4(0, 0.12, 0, 0, 0, 0.25, 0.045, 0.26, 0.045), 0.02);
+        F(GEO.sph, C.kleaf, MQ(0.05, 0.2, 0, 0.6, 0.6, -0.5, 0.13, 0.28, 0.045), 0.03);
+        Lo(GEO.sph0, C.apple, M4(0, 0.74, 0, 0, 0, 0, 0.84, 0.52, 1.27));
       } else {
         // fetta d'anguria: buccia verde a strisce, polpa rossa coi semini neri sui due lati, ricciolo come spoiler
         B(GEO.half, C['melon-rind'], M4(0, 0.36, 0, 0, 0, 0, 1.5, 0.9, 1.36), 0.05);
@@ -1672,7 +1776,6 @@
       }
       // pilota (coordinate rispetto al perno DRV): testa all'altezza giusta per spuntare dalla scocca
       const hy = 0.6, ink = C.eye, eyes = (y, z, sp) => { for (const sx of [-1, 1]) { D(GEO.sph0, ink, M4(sx * sp, y, z, 0, 0, 0, 0.05, 0.065, 0.03)); D(GEO.sph0, C.hi, M4(sx * sp + 0.015, y + 0.025, z + 0.02, 0, 0, 0, 0.018, 0.018, 0.01)); } };
-      const who = WHO[id];
       for (const sx of [-1, 1]) D(GEO.sph, C.paw, M4(sx * 0.2, 0.2, 0.48, 0, 0, 0, 0.09, 0.08, 0.09), 0.02);
       if (who === 'hari') {
         D(GEO.sph0, C.quill, M4(0, 0.2, -0.05, 0, 0, 0, 0.27, 0.25, 0.24), 0.03);
@@ -1702,6 +1805,16 @@
         for (const sx of [-1, 1]) { D(GEO.cone, C.fox, M4(sx * 0.19, hy + 0.3, -0.02, 0, 0, sx * -0.35, 0.1, 0.22, 0.06), 0.025); D(GEO.cone, C.ink, M4(sx * 0.24, hy + 0.38, -0.02, 0, 0, sx * -0.35, 0.04, 0.08, 0.03)); }
         eyes(hy + 0.04, 0.27, 0.12);
         D(GEO.sph0, C.nose, M4(0, hy - 0.04, 0.33, 0, 0, 0, 0.045, 0.035, 0.03));
+      } else if (who === 'kitty') {
+        D(GEO.sph0, C.kitty, M4(0, 0.2, -0.05, 0, 0, 0, 0.26, 0.24, 0.23), 0.03);
+        D(GEO.sph, C.kitty, M4(0, hy, 0, 0, 0, 0, 0.32, 0.29, 0.3), 0.04);
+        D(GEO.sph, C['kitty-2'], M4(0, hy - 0.09, 0.19, 0, 0, 0, 0.16, 0.11, 0.12));
+        for (const sx of [-1, 1]) { D(GEO.cone, C.kitty, M4(sx * 0.18, hy + 0.3, -0.02, 0, 0, sx * -0.3, 0.11, 0.2, 0.07), 0.025); D(GEO.cone, C['kitty-in'], M4(sx * 0.18, hy + 0.29, 0.03, 0, 0, sx * -0.3, 0.06, 0.12, 0.03)); }
+        for (const x of [-0.07, 0, 0.07]) D(GEO.box, C['kitty-3'], M4(x, hy + 0.27, 0.12, 0.5, 0, 0, 0.025, 0.09, 0.02));
+        eyes(hy + 0.04, 0.27, 0.11);
+        D(GEO.sph0, C['kitty-in'], M4(0, hy - 0.05, 0.31, 0, 0, 0, 0.045, 0.035, 0.03));
+        // coda che spunta dietro il sedile
+        D(GEO.sph, C.kitty, MQ(0, 0.15, -0.3, 0.2, 0.9, -0.35, 0.07, 0.32, 0.07), 0.02);
       } else {
         D(GEO.sph0, C.panda, M4(0, 0.2, -0.05, 0, 0, 0, 0.26, 0.24, 0.23), 0.03);
         D(GEO.sph, C.panda, M4(0, hy, 0, 0, 0, 0, 0.32, 0.3, 0.3), 0.04);
@@ -1724,14 +1837,14 @@
       R3.shadow = new T.InstancedMesh(GEO.disc, shM, 4); R3.shadow.frustumCulled = false;
       R3.scene.add(R3.shadow);
       for (let id = 0; id < 4; id++) {
-        const K = kartParts(id), grp = new T.Group(), sus = new T.Group();
+        const K = kartParts(id, whoOf(id)), grp = new T.Group(), sus = new T.Group();
         const leafG = new T.Group(), drvG = new T.Group();
         leafG.position.set(...LEAF); drvG.position.set(...DRV);
         // la foglia senza contorno (un draw call in meno per kart); i piloti degli avversari fusi con la scocca
         // (rimbalzano con lei), quello di Hari a parte (si inclina in curva e festeggia)
         leafG.add(new T.Mesh(merge(K.leaf.map((q) => Object.assign({}, q, { ol: 0 }))).body, R3.vc));
         const toSeat = new T.Matrix4().makeTranslation(...DRV);
-        if (id) K.body.push(...K.drv.map((q) => Object.assign({}, q, { m: toSeat.clone().multiply(q.m) })));
+        if (!isHum(id)) K.body.push(...K.drv.map((q) => Object.assign({}, q, { m: toSeat.clone().multiply(q.m) })));
         else drvG.add(meshOf(merge(K.drv), R3.inkMat, R3.vc));
         sus.add(meshOf(merge(K.body), R3.inkMat, R3.vc), leafG, drvG);
         const lod = new T.Mesh(merge(K.lod).body, R3.vc); lod.visible = false;
@@ -1935,21 +2048,38 @@
 
     /* ---------- disegno ---------- */
     let baseFov = 64;
-    const chase = () => camPref === 'chase';
+    // a due (schermo diviso o ospite in rete) solo la visuale da dietro: il cofano della visuale pilota è la fragola di Hari
+    const chase = () => camPref === 'chase' || split() || mpMode === 'guest';
     function measure() {
       if (!stage) return;
       W = stage.clientWidth || 300; H = stage.clientHeight || 400;
       if (!R3) return;
       R3.renderer.setSize(W, H, false);
-      R3.camera.aspect = W / H;
+      if (split()) {
+        // orizzontale: una vista accanto all'altra; verticale: una sopra l'altra (giocatore 1 a sinistra / in alto)
+        const side = W >= H, w0 = side ? Math.floor(W / 2) : W, h0 = side ? H : Math.floor(H / 2);
+        views.forEach((v, i) => {
+          v.rect = side ? { x: i ? w0 : 0, y: 0, w: i ? W - w0 : w0, h: H } : { x: 0, y: i ? h0 : 0, w: W, h: i ? H - h0 : h0 };
+          const root = stage.querySelector(`.ry-v[data-v="${i}"]`);
+          if (root) Object.assign(root.style, { left: v.rect.x + 'px', top: v.rect.y + 'px', width: v.rect.w + 'px', height: v.rect.h + 'px' });
+        });
+        wrap.classList.toggle('ry-side', side);
+        eachView((i) => measureCam(views[i].rect.w, views[i].rect.h));
+      } else {
+        R3.renderer.setScissorTest(false);
+        measureCam(W, H);
+      }
+      if (!raf) draw(0);
+    }
+    function measureCam(w, h) {
+      R3.camera.aspect = w / h;
       // da dietro un campo visivo un po' più stretto (il kart resta grande), da pilota più largo
-      baseFov = chase() ? (W / H < 1 ? 68 : W / H > 1.7 ? 52 : 58) : (W / H < 1 ? 74 : W / H > 1.7 ? 58 : 64);
+      baseFov = chase() ? (w / h < 1 ? 68 : w / h > 1.7 ? 52 : 58) : (w / h < 1 ? 74 : w / h > 1.7 ? 58 : 64);
       R3.camera.fov = baseFov + fovK * 9;
       R3.camera.updateProjectionMatrix();
       // il bordo del cofano (2,9 m davanti) cade al 65% dell'altezza (sopra il cruscotto), qualunque sia il campo visivo
       const a = Math.atan(0.3 * Math.tan((baseFov * Math.PI) / 360)) + PITCH;
       R3.hoodY = -2.9 * Math.tan(a) + 0.5;
-      if (!raf) draw(0);
     }
     // altezza del saltino (dossi) o del salto a molla (più alto, per vedere la molla)
     const hopOf = (c) => { if (!(c.air > 0 && c.airT > 0)) return 0; const k = 1 - c.air / c.airT; return 4 * c.airT * (c.spr ? 1.6 : 1.1) * k * (1 - k); };
@@ -1966,12 +2096,12 @@
       m.position.set(Pz.x, h0 + hp + lift, -Pz.y);
       m.rotation.set(0, YAW(Pz.h), 0);
       m.visible = show && !(c.res > 0 && Math.abs(c.res - P.RESCUE / 2) < 0.12);
-      const far = !!id && Math.abs(c.s - s.cars[0].s) > 32;
+      const far = id !== ME && Math.abs(c.s - s.cars[ME].s) > (split() ? 24 : 32);
       U.sus.visible = !far; U.lod.visible = far;
       // sospensioni: rimbalzo (più forte fuori strada), inclinazione in curva, beccheggio in frenata e in accelerazione
       const bounce = rm ? 0 : Math.sin(now * 11 + U.ph) * 0.03 * sp + (c.off ? Math.abs(Math.sin(now * 19 + U.ph)) * 0.07 * sp : 0);
       const lean = cl(-c.kc * c.v * c.v * 0.004, -0.07, 0.07) - P.bankAt(g, c.s);
-      const pitch = id ? 0 : (brakeOn && c.v > 2 ? 0.035 : gasOn && c.v < cfg.vmax * 0.6 ? -0.02 : 0);
+      const pitch = id !== ME ? 0 : (brakeOn && c.v > 2 ? 0.035 : gasOn && c.v < cfg.vmax * 0.6 ? -0.02 : 0);
       const wob = c.slip > 0 && !rm ? Math.sin((1 - c.slip / P.PU.slipT) * Math.PI * 4) * 0.05 : 0;
       U.sus.position.y = bounce;
       U.sus.rotation.set(rm ? 0 : pitch, wob, rm ? 0 : lean);
@@ -1992,15 +2122,22 @@
       R3.shadow.setMatrixAt(id, show ? M0 : M0.makeScale(0, 0, 0));
       return { Pz, h0, hp, lift };
     }
+    // una vista sola, oppure le due dello schermo diviso (ognuna nel suo rettangolo dello stesso canvas)
     function draw(dt) {
       if (!R3 || !R3.scene || !s) return;
-      const p = s.cars[0], cam = R3.camera, now = performance.now() / 1000, rm = reduce(), ch = chase();
+      fno++;
+      if (!split()) { drawView(dt, 0); return; }
+      R3.renderer.setScissorTest(true);
+      eachView((i) => drawView(dt, i));
+    }
+    function drawView(dt, pass) {
+      const p = s.cars[ME], cam = R3.camera, now = performance.now() / 1000, rm = reduce(), ch = chase(), two = split();
       const vm = cfg.vmax, sp = Math.min(1.3, Math.abs(p.v) / vm);
-      // kart (anche quello di Hari, da dietro); posa disegnata = posa della logica
+      // kart (anche quello di chi guarda, da dietro); posa disegnata = posa della logica
       const KP = [];
-      for (let id = 0; id < 4; id++) KP[id] = placeKart(id, now, dt, rm, id ? Math.abs(s.cars[id].s - p.s) < R3.fogFar + 20 : ch);
+      for (let id = 0; id < 4; id++) KP[id] = placeKart(id, now, dt, rm, id !== ME ? Math.abs(s.cars[id].s - p.s) < R3.fogFar + 20 : ch);
       R3.shadow.instanceMatrix.needsUpdate = true;
-      const H0 = KP[0], w = P.world(g, p.s, p.d), h0 = H0.h0, hop = H0.hp;
+      const H0 = KP[ME], w = P.world(g, p.s, p.d), h0 = H0.h0, hop = H0.hp;
       // direzione morbida (per la camera e la luce)
       const slipK = p.slip > 0 ? 1 - p.slip / P.PU.slipT : 0, wob = p.slip > 0 && !rm ? Math.sin(slipK * Math.PI * 2) * 0.55 * (1 - slipK * 0.5) : 0;
       const hdg = H0.Pz.h + (ch ? 0 : wob);
@@ -2056,19 +2193,21 @@
       R3.sun.target.position.copy(eye);
       updateGround(ex + Math.cos(hdgS) * 90, ey + Math.sin(hdgS) * 90);
       // blocchi di scenario: costruisce il prossimo (uno per fotogramma) e mostra solo quelli vicini
+      // (al massimo un blocco per fotogramma, anche con due viste)
       const ahead = p.s + 320;
-      for (const chk of R3.chunks) {
-        if (!chk.grp && chk.a < ahead && chk.b > p.s - 80) { buildChunk(chk); break; }
+      if (R3.bf !== fno) for (const chk of R3.chunks) {
+        if (!chk.grp && chk.a < ahead && chk.b > p.s - 80) { buildChunk(chk); R3.bf = fno; break; }
       }
       // da dietro la camera è più alta e vede più lontano: nebbia un po' più vicina e dettagli che calano prima
-      const fogF = R3.fogFar * (ch ? 0.88 : 1);
+      // (sullo schermo diviso ancora un po': due viste da disegnare)
+      const fogF = R3.fogFar * (ch ? 0.88 : 1) * (two ? 0.85 : 1);
       if (R3.scene.fog && Math.abs(R3.scene.fog.far - fogF) > 0.5) R3.scene.fog.far = fogF;
       for (const chk of R3.chunks) {
         if (!chk.grp) continue;
         const dd = Math.hypot(chk.x - w.x, chk.y - w.y);
         chk.grp.visible = dd < fogF + chk.rad;
         // LOD semplice: i blocchi lontani mostrano alberi e cespugli senza dettagli
-        const isFar = dd - chk.rad * 0.6 > (ch ? 72 : 85);
+        const isFar = dd - chk.rad * 0.6 > (ch ? 72 : 85) * (two ? 0.7 : 1);
         if (chk.isFar !== isFar) { chk.isFar = isFar; for (const m of chk.near) m.visible = !isFar; for (const m of chk.far) m.visible = isFar; }
       }
       // animazioni dello scenario (animaletti, pubblico, barche, faro) solo nei blocchi vicini
@@ -2088,7 +2227,9 @@
         const vis = m.visible ? 1 : 0;
         if (tails) for (const [k, sd] of [[0, -0.42], [1, 0.42]]) tails.setXYZ(id * 2 + k, Pz.x - cx * (hl - 0.15) + nx * sd, ht + 0.5 - (1 - vis) * 999, -(Pz.y - cy * (hl - 0.15) + ny * sd));
         if (heads) for (const [k, sd] of [[0, -0.42], [1, 0.42]]) heads.setXYZ(id * 2 + k, Pz.x + cx * (hl - 0.1) + nx * sd, ht + 0.52 - (1 - vis) * 999, -(Pz.y + cy * (hl - 0.1) + ny * sd));
-        if (!(dt > 0) || rm || !vis || (id && !U_near(c, p))) continue;
+        if (!(dt > 0) || rm || !vis || (id !== ME && !U_near(c, p))) continue;
+        // schermo diviso: le particelle dei kart vicini al giocatore 1 sono già partite nella prima vista
+        if (pass && U_near(c, s.cars[views[0].ME])) continue;
         const bx = Pz.x - cx * (hl + 0.1), by = Pz.y - cy * (hl + 0.1);
         const dust = (c.off ? 22 : 0) + (Math.abs(c.bet) > 0.1 ? 18 : 0) + (c.v > 9 ? 4 : 0);
         if (dust && Math.random() < dt * dust) emit(bx + (Math.random() - 0.5) * 1.4, ht + 0.25, -by, (Math.random() - 0.5) * 1.2, 0.5 + Math.random() * 0.6, (Math.random() - 0.5) * 1.2, c.off ? (cfg.theme === 'snow' ? C.snowbank : cfg.theme === 'sea' ? C.sand : cfg.theme === 'city' ? C.dust : C.dirt) : C.dust, 0.8, c.off ? 0.7 : 0.4);
@@ -2101,38 +2242,54 @@
       if (tails) tails.needsUpdate = true;
       if (heads) heads.needsUpdate = true;
       // visuale pilota: scintille del turbo e petali davanti al parabrezza
-      if (dt > 0 && !rm && !ch) {
+      if (dt > 0 && !rm && !ch && !pass) {
         if (p.boost > 0 && Math.random() < dt * 25) burst('carrot', null, 1);
         if (p.slow > 0 && Math.random() < dt * 14) burst('petal', null, 1);
       }
       updateItems(now, p);
-      updateFx(dt || 0);
+      if (!pass) updateFx(dt || 0);
+      if (two) {
+        // il suo rettangolo del canvas, il suo terreno, i fari sulla sua camera
+        const r = views[VI].rect || { x: 0, y: 0, w: W, h: H };
+        R3.renderer.setViewport(r.x, H - r.y - r.h, r.w, r.h);
+        R3.renderer.setScissor(r.x, H - r.y - r.h, r.w, r.h);
+        for (const v of views) if (v.ground && v.ground !== R3.ground) v.ground.m.visible = false;
+        R3.ground.m.visible = true;
+        if (R3.head && R3.head.parent !== cam) cam.add(R3.head, R3.head.target);
+      }
       R3.renderer.render(R3.scene, cam);
-      lastDrawn = KP;
+      if (!pass) lastDrawn = KP;
     }
     const U_near = (c, p) => Math.abs(c.s - p.s) < 60;
 
     /* ---------- indicatori HTML ---------- */
-    function hud() {
-      const p = s.cars[0];
-      if (s.pos !== lastHud.pos) {
-        const up = lastHud.pos && s.pos < lastHud.pos;
-        lastHud.pos = s.pos;
-        posEl.querySelector('b').textContent = String(s.pos);
-        posEl.setAttribute('aria-label', `${s.pos}/4`);
+    function hud() { if (s) eachView(() => hudView()); }
+    // classe del kart negli indicatori: me = chi guarda, mate = l'altro giocatore umano
+    const tag = (id) => (id === ME ? 'me' : isHum(id) ? 'mate' : '');
+    function paintProg() {
+      if (!s) return;
+      eachView(() => { progEl.querySelectorAll('i').forEach((it) => { const id = +it.dataset.id; it.className = tag(id); it.style.setProperty('--ry-c', colOf(id)); }); });
+    }
+    function hudView() {
+      const p = s.cars[ME], pos = posMe();
+      if (pos !== lastHud.pos) {
+        const up = lastHud.pos && pos < lastHud.pos;
+        lastHud.pos = pos;
+        posEl.querySelector('b').textContent = String(pos);
+        posEl.setAttribute('aria-label', `${pos}/4`);
         if (up) { posEl.classList.remove('up'); void posEl.offsetWidth; posEl.classList.add('up'); }
       }
       const rk = s.rank.join('');
       if (rk !== lastHud.rank) {
         lastHud.rank = rk;
-        rankEl.innerHTML = s.rank.map((id) => `<i class="${id ? '' : 'me'}" style="--ry-c:${CCOL[id]}">${face(id, false)}</i>`).join('');
+        rankEl.innerHTML = s.rank.map((id) => `<i class="${tag(id)}" style="--ry-c:${colOf(id)}">${face(id, false)}</i>`).join('');
       }
       const tt = Math.floor(Math.max(0, s.t) * 10);
       if (tt !== lastHud.t) { lastHud.t = tt; timeEl.textContent = fmtT(tt / 10); }
       // barra della tappa
       progEl.querySelectorAll('i').forEach((it) => { const c = s.cars[+it.dataset.id]; it.style.left = `${Math.max(0, Math.min(100, ((c.s - P.PREROLL) / s.L) * 100)).toFixed(1)}%`; });
       // note
-      const up = P.upcoming(s, 2);
+      const up = P.upcoming(s, 2, ME);
       const key = up.map((n) => n.i).join(',');
       if (key !== lastHud.notes) {
         lastHud.notes = key;
@@ -2203,22 +2360,29 @@
     const landscape = () => (G.innerWidth || 1) > (G.innerHeight || 1);
     const inFull = () => { const f = fsEl(); return !!(f && wrap && f.contains(wrap)); };
     const sensorLive = () => performance.now() - sensor.at < 1200;
-    const mode = () => (pref === 'tilt' && inFull() && sensorLive() ? 'tilt' : 'touch');
+    // sullo schermo diviso niente sensori (due giocatori, un telefono): sempre al tocco
+    const mode = () => (pref === 'tilt' && inFull() && sensorLive() && !split() ? 'tilt' : 'touch');
     let lastMode = '';
     function renderMode() {
       if (!modeBtn) return;
       const m = mode();
-      modeBtn.innerHTML = pref === 'tilt' ? TILT : HAND;
-      modeBtn.classList.toggle('on', m === 'tilt');
-      modeBtn.setAttribute('aria-label', pref === 'tilt' ? L('ry_tilt') : L('ry_touch'));
-      modeBtn.title = modeBtn.getAttribute('aria-label');
-      camBtn.innerHTML = CAM[camPref];
-      camBtn.setAttribute('aria-label', L(camPref === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot'));
-      camBtn.title = camBtn.getAttribute('aria-label');
+      eachView(() => {
+        modeBtn.innerHTML = pref === 'tilt' ? TILT : HAND;
+        modeBtn.classList.toggle('on', m === 'tilt');
+        modeBtn.setAttribute('aria-label', pref === 'tilt' ? L('ry_tilt') : L('ry_touch'));
+        modeBtn.title = modeBtn.getAttribute('aria-label');
+        camBtn.innerHTML = CAM[camPref];
+        camBtn.setAttribute('aria-label', L(camPref === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot'));
+        camBtn.title = camBtn.getAttribute('aria-label');
+      });
       wrap.classList.toggle('tilt', m === 'tilt');
       wrap.classList.toggle('touch', m === 'touch');
-      wrap.classList.toggle('chase', camPref === 'chase');
-      wrap.classList.toggle('pilot', camPref !== 'chase');
+      wrap.classList.toggle('chase', chase());
+      wrap.classList.toggle('pilot', !chase());
+      // a due: niente cambio di visuale né "gioca insieme"; prima del via il pulsante "gioca insieme"
+      wrap.classList.toggle('ry-mp', !!mpMode);
+      wrap.classList.toggle('ry-guest', mpMode === 'guest');
+      wrap.classList.toggle('pre', !!s && !mpMode && s.t <= 0 && !P.isOver(s));
       wrap.classList.toggle('auto', autoGas());
       // menu di pausa: visuale, acceleratore automatico, sensori ↔ tocco
       if (optsEl) {
@@ -2262,11 +2426,14 @@
       return mode() === 'touch' ? 'drag' : 'none';
     }
     function input(dt) {
+      // QA (Playwright): l'autopilota guida il kart di questa vista passando dallo stesso input dei comandi
+      if (qaAuto && s && g) { const a = autopilot(s.cars[ME], {}); steerV = a.steer; gasOn = !!a.gas; brakeOn = !!a.brake; const use = useQ ? 1 : 0; useQ = false; return Object.assign(a, { use }); }
       const m = mode(), now = performance.now();
       let tgt = 0, brake = !!keys.b, gas = !!keys.g, arrow = 0, held = 0, latest = -1, drag = null;
       if (keys.l || keys.r) tgt = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
       else if (m === 'tilt') tgt = tiltSteer();
       for (const q of ptrs.values()) {
+        if ((q.v || 0) !== VI) continue;
         if (q.role === 'gas') gas = true;
         else if (q.role === 'brake') brake = true;
         else if (q.role === 'left' || q.role === 'right') { if (q.t0 > latest) { latest = q.t0; arrow = q.role === 'left' ? -1 : 1; held = (now - q.t0) / 1000; } }
@@ -2275,7 +2442,7 @@
       if (!(keys.l || keys.r) && m === 'touch') {
         // frecce: partono al 42% e arrivano al massimo in ~0,25 s; trascinando: lo sterzo segue il dito
         if (arrow) tgt = arrow * Math.min(1, 0.42 + held * 2.4);
-        else if (drag) tgt = Math.max(-1, Math.min(1, (drag.x - drag.x0) / Math.max(60, W * 0.2)));
+        else if (drag) tgt = Math.max(-1, Math.min(1, (drag.x - drag.x0) / Math.max(60, (split() && views[VI].rect ? views[VI].rect.w : W) * 0.2)));
       }
       steerV += (tgt - steerV) * Math.min(1, dt * (m === 'tilt' || drag ? 16 : 11));
       brakeOn = brake;
@@ -2286,12 +2453,13 @@
       return { steer: steerV, gas: gasOn ? 1 : 0, brake: brake ? 1 : 0, use };
     }
     function useItem() {
-      if (!s || P.isOver(s) || paused || s.ready > 0 || !s.cars[0].it) return;
+      if (!s || P.isOver(s) || paused || s.ready > 0 || !s.cars[ME].it) return;
       useQ = true;
       itemBtn.classList.remove('press'); void itemBtn.offsetWidth; itemBtn.classList.add('press');
       later(() => itemBtn.classList.remove('press'), 150);
     }
     function setCam(c) {
+      if (split() || mpMode === 'guest') return;
       camPref = c; sset('rally:cam', c); CH.ok = false; hdgS = null;
       renderMode(); measure(); sfx('tap');
       say(L(c === 'chase' ? 'ry_cam_chase' : 'ry_cam_pilot'), 'small', 1200);
@@ -2306,20 +2474,28 @@
       say(pref === 'tilt' ? L('ry_tilt') : L('ry_touch'), 'small', 1400);
     }
     const local = (e) => { const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    // vista sotto il punto (schermo diviso) o del pulsante toccato
+    const viewAt = (x, y, t) => {
+      if (!split()) return 0;
+      const vr = t && t.closest && t.closest('.ry-v');
+      if (vr) return +vr.dataset.v || 0;
+      const i = views.findIndex((v) => v.rect && x >= v.rect.x && x < v.rect.x + v.rect.w && y >= v.rect.y && y < v.rect.y + v.rect.h);
+      return i < 0 ? 0 : i;
+    };
     el.onpointerdown = (e) => {
       if (!stage || !e.target.closest('.ry-stage')) return;
-      if (e.target.closest('.ry-btn') || e.target.closest('.ry-end button') || e.target.closest('.ry-opts')) return;
+      if (e.target.closest('.ry-btn') || e.target.closest('.ry-end button') || e.target.closest('.ry-opts') || e.target.closest('.ry-mpv')) return;
       e.preventDefault();
       if (HH.audio && HH.audio.unlock) HH.audio.unlock();
       if (pref === 'tilt') askPermission();
       if (!turnEl.hidden) return;
       if (paused) { resume(); return; }
       if (P.isOver(s)) return;
-      const [x, y] = local(e), role = roleAt(x, y, e.target);
+      const [x, y] = local(e), vi = viewAt(x, y, e.target), role = inView(vi, () => roleAt(x, y, e.target));
       // pulsante del power-up: si usa subito (anche insieme ai pedali: tocco multiplo)
-      if (role === 'item') { useItem(); return; }
+      if (role === 'item') { inView(vi, useItem); return; }
       if (role === 'none') return;
-      ptrs.set(e.pointerId, { x, y, x0: x, t0: performance.now(), role });
+      ptrs.set(e.pointerId, { x, y, x0: x, t0: performance.now(), role, v: vi });
       try { stage.setPointerCapture(e.pointerId); } catch (err) { /* vecchi browser */ }
     };
     el.onpointermove = (e) => {
@@ -2328,7 +2504,7 @@
       const [x, y] = local(e);
       q.x = x; q.y = y;
       // scivolando da una freccia all'altra (o da un pedale all'altro) il comando segue il dito
-      if (q.role !== 'drag') { const r = roleAt(x, y, null); if (r !== q.role && r !== 'drag' && r !== 'none' && r !== 'item') { q.role = r; q.t0 = performance.now(); } }
+      if (q.role !== 'drag') { const r = inView(q.v || 0, () => roleAt(x, y, null)); if (r !== q.role && r !== 'drag' && r !== 'none' && r !== 'item') { q.role = r; q.t0 = performance.now(); } }
     };
     el.onpointerup = el.onpointercancel = (e) => { ptrs.delete(e.pointerId); };
     el.oncontextmenu = (e) => { if (e.target.closest('.ry-stage')) e.preventDefault(); };
@@ -2336,18 +2512,25 @@
       if (e.target.closest('.ry-pbtn')) { e.preventDefault(); sfx('tap'); toggle(); return; }
       if (e.target.closest('.ry-cam')) { e.preventDefault(); setCam(camPref === 'chase' ? 'pilot' : 'chase'); return; }
       if (e.target.closest('.ry-mode')) { e.preventDefault(); setCtl(); return; }
+      if (e.target.closest('.ry-mpbtn')) { e.preventDefault(); sfx('tap'); mpMenu(); return; }
+      const mpb = e.target.closest('[data-mp]');
+      if (mpb) { e.preventDefault(); if (!mpb.disabled) mpClick(mpb.dataset.mp); return; }
       const opt = e.target.closest('.ry-opt');
       if (opt) {
         e.preventDefault();
         if (opt.dataset.opt === 'cam') setCam(camPref === 'chase' ? 'pilot' : 'chase');
         else if (opt.dataset.opt === 'auto') setAuto(!autoGas());
+        else if (opt.dataset.opt === 'mp') mpMenu();
         else setCtl();
         return;
       }
       // tastiera (Invio/spazio sul pulsante): il clic senza puntatore usa il power-up
-      if (e.target.closest('.ry-item') && e.detail === 0) { e.preventDefault(); useItem(); return; }
+      if (e.target.closest('.ry-item') && e.detail === 0) { e.preventDefault(); inView(viewAt(0, 0, e.target), useItem); return; }
       if (e.target.closest('.ry-retry')) { e.preventDefault(); restartRace(); }
     };
+    // schermo diviso: frecce e Invio per il giocatore 1, W A S D e spazio (o E) per il giocatore 2
+    const KEY2 = { a: 1, d: 1, A: 1, D: 1, s: 1, S: 1, w: 1, W: 1, ' ': 1, e: 1, E: 1 };
+    const kview = (k) => (split() && KEY2[k] ? 1 : 0);
     function onKey(e) {
       if (!alive || !el.isConnected) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -2359,23 +2542,23 @@
         // Invio o spazio su un pulsante (anche del gioco) premono il pulsante
         if (onBtn && (e.key === 'Enter' || e.key === ' ')) return;
         e.preventDefault();
-        if (paused) { resume(); return; }
-        if (!e.repeat) useItem();
+        if (paused) { if (mpEl.hidden) resume(); return; }
+        if (!e.repeat) inView(kview(e.key), useItem);
         return;
       }
       if (e.key in KEYS) {
         e.preventDefault();
-        if (paused) { resume(); return; }
+        if (paused) { if (mpEl.hidden) resume(); return; }
         if (P.isOver(s)) return;
-        keys[KEYS[e.key]] = true;
+        KS[kview(e.key)][KEYS[e.key]] = true;
         return;
       }
       if (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V') { e.preventDefault(); setCam(camPref === 'chase' ? 'pilot' : 'chase'); return; }
       if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { e.preventDefault(); if (e.key === 'Escape') pause(); else toggle(); }
     }
-    function onKeyUp(e) { if (e.key in KEYS) keys[KEYS[e.key]] = false; }
+    function onKeyUp(e) { if (e.key in KEYS) KS[kview(e.key)][KEYS[e.key]] = false; }
     function onVis() { if (document.hidden) pause(); }
-    function onBlur() { keys = {}; ptrs.clear(); }
+    function onBlur() { clearKeys(); ptrs.clear(); }
     function onFull() {
       if (!alive) return;
       const f = inFull();
@@ -2399,6 +2582,7 @@
     function detach() {
       alive = false;
       stop();
+      if (net) { try { net.send({ ry: 'quit' }); net.close(); } catch (e) { /* già chiuso */ } net = null; }
       G.removeEventListener('keydown', onKey);
       G.removeEventListener('keyup', onKeyUp);
       G.removeEventListener('blur', onBlur);
@@ -2445,8 +2629,10 @@
 
     /* ---------- eventi della logica ---------- */
     // punto del kart nel mondo three (per le particelle degli urti)
-    const kart3 = (id) => { if (!id && !chase()) return null; const c = s.cars[id], Pz = P.pose(g, c); return Math.abs(c.s - s.cars[0].s) < 70 ? V3(Pz.x, roadH(c.s, c.d, Pz.x, Pz.y) + 0.8, Pz.y) : null; };
-    const near3 = (id) => { const c = s.cars[id], cw = P.world(g, c.s, c.d); return Math.abs(c.s - s.cars[0].s) < 70 ? V3(cw.x, roadH(c.s, c.d, cw.x, cw.y) + 1, cw.y) : null; };
+    const kart3 = (id) => { if (id === ME && !chase()) return null; const c = s.cars[id], Pz = P.pose(g, c); return Math.abs(c.s - s.cars[ME].s) < 70 ? V3(Pz.x, roadH(c.s, c.d, Pz.x, Pz.y) + 0.8, Pz.y) : null; };
+    const near3 = (id) => { const c = s.cars[id], cw = P.world(g, c.s, c.d); return Math.abs(c.s - s.cars[ME].s) < 70 ? V3(cw.x, roadH(c.s, c.d, cw.x, cw.y) + 1, cw.y) : null; };
+    // riguarda chi guarda? (a due: by = l'umano a cui succede; altrimenti il kart who; senza nessuno dei due: tutti)
+    const mine = (e) => (e.by !== undefined ? e.by === ME : e.who === undefined || e.who === ME);
     function onEvent(e) {
       switch (e.type) {
         case 'count': lights(4 - e.n); sfx('blip'); break;
@@ -2454,36 +2640,40 @@
           lights(0); sfx('milestone');
           later(() => say(L('pa_go'), 'go', 700), 50);
           sensor.zero = sensor.raw;
-          if (s.t < 0.5 && s.level <= 3) later(() => { if (!paused && !P.isOver(s)) say(L('ry_top3'), 'small', 1800); }, 1300);
+          const duo = !!(s.hu && s.hu.length > 1);
+          if (s.t < 0.5 && (s.level <= 3 || duo)) later(() => { if (!paused && !P.isOver(s)) say(L(duo ? 'ry_mp_rule' : 'ry_top3'), 'small', 1800); }, 1300);
           break;
         }
-        case 'call': { const n = g.notes[e.i]; asfx('pace', n.kind === 'curve' ? n.dir : 0, n.kind === 'curve' ? n.g : 0); break; }
-        case 'off': if (!chase()) burst('leaf'); shake = Math.max(shake, 0.25); break;
-        case 'boing': if (e.who === 0) { burst(cfg.theme === 'city' ? 'gift' : cfg.theme === 'snow' ? 'bubble' : 'leaf', kart3(0)); sfx('boing'); bumpAnim(); shake = Math.max(shake, 0.7); } break;
-        case 'rock': if (e.who === 0) { burst(e.k === 'bush' || e.k === 'bank' ? 'leaf' : 'spark', kart3(0)); sfx('boing'); bumpAnim(); shake = 1; if (ctx.react) ctx.react('oops'); } break;
-        case 'bump': burst('spark', kart3(e.who)); sfx('set'); bumpAnim(); shake = Math.max(shake, 0.6); break;
+        case 'call': { if (!mine(e)) break; const n = g.notes[e.i]; asfx('pace', n.kind === 'curve' ? n.dir : 0, n.kind === 'curve' ? n.g : 0); break; }
+        case 'off': if (!mine(e)) break; if (!chase()) burst('leaf'); shake = Math.max(shake, 0.25); break;
+        case 'boing': if (e.who === ME) { burst(cfg.theme === 'city' ? 'gift' : cfg.theme === 'snow' ? 'bubble' : 'leaf', kart3(ME)); sfx('boing'); bumpAnim(); shake = Math.max(shake, 0.7); } break;
+        case 'rock': if (e.who === ME) { burst(e.k === 'bush' || e.k === 'bank' ? 'leaf' : 'spark', kart3(ME)); sfx('boing'); bumpAnim(); shake = 1; if (ctx.react) ctx.react('oops'); } break;
+        case 'bump': if (e.by !== undefined && e.by !== ME) break; burst('spark', kart3(e.who)); sfx('set'); bumpAnim(); shake = Math.max(shake, 0.6); break;
         case 'drift': break;
-        case 'mini': if (e.who === 0) { asfx('zoom'); burst('carrot', kart3(0), e.lvl > 1 ? 14 : 8); if (e.lvl > 1 || !seenPu.mini) say(L('ry_mini'), 'pu', 900); seenPu.mini = 1; } break;
-        case 'spin': if (e.who === 0) { asfx('whee'); shake = Math.max(shake, 0.5); if (ctx.react) ctx.react('oops'); } break;
-        case 'rescue': if (e.who === 0) { asfx('puff'); burst('petal', kart3(0), 18); if (ctx.react) ctx.react('oops'); } break;
-        case 'back': if (e.who === 0) { CH.ok = false; burst('petal', kart3(0), 12); say(L('ry_rescue'), 'small', 1300); } break;
-        case 'jump': sfx('pick'); break;
-        case 'pass': if (e.up) { sfx('place'); changed(true); } else sfx('tap'); break;
+        case 'mini': if (e.who === ME) { asfx('zoom'); burst('carrot', kart3(ME), e.lvl > 1 ? 14 : 8); if (e.lvl > 1 || !seenPu.mini) say(L('ry_mini'), 'pu', 900); seenPu.mini = 1; } break;
+        case 'spin': if (e.who === ME) { asfx('whee'); shake = Math.max(shake, 0.5); if (ctx.react) ctx.react('oops'); } break;
+        case 'rescue': if (e.who === ME) { asfx('puff'); burst('petal', kart3(ME), 18); if (ctx.react) ctx.react('oops'); } break;
+        case 'back': if (e.who === ME) { CH.ok = false; burst('petal', kart3(ME), 12); say(L('ry_rescue'), 'small', 1300); } break;
+        case 'jump': if (mine(e)) sfx('pick'); break;
+        case 'pass': if (!mine(e)) break; if (e.up) { sfx('place'); changed(true); } else sfx('tap'); break;
         case 'check': {
+          if (!mine(e)) break;
           msgEl.innerHTML = `<div class="ry-cp">${FLAG}<span>${e.pos}°</span><span>${fmtT(s.t)}</span></div>`;
           msgEl.classList.add('show'); sfx('milestone');
-          later(() => { if (msgEl.querySelector('.ry-cp')) msgEl.innerHTML = ''; }, 1700);
+          const m = msgEl;
+          later(() => { if (m.querySelector('.ry-cp')) m.innerHTML = ''; }, 1700);
           break;
         }
         case 'box':
-          if (e.who === 0 && e.it) {
+          if (e.who === ME && e.it) {
             asfx('gift'); burst('gift');
             rollUntil = performance.now() + (reduce() ? 0 : 650); lastHud.it = -1;
-            later(() => { if (!P.isOver(s) && s.cars[0].it) { const k = P.ITEMS[s.cars[0].it]; if (!seenPu[k] || s.level <= 2) say(L('ry_pu_' + k), 'pu', 1300); seenPu[k] = 1; } }, reduce() ? 0 : 680);
+            const id = ME;
+            later(() => { if (!P.isOver(s) && s.cars[id].it) { const k = P.ITEMS[s.cars[id].it]; if (!seenPu[k] || s.level <= 2) say(L('ry_pu_' + k), 'pu', 1300); seenPu[k] = 1; } }, reduce() ? 0 : 680);
           }
           break;
         case 'use': {
-          const meSelf = e.who === 0, at3 = meSelf ? null : near3(e.who);
+          const meSelf = e.who === ME, at3 = meSelf ? null : near3(e.who);
           if (!meSelf && !at3) break;
           const snd = { carrot: 'zoom', bubble: 'bubble', banana: 'plop', honey: 'plop', cloud: 'puff', magnet: 'tink', spring: 'sproing' }[e.it];
           if (snd && (meSelf || at3)) asfx(snd);
@@ -2491,24 +2681,58 @@
           else if (at3) burst(e.it === 'carrot' ? 'carrot' : e.it === 'cloud' ? 'petal' : 'spark', at3, 6);
           break;
         }
-        case 'slip': if (e.who === 0) { asfx('whee'); if (ctx.react) ctx.react('oops'); } else { const at3 = near3(e.who); if (at3) { burst('spark', at3, 8); asfx('whee'); } } break;
-        case 'honey': if (e.who === 0) { asfx('squish'); burst('honey'); } break;
-        case 'cloud': if (e.who === 0) { asfx('puff'); burst('petal', null, 16); } else { const at3 = near3(e.who); if (at3) { burst('petal', at3, 12); asfx('puff'); } } break;
-        case 'pop': { const at3 = e.who === 0 ? null : near3(e.who); if (e.who === 0 || at3) { asfx('pop'); burst('bubble', at3, 10); } break; }
-        case 'acorn': if (e.who === 0) asfx('tink'); break;
+        case 'slip': if (e.who === ME) { asfx('whee'); if (ctx.react) ctx.react('oops'); } else { const at3 = near3(e.who); if (at3) { burst('spark', at3, 8); asfx('whee'); } } break;
+        case 'honey': if (e.who === ME) { asfx('squish'); burst('honey'); } break;
+        case 'cloud': if (e.who === ME) { asfx('puff'); burst('petal', null, 16); } else { const at3 = near3(e.who); if (at3) { burst('petal', at3, 12); asfx('puff'); } } break;
+        case 'pop': { const at3 = e.who === ME ? null : near3(e.who); if (e.who === ME || at3) { asfx('pop'); burst('bubble', at3, 10); } break; }
+        case 'acorn': if (e.who === ME) asfx('tink'); break;
         case 'spring': break;
         case 'finish': finish(); break;
         default: break;
       }
     }
+    // a chi va l'evento: sullo schermo diviso alla vista del kart (by/who), quelli di tutti (semaforo) a tutte e due
+    // (il suono una volta sola), quelli degli avversari alla vista più vicina
+    function dispatch(e) {
+      if (!split() || e.type === 'finish' || e.type === 'win' || e.type === 'lose') { onEvent(e); return; }
+      const tgt = e.by !== undefined ? e.by : e.who;
+      if (tgt === undefined) { views.forEach((v, i) => { quiet = i > 0; inView(i, () => onEvent(e)); }); quiet = false; return; }
+      let vi = viewOf(tgt);
+      if (vi < 0) {
+        const c = s.cars[tgt], vc = (i) => s.cars[i === VI ? ME : views[i].ME];
+        vi = c && Math.abs(c.s - vc(1).s) < Math.abs(c.s - vc(0).s) ? 1 : 0;
+      }
+      inView(vi, () => onEvent(e));
+    }
     function bumpAnim() { if (reduce()) return; stage.classList.remove('bump'); void stage.offsetWidth; stage.classList.add('bump'); }
     function finish() {
+      if (s.hu) { finishMP(); return; }
       over = performance.now();
       engine(false);
-      ptrs.clear(); keys = {};
+      ptrs.clear(); clearKeys();
       fxoEl.className = 'ry-fxo';
       const rows = s.res.map((r, i) => `<li class="${r.id ? '' : 'me'}"><em>${i + 1}</em><i>${face(r.id, i === 0)}</i><span>${fmtT(r.t)}</span></li>`).join('');
       endEl.innerHTML = `<span class="ry-big">${s.pos}<small>/4</small></span><ol>${rows}</ol>${s.won ? '' : `<button class="candy ry-retry" type="button"><span>${L('retry')}</span></button>`}`;
+      later(() => { endEl.hidden = false; }, 500);
+      changed(true);
+      if (s.won) { sfx('cupDone'); if (ctx.react) ctx.react('happy'); later(() => ctx.win(), (el._rally && el._rally.winDelay) || 2600); }
+      else { sfx('lose'); if (ctx.react) ctx.react('oops'); }
+    }
+    // fine gara a due: classifica con i due giocatori, fragoline di ciascuno, vittoria di squadra se uno dei due è primo
+    const BERRY = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7c5 0 8 2.6 8 6.4 0 4.4-4.6 8.6-8 8.6s-8-4.2-8-8.6C4 9.6 7 7 12 7Z" fill="var(--ry-straw)" ${o(1.4)}/><path d="M8 7.6c1-2.6 2.4-3.6 4-3.6s3 1 4 3.6c-1.4.8-2.6 1-4 1s-2.6-.2-4-1Z" fill="var(--ry-kleaf)" ${o(1.1)}/><circle cx="9" cy="12" r=".9" fill="var(--ry-seed)"/><circle cx="15" cy="12" r=".9" fill="var(--ry-seed)"/><circle cx="12" cy="15.6" r=".9" fill="var(--ry-seed)"/></svg>`;
+    function finishMP() {
+      over = performance.now();
+      engine(false);
+      ptrs.clear(); clearKeys();
+      eachView(() => { fxoEl.className = 'ry-fxo'; });
+      const hs = s.hu || [0], duo = hs.length > 1;
+      const berries = (id) => { const n = Math.max(0, 4 - (s.res.findIndex((r) => r.id === id) + 1)); return `<b class="ry-berries" aria-label="${n}">${BERRY.repeat(n)}</b>`; };
+      const rows = s.res.map((r, i) => `<li class="${tag(r.id)}"><em>${i + 1}</em><i>${face(r.id, i === 0)}</i>${isHum(r.id) ? berries(r.id) : ''}<span>${fmtT(r.t)}</span></li>`).join('');
+      const best = split() ? Math.min(...hs.map((id) => P.posOf(s, id))) : P.posOf(s, ME);
+      const btns = s.won ? '' : mpMode === 'guest' && net
+        ? `<small>${L('ry_mp_host')}</small><button class="candy ry-opt" type="button" data-mp="solo"><span>${L('ry_mp_solo')}</span></button>`
+        : `<div class="ry-mpbtns"><button class="candy ry-retry" type="button"><span>${duo || net ? L('ry_mp_again') : L('retry')}</span></button><button class="ry-opt" type="button" data-mp="solo"><span>${L('ry_mp_solo')}</span></button></div>`;
+      endEl.innerHTML = `<b class="ry-team ${s.won ? 'win' : ''}">${L(s.won ? 'ry_mp_win' : 'ry_mp_lose')}</b><span class="ry-big">${best}<small>/4</small></span><ol>${rows}</ol>${btns}`;
       later(() => { endEl.hidden = false; }, 500);
       changed(true);
       if (s.won) { sfx('cupDone'); if (ctx.react) ctx.react('happy'); later(() => ctx.win(), (el._rally && el._rally.winDelay) || 2600); }
@@ -2529,12 +2753,16 @@
       if (dt > 0) {
         if (dt > 1 / 38) { slowF++; fastF = 0; } else if (dt < 1 / 55) { fastF++; slowF = Math.max(0, slowF - 1); }
         if (slowF > 50 && pr > 0.6) { pr = Math.max(0.6, pr - 0.25); R3.renderer.setPixelRatio(pr); measure(); slowF = 0; }
-        else if (fastF > 400 && pr < Math.min(1.5, G.devicePixelRatio || 1)) { pr = Math.min(1.5, pr + 0.25); R3.renderer.setPixelRatio(pr); measure(); fastF = 0; }
+        else if (fastF > 400 && pr < Math.min(prMax(), G.devicePixelRatio || 1)) { pr = Math.min(prMax(), pr + 0.25); R3.renderer.setPixelRatio(pr); measure(); fastF = 0; }
       }
       if (!paused && dt > 0 && !P.isOver(s) && !qaHold) {
-        const ev = P.step(s, dt, input(dt));
-        ev.forEach(onEvent);
-        if (!P.isOver(s)) engine(s.ready <= 0, s.cars[0]);
+        let ev;
+        // in rete: la sessione fa i passi (host) o interpola e predice (ospite); sullo schermo diviso due input
+        if (net) { net.setInput(input(dt)); net.frame(nowMs); ev = net.take(); }
+        else if (split()) { const a = inView(0, () => input(dt)), b = inView(1, () => input(dt)); ev = P.step(s, dt, [a, b]); }
+        else ev = P.step(s, dt, input(dt));
+        ev.forEach(dispatch);
+        if (!P.isOver(s)) inView(0, () => engine(s.ready <= 0, s.cars[ME]));
         changed(false);
       }
       draw(dt);
@@ -2545,24 +2773,27 @@
     function readThemeChanged() { const was = themeKey; readTheme(); return themeKey !== was; }
     function start() { if (!raf && alive) { last = 0; raf = requestAnimationFrame(loop); } }
     function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
-    function pause() {
+    // remote = la pausa (o la ripresa) arriva dall'altro telefono: non la si rimanda indietro
+    function pause(remote) {
       if (paused || !s || P.isOver(s)) return;
       paused = true;
       pauseEl.hidden = !turnEl.hidden;
-      pauseBtn.innerHTML = PLAY;
-      ptrs.clear(); keys = {}; steerV = 0; useQ = false; gasOn = false; brakeOn = false;
+      eachView(() => { pauseBtn.innerHTML = PLAY; steerV = 0; useQ = false; gasOn = false; brakeOn = false; });
+      ptrs.clear(); clearKeys();
       engine(false);
       stop();
+      if (net) { net.pause(true); net.stop(); if (remote !== true) net.send({ ry: 'pause' }); }
       if (R3) draw(0);
       ctx.changed();
     }
-    function resume() {
-      if (!paused || P.isOver(s) || !turnEl.hidden) return;
+    function resume(remote) {
+      if (!paused || P.isOver(s) || !turnEl.hidden || !mpEl.hidden) return;
       paused = false;
       pauseEl.hidden = true;
-      pauseBtn.innerHTML = PAUSE;
-      // breve conto alla rovescia per rimettere le mani sul volante
-      if (s.t > 0) { s.ready = 1.6; s.cd = 2; }
+      eachView(() => { pauseBtn.innerHTML = PAUSE; });
+      // breve conto alla rovescia per rimettere le mani sul volante (in rete lo decide l'host)
+      if (s.t > 0 && mpMode !== 'guest') { s.ready = 1.6; s.cd = 2; }
+      if (net) { net.pause(false); net.start(); if (remote !== true) net.send({ ry: 'resume' }); }
       sensor.zero = sensor.raw;
       sfx('set');
       start();
@@ -2576,41 +2807,205 @@
       s = state;
       g = P.geo(s);
       cfg = P.config(s.level);
-      paused = false; over = 0; ptrs.clear(); keys = {}; steerV = 0; useQ = false; rollUntil = 0; shake = 0; CH.ok = false; hdgS = null;
-      lastHud = { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' };
+      paused = false; over = 0; ptrs.clear(); clearKeys();
       if (!wrap || !wrap.isConnected) build();
+      eachView(() => { steerV = 0; useQ = false; rollUntil = 0; shake = 0; CH.ok = false; hdgS = null; lastHud = { pos: 0, rank: '', notes: '', t: -1, it: -1, ac: -1, fx: '' }; });
       wrap.dataset.stage = cfg.stage;
       wrap.dataset.time = cfg.time;
       renderMode();
       endEl.hidden = true; endEl.innerHTML = '';
-      pauseEl.hidden = true; pauseBtn.innerHTML = PAUSE;
+      pauseEl.hidden = true; eachView(() => { pauseBtn.innerHTML = PAUSE; });
       themeKey = '';
       if (!initGL()) {
         stage.insertAdjacentHTML('beforeend', `<div class="ry-veil"><b>${L('ry_nogl')}</b></div>`);
         return;
       }
+      if (split() && !views[1].cam) views[1].cam = new T.PerspectiveCamera(66, 1, 0.1, 900);
+      // schermo diviso: pixel ratio al massimo 1 (risale fino a 1,5 tornando a una vista se i fotogrammi sono veloci)
+      const pm = Math.min(prMax(), G.devicePixelRatio || 1);
+      if (pr > pm) { pr = pm; R3.renderer.setPixelRatio(pr); }
       buildWorld();
       measure();
+      paintProg();
       themeAt = performance.now();
-      if (startPaused && !P.isOver(s)) { paused = true; pauseEl.hidden = false; pauseBtn.innerHTML = PLAY; draw(0); hud(); return; }
-      msgEl.innerHTML = `<b class="small">${L('pa_ready')}</b>`; msgEl.classList.remove('show'); void msgEl.offsetWidth; msgEl.classList.add('show');
+      if (startPaused && !P.isOver(s)) { paused = true; pauseEl.hidden = false; eachView(() => { pauseBtn.innerHTML = PLAY; }); draw(0); hud(); return; }
+      eachView((i) => { msgEl.innerHTML = `<b class="small">${L(split() && i === 0 && !coarse() ? 'ry_mp_keys' : 'pa_ready')}</b>`; msgEl.classList.remove('show'); void msgEl.offsetWidth; msgEl.classList.add('show'); });
       start();
       checkTurn();
     }
-    function fresh() { begin(P.newLevel(ctx.level, Math.random)); ctx.changed({ reset: true }); }
-    function restartRace() { begin(P.newLevel(s.level, Math.random)); ctx.changed({ reset: true }); }
+    function fresh() {
+      if (mpMode) { mpNext(ctx.level); return; }
+      begin(P.newLevel(ctx.level, Math.random)); ctx.changed({ reset: true });
+    }
+    function restartRace() {
+      if (mpMode) { mpNext(s.level); return; }
+      begin(P.newLevel(s.level, Math.random)); ctx.changed({ reset: true });
+    }
 
-    // per i controlli di qualità (Playwright): stato vivo e "avanti veloce" con un autopilota semplice (eventi compresi)
+    /* ---------- a due giocatori: schermo diviso e rete locale (HH.mp) ---------- */
+    const rseed = () => Math.floor(Math.random() * 2147483647) >>> 0;
+    let lastP2 = 'kitty';
+    // il veil "gioca insieme": scelta tra rete e schermo diviso (quel che il dispositivo non può fare è spento)
+    function mpMenu() {
+      if (!s) return;
+      if (!paused && !P.isOver(s)) pause();
+      // a due (schermo diviso o link vivo): solo "da solo" o annulla; l'host rimasto senza amico (link caduto, il suo
+      // kart guida l'IA) può invece riabbinarsi o passare allo schermo diviso, e anche tornare alla sua gara
+      if (mpMode && (mpMode === 'split' || net)) { mpEl.innerHTML = `<b>${L('ry_mp')}</b><div class="ry-mpbtns"><button class="ry-opt" type="button" data-mp="solo">${DUO}<span>${L('ry_mp_solo')}</span></button><button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button></div>`; mpEl.hidden = false; return; }
+      const canNet = !!(HH.mp && HH.mp.pair && HH.rallyNet), canSplit = splitOK();
+      mpEl.innerHTML = `<b>${L('ry_mp')}</b>
+        <div class="ry-mpbtns">
+          <button class="ry-opt" type="button" data-mp="net"${canNet ? '' : ' disabled'}>${PHONES}<span>${L('ry_mp_net')}</span></button>
+          <button class="ry-opt" type="button" data-mp="split"${canSplit ? '' : ' disabled'}>${SPLIT}<span>${L('ry_mp_split')}</span></button>
+          ${mpMode ? `<button class="ry-opt" type="button" data-mp="solo">${DUO}<span>${L('ry_mp_solo')}</span></button>` : ''}
+        </div>
+        ${canNet ? '' : `<small>${L('ry_mp_nonet')}</small>`}${canSplit ? '' : `<small>${L('ry_mp_nosplit')}</small>`}
+        <small class="ry-rule">${L('ry_mp_rule')}</small>
+        <button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button>`;
+      mpEl.hidden = false;
+      const first = mpEl.querySelector('button:not([disabled])');
+      if (first) first.focus();
+    }
+    let pickCb = null;
+    // scelta del kart del giocatore 2 (la Micia sul kart-mela, o uno dei tre animaletti che allora non corre contro)
+    function mpPick(cb, title) {
+      pickCb = cb;
+      mpEl.innerHTML = `<b>${title || L('ry_mp_pick')}</b><div class="ry-picks">${CHARS.slice(1).reverse().map((w) => `<button class="ry-pick" type="button" data-mp="pick:${w}" aria-label="${L('ry_who_' + w)}"><svg viewBox="-20 -28 40 42" aria-hidden="true">${kartBackW(0, 0, 1, w)}</svg><span>${L('ry_who_' + w)}</span></button>`).join('')}</div>
+        <button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button>`;
+      mpEl.hidden = false;
+      const first = mpEl.querySelector('.ry-pick');
+      if (first) first.focus();
+    }
+    function mpWait(text) {
+      mpEl.innerHTML = `<b class="ry-waitb">${text}</b><span class="ry-dots" aria-hidden="true"><i></i><i></i><i></i></span><button class="ry-opt" type="button" data-mp="cancel"><span>${L('lf_cancel')}</span></button>`;
+      mpEl.hidden = false;
+    }
+    function mpClick(k) {
+      sfx('tap');
+      if (k === 'cancel') {
+        // annullato mentre si aspetta l'amico: si chiude il collegamento e si torna alla gara da soli
+        if (net && (!s || !s.hu)) { endMP(); return; }
+        mpEl.hidden = true; return;
+      }
+      if (k === 'split') { mpPick((w) => startSplit(w), `${L('ry_mp_p2')}: ${L('ry_mp_pick')}`); return; }
+      if (k === 'net') { startNet(); return; }
+      if (k === 'solo') { endMP(); return; }
+      if (k.startsWith('pick:')) { const w = k.slice(5), cb = pickCb; pickCb = null; if (cb && CHARS.indexOf(w) > 0) cb(w); }
+    }
+    function startSplit(p2) {
+      if (!mpMode) solo = s;
+      if (net) { net.close(); net = null; }
+      mpMode = 'split'; ME = 0; lastP2 = p2;
+      mpEl.hidden = true;
+      setViews(2);
+      begin(P.newLevel(ctx.level, null, { humans: 2, p2, seed: rseed() }));
+      ctx.changed({ reset: true });
+    }
+    function startNet() {
+      if (mpBusy || !HH.mp || !HH.rallyNet) return;
+      mpBusy = true;
+      mpEl.hidden = true;
+      Promise.resolve(HH.mp.pair({ game: 'rally', players: 2, title: 'Hari Rally' })).then((link) => {
+        mpBusy = false;
+        if (!alive) { if (link) link.close(); return; }
+        if (!link) { mpMenu(); return; }
+        if (!mpMode) solo = s;
+        if (link.role === 'host') {
+          net = HH.rallyNet.host(link, { onMsg: hostMsg, onDrop: netDrop });
+          mpMode = 'host'; ME = 0;
+          net.start();
+          mpWait(L('ry_mp_wait'));
+        } else {
+          net = HH.rallyNet.guest(link, { onMsg: guestMsg, onDrop: netDrop });
+          mpMode = 'guest'; ME = 1;
+          net.start();
+          mpPick((w) => { lastP2 = w; net.send({ ry: 'hello', p2: w }); mpWait(L('ry_mp_host')); });
+        }
+        renderMode();
+      }).catch(() => { mpBusy = false; mpMenu(); });
+    }
+    // host: arriva la scelta dell'ospite → si genera la gara e si manda solo il seme
+    function hostRace(level) {
+      const seed = rseed(), st = P.newLevel(level, null, { humans: 2, p2: lastP2, seed });
+      st.me = 0;
+      net.send({ ry: 'start', level, seed, p2: lastP2 });
+      net.race(st);
+      mpEl.hidden = true;
+      begin(st);
+      ctx.changed({ reset: true });
+    }
+    function hostMsg(m) {
+      if (m.ry === 'hello') { lastP2 = CHARS.indexOf(m.p2) > 0 ? m.p2 : 'kitty'; hostRace(ctx.level); }
+      else if (m.ry === 'pause') pause(true);
+      else if (m.ry === 'resume') resume(true);
+      else if (m.ry === 'quit') netDrop('quit');
+    }
+    function guestMsg(m) {
+      if (m.ry === 'start') {
+        const st = P.newLevel(m.level, null, { humans: 2, p2: m.p2, seed: m.seed });
+        ME = 1; net.race(st);
+        mpEl.hidden = true;
+        begin(st);
+        ctx.changed({ reset: true });
+      } else if (m.ry === 'pause') pause(true);
+      else if (m.ry === 'resume') resume(true);
+      else if (m.ry === 'fin') { if (s && s.hu && !endEl.innerHTML) finish(); }
+      else if (m.ry === 'quit') netDrop('quit');
+    }
+    // il collegamento è caduto (o l'altro è uscito): l'host continua (il kart dell'ospite ora è dell'IA), l'ospite
+    // torna alla sua gara da solo
+    function netDrop(why) {
+      const was = mpMode;
+      if (el._rally) el._rally.lastDrop = String(why || '');   // QA: motivo dell'ultima chiusura
+      net = null;
+      if (!alive) return;
+      if (was === 'host' && s && s.hu && !P.isOver(s)) { say(L('ry_mp_left'), 'small', 2600); paintProg(); lastHud.rank = ''; return; }
+      if (was === 'guest' && s && s.hu && P.isOver(s)) return;
+      endMP();
+      if (was) later(() => say(L(was === 'host' ? 'ry_mp_left' : 'ry_mp_lost'), 'small', 2600), 300);
+    }
+    // prossima gara a due (rivincita, o il livello dopo una vittoria)
+    function mpNext(level) {
+      if (mpMode === 'split') { begin(P.newLevel(level, null, { humans: 2, p2: lastP2, seed: rseed() })); ctx.changed({ reset: true }); return; }
+      if (mpMode === 'host' && net) { hostRace(level); return; }
+      if (mpMode === 'guest' && net) {
+        // l'host ha già fatto partire la gara successiva (il suo "start" chiude anche il riquadro della vittoria)
+        if (s && s.hu && !P.isOver(s)) return;
+        endEl.hidden = true; mpWait(L('ry_mp_host')); return;
+      }
+      endMP(true);
+    }
+    // si torna a giocare da soli: la gara in singolo messa da parte (in pausa) o una nuova
+    function endMP(fresh1) {
+      if (net) { try { net.send({ ry: 'quit' }); } catch (e) { /* già chiuso */ } const n = net; net = null; later(() => n.close(), 200); }
+      const back = solo;
+      solo = null; mpMode = ''; ME = 0; pickCb = null;
+      mpEl.hidden = true;
+      setViews(1);
+      if (back && !P.isOver(back) && !fresh1) begin(back, true);
+      else begin(P.newLevel(ctx.level, Math.random));
+      ctx.changed({ reset: true });
+    }
+
+    // per i controlli di qualità (Playwright): stato vivo e "avanti veloce" con un autopilota semplice (eventi compresi);
+    // a due guida entrambi gli umani (o2.p2 = opzioni per il secondo)
+    function autopilot(p, o2) {
+      const kt = P.kAt(g, p.s), want = (o2.d != null ? o2.d : 0) - p.d;
+      const kReq = kt + (Math.max(-0.4, Math.min(0.4, want * 0.12)) - p.psi) * 1.6 / Math.max(8, p.v);
+      const vt = g.prof[Math.min(g.N, Math.round(p.s + p.v * 1.2))] * (o2.k || 0.95);
+      return { steer: o2.steer != null ? o2.steer : Math.max(-1, Math.min(1, -kReq / P.KMAX)), gas: o2.gas != null ? o2.gas : p.v > vt ? 0 : 1, brake: o2.brake != null ? o2.brake : p.v > vt + 1 ? 1 : 0 };
+    }
     function ff(sec, o2 = {}) {
-      const p = s.cars[0], ev = [];
+      const ev = [];
       for (let t = 0; t < sec && !P.isOver(s); t += P.TICK) {
-        const kt = P.kAt(g, p.s), want = (o2.d != null ? o2.d : 0) - p.d;
-        const kReq = kt + (Math.max(-0.4, Math.min(0.4, want * 0.12)) - p.psi) * 1.6 / Math.max(8, p.v);
-        const vt = g.prof[Math.min(g.N, Math.round(p.s + p.v * 1.2))] * (o2.k || 0.95);
-        ev.push(...P.step(s, P.TICK, { steer: o2.steer != null ? o2.steer : Math.max(-1, Math.min(1, -kReq / P.KMAX)), gas: o2.gas != null ? o2.gas : p.v > vt ? 0 : 1, brake: o2.brake != null ? o2.brake : p.v > vt + 1 ? 1 : 0, use: useQ ? 1 : 0 }));
+        if (s.hu) {
+          const ins = s.hu.map((id, j) => Object.assign(autopilot(s.cars[id], j ? o2.p2 || {} : o2), { use: id === ME && useQ ? 1 : 0 }));
+          if (net && net.role === 'guest') break;
+          ev.push(...(net ? net.stepLocal(P.TICK, ins) : P.step(s, P.TICK, ins)));
+        } else ev.push(...P.step(s, P.TICK, Object.assign(autopilot(s.cars[0], o2), { use: useQ ? 1 : 0 })));
         useQ = false;
       }
-      ev.forEach(onEvent);
+      ev.forEach(dispatch);
       if (!raf) draw(0);
       hud();
       return ev.map((e) => e.type);
@@ -2619,7 +3014,7 @@
     function give(item, who = 0, use = false) {
       const c = s.cars[who];
       c.it = P.ITEMS.indexOf(item);
-      if (use) { if (who === 0) useQ = true; else c.use = 1e-3; }
+      if (use) { if (who === ME) useQ = true; else c.use = 1e-3; }
       lastHud.it = -1; hud();
       return c.it;
     }
@@ -2630,8 +3025,15 @@
       return R3.karts.map((m) => { m.updateMatrixWorld(true); const e = m.matrixWorld.elements; return { x: e[12], y: -e[14], h: Math.atan2(-e[10], e[8]), vis: m.visible }; });
     }
     el._rally = { state: () => s, geo: () => g, three: () => R3, mode, sensor, ff, give, use: useItem, pr: () => pr, draw: () => { draw(0); hud(); }, hold: (on) => { qaHold = !!on; },
-      drawn, place: () => { if (!R3 || !R3.karts) return []; for (let id = 0; id < 4; id++) placeKart(id, performance.now() / 1000, 0, reduce(), true); return drawn(); }, cam: () => camPref, setCam, setAuto, auto: autoGas, ctl: () => ({ steer: steerV, gas: gasOn, brake: brakeOn, ptrs: [...ptrs.values()].map((q) => q.role) }), input: (dt) => input(dt || 0.016) };
-    const migrated = saved && typeof saved.seed === 'number' && saved.L > 0 && Array.isArray(saved.cars) && saved.cars.length === 4 ? P.migrate(saved) : null;
+      drawn, place: () => { if (!R3 || !R3.karts) return []; for (let id = 0; id < 4; id++) placeKart(id, performance.now() / 1000, 0, reduce(), true); return drawn(); }, cam: () => camPref, setCam, setAuto, auto: autoGas, ctl: () => ({ steer: steerV, gas: gasOn, brake: brakeOn, ptrs: [...ptrs.values()].map((q) => q.role) }), input: (dt) => input(dt || 0.016),
+      // a due: modo, kart di chi guarda, viste (rettangoli), controllo di rete; split(p2) avvia lo schermo diviso
+      mp: () => ({ mode: mpMode, me: ME, views: views.map((v) => v.rect), net: net ? net.role : '', solo: !!solo }), split: (p2 = 'kitty') => startSplit(p2), solo: () => endMP(), menu: mpMenu, netCtl: () => net,
+      views: () => views.length, forceSplit: false, auto2: (on) => { qaAuto = !!on; },
+      // QA: disegno con i contatori di three.js sommati su tutte le viste (draw call, triangoli) e tempo del disegno
+      info: () => { if (!R3) return null; const inf = R3.renderer.info; inf.autoReset = false; inf.reset(); const gl = R3.renderer.getContext(); gl.finish(); const t0 = performance.now(); draw(0); gl.finish(); const ms = performance.now() - t0; const r = { calls: inf.render.calls, tris: inf.render.triangles, ms, pr, views: Math.max(1, views.length) }; inf.autoReset = true; return r; } };
+    // la partita a due non si salva: si riprende la gara in singolo che era stata messa da parte
+    const sv = saved && saved.hu ? saved.solo : saved;
+    const migrated = sv && typeof sv.seed === 'number' && sv.L > 0 && Array.isArray(sv.cars) && sv.cars.length === 4 && !sv.hu ? P.migrate(sv) : null;
     if (migrated && !P.isOver(migrated)) begin(migrated, true);
     else fresh();
     // aperto quando lo schermo intero è già attivo (resta acceso tra un gioco e l'altro): orizzontale e misure subito
@@ -2644,7 +3046,8 @@
       undo() { toggle(); },
       pause() { pause(); },
       resume() { resume(); },
-      snapshot: () => s,
+      // a due: lo stato della gara (per fragoline e progressi) con dentro la gara in singolo da riprendere
+      snapshot: () => (mpMode && s ? Object.assign({}, s, { solo: solo || null, mp: mpMode }) : s),
     };
   }
 

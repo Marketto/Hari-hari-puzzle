@@ -8,6 +8,8 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
   const f = (...names) => names.map((n) => 'src/games/' + n);
+  // modulo multiplayer (src/net/*, contratto HH.mp): nei file dei giochi a due nell'ordine sonic, qr, mp, mp-ui, mp.css
+  const NET = ['src/net/sonic.js', 'src/net/qr.js', 'src/net/mp.js', 'src/net/mp-ui.js', 'src/net/mp.css'];
   HH.catalog = [
     { id: 'hedgedoku', name: 'Hedgedoku', rules: 'r1', files: f('hedgedoku.css', 'hedgedoku-logic.js', 'hog-kit.js', 'hedgedoku-ui.js') },
     { id: 'boba', name: 'Boba Sort', rules: 'r2', files: f('boba-logic.js', 'boba-ui.js') },
@@ -47,7 +49,8 @@
     // three.js (src/vendor, ~650 KB) è solo tra i file di questo gioco: si scarica e va in cache offline solo aprendo il rally
     { id: 'rally', name: 'Hari Rally', since: '0.17.0', rules: 'r14',
       rulesEn: 'Kart rally through forests, cities, seaside and snow, by day and by night, with Hari in his strawberry kart: accelerate, brake and steer (automatic speed is an option). Follow the pace notes (6 = fast bend, 1 = hairpin), brake before tight bends or you slide onto the grass, hold a drift for a mini boost, grab surprise gifts for silly power-ups and finish in the top 3 against Bunny, Fox and Panda.',
-      files: [...f('rally.css'), 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-ui.js')] },
+      // a due giocatori: rally-net.js (gara in rete su HH.mp) e rally-mp.css (schermo diviso, quinto kart)
+      files: [...f('rally.css', 'rally-mp.css'), ...NET, 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-net.js', 'rally-ui.js')] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },

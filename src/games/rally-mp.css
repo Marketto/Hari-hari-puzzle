@@ -1,0 +1,104 @@
+/* Hari Rally a due giocatori: quinto kart (Micia sul kart-mela), schermo diviso, scelta del kart, fine gara a squadre.
+ * File a parte da rally.css (layout del gioco in singolo e schermo intero): qui solo ciò che serve alla modalità a due.
+ * Le due viste dello schermo diviso sono .ry-v[data-v] posizionate da measure() (left/top/width/height in px).
+ */
+:root {
+  /* kart-mela (gialla con la guancia rossa) e la Micia lilla */
+  --ry-apple: #ffd23f; --ry-apple-2: #fff3b0; --ry-apple-3: #ff8f6b;
+  --ry-kitty: #d9c8f7; --ry-kitty-2: #fff6fb; --ry-kitty-3: #b39ae6; --ry-kitty-in: #ffb3c8;
+  --ry-p4: #ffd23f; --ry-mate: #7fcfff;
+}
+
+/* "gioca insieme" in alto prima del via; a due niente cambio di visuale (e sullo schermo diviso niente sensori) */
+.ry-mpbtn { display: none; }
+.ry-wrap.pre .ry-mpbtn { display: grid; }
+.ry-wrap.ry-mp .ry-cam, .ry-wrap.ry-split .ry-mode { display: none; }
+.ry-wrap.ry-mp .ry-pause .ry-opt[data-opt="cam"], .ry-wrap.ry-split .ry-pause .ry-opt[data-opt="ctl"] { display: none; }
+.ry-rank i.mate, .ry-prog i.mate { box-shadow: 0 0 0 2.5px var(--ry-mate); }
+.ry-prog i.mate { width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; z-index: 1; }
+
+/* ---------- schermo diviso: due viste nello stesso canvas, ognuna coi suoi indicatori e comandi ---------- */
+/* fuori dallo schermo intero un riquadro più largo (specificità bassa: a schermo intero vincono le regole di rally.css) */
+.ry-split { width: min(var(--game-w), 1080px); }
+.ry-split .ry-stage { aspect-ratio: 16 / 10; }
+@media (orientation: portrait) { .ry-split .ry-stage { aspect-ratio: 3 / 4; } }
+.ry-wrap.ry-split .ry-v { position: absolute; overflow: hidden; }
+.ry-wrap.ry-split .ry-v[data-v="1"]::before { content: ""; position: absolute; z-index: 7; background: var(--ry-ui-line); pointer-events: none; }
+.ry-wrap.ry-split.ry-side .ry-v[data-v="1"]::before { inset: 0 auto 0 0; width: 3px; }
+.ry-wrap.ry-split:not(.ry-side) .ry-v[data-v="1"]::before { inset: 0 0 auto 0; height: 3px; }
+.ry-wrap.ry-split .ry-v .ry-top { inset: 6px 6px auto; gap: 4px; }
+.ry-wrap.ry-split .ry-v .ry-note { width: 56px; padding: 3px 3px 5px; border-radius: 13px; }
+.ry-wrap.ry-split .ry-v .ry-note > svg { width: 40px; height: 32px; }
+.ry-wrap.ry-split .ry-v .ry-note .ry-g { font-size: 18px; }
+.ry-wrap.ry-split .ry-v .ry-mods svg { width: 13px; height: 13px; }
+.ry-wrap.ry-split .ry-v .ry-pos b { font-size: 22px; -webkit-text-stroke-width: 4px; }
+.ry-wrap.ry-split .ry-v .ry-rank i { width: 18px; height: 18px; }
+.ry-wrap.ry-split .ry-v .ry-btn { width: 30px; height: 30px; }
+.ry-wrap.ry-split .ry-v .ry-btn svg { width: 17px; height: 17px; }
+.ry-wrap.ry-split .ry-v .ry-time { font-size: 12px; padding: 2px 7px; }
+.ry-wrap.ry-split .ry-v .ry-acorn { font-size: 12px; padding: 1px 7px 1px 3px; }
+.ry-wrap.ry-split .ry-v .ry-acorn svg { width: 16px; height: 16px; }
+.ry-wrap.ry-split .ry-v .ry-item { right: 8px; bottom: 84px; width: 54px; height: 54px; }
+.ry-wrap.ry-split .ry-v .ry-item svg { width: 38px; height: 38px; }
+.ry-wrap.ry-split .ry-v .ry-ped.gas { right: 8px; bottom: 8px; width: 54px; height: 72px; }
+.ry-wrap.ry-split .ry-v .ry-ped.gas svg { width: 36px; height: 46px; }
+.ry-wrap.ry-split .ry-v .ry-ped.brake { right: 68px; left: auto; bottom: 8px; width: 52px; height: 52px; }
+.ry-wrap.ry-split .ry-v .ry-ped.brake svg { width: 32px; height: 32px; }
+.ry-wrap.ry-split .ry-v .ry-arr { bottom: 8px; width: 52px; height: 52px; }
+.ry-wrap.ry-split .ry-v .ry-arr.l { left: 8px; }
+.ry-wrap.ry-split .ry-v .ry-arr.r { left: 66px; }
+.ry-wrap.ry-split .ry-v .ry-spd { left: 10px; bottom: 66px; width: 40px; height: 40px; }
+.ry-wrap.ry-split.chase .ry-v .ry-prog { top: 70px; left: 22%; right: 22%; }
+.ry-wrap.ry-split .ry-v .ry-msg { inset: 26% 0 auto; }
+.ry-wrap.ry-split .ry-v .ry-msg b { font-size: clamp(22px, 5vw, 36px); -webkit-text-stroke-width: 5px; }
+.ry-wrap.ry-split .ry-v .ry-msg b.small, .ry-wrap.ry-split .ry-v .ry-msg b.pu { font-size: clamp(14px, 3.2vw, 20px); -webkit-text-stroke-width: 4px; }
+.ry-wrap.ry-split .ry-v .ry-lights i { width: 20px; height: 20px; }
+/* viste molto basse (telefono in orizzontale, una sopra l'altra non succede: qui sono affiancate e strette) */
+@media (max-height: 420px) {
+  .ry-wrap.ry-split .ry-v .ry-note { width: 48px; }
+  .ry-wrap.ry-split .ry-v .ry-note > svg { width: 34px; height: 27px; }
+  .ry-wrap.ry-split .ry-v .ry-rank { display: none; }
+  .ry-wrap.ry-split .ry-v .ry-item { bottom: 66px; width: 48px; height: 48px; }
+  .ry-wrap.ry-split .ry-v .ry-ped.gas { height: 60px; }
+  .ry-wrap.ry-split .ry-v .ry-spd { display: none; }
+  .ry-wrap.ry-split.chase .ry-v .ry-prog { top: 58px; }
+}
+
+/* schermo intero (html.fs-on): la barra del logo e l'uscita galleggiano in basso agli angoli (rally.css), sopra la
+   freccia sinistra del giocatore 1 e il pedale del giocatore 2: i comandi in basso salgono come nel singolo */
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-ped, .fs-on .plate .ry-wrap.ry-split .ry-v .ry-arr { bottom: 56px; }
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-item, .fs-on .plate .ry-wrap.ry-split.touch .ry-v .ry-item { right: 8px; bottom: 132px; }
+.fs-on .plate .ry-wrap.ry-split .ry-v .ry-spd { bottom: 114px; }
+@media (max-height: 420px) {
+  .fs-on .plate .ry-wrap.ry-split .ry-v .ry-ped, .fs-on .plate .ry-wrap.ry-split .ry-v .ry-arr { bottom: 52px; }
+  .fs-on .plate .ry-wrap.ry-split .ry-v .ry-item, .fs-on .plate .ry-wrap.ry-split.touch .ry-v .ry-item { bottom: 116px; }
+}
+
+/* ---------- veil "gioca insieme": rete o schermo diviso, scelta del kart, attesa ---------- */
+.ry-mpv { z-index: 10; }
+.ry-mpv > small { max-width: 92%; }
+.ry-mpv .ry-rule { margin-top: 2px; color: var(--ink); }
+.ry-mpbtns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0 4px; }
+.ry-opt[disabled] { opacity: .45; cursor: default; box-shadow: none; }
+.ry-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 76px)); gap: 8px; margin: 8px 0; }
+.ry-pick {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 4px; border: 2px solid var(--line-2); border-radius: 18px;
+  background: var(--card-solid); color: var(--ink); box-shadow: 0 3px 0 var(--line-2); font: 800 12px/1.1 var(--font-body); cursor: pointer;
+}
+.ry-pick svg { width: 60px; height: 60px; }
+.ry-pick:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+.ry-pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ry-dots { display: flex; gap: 6px; margin: 6px 0 10px; }
+.ry-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: ry-dot 1.1s ease-in-out infinite; }
+.ry-dots i:nth-child(2) { animation-delay: .18s; } .ry-dots i:nth-child(3) { animation-delay: .36s; }
+@keyframes ry-dot { 0%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-6px); opacity: 1; } }
+
+/* ---------- fine gara a due ---------- */
+.ry-end .ry-team { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: var(--ink); }
+.ry-end .ry-team.win { color: var(--accent-2); }
+.ry-end li.mate { box-shadow: inset 0 0 0 2.5px var(--ry-mate); }
+.ry-end .ry-berries { display: flex; gap: 1px; }
+.ry-end .ry-berries svg { width: 15px; height: 15px; }
+.ry-end .ry-mpbtns .candy { margin-top: 0; }
+.ry-end > small { font-weight: 800; color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .ry-dots i { animation: none; } }
