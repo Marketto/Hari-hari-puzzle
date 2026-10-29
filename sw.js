@@ -15,7 +15,8 @@ const SHELL = [
 ];
 // file dei giochi: scaricati e messi in cache solo quando il gioco viene aperto la prima volta (lazy load)
 importScripts('src/games/catalog.js');
-const GAME_FILES = new Set(self.HH.catalog.flatMap((g) => g.files));
+// (anche i file extra che un gioco carica su richiesta, es. le mappe reali di Hari Taxi: in cache alla prima apertura)
+const GAME_FILES = new Set(self.HH.catalog.flatMap((g) => [...g.files, ...(g.extra || [])]));
 const isGameFile = (url) => { const u = new URL(url, self.registration.scope); return GAME_FILES.has(u.pathname.slice(new URL(self.registration.scope).pathname.length)); };
 
 self.addEventListener('install', (e) => {
@@ -39,7 +40,8 @@ async function carryGames(c) {
   // un gioco si porta dietro solo se tutti i suoi file c'erano
   const scope = new URL(self.registration.scope);
   const games = self.HH.catalog.filter((g) => g.files.every((f) => have.has(new URL(f, scope).href)));
-  await Promise.all(games.flatMap((g) => g.files.map(async (f) => {
+  // i file extra già scaricati (es. una mappa reale) seguono il loro gioco
+  await Promise.all(games.flatMap((g) => [...g.files, ...(g.extra || []).filter((f) => have.has(new URL(f, scope).href))].map(async (f) => {
     const url = new URL(f, scope).href;
     try { const r = await fetch(new Request(url, { cache: 'reload' })); if (r.ok) return c.put(url, r); throw new Error(r.status); }
     catch (e) { const r = await (await caches.open(have.get(url))).match(url); if (r) return c.put(url, r); }

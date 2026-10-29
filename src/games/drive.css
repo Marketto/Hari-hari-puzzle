@@ -39,6 +39,12 @@
   --dr-flower: #ff9fbf; --dr-flower-2: #fff2a0; --dr-bench: #c98f5f;
   --dr-lamp: #fff2c4; --dr-glow: rgba(255, 214, 140, 0); --dr-beam: rgba(255, 246, 200, 0); --dr-awning: #ff7f98; --dr-awning-2: #fffaf0;
   --dr-bar-1: #ffe6a6; --dr-bar-2: #fff7dd; --dr-veil: rgba(255, 250, 244, .62); --dr-dusk: rgba(30, 20, 60, 0); --dr-night: 0;
+  /* mappe reali (OpenStreetMap): mare/lago, spiaggia, campi, parcheggi, binari, pontili, barche, cartelli */
+  --dr-sea: #8fd3f4; --dr-sea-2: #6fc0ea; --dr-foam: rgba(255, 255, 255, .85); --dr-sand: #ffe7b0; --dr-sand-2: #f2cf86;
+  --dr-field: #d6eb9a; --dr-field-2: #c2dd80; --dr-parking: #c4c6da; --dr-rail: #d2c3bb; --dr-rail-2: #9a8790;
+  --dr-wood: #e8bb88; --dr-wood-2: #c48d5a; --dr-boat: #ffffff; --dr-boat-2: #ff8fa8; --dr-sail: #fff6d6;
+  --dr-umb-1: #ff9fbf; --dr-umb-2: #8fd3ff; --dr-umb-3: #ffe08a; --dr-castle: #ebe2f2; --dr-castle-2: #bdb1d3;
+  --dr-mm-water: #9fd8f5; --dr-mm-sand: #ffe3a6; --dr-street: rgba(255, 250, 244, .94); --dr-street-ink: #4a2c22;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -54,6 +60,11 @@
     --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
     --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
     --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+    --dr-sea: #2f5b8a; --dr-sea-2: #284f7a; --dr-foam: rgba(214, 232, 255, .5); --dr-sand: #8a7656; --dr-sand-2: #776447;
+    --dr-field: #4b6743; --dr-field-2: #425c3b; --dr-parking: #57537a; --dr-rail: #5e5468; --dr-rail-2: #3e3650;
+    --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
+    --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
+    --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
   }
 }
 :root[data-theme="dark"] {
@@ -69,6 +80,11 @@
   --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
   --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
   --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+  --dr-sea: #2f5b8a; --dr-sea-2: #284f7a; --dr-foam: rgba(214, 232, 255, .5); --dr-sand: #8a7656; --dr-sand-2: #776447;
+  --dr-field: #4b6743; --dr-field-2: #425c3b; --dr-parking: #57537a; --dr-rail: #5e5468; --dr-rail-2: #3e3650;
+  --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
+  --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
+  --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
 }
 
 .dr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -138,6 +154,51 @@
 .dr-play { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: 0 5px 0 var(--accent-2), var(--shadow-s); animation: dr-breathe 1.6s ease-in-out infinite; }
 .dr-play svg { width: 30px; height: 30px; margin-left: 4px; }
 
+/* ---------- mappe: pulsante, selettore, caricamento, cartello della via, attribuzione OSM ---------- */
+.dr-mbtn {
+  position: relative; display: grid; place-items: center; flex: none; width: 34px; height: 34px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%;
+  background: var(--card-solid); color: var(--accent-2); box-shadow: 0 3px 0 var(--line-2); cursor: pointer;
+}
+.dr-mbtn svg { width: 20px; height: 20px; }
+.dr-mbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-2); }
+.dr-maps {
+  position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; padding: 10px; border-radius: 22px;
+  background: var(--dr-veil); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: fade .25s;
+}
+.dr-maps-box { display: flex; flex-direction: column; gap: 8px; width: min(100%, 520px); max-height: 100%; overflow: auto; padding: 12px; border-radius: 22px; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2), var(--shadow-s); }
+.dr-maps-head { display: flex; align-items: center; gap: 8px; }
+.dr-maps-head b { flex: 1; font-family: var(--font-display); font-weight: 400; font-size: 20px; color: var(--ink); }
+.dr-maps-x { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%; background: var(--card-solid); color: var(--ink-2); font-weight: 900; cursor: pointer; }
+.dr-maps-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dr-map-card {
+  display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px; border: 2px solid var(--line-2); border-radius: 18px;
+  background: var(--card-solid); color: var(--ink); text-align: start; font: inherit; cursor: pointer; box-shadow: 0 4px 0 var(--line-2);
+}
+.dr-map-card:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line-2); }
+.dr-map-card.on { border-color: var(--accent); box-shadow: 0 4px 0 var(--accent-2); }
+.dr-map-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dr-map-art { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: var(--dr-grass); }
+.dr-map-art svg, .dr-map-art canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+.dr-map-card b { font-family: var(--font-display); font-weight: 400; font-size: clamp(12px, 3.6vw, 16px); line-height: 1.15; overflow-wrap: break-word; }
+.dr-map-card small { font-weight: 800; font-size: 12px; color: var(--ink-2); }
+.dr-map-card i { font-style: normal; font-size: 10px; font-weight: 700; color: var(--ink-2); opacity: .9; }
+.dr-maps-osm { margin: 0; font-size: 11px; font-weight: 700; color: var(--ink-2); text-align: center; }
+.dr-maps-err { margin: 0; padding: 6px 10px; border-radius: 12px; background: var(--dr-zone-2); color: var(--ink); font-weight: 800; font-size: 13px; }
+.dr-loadmap { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--dr-veil); color: var(--ink); font-weight: 800; }
+.dr-loadmap .hari-mini, .dr-loadmap svg { width: 64px; height: 64px; animation: dr-breathe 1s ease-in-out infinite; }
+.dr-street {
+  position: absolute; left: 8px; top: 8px; z-index: 4; display: flex; align-items: center; gap: 4px; max-width: calc(100% - 140px); padding: 3px 10px 3px 6px;
+  border-radius: 14px; background: var(--dr-street); color: var(--dr-street-ink); box-shadow: inset 0 0 0 2px var(--line-2); font-weight: 800; font-size: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; transition: opacity .3s;
+}
+.dr-street[hidden] { display: flex; opacity: 0; }
+.dr-street svg { width: 14px; height: 14px; flex: none; }
+.dr-street span { overflow: hidden; text-overflow: ellipsis; }
+.dr-osm {
+  position: absolute; right: 6px; bottom: 6px; z-index: 4; padding: 1px 6px; border-radius: 8px; background: var(--dr-street); color: var(--dr-street-ink);
+  font-size: 10px; font-weight: 700; line-height: 1.5; pointer-events: none; opacity: .92;
+}
+
 /* schermo intero del riquadro: la città occupa tutto lo spazio rimasto */
 .fs-on .plate .board:has(> .dr-wrap) { display: flex; flex-direction: column; align-items: center; min-height: 0; }
 .fs-on .plate .dr-wrap { flex: 1; min-height: 0; width: min(100%, 760px); }
@@ -165,6 +226,6 @@
 @keyframes dr-bonk { 0%, 60%, 100% { transform: scale(.2); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 90% { transform: scale(1); opacity: 1; } }
 @keyframes dr-bar { 0% { transform: scaleX(1); } 100% { transform: scaleX(.08); } }
 @media (prefers-reduced-motion: reduce) {
-  .dr-play, .dr-tut-drive, .dr-tut-pin, .dr-tut-ring, .dr-tut-hop, .dr-tut-bonk, .dr-tut-bar, .dr-time.low .dr-fill { animation: none !important; }
+  .dr-loadmap svg, .dr-play, .dr-tut-drive, .dr-tut-pin, .dr-tut-ring, .dr-tut-hop, .dr-tut-bonk, .dr-tut-bar, .dr-time.low .dr-fill { animation: none !important; }
   .dr-stage.wobble { animation: none; }
 }

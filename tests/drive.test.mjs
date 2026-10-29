@@ -284,3 +284,163 @@ test('stato JSON puro, stelle e progresso', () => {
   s.oops = 2; assert.equal(D.rate(s), 1);
   assert.ok(D.par(s) > 30 && D.par(s) < 400);
 });
+
+/* ---------- mappe reali (OpenStreetMap): Ostia e Desenzano del Garda ---------- */
+// Oracoli indipendenti dal gioco: le caselle percorribili si rifanno dal grafo pubblico della mappa (roadDist del bot,
+// mezzerie larghe quanto la categoria), i percorsi li rifà il bot.
+const MAPS = ['ostia', 'desenzano'];
+for (const id of MAPS) load(`src/games/drive-map-${id}.js`);
+const FILE_KB = 400;
+
+test('mappe reali: file dati presenti, sotto il limite di dimensione e caricati in fretta', async () => {
+  const fs = await import('node:fs');
+  const { root } = await import('./_load.mjs');
+  for (const id of MAPS) {
+    const kb = fs.statSync(`${root}/src/games/drive-map-${id}.js`).size / 1024;
+    assert.ok(kb < FILE_KB, `${id}: ${kb.toFixed(0)} KB`);
+    const meta = HH.driveMapList && HH.driveMapList.find((m) => m.id === id);
+    void meta;
+    const md = D.mapData(id);
+    assert.ok(md && md.W > 300 && md.H > 300 && md.edges.length > 500 && md.pois.length > 100, `${id}: dati decodificati`);
+    assert.ok(D.buildings(md).length > 1000, `${id}: edifici`);
+  }
+  // registro delle mappe (anteprime per il selettore)
+  load('src/games/drive-maps.js');
+  assert.deepEqual(HH.driveMapList.map((m) => m.id), MAPS);
+  for (const m of HH.driveMapList) assert.ok(m.preview && m.preview.w > 20 && m.file === `src/games/drive-map-${m.id}.js`);
+});
+
+test('mappe reali: geometria pronta in < 400 ms, nuovo livello in < 40 ms, simulazione leggera', () => {
+  for (const id of MAPS) {
+    let t = performance.now();
+    D.newLevel(1, HH.rng(1), id);
+    const first = performance.now() - t;
+    assert.ok(first < 400 * SLOW, `${id}: prima generazione (decodifica + geometria) ${first.toFixed(0)} ms`);
+    let ms = 0;
+    for (let k = 0; k < 8; k++) { t = performance.now(); D.newLevel(1 + k, HH.rng(k), id); ms += performance.now() - t; }
+    assert.ok(ms / 8 < 40 * SLOW, `${id}: nuovo livello ${(ms / 8).toFixed(1)} ms`);
+    const s = fresh(10, 3, id);
+    t = performance.now();
+    gas(s, 60, null);
+    const sim = performance.now() - t;
+    assert.ok(sim < 400 * SLOW, `${id}: 1 minuto simulato in ${sim.toFixed(0)} ms`);
+  }
+});
+
+test('mappe reali: rete stradale connessa, partenza e ogni fermata e luogo raggiungibili su strada', () => {
+  for (const id of MAPS) {
+    const s = fresh(1, 7, id), g = D.geo(s);
+    const f = roadDist(s, tile(s, s.car.x, s.car.y));
+    assert.ok(f.has(tile(s, s.car.x, s.car.y)), `${id}: partenza fuori strada`);
+    // tutte le caselle carrabili del gioco (componente principale) stanno nella rete rifatta dal grafo
+    let pass = 0, miss = 0;
+    for (let i = 0; i < g.pass.length; i++) if (g.pass[i]) { pass++; if (!f.has(i)) miss++; }
+    assert.ok(miss / pass < 0.01, `${id}: ${miss}/${pass} caselle di strada scollegate`);
+    let bad = 0;
+    for (const p of g.spots) if (!f.has(tile(s, p.zx, p.zy))) bad++;
+    assert.equal(bad, 0, `${id}: ${bad} fermate irraggiungibili su ${g.spots.length}`);
+    const named = D.mapData(id).pois.filter((p) => p.spot >= 0);
+    assert.ok(named.length > 50, `${id}: luoghi con fermata`);
+    for (const p of named) assert.ok(f.has(tile(s, g.spots[p.spot].zx, g.spots[p.spot].zy)), `${id}: ${p.name || p.k} irraggiungibile`);
+    // luoghi notevoli richiesti
+    const md = D.mapData(id), has = (k, re) => md.pois.some((p) => p.k === k && re.test(p.name));
+    if (id === 'ostia') { assert.ok(has('pier', /pontile/i), 'Pontile di Ostia'); assert.ok(has('station', /lido centro/i), 'stazione Lido Centro'); assert.ok(md.pois.some((p) => p.k === 'beach')); }
+    else { assert.ok(has('castle', /castello/i), 'Castello'); assert.ok(has('harbour', /porto vecchio/i), 'Porto Vecchio'); assert.ok(has('station', /desenzano/i), 'stazione'); }
+    assert.ok(md.pois.some((p) => p.k === 'taxi') && md.pois.some((p) => p.k === 'depot') && md.pois.some((p) => p.k === 'gelato'), `${id}: taxi, deposito, gelaterie`);
+  }
+});
+
+test('mappe reali: corse vicine a Hari e tempi limite fattibili al 60% della velocità massima', () => {
+  for (const id of MAPS) for (let level = 1; level <= 9; level++) {
+    const s = D.newLevel(level, HH.rng(level * 11), id), g = D.geo(s), V = D.VEH[s.veh], v = V.vmax * 0.6;
+    for (let trip = 0; trip < 3 && !D.isOver(s); trip++) {
+      const tr = s.trip, p = g.spots[tr.p];
+      const fc = roadDist(s, tile(s, s.car.x, s.car.y)).get(tile(s, p.zx, p.zy));
+      if (s.type === 'taxi') assert.ok(fc <= Math.max(16, D.config(level, id).dmax * 0.35) + 2, `${id} L${level}: passeggero lontano (${fc})`);
+      let at = tile(s, p.zx, p.zy), time = 0;
+      const order = tr.items.slice().sort((a, b) => roadDist(s, at).get(tile(s, g.spots[a.d].zx, g.spots[a.d].zy)) - roadDist(s, at).get(tile(s, g.spots[b.d].zx, g.spots[b.d].zy)));
+      for (const it of order) { const q = g.spots[it.d], d = roadDist(s, at).get(tile(s, q.zx, q.zy)); time += d / v + 1.5; at = tile(s, q.zx, q.zy); }
+      assert.ok(time <= tr.items[0].lim, `${id} L${level} corsa ${trip}: ${time.toFixed(0)} s > ${tr.items[0].lim} s`);
+      s.car.x = p.zx; s.car.y = p.zy; s.car.v = 0; D.tick(s);
+      for (const it of tr.items) { const q = g.spots[it.d]; s.car.x = q.zx; s.car.y = q.zy; s.car.v = 0; D.tick(s); }
+    }
+  }
+});
+
+test('mappe reali: il bot vince i livelli 1–6 di ogni mappa (2 semi), poco traffico fuori dalla bolla', () => {
+  const out = [];
+  for (const id of MAPS) for (let level = 1; level <= 6; level++) for (let k = 0; k < 2; k++) {
+    const s = fresh(level, level * 1000 + k * 17, id);
+    play(s, { seed: level * 3 + k, limit: 900 });
+    out.push(`${id} L${level}.${k} ${s.t.toFixed(0)}s ♥${3 - s.oops}`);
+    assert.ok(D.isWon(s), `${id} livello ${level} seme ${k}: ${s.done}/${s.N}, cuori persi ${s.oops} (urti ${s.crashes}, tardi ${s.late})`);
+    assert.ok(s.t < 600, `${id} livello ${level}: troppo lungo (${s.t.toFixed(0)} s)`);
+    // traffico e pedoni restano attorno a Hari
+    assert.ok(s.npcs.every((v) => Math.hypot(v.x - s.car.x, v.y - s.car.y) < 40));
+  }
+  if (process.env.DRIVE_STATS) console.log(out.join('\n'));
+});
+
+test('mappe reali: traffico solo col verde, pedoni sulle strisce col loro verde, auto sempre su strada', () => {
+  for (const id of MAPS) {
+    const s = fresh(8, 21, id), g = D.geo(s);
+    let enterGreen = 0, enterWrong = 0, crossBad = 0, off = 0;
+    const was = new Map(s.npcs.map((v) => [v.id, v.sg]));
+    for (let f = 0; f < 60 * 90; f++) {
+      D.step(s, DT, null);
+      for (const v of s.npcs) {
+        if (was.get(v.id) === 0 && v.sg === 1 && g.nodes[v.n1].lit && !v.ghost) {
+          const L = D.light(s, v.n1);
+          if (L.ph === g.grp[v.d]) enterGreen++; else if (L.ph === 1 - g.grp[v.d]) enterWrong++;
+        }
+        was.set(v.id, v.sg);
+        if (g.csolid[Math.floor(v.y * g.cs) * s.W * g.cs + Math.floor(v.x * g.cs)]) off++;   // sull'asfalto disegnato
+      }
+      for (const p of s.peds) if (p.st === 2 && p.cr.q < 0.02 && D.light(s, p.cr.n).ph !== p.cr.ph) crossBad++;
+    }
+    assert.equal(enterWrong, 0, `${id}: ${enterWrong} auto col verde degli altri (${enterGreen} col proprio)`);
+    assert.equal(crossBad, 0, `${id}: pedoni col rosso`);
+    assert.equal(off, 0, `${id}: auto fuori strada`);
+  }
+});
+
+test('mappe reali: stato JSON piccolo (niente mappa dentro), determinismo e ripresa', () => {
+  for (const id of MAPS) {
+    const a = fresh(4, 99, id), b = fresh(4, 99, id);
+    assert.equal(a.map, undefined);
+    assert.equal(a.mapId, id);
+    assert.ok(JSON.stringify(a).length < 30000, 'salvataggio piccolo');
+    const bot = makeBot(a, { seed: 2 });
+    const inputs = [];
+    let saved = null;
+    for (let f = 0; f < 60 * 30; f++) { const inp = bot.input(a.t); inputs.push(inp); D.step(a, DT, inp); if (f === 600) saved = JSON.stringify(a); }
+    for (const inp of inputs) D.step(b, DT, inp);
+    assert.equal(JSON.stringify(b), JSON.stringify(a));
+    const c = JSON.parse(saved);
+    for (let f = 601; f < inputs.length; f++) D.step(c, DT, inputs[f]);
+    assert.equal(JSON.stringify(c), JSON.stringify(a), `${id}: la ripresa da JSON diverge`);
+  }
+});
+
+test('mappe reali: muri morbidi sulla griglia fine (nessun cuore), mai fuori dall\'asfalto disegnato', () => {
+  for (const id of MAPS) {
+    const s = fresh(2, 5, id), g = D.geo(s);
+    s.npcs = []; s.peds = [];
+    const r = HH.rng(3);
+    for (let f = 0; f < 60 * 25; f++) {
+      D.step(s, DT, f % 40 === 0 ? { ax: r() * 2 - 1, ay: r() * 2 - 1 } : undefined);
+      const i = Math.floor(s.car.y * g.cs) * s.W * g.cs + Math.floor(s.car.x * g.cs);
+      assert.equal(g.csolid[i], 0, `${id}: fuori strada a ${s.car.x.toFixed(2)},${s.car.y.toFixed(2)}`);
+    }
+    assert.equal(s.oops, 0);
+  }
+});
+
+test('mappe reali: curva di difficoltà monotona anche sulle mappe grandi', () => {
+  let prev = null;
+  for (let L = 1; L <= 20; L++) {
+    const c = D.config(L, 'ostia');
+    if (prev) assert.ok(c.dmax >= prev.dmax && c.dmin >= prev.dmin && c.cars >= prev.cars && c.peds >= prev.peds && c.slack <= prev.slack);
+    prev = c;
+  }
+});

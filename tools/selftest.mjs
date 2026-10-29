@@ -191,6 +191,34 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Taxi, mappe reali (OpenStreetMap): decodifica + geometria una volta per mappa, poi livelli 1/4/8/12 (4 semi):
+// generazione, ogni fermata raggiungibile su strada, tempo limite ≥ 1,5 × percorso a velocità massima, simulazione leggera
+{
+  for (const id of ['ostia', 'desenzano']) {
+    vm.runInThisContext(fs.readFileSync(path.join(root, `src/games/drive-map-${id}.js`), 'utf8'), { filename: `drive-map-${id}.js` });
+    const { drive } = globalThis.HH;
+    let t = performance.now();
+    drive.newLevel(1, globalThis.HH.rng(1), id);
+    const first = performance.now() - t;
+    for (const level of [1, 4, 8, 12]) {
+      let ms = 0, good = 0, sim = 0;
+      const T = 4, c = drive.config(level, id);
+      for (let k = 0; k < T; k++) {
+        t = performance.now();
+        const s = drive.newLevel(level, globalThis.HH.rng(level * 97 + k), id);
+        ms += performance.now() - t;
+        const g = drive.geo(s), tile = (x, y) => Math.floor(y) * s.W + Math.floor(x);
+        const p = g.spots[s.trip.p], fp = drive.field(s, tile(p.zx, p.zy)), V = drive.VEH[s.veh];
+        const reach = drive.field(s, tile(s.car.x, s.car.y))[tile(p.zx, p.zy)] >= 0;
+        const fair = s.trip.items.every((it) => fp[tile(g.spots[it.d].zx, g.spots[it.d].zy)] >= 0 && it.lim >= 1.5 * (fp[tile(g.spots[it.d].zx, g.spots[it.d].zy)] / V.vmax));
+        if (reach && fair) good++;
+        if (k < 2) { s.ready = 0; const t2 = performance.now(); for (let i = 0; i < 600; i++) drive.step(s, 1 / 60, null); sim += performance.now() - t2; }
+      }
+      ok(good === T && ms / T < 40 && sim / 1200 < 0.2, `Hari Taxi ${id} livello ${level} (${c.type}): ${drive.mapData(id).W}×${drive.mapData(id).H} caselle, ${c.cars} veicoli e ${c.peds} pedoni attorno a Hari: ${good}/${T} ok, prima geometria ${first.toFixed(0)} ms, livello ${(ms / T).toFixed(1)} ms, ${(sim / 1200).toFixed(3)} ms a fotogramma`);
+    }
+  }
+}
+
 // Hari Home (simulazione senza livelli): 4 fasi della vita + Hari da solo col libero arbitrio, un giorno di gioco simulato < 10 ms, bisogni sempre in 0..1
 {
   for (const f of ['life-data.js', 'life-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });

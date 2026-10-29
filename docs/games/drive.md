@@ -116,4 +116,74 @@ In CI i limiti di tempo valgono il triplo (`SLOW`).
   corriere); il passeggero viaggia dietro, i pacchi sul tetto del furgone.
 - Tema scuro = notte: lampioni accesi (bagliore cotto nei blocchi), fari, tetti e strade più scuri.
 - Schermo intero del riquadro: la città occupa tutto lo spazio rimasto (`.board:has(> .dr-wrap)` in colonna).
-- `el._drive.state()` sul `#board` restituisce lo stato vivo della partita (per i controlli con Playwright).
+- `el._drive.state()` sul `#board` restituisce lo stato vivo della partita (per i controlli con Playwright);
+  `el._drive.peek(x, y)` fa guardare la camera un punto (foto dei luoghi lontani dalla strada), `peek()` torna su Hari.
+
+## Mappe reali: Ostia e Desenzano del Garda (OpenStreetMap)
+Tre mappe: **Città di Hari** (procedurale, predefinita, livelli e salvataggi di sempre sul posto `drive`), **Ostia**
+(Lido di Ostia, Roma: dal Porticciolo e Castel Fusano all'Idroscalo, dal mare a via dei Romagnoli; 5,6 × 4,4 km) e
+**Desenzano del Garda** (centro, porto vecchio, castello, lungolago, Rivoltella, stazione; 6,2 × 3,3 km).
+**© OpenStreetMap contributors, ODbL 1.0**: fonte, date e trasformazioni in `docs/osm-attribution.md`; in gioco
+l'attribuzione è sempre visibile (angolo del palco, minimappa, selettore).
+
+- **Selettore**: alla prima apertura dopo l'aggiornamento (la città di Hari già selezionata, partita in pausa sotto)
+  e dal pulsante cartina nella barra. Carte con anteprima a bassa risoluzione (da `drive-maps.js`), livello raggiunto
+  e misure. Nomi di vie e luoghi = dati OSM, mai tradotti.
+- **Progressi per mappa**: il gioco dichiara `slot()` (contratto in `app.js`): `drive` per la città di Hari (i vecchi
+  salvataggi senza `mapId` restano lì: nessuna migrazione da fare), `drive@ostia`, `drive@desenzano`; il catalogo
+  elenca gli `slots` per il punteggio totale. Cambiare mappa = `ctx.reslot()`: si salva la partita e si riapre il gioco.
+- **Lazy load**: `drive-map-<id>.js` è un file `extra` del catalogo, scaricato con `HH.loadFile` solo scegliendo la
+  mappa (con un Hari che respira e "Loading the map…"); il service worker lo mette in cache; il file unico lo include.
+- **Stato**: solo `mapId` (mai la mappa): salvataggi piccoli (< 30 KB).
+
+### Scelta del modello: griglia per Hari, grafo per il traffico (variante della strada "a")
+La griglia logica resta, ma la città non è più fatta di linee `vx`/`hy`: dal grafo stradale OSM semplificato (incroci,
+tratti come polilinee, categoria, senso unico, nome) si ricavano
+- per **Hari**: le caselle percorribili (mezzeria ± mezza larghezza della categoria + 0,3), quindi distanze su strada
+  (BFS), freccia (`route`), tempi limite e minimappa funzionano come prima; i **muri** usano una griglia 3 volte più
+  fine, larga quanto l'asfalto disegnato (niente bordi invisibili lontano dal disegno); vie pedonali a passo d'uomo;
+- per il **traffico**: corsie a destra della mezzeria (al centro nei sensi unici, rispettati), accorciate agli incroci,
+  svolte come Bézier quadratiche tra fine e inizio corsia, inversione a U nei vicoli ciechi; semafori ai nodi OSM
+  `highway=traffic_signals` (spostati sull'incrocio vicino) e agli incroci grandi, due gruppi di fase per incrocio
+  (direzione della strada più importante); stessa IA (rosso, chi c'è davanti, Hari, pedoni, ingorghi); chi è bloccato
+  da Hari da più di 4,5 s lo scansa piano sulla destra, restando sull'asfalto;
+- per i **pedoni**: marciapiedi ai due lati di ogni tratto; all'incrocio girano l'angolo verso il marciapiede più
+  vicino oppure, dove ci sono le strisce (incroci col semaforo fino a 4 strade), attraversano col loro verde; sfiorati
+  sul marciapiede fanno solo un saltello (nessun cuore), sulle strisce valgono le regole di sempre;
+- **bolla**: traffico e pedoni vivono attorno a Hari (rinascono fuori vista oltre 34/25 caselle), così la densità a
+  vista è come nella città di Hari e il costo non dipende dalla grandezza della mappa.
+La strada "b" (fisica di Hari su grafo vettoriale) avrebbe riscritto collisioni, distanze, freccia e minimappa: la
+griglia è più robusta e i test esistenti restano validi senza cambiare la città di Hari.
+
+### Livelli sulle mappe reali (`config(level, mapId)`)
+Stessa curva (mestieri, consegne, margini, base); in più: distanza ritiro → consegna 16–35 caselle al livello 1 fino a
+40–100, passeggero entro max(16, 0,35 × dmax) da Hari, con più consegne a bordo destinazioni entro 0,6 × dmax;
+veicoli 8 → 34 e pedoni 12 → 46 nella bolla. Ogni livello parte da un luogo notevole diverso (Ostia: Pontile,
+stazioni, spiaggia, piazza; Desenzano: porto vecchio, castello, stazione, piazza): ristoranti (ristoranti, pizzerie,
+gelaterie, bar, forni OSM) e deposito (uffici postali, magazzini) sono i più vicini a quel punto. Metà delle consegne
+va a un luogo con nome (negozio, ristorante, stazione, spiaggia…), le altre a case. Bot: livelli 1–9 vinti in 40–320 s.
+
+### Resa kawaii (cache a blocchi come la città di Hari)
+- Zone dal raster con **bordo morbido**: campo levigato (finestra 4×4, pesi 1-3-3-1) e marching squares interpolati,
+  quindi coste, rive, spiagge e parchi sono curve; schiuma lungo la riva; spiaggia con puntini e ombrelloni a spicchi;
+  parchi con alberi tondi; campi a righe; parcheggi.
+- **Vettoriali**: strade (cordolo, marciapiede, asfalto, piazzola degli incroci, mezzeria tratteggiata, strisce e linea
+  d'arresto), pontili e moli di legno con le assi (il Pontile di Ostia è il suo poligono vero), binari con traversine,
+  mura merlate dei castelli; edifici come **tetti pastello arrotondati** con ombra (più lunga per più piani), bordo
+  interno chiaro e qualche dettaglio (condizionatore, pannelli, giardino, croce sulle chiese, capannoni a righe).
+- A ogni fotogramma: onde animate e barchette che dondolano (al largo e ormeggiate nei porti), semafori, cartelli dei
+  luoghi notevoli vicini, cartello della via o del luogo in alto a sinistra, minimappa a finestra (72 caselle) con
+  "© OpenStreetMap"; icone dei luoghi (pizza, gelato, tazza, cornetto, borsa, pacco, taxi, treno, ombrellone, pontile,
+  castello, barca, stella) cotte nei blocchi. Colori solo `--dr-*` (nuovi: mare, schiuma, sabbia, campi, parcheggi,
+  binari, legno, barche, ombrelloni, castello, cartello), tema chiaro e scuro.
+- Prestazioni: al massimo 3 blocchi nuovi per fotogramma (28 in cache), camera un po' più lontana (≈ 11 caselle sul
+  lato corto). Decodifica e geometria della mappa ≈ 150–190 ms una volta sola, nuovo livello 2–10 ms, simulazione
+  ≈ 0,05–0,15 ms a fotogramma (`npm run bench`).
+
+### Test delle mappe reali
+In `tests/drive.test.mjs`: file < 400 KB e decodificati; prima geometria < 400 ms, livello < 40 ms; rete connessa e
+ogni fermata e luogo raggiungibile su una rete rifatta dal grafo (oracolo indipendente dal raster del gioco); luoghi
+richiesti presenti (Pontile, stazioni, spiagge, castello, porto vecchio, taxi, depositi, gelaterie); tempi limite
+fattibili al 60% della velocità massima; il bot vince i livelli 1–6 di entrambe le mappe; traffico solo col verde,
+pedoni sulle strisce col loro verde, auto sempre sull'asfalto; stato JSON piccolo, determinismo e ripresa; muri
+morbidi sulla griglia fine; curva monotona. Prova in Chromium: `tools/drive-maps-e2e.mjs`.

@@ -796,6 +796,12 @@
   --dr-flower: #ff9fbf; --dr-flower-2: #fff2a0; --dr-bench: #c98f5f;
   --dr-lamp: #fff2c4; --dr-glow: rgba(255, 214, 140, 0); --dr-beam: rgba(255, 246, 200, 0); --dr-awning: #ff7f98; --dr-awning-2: #fffaf0;
   --dr-bar-1: #ffe6a6; --dr-bar-2: #fff7dd; --dr-veil: rgba(255, 250, 244, .62); --dr-dusk: rgba(30, 20, 60, 0); --dr-night: 0;
+  
+  --dr-sea: #8fd3f4; --dr-sea-2: #6fc0ea; --dr-foam: rgba(255, 255, 255, .85); --dr-sand: #ffe7b0; --dr-sand-2: #f2cf86;
+  --dr-field: #d6eb9a; --dr-field-2: #c2dd80; --dr-parking: #c4c6da; --dr-rail: #d2c3bb; --dr-rail-2: #9a8790;
+  --dr-wood: #e8bb88; --dr-wood-2: #c48d5a; --dr-boat: #ffffff; --dr-boat-2: #ff8fa8; --dr-sail: #fff6d6;
+  --dr-umb-1: #ff9fbf; --dr-umb-2: #8fd3ff; --dr-umb-3: #ffe08a; --dr-castle: #ebe2f2; --dr-castle-2: #bdb1d3;
+  --dr-mm-water: #9fd8f5; --dr-mm-sand: #ffe3a6; --dr-street: rgba(255, 250, 244, .94); --dr-street-ink: #4a2c22;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -811,6 +817,11 @@
     --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
     --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
     --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+    --dr-sea: #2f5b8a; --dr-sea-2: #284f7a; --dr-foam: rgba(214, 232, 255, .5); --dr-sand: #8a7656; --dr-sand-2: #776447;
+    --dr-field: #4b6743; --dr-field-2: #425c3b; --dr-parking: #57537a; --dr-rail: #5e5468; --dr-rail-2: #3e3650;
+    --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
+    --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
+    --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
   }
 }
 :root[data-theme="dark"] {
@@ -826,6 +837,11 @@
   --dr-flower: #d98bb4; --dr-flower-2: #e8dc8a; --dr-bench: #8a6a52;
   --dr-lamp: #fff2c4; --dr-glow: rgba(255, 210, 140, .36); --dr-beam: rgba(255, 246, 200, .38); --dr-awning: #d9607b; --dr-awning-2: #e9dfd2;
   --dr-bar-1: #2a2356; --dr-bar-2: #463a82; --dr-veil: rgba(28, 21, 48, .66); --dr-dusk: rgba(30, 20, 60, .12); --dr-night: 1;
+  --dr-sea: #2f5b8a; --dr-sea-2: #284f7a; --dr-foam: rgba(214, 232, 255, .5); --dr-sand: #8a7656; --dr-sand-2: #776447;
+  --dr-field: #4b6743; --dr-field-2: #425c3b; --dr-parking: #57537a; --dr-rail: #5e5468; --dr-rail-2: #3e3650;
+  --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
+  --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
+  --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
 }
 /* spot */
 :root {
