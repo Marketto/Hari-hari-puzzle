@@ -285,10 +285,10 @@ test('stato JSON puro, stelle e progresso', () => {
   assert.ok(D.par(s) > 30 && D.par(s) < 400);
 });
 
-/* ---------- mappe reali (OpenStreetMap): Ostia e Desenzano del Garda ---------- */
+/* ---------- mappe reali (OpenStreetMap): Ostia, Desenzano del Garda e Ortigia (Siracusa) ---------- */
 // Oracoli indipendenti dal gioco: le caselle percorribili si rifanno dal grafo pubblico della mappa (roadDist del bot,
 // mezzerie larghe quanto la categoria), i percorsi li rifà il bot.
-const MAPS = ['ostia', 'desenzano'];
+const MAPS = ['ostia', 'desenzano', 'ortigia'];
 for (const id of MAPS) load(`src/games/drive-map-${id}.js`);
 const FILE_KB = 400;
 
@@ -345,9 +345,40 @@ test('mappe reali: rete stradale connessa, partenza e ogni fermata e luogo raggi
     // luoghi notevoli richiesti
     const md = D.mapData(id), has = (k, re) => md.pois.some((p) => p.k === k && re.test(p.name));
     if (id === 'ostia') { assert.ok(has('pier', /pontile/i), 'Pontile di Ostia'); assert.ok(has('station', /lido centro/i), 'stazione Lido Centro'); assert.ok(md.pois.some((p) => p.k === 'beach')); }
-    else { assert.ok(has('castle', /castello/i), 'Castello'); assert.ok(has('harbour', /porto vecchio/i), 'Porto Vecchio'); assert.ok(has('station', /desenzano/i), 'stazione'); }
+    else if (id === 'desenzano') { assert.ok(has('castle', /castello/i), 'Castello'); assert.ok(has('harbour', /porto vecchio/i), 'Porto Vecchio'); assert.ok(has('station', /desenzano/i), 'stazione'); }
+    else {
+      for (const [k, re, what] of [['duomo', /cattedrale/i, 'Duomo'], ['fountain', /fonte aretusa/i, 'Fonte Aretusa'], ['temple', /tempio di apollo/i, 'Tempio di Apollo'],
+        ['castle', /maniace/i, 'Castello Maniace'], ['harbour', /porto grande/i, 'Porto Grande'], ['harbour', /porto piccolo/i, 'Porto Piccolo'], ['station', /siracusa/i, 'stazione di Siracusa'],
+        ['market', /mercato/i, 'mercato'], ['theatre', /teatro greco/i, 'Teatro Greco'], ['square', /piazza duomo/i, 'Piazza Duomo']]) assert.ok(has(k, re), `Ortigia: ${what}`);
+      // i luoghi notevoli dell'isola hanno una fermata raggiungibile (anche passando dai ponti)
+      for (const k of ['duomo', 'fountain', 'temple', 'market', 'harbour']) { const p = md.pois.find((q) => q.k === k); assert.ok(p.spot >= 0 && f.has(tile(s, g.spots[p.spot].zx, g.spots[p.spot].zy)), `Ortigia: ${k} senza fermata raggiungibile`); }
+      assert.ok(md.pois.filter((p) => p.k === 'gelato').length >= 10 && md.pois.filter((p) => p.k === 'food').length >= 100, 'Ortigia: ristoranti e gelaterie/granite');
+    }
     assert.ok(md.pois.some((p) => p.k === 'taxi') && md.pois.some((p) => p.k === 'depot') && md.pois.some((p) => p.k === 'gelato'), `${id}: taxi, deposito, gelaterie`);
   }
+});
+
+test('Ortigia: è un\'isola raggiungibile solo dai ponti sopra l\'acqua (Umbertino e Santa Lucia)', () => {
+  // oracolo sul grafo pubblico della mappa (non sulle caselle del gioco): dalla stazione al Duomo con e senza ponti
+  const md = D.mapData('ortigia'), A = D.AR;
+  const brs = md.edges.filter((e) => e.br);
+  assert.ok(brs.length >= 3, `ponti: ${brs.length}`);
+  assert.ok(brs.some((e) => /corso umberto/i.test(e.name)) && brs.some((e) => /malta/i.test(e.name)), `ponti di Ortigia: ${brs.map((e) => e.name).join(', ')}`);
+  for (const e of brs) {
+    // sotto il ponte c'è l'acqua (a metà del tratto), alle testate la terra o un altro tratto
+    const [x, y] = D.along(D.polyOf(e.pts), e.len / 2);
+    assert.equal(md.area[Math.floor(y) * md.W + Math.floor(x)], A.WATER, `${e.name || 'ponte'}: niente acqua sotto`);
+  }
+  const near = (p) => { let bi = -1, bd = 1e9; md.nodes.forEach((N, i) => { const d = (N.x - p.x) ** 2 + (N.y - p.y) ** 2; if (N.deg && d < bd) { bd = d; bi = i; } }); return bi; };
+  const reach = (from, skip) => {
+    const seen = new Set([from]), st = [from];
+    while (st.length) { const n = st.pop(); for (const i of md.nodes[n].inc) { const e = md.edges[i]; if (skip(e)) continue; for (const m of [e.a, e.b]) if (!seen.has(m)) { seen.add(m); st.push(m); } } }
+    return seen;
+  };
+  const st = near(md.pois.find((p) => p.k === 'station')), duomo = near(md.pois.find((p) => p.k === 'duomo')), castle = near(md.pois.find((p) => p.k === 'castle'));
+  assert.ok(reach(st, () => false).has(duomo), 'Duomo raggiungibile dalla stazione');
+  const noBridge = reach(st, (e) => e.br && /corso umberto|malta/i.test(e.name));
+  assert.ok(!noBridge.has(duomo) && !noBridge.has(castle), 'senza i ponti di Ortigia l\'isola resta staccata');
 });
 
 test('mappe reali: corse vicine a Hari e tempi limite fattibili al 60% della velocità massima', () => {

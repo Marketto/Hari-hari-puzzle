@@ -45,6 +45,9 @@
   --dr-wood: #e8bb88; --dr-wood-2: #c48d5a; --dr-boat: #ffffff; --dr-boat-2: #ff8fa8; --dr-sail: #fff6d6;
   --dr-umb-1: #ff9fbf; --dr-umb-2: #8fd3ff; --dr-umb-3: #ffe08a; --dr-castle: #ebe2f2; --dr-castle-2: #bdb1d3;
   --dr-mm-water: #9fd8f5; --dr-mm-sand: #ffe3a6; --dr-street: rgba(255, 250, 244, .94); --dr-street-ink: #4a2c22;
+  /* Ortigia (style "stone"): pietra chiara, tetti caldi in coppi, ponti in pietra, papiri della Fonte Aretusa */
+  --dr-stone: #f7ecd6; --dr-stone-2: #e2cca3; --dr-tile-1: #f4a982; --dr-tile-2: #f8c48e; --dr-tile-3: #ee9f8f;
+  --dr-bridge: #f3e6cc; --dr-bridge-2: #cfb489; --dr-papyrus: #86c95f; --dr-papyrus-2: #5fae4a; --dr-duck-b: #ffffff; --dr-beak-b: #ffb340;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -65,6 +68,8 @@
     --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
     --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
     --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
+    --dr-stone: #8d8170; --dr-stone-2: #6e6352; --dr-tile-1: #a8705e; --dr-tile-2: #a88762; --dr-tile-3: #9b6670;
+    --dr-bridge: #847866; --dr-bridge-2: #5e5446; --dr-papyrus: #4f8a52; --dr-papyrus-2: #3f7343; --dr-duck-b: #d9d3ea; --dr-beak-b: #c98a3a;
   }
 }
 :root[data-theme="dark"] {
@@ -85,6 +90,8 @@
   --dr-wood: #8a6a52; --dr-wood-2: #6b4f3c; --dr-boat: #d9d3ea; --dr-boat-2: #c06b85; --dr-sail: #e9e2d0;
   --dr-umb-1: #c66d8d; --dr-umb-2: #5f8fb8; --dr-umb-3: #b5a45e; --dr-castle: #7d7598; --dr-castle-2: #5f5878;
   --dr-mm-water: #345a86; --dr-mm-sand: #8a7656; --dr-street: rgba(36, 28, 58, .92); --dr-street-ink: #f3e9ff;
+    --dr-stone: #8d8170; --dr-stone-2: #6e6352; --dr-tile-1: #a8705e; --dr-tile-2: #a88762; --dr-tile-3: #9b6670;
+    --dr-bridge: #847866; --dr-bridge-2: #5e5446; --dr-papyrus: #4f8a52; --dr-papyrus-2: #3f7343; --dr-duck-b: #d9d3ea; --dr-beak-b: #c98a3a;
 }
 
 .dr-wrap { position: relative; display: flex; flex-direction: column; gap: 8px; width: min(var(--game-w), 460px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -169,7 +176,7 @@
 .dr-maps-head { display: flex; align-items: center; gap: 8px; }
 .dr-maps-head b { flex: 1; font-family: var(--font-display); font-weight: 400; font-size: 20px; color: var(--ink); }
 .dr-maps-x { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 2px solid var(--line-2); border-radius: 50%; background: var(--card-solid); color: var(--ink-2); font-weight: 900; cursor: pointer; }
-.dr-maps-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dr-maps-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .dr-map-card {
   display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px; border: 2px solid var(--line-2); border-radius: 18px;
   background: var(--card-solid); color: var(--ink); text-align: start; font: inherit; cursor: pointer; box-shadow: 0 4px 0 var(--line-2);
@@ -184,6 +191,11 @@
 .dr-map-card i { font-style: normal; font-size: 10px; font-weight: 700; color: var(--ink-2); opacity: .9; }
 .dr-maps-osm { margin: 0; font-size: 11px; font-weight: 700; color: var(--ink-2); text-align: center; }
 .dr-maps-err { margin: 0; padding: 6px 10px; border-radius: 12px; background: var(--dr-zone-2); color: var(--ink); font-weight: 800; font-size: 13px; }
+/* 4 mappe: 2 × 2 sul telefono dritto, una riga sola quando c'è spazio (telefono girato, tablet) */
+@media (min-width: 600px) { .dr-maps-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } .dr-maps-box { width: min(100%, 680px); } }
+/* telefono dritto (2 × 2) o schermo basso (telefono girato): anteprime più basse, così l'attribuzione OSM resta visibile */
+@media (max-width: 599px) { .dr-map-art { aspect-ratio: 2 / 1; } .dr-maps-box { gap: 6px; } }
+@media (max-height: 500px) { .dr-maps-box { padding: 8px 10px; gap: 6px; } .dr-map-art { aspect-ratio: 2 / 1; } .dr-maps-head b { font-size: 17px; } .dr-maps-x { width: 28px; height: 28px; } }
 .dr-loadmap { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--dr-veil); color: var(--ink); font-weight: 800; }
 .dr-loadmap .hari-mini, .dr-loadmap svg { width: 64px; height: 64px; animation: dr-breathe 1s ease-in-out infinite; }
 .dr-street {

@@ -32,4 +32,37 @@ export const MAPS = {
     ],
     start: ['harbour', 'castle', 'station', 'square'],
   },
+  // Ortigia (Siracusa): l'isola con i due ponti (Umbertino e Santa Lucia) più il centro sulla terraferma (corso Umberto,
+  // Borgata Santa Lucia, stazione, Neapolis con il Teatro Greco); a ovest il Porto Grande. style = edifici in pietra
+  // chiara e tetti caldi. special = luoghi con un'icona propria (vedi tools/osm-taxi.mjs).
+  ortigia: {
+    name: 'Ortigia',
+    bbox: [15.255, 37.05, 15.305, 37.085],
+    crop: [15.265, 37.05, 15.305, 37.085],
+    extracted: '2026-10-30',
+    m: 9,
+    style: 'stone',
+    water: [[15.302, 37.06], [15.28, 37.055], [15.303, 37.08]],
+    land: [15.293, 37.06],
+    marks: [
+      { k: 'harbour', re: /porto grande|porto piccolo/i },
+      { k: 'station', re: /siracusa/i },
+      { k: 'castle', re: /maniace/i },
+      { k: 'duomo', re: /cattedrale/i },
+      { k: 'fountain', re: /aretusa/i },
+      { k: 'temple', re: /apollo/i },
+      { k: 'theatre', re: /teatro greco/i },
+      { k: 'market', re: /mercato/i },
+    ],
+    special: [
+      { k: 'duomo', re: /^cattedrale di siracusa$/i },
+      { k: 'fountain', re: /^fonte aretusa$/i },
+      { k: 'temple', re: /^tempio di apollo$/i, tag: (t) => !!t.historic },
+      { k: 'theatre', re: /^teatro greco$/i, tag: (t) => t.amenity === 'theatre' },
+      { k: 'market', re: /^mercato di via de benedictis$/i },
+      { k: 'harbour', re: /^porto grande$/i, at: [15.2913, 37.0613] },
+      { k: 'harbour', re: /^porto piccolo$/i, at: [15.2905, 37.0688] },
+    ],
+    start: ['duomo', 'harbour', 'station', 'fountain', 'temple', 'castle', 'market', 'theatre'],
+  },
 };
