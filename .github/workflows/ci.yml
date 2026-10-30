@@ -2,6 +2,9 @@ name: CI
 on:
   push:
   pull_request:
+permissions:
+  contents: read
+  actions: write
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,7 +15,23 @@ jobs:
           node-version: 22
       - run: npm test
       - run: npm run build
+      # Spazio degli artifact (quota dell'account): prima di caricare si cancellano le copie dei
+      # run precedenti dello stesso branch. Con il token in sola lettura (PR da fork) solo un avviso.
+      - name: Cancella le copie precedenti di hari-hari-puzzle-single-file
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOME: hari-hari-puzzle-single-file
+          RAMO: ${{ github.head_ref || github.ref_name }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$NOME&per_page=100" \
+            -q ".artifacts[] | select(.workflow_run.id != $GITHUB_RUN_ID) | \"\(.id) \(.workflow_run.head_branch)\"" |
+          while read -r id ramo; do
+            [ "$ramo" = "$RAMO" ] || continue
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id" >/dev/null 2>&1 &&
+              echo "cancellato $NOME ($id)" || echo "::warning::artifact $NOME ($id) non cancellato"
+          done || true
       - uses: actions/upload-artifact@v4
         with:
           name: hari-hari-puzzle-single-file
           path: dist/hari-hari-puzzle.html
+          retention-days: 7
