@@ -7,6 +7,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -29,6 +30,18 @@ jobs:
           [ -d .well-known ] && cp -r .well-known _site/ || true
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
+      # Il deploy usa la copia di questo run: quelle dei run precedenti si possono cancellare.
+      - name: Cancella le copie precedenti di github-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOME: github-pages
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$NOME&per_page=100" \
+            -q ".artifacts[] | select(.workflow_run.id != $GITHUB_RUN_ID) | \"\(.id) \(.workflow_run.head_branch)\"" |
+          while read -r id ramo; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id" >/dev/null 2>&1 &&
+              echo "cancellato $NOME ($id)" || echo "::warning::artifact $NOME ($id) non cancellato"
+          done || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
