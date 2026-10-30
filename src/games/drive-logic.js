@@ -319,10 +319,10 @@
         let x = Math.round(nodes[a].x * 4), y = Math.round(nodes[a].y * 4);
         for (let k = 0; k < n; k++) { x += r.z(); y += r.z(); pts.push([x / 4, y / 4]); }
         pts.push([nodes[b].x, nodes[b].y]);
-        const c = Math.floor(cc / 3), o = cc % 3;
+        const c = Math.floor((cc % 18) / 3), o = cc % 3, br = cc >= 18;   // ≥ 18: ponte sopra l'acqua
         const cum = [0];
         for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
-        const e = { id: edges.length, a, b, c, one: o === 1 ? 1 : o === 2 ? -1 : 0, name: name ? R.names[name - 1] : '', pts, cum, len: cum[cum.length - 1], hw: HWC[c], slow: c === 5 };
+        const e = { id: edges.length, a, b, c, one: o === 1 ? 1 : o === 2 ? -1 : 0, name: name ? R.names[name - 1] : '', pts, cum, len: cum[cum.length - 1], hw: HWC[c], slow: c === 5, br };
         edges.push(e);
         nodes[a].inc.push(e.id); nodes[b].inc.push(e.id);
       }
@@ -353,7 +353,7 @@
     return out;
   }
 
-  // moli, pontili e binari come linee/poligoni vettoriali (solo per la grafica): { k: 'pier'|'rail'|'pierArea'|'castle', pts }
+  // moli, pontili e binari come linee/poligoni vettoriali (solo per la grafica): { k: 'pier'|'rail'|'pierArea'|'castle'|'pond', pts }
   function vectors(md) {
     if (md.vec) return md.vec;
     const out = [];
@@ -363,7 +363,7 @@
       while (!r.end()) {
         const k = r.u(), n = r.u(), p = [];
         for (let i = 0; i < n; i++) { x += r.z(); y += r.z(); p.push([x / 4, y / 4]); }
-        out.push({ k: ['pier', 'rail', 'pierArea', 'castle'][k] || 'pier', pts: p });
+        out.push({ k: ['pier', 'rail', 'pierArea', 'castle', 'pond'][k] || 'pier', pts: p });
       }
     }
     md.vec = out;
@@ -554,9 +554,12 @@
       }
       return best;
     };
-    const RANK = { pier: 9, castle: 9, harbour: 8, station: 8, beach: 7, taxi: 7, depot: 6, gelato: 5, food: 5, bakery: 5, cafe: 4, sight: 4, square: 4, park: 3, church: 3, hotel: 2, school: 2, shop: 1 };
+    const WIDE = { duomo: 1, fountain: 1, temple: 1, theatre: 1, market: 1 };
+    const RANK = { pier: 9, castle: 9, duomo: 9, fountain: 9, temple: 9, theatre: 9, market: 8, harbour: 8, station: 8, beach: 7, taxi: 7, depot: 6, gelato: 5, food: 5, bakery: 5, cafe: 4, sight: 4, square: 4, park: 3, church: 3, hotel: 2, school: 2, shop: 1 };
     for (const P of md.pois.slice().sort((a, b) => (RANK[b.k] || 0) - (RANK[a.k] || 0))) {
-      const id = nearSpot(P.x, P.y, 7);
+      // i monumenti nel cuore pedonale (duomo, fonte, tempio, teatro, mercato di Ortigia) prendono la fermata
+      // carrabile più vicina anche un po' più lontano (14 caselle); gli altri luoghi entro 7 come sempre
+      const id = nearSpot(P.x, P.y, WIDE[P.k] ? 14 : 7);
       if (id < 0) continue;
       P.spot = id;
       if (spots[id].poi < 0) spots[id].poi = P.id;

@@ -2,7 +2,7 @@
 // dall'API ufficiale (https://api.openstreetmap.org/api/0.6/map), nel rispetto della usage policy:
 // richieste in sequenza con una pausa, User-Agent descrittivo, tasselli già scaricati mai richiesti di nuovo.
 // Solo per lo sviluppo: il gioco non scarica mai nulla (i dati derivati sono in src/games/drive-map-*.js).
-//   node tools/osm-taxi-fetch.mjs --cache DIR [ostia|desenzano ...]
+//   node tools/osm-taxi-fetch.mjs --cache DIR [ostia|desenzano|ortigia ...]
 // Se l'API risponde 400 (troppi nodi) il tassello viene diviso in 4.
 import fs from 'node:fs';
 import path from 'node:path';

@@ -119,10 +119,13 @@ In CI i limiti di tempo valgono il triplo (`SLOW`).
 - `el._drive.state()` sul `#board` restituisce lo stato vivo della partita (per i controlli con Playwright);
   `el._drive.peek(x, y)` fa guardare la camera un punto (foto dei luoghi lontani dalla strada), `peek()` torna su Hari.
 
-## Mappe reali: Ostia e Desenzano del Garda (OpenStreetMap)
-Tre mappe: **Città di Hari** (procedurale, predefinita, livelli e salvataggi di sempre sul posto `drive`), **Ostia**
-(Lido di Ostia, Roma: dal Porticciolo e Castel Fusano all'Idroscalo, dal mare a via dei Romagnoli; 5,6 × 4,4 km) e
-**Desenzano del Garda** (centro, porto vecchio, castello, lungolago, Rivoltella, stazione; 6,2 × 3,3 km).
+## Mappe reali: Ostia, Desenzano del Garda e Ortigia (OpenStreetMap)
+Quattro mappe: **Città di Hari** (procedurale, predefinita, livelli e salvataggi di sempre sul posto `drive`), **Ostia**
+(Lido di Ostia, Roma: dal Porticciolo e Castel Fusano all'Idroscalo, dal mare a via dei Romagnoli; 5,6 × 4,4 km),
+**Desenzano del Garda** (centro, porto vecchio, castello, lungolago, Rivoltella, stazione; 6,2 × 3,3 km) e **Ortigia**
+(Siracusa: l'isola con Duomo, Fonte Aretusa, Tempio di Apollo, Castello Maniace, Marina e lungomare di Levante, i ponti
+Umbertino e Santa Lucia sulla Darsena, il Porto Grande e il Porto Piccolo; sulla terraferma corso Umberto, Borgata
+Santa Lucia, stazione e Neapolis con il Teatro Greco; 3,6 × 3,9 km, più piccola ma fitta, con molto mare).
 **© OpenStreetMap contributors, ODbL 1.0**: fonte, date e trasformazioni in `docs/osm-attribution.md`; in gioco
 l'attribuzione è sempre visibile (angolo del palco, minimappa, selettore).
 
@@ -130,7 +133,7 @@ l'attribuzione è sempre visibile (angolo del palco, minimappa, selettore).
   e dal pulsante cartina nella barra. Carte con anteprima a bassa risoluzione (da `drive-maps.js`), livello raggiunto
   e misure. Nomi di vie e luoghi = dati OSM, mai tradotti.
 - **Progressi per mappa**: il gioco dichiara `slot()` (contratto in `app.js`): `drive` per la città di Hari (i vecchi
-  salvataggi senza `mapId` restano lì: nessuna migrazione da fare), `drive@ostia`, `drive@desenzano`; il catalogo
+  salvataggi senza `mapId` restano lì: nessuna migrazione da fare), `drive@ostia`, `drive@desenzano`, `drive@ortigia`; il catalogo
   elenca gli `slots` per il punteggio totale. Cambiare mappa = `ctx.reslot()`: si salva la partita e si riapre il gioco.
 - **Lazy load**: `drive-map-<id>.js` è un file `extra` del catalogo, scaricato con `HH.loadFile` solo scegliendo la
   mappa (con un Hari che respira e "Loading the map…"); il service worker lo mette in cache; il file unico lo include.
@@ -159,7 +162,8 @@ griglia è più robusta e i test esistenti restano validi senza cambiare la citt
 Stessa curva (mestieri, consegne, margini, base); in più: distanza ritiro → consegna 16–35 caselle al livello 1 fino a
 40–100, passeggero entro max(16, 0,35 × dmax) da Hari, con più consegne a bordo destinazioni entro 0,6 × dmax;
 veicoli 8 → 34 e pedoni 12 → 46 nella bolla. Ogni livello parte da un luogo notevole diverso (Ostia: Pontile,
-stazioni, spiaggia, piazza; Desenzano: porto vecchio, castello, stazione, piazza): ristoranti (ristoranti, pizzerie,
+stazioni, spiaggia, piazza; Desenzano: porto vecchio, castello, stazione, piazza; Ortigia: Duomo, Porto Grande,
+stazione, Fonte Aretusa, Tempio di Apollo, Castello Maniace, mercato, Teatro Greco): ristoranti (ristoranti, pizzerie,
 gelaterie, bar, forni OSM) e deposito (uffici postali, magazzini) sono i più vicini a quel punto. Metà delle consegne
 va a un luogo con nome (negozio, ristorante, stazione, spiaggia…), le altre a case. Bot: livelli 1–9 vinti in 40–320 s.
 
@@ -180,10 +184,38 @@ va a un luogo con nome (negozio, ristorante, stazione, spiaggia…), le altre a 
   lato corto). Decodifica e geometria della mappa ≈ 150–190 ms una volta sola, nuovo livello 2–10 ms, simulazione
   ≈ 0,05–0,15 ms a fotogramma (`npm run bench`).
 
+### Ponti sopra l'acqua (Ortigia)
+Ortigia è un'isola: in OSM la linea di costa la unisce alla terraferma chiudendo la Darsena ai due ponti, e la
+Darsena è un multipoligono `natural=water` (riempito come acqua). Le strade con `bridge=*` restano tratti a parte nel
+grafo (mai fusi coi vicini) e diventano **ponti** solo se almeno un quarto della mezzeria campionata cade sull'acqua:
+così i cavalcavia sopra strade e binari restano strade normali (la griglia non ha livelli). Nel file dati il ponte è
+`categoria × 3 + senso unico + 18` (i file vecchi non arrivano mai a 18, quindi restano validi); nel gioco `edge.br`.
+Ponti di Ortigia: corso Umberto (Ponte Umbertino, due carreggiate) e via Malta (Ponte Santa Lucia); in più via Elorina
+sull'Anapo. Per Hari e il traffico il ponte è strada come le altre (le fermate non stanno mai sull'acqua, i pedoni ci
+camminano sui marciapiedi). Disegno: archi d'ombra sull'acqua, ombra dell'impalcato, impalcato in pietra più largo
+della strada, parapetti con colonnine sopra il marciapiede e pilastri con lanterna alle testate.
+
+### Ortigia: stile "stone" e luoghi speciali
+- `style: 'stone'` nel file dati: tetti a terrazza in pietra chiara (con parapetto) e tetti caldi in coppi (file
+  sottili lungo il lato corto), chiese in pietra. Token `--dr-stone*`, `--dr-tile-1..3`, `--dr-bridge*`,
+  `--dr-papyrus*`, `--dr-duck-b`, `--dr-beak-b` (chiaro e scuro).
+- Luoghi con un tipo proprio (`special` in `tools/osm-taxi-maps.mjs`, cercati per nome): `duomo` (facciata barocca),
+  `fountain` (Fonte Aretusa: contorno vero come poligono vettoriale, bordo di pietra, papiri, due anatre che nuotano),
+  `temple` (rovine con le colonne, alcune spezzate), `theatre` (cavea a gradinate con l'orchestra), `market` (banco
+  con tendina e frutta); il Porto Grande e il Porto Piccolo hanno l'icona sulla riva (`at`) e le barche ormeggiate.
+  Questi monumenti stanno nel centro pedonale: prendono la fermata carrabile più vicina entro 14 caselle (gli altri
+  luoghi entro 7, come prima).
+- Cartelli dei luoghi che si accavallano: resta quello del monumento (o il più vicino a Hari).
+- Selettore: 4 carte, 2 × 2 sul telefono dritto (anteprime 2:1), una riga quando la larghezza è ≥ 600 px.
+
 ### Test delle mappe reali
 In `tests/drive.test.mjs`: file < 400 KB e decodificati; prima geometria < 400 ms, livello < 40 ms; rete connessa e
 ogni fermata e luogo raggiungibile su una rete rifatta dal grafo (oracolo indipendente dal raster del gioco); luoghi
-richiesti presenti (Pontile, stazioni, spiagge, castello, porto vecchio, taxi, depositi, gelaterie); tempi limite
-fattibili al 60% della velocità massima; il bot vince i livelli 1–6 di entrambe le mappe; traffico solo col verde,
+richiesti presenti (Pontile, stazioni, spiagge, castello, porto vecchio, taxi, depositi, gelaterie; a Ortigia Duomo,
+Fonte Aretusa, Tempio di Apollo, Castello Maniace, Porto Grande e Piccolo, stazione, mercato, Teatro Greco, Piazza
+Duomo, con fermata raggiungibile); **Ortigia è un'isola**: sul grafo della mappa (oracolo indipendente dalle caselle)
+il Duomo e il castello si raggiungono dalla stazione, ma non più togliendo i ponti di corso Umberto e via Malta, e
+sotto ogni ponte c'è acqua; tempi limite
+fattibili al 60% della velocità massima; il bot vince i livelli 1–6 di ogni mappa (Ortigia: 37–140 s, cuori pieni); traffico solo col verde,
 pedoni sulle strisce col loro verde, auto sempre sull'asfalto; stato JSON piccolo, determinismo e ripresa; muri
 morbidi sulla griglia fine; curva monotona. Prova in Chromium: `tools/drive-maps-e2e.mjs`.

@@ -32,7 +32,7 @@
     { id: 'drive', name: 'Hari Taxi', since: '0.14.0', rules: 'r13',
       rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
       files: f('drive.css', 'drive-logic.js', 'drive-maps.js', 'drive-ui.js'),
-      extra: f('drive-map-ostia.js', 'drive-map-desenzano.js'), slots: ['drive@ostia', 'drive@desenzano'] },
+      extra: f('drive-map-ostia.js', 'drive-map-desenzano.js', 'drive-map-ortigia.js'), slots: ['drive@ostia', 'drive@desenzano', 'drive@ortigia'] },
     { id: 'spot', name: 'Hari Spot', since: '0.16.0', rules: 'r16',
       rulesEn: 'Two pictures of the city or the forest, almost the same: find every difference! Tap it on either picture to circle it. The magnifier shows where to look, but costs a strawberry; random taps cost a little time.',
       files: f('spot.css', 'spot-logic.js', 'spot-art.js', 'spot-ui.js') },

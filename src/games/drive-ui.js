@@ -221,6 +221,7 @@
     // mappe reali
     'sea', 'sea-2', 'foam', 'sand', 'sand-2', 'field', 'field-2', 'parking', 'rail', 'rail-2', 'wood', 'wood-2', 'boat', 'boat-2', 'sail',
     'umb-1', 'umb-2', 'umb-3', 'castle', 'castle-2', 'mm-water', 'mm-sand', 'street', 'street-ink',
+    'stone', 'stone-2', 'tile-1', 'tile-2', 'tile-3', 'bridge', 'bridge-2', 'papyrus', 'papyrus-2', 'duck-b', 'beak-b',
     'pizza', 'pizza-2', 'p1', 'cake-2', 'ramen', 'tape', 'check', 'bus', 'glass', 'head'];
   const OSM_ATTR = '© OpenStreetMap contributors';   // attribuzione obbligatoria (ODbL): mai tradotta
   /* mappe: "hari" = città procedurale (predefinita, progressi su 'drive'); le altre = HH.driveMapList (drive-maps.js) */
@@ -566,8 +567,11 @@
      * icone dei luoghi. Tutto a blocchi in cache come la città di Hari; a ogni fotogramma solo onde, barchette,
      * cartelli dei luoghi notevoli e il traffico. */
     let OS = null;
-    const LANDMARK = new Set(['pier', 'castle', 'harbour', 'station', 'square', 'sight', 'beach', 'park', 'taxi']);
-    const BADGE = new Set(['food', 'cafe', 'gelato', 'bakery', 'shop', 'depot', 'taxi', 'station', 'beach', 'pier', 'castle', 'harbour', 'sight']);
+    const LANDMARK = new Set(['pier', 'castle', 'harbour', 'station', 'square', 'sight', 'beach', 'park', 'taxi', 'duomo', 'fountain', 'temple', 'theatre', 'market']);
+    const BADGE = new Set(['food', 'cafe', 'gelato', 'bakery', 'shop', 'depot', 'taxi', 'station', 'beach', 'pier', 'castle', 'harbour', 'sight', 'duomo', 'fountain', 'temple', 'theatre', 'market']);
+    // luoghi con un disegno a terra attorno all'icona (raggio in caselle): rovine del tempio, cavea del teatro, papiri
+    const GROUND = { temple: 3, theatre: 8 };
+    const BIG = new Set(['pier', 'castle', 'harbour', 'station', 'duomo', 'fountain', 'temple', 'theatre', 'market']);
     function osmPrep() {
       if (OS && OS.id === s.mapId) return OS;
       const md = P.mapData(s.mapId), blds = P.buildings(md), BC = 8, Wm = md.W, Hm = md.H;
@@ -583,7 +587,7 @@
         b.area = Math.abs(a / 2); b.cx = a ? cx / (3 * a) : b.p[0][0]; b.cy = a ? cy / (3 * a) : b.p[0][1];
         put(bgrid, b.x0 - 0.5, b.y0 - 0.5, b.x1 + 0.8, b.y1 + 0.8, b.id);
       }
-      for (const p of md.pois) if (BADGE.has(p.k)) put(pgrid, p.x - 1, p.y - 1, p.x + 1, p.y + 1, p.id);
+      for (const p of md.pois) if (BADGE.has(p.k)) { const R = GROUND[p.k] || 1; put(pgrid, p.x - R, p.y - R, p.x + R, p.y + R, p.id); }
       // barchette: al largo vicino alla riva e attorno ai porti (ormeggiate)
       const boats = [], A = P.AR, area = md.area;
       const water = (x, y) => x >= 0 && y >= 0 && x < Wm && y < Hm && area[y * Wm + x] === A.WATER;
@@ -601,7 +605,16 @@
           if (water(x, y) && openWater(x, y, 0) && !boats.some((q) => Math.hypot(q.x - x, q.y - y) < 1.4)) { boats.push({ x: x + 0.5, y: y + 0.5, a: k * 0.785, k: 1 - (n % 2), ph: n, moor: true }); n++; }
         }
       }
-      OS = { id: s.mapId, md, blds, BC, bw, bh, bgrid, pgrid, boats, labels: md.pois.filter((p) => LANDMARK.has(p.k) && p.name) };
+      // anatre: attorno a ogni fonte, sulle caselle d'acqua più vicine
+      const ducks = [];
+      for (const v of P.vectors(md)) if (v.k === 'pond') {
+        let cx = 0, cy = 0, x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+        for (const [x, y] of v.pts) { cx += x; cy += y; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+        cx /= v.pts.length; cy /= v.pts.length;
+        const r = Math.max(0.2, Math.min(x1 - x0, y1 - y0) / 2 - 0.65);
+        for (let k = 0; k < 2; k++) ducks.push({ x: cx, y: cy, r, ph: k * Math.PI });
+      }
+      OS = { id: s.mapId, md, blds, BC, bw, bh, bgrid, pgrid, boats, ducks, labels: md.pois.filter((p) => LANDMARK.has(p.k) && p.name) };
       return OS;
     }
     function cellIds(gr, O, x0, y0, x1, y1, seen) {
@@ -739,8 +752,14 @@
         b.save(); b.beginPath(); roundPoly(b, v.pts.map(([px, py]) => [px, py]), 0.3); b.clip();
         b.fillStyle = C['grass-2']; b.beginPath(); let cx = 0, cy = 0; for (const [px, py] of v.pts) { cx += px; cy += py; } cx /= v.pts.length; cy /= v.pts.length; b.arc(cx, cy, 0.9, 0, 7); b.fill(); b.restore();
       }
+      // disegni a terra dei luoghi speciali (sotto gli edifici): rovine del tempio, cavea del teatro, papiri della fonte
+      const grounds = cellIds(O.pgrid, O, x0 - 9, y0 - 9, x0 + w + 9, y0 + h + 9, new Set()).map((i) => md.pois[i]).filter((p) => GROUND[p.k]);
+      for (const p of grounds) groundArt(b, p);
+      const onGround = (x, y) => grounds.some((p) => Math.hypot(x - p.x, y - p.y) < (p.k === 'theatre' ? 7.2 : 2));
       // edifici: tetti pastello con ombra
-      const seen = new Set(), pal = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'];
+      // stile "stone" (Ortigia): pietra chiara (terrazze) e tetti caldi in coppi; altrimenti i tetti pastello di sempre
+      const stone = md.raw.style === 'stone';
+      const seen = new Set(), pal = stone ? ['stone', 'tile-1', 'stone', 'tile-2', 'tile-3', 'stone', 'tile-1', 'tile-2'] : ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8'];
       const bl = cellIds(O.bgrid, O, x0 - 1, y0 - 1, x0 + w + 1, y0 + h + 1, seen).map((i) => O.blds[i]);
       b.lineJoin = 'round'; b.lineCap = 'round';
       for (const B of bl) {
@@ -749,11 +768,19 @@
       }
       for (const B of bl) {
         const hv = hash(B.id, 7, 3);
-        const col = B.kind === 1 ? C.r7 : B.kind === 2 ? C.ac : C[pal[Math.floor(hv * pal.length)]];
+        const pk = B.kind === 1 ? (stone ? 'stone' : 'r7') : B.kind === 2 ? 'ac' : pal[Math.floor(hv * pal.length)], col = C[pk];
         b.fillStyle = col; b.beginPath(); roundPoly(b, B.p, 0.22); b.fill();
+        // coppi: file sottili lungo il lato corto (solo sui tetti caldi), dentro il tetto
+        if (stone && pk.startsWith('tile') && B.area > 1.2) {
+          b.save(); b.clip(); b.strokeStyle = C['roof-shade']; b.lineWidth = 0.07; b.beginPath();
+          if (B.x1 - B.x0 > B.y1 - B.y0) for (let q = B.x0 + 0.2; q < B.x1; q += 0.3) { b.moveTo(q, B.y0); b.lineTo(q, B.y1); }
+          else for (let q = B.y0 + 0.2; q < B.y1; q += 0.3) { b.moveTo(B.x0, q); b.lineTo(B.x1, q); }
+          b.stroke(); b.restore(); b.beginPath(); roundPoly(b, B.p, 0.22);
+        }
         // bordo interno chiaro (tetto "imbottito"): il contorno ripassato largo, solo dentro il poligono
         b.save(); b.clip(); b.strokeStyle = C['roof-hi']; b.lineWidth = Math.min(0.32, 0.12 + B.area * 0.01); b.stroke(); b.restore();
         b.strokeStyle = C['roof-edge']; b.lineWidth = 0.05; b.stroke();
+        if (stone && pk === 'stone' && B.area > 2) { b.save(); b.clip(); b.strokeStyle = C['stone-2']; b.lineWidth = 0.22; b.stroke(); b.restore(); }
         if (B.area > 2.5) {
           if (B.kind === 2) { b.strokeStyle = C['ac-2']; b.lineWidth = 0.05; b.beginPath(); for (let i = -2; i <= 2; i++) { b.moveTo(B.cx - 0.6, B.cy + i * 0.25); b.lineTo(B.cx + 0.6, B.cy + i * 0.25); } b.stroke(); }
           else if (hv * 7 % 1 < 0.35 && B.area > 4) { b.fillStyle = C.ac; rrect(b, B.cx - 0.2, B.cy - 0.15, 0.4, 0.3, 0.06); b.fill(); b.fillStyle = C['ac-2']; b.beginPath(); b.arc(B.cx, B.cy, 0.09, 0, 7); b.fill(); }
@@ -764,7 +791,7 @@
       }
       // alberi tondi nei parchi (non attaccati alle strade)
       for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
-        if (area[y * Wm + x] !== A.PARK || hash(x, y, 31) > 0.42) continue;
+        if (area[y * Wm + x] !== A.PARK || hash(x, y, 31) > 0.42 || (grounds.length && onGround(x + 0.5, y + 0.5))) continue;
         let near = false;
         for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1; dx++) { const i = (y + dy) * Wm + x + dx; if (G.road[i]) { near = true; break; } }
         if (near) continue;
@@ -775,6 +802,24 @@
       b.lineCap = 'round'; b.lineJoin = 'round';
       const strokeAll = (list, width, col) => { b.strokeStyle = col; for (const e of list) { b.lineWidth = width(e); b.beginPath(); polyPath(b, e.pts); b.stroke(); } };
       const fast = es.filter((e) => !e.slow), slow = es.filter((e) => e.slow);
+      // ponti sopra l'acqua: ombra sull'acqua, impalcato in pietra più largo della strada, parapetto con colonnine
+      const brs = es.filter((e) => e.br);
+      if (brs.length) {
+        b.lineCap = 'butt';
+        const bw = (e) => 2 * (e.hw + P.ASPH + (e.slow ? 0.35 : 0.85));
+        // archi: mezzelune d'ombra sull'acqua ai due lati, una ogni ~1,6 caselle
+        for (const e of brs) for (let t = 0.8; t < e.len - 0.5; t += 1.6) {
+          const [x, y, a] = P.along(g0.center[e.id], t), nx = -Math.sin(a), ny = Math.cos(a);
+          for (const sd of [-1, 1]) {
+            const r = bw(e) / 2 + 0.05, cx = x + nx * r * sd, cy = y + ny * r * sd;
+            b.fillStyle = C['sea-2']; b.beginPath(); b.ellipse(cx, cy, 0.62, 0.34, a, sd > 0 ? 0 : Math.PI, sd > 0 ? Math.PI : 2 * Math.PI); b.fill();
+          }
+        }
+        b.save(); b.translate(0.22, 0.36); strokeAll(brs, bw, C.shadow); b.restore();
+        strokeAll(brs, (e) => bw(e) + 0.12, C['bridge-2']);
+        strokeAll(brs, (e) => bw(e) - 0.2, C.bridge);
+        b.lineCap = 'round';
+      }
       strokeAll(fast, (e) => 2 * (e.hw + P.ASPH + 0.62), C.curb);
       strokeAll(fast, (e) => 2 * (e.hw + P.ASPH + 0.55), C.walk);
       strokeAll(slow, (e) => 2 * (e.hw + P.ASPH), C['walk-2']);
@@ -813,6 +858,21 @@
           b.restore();
         }
       }
+      // parapetti dei ponti (sopra al marciapiede): muretto di pietra con colonnine e pilastri alle testate
+      for (const e of brs) {
+        const half = e.hw + P.ASPH + (e.slow ? 0.35 : 0.85) - 0.12;
+        for (const sd of [-1, 1]) {
+          const line = P.offsetLine(e.pts, sd * half);
+          b.lineCap = 'butt';
+          b.strokeStyle = C['bridge-2']; b.lineWidth = 0.26; b.beginPath(); polyPath(b, line); b.stroke();
+          b.strokeStyle = C.bridge; b.lineWidth = 0.13; b.beginPath(); polyPath(b, line); b.stroke();
+          b.lineCap = 'round';
+          const L = P.polyOf(line);
+          b.fillStyle = C['bridge-2'];
+          for (let t = 0.35; t < L.len - 0.3; t += 0.4) { const [x, y] = P.along(L, t); b.beginPath(); b.arc(x, y, 0.045, 0, 7); b.fill(); }
+          for (const t of [0.12, L.len - 0.12]) { const [x, y] = P.along(L, t); b.fillStyle = C.bridge; b.strokeStyle = C['bridge-2']; b.lineWidth = 0.07; b.beginPath(); b.arc(x, y, 0.22, 0, 7); b.fill(); b.stroke(); b.fillStyle = C.lamp; b.beginPath(); b.arc(x, y, 0.09, 0, 7); b.fill(); }
+        }
+      }
       // lampioni lungo i marciapiedi
       for (const e of fast) for (let t = 2; t < e.len - 1; t += 4) {
         const [x, y, a] = P.along(G.center[e.id], t), sd = Math.floor(t / 4) % 2 ? 1 : -1, off = e.hw + P.ASPH + 0.3;
@@ -825,9 +885,66 @@
       // ristoranti e deposito del livello: tendina a righe / portone sul lato verso le case
       for (const id of s.rest) shopSignO(b, G.spots[id], 'food');
       if (s.depot >= 0) shopSignO(b, G.spots[s.depot], 'depot');
+      // fonti (sopra a lastricato e vie pedonali che le contornano)
+      for (const v of vec) if (v.k === 'pond') pond(b, v.pts);
       // icone dei luoghi
       const ps = cellIds(O.pgrid, O, x0 - 1, y0 - 1, x0 + w + 1, y0 + h + 1, new Set()).map((i) => md.pois[i]);
-      for (const p of ps) poiIcon(b, p.k, p.x, p.y, ['pier', 'castle', 'harbour', 'station'].includes(p.k) ? 0.42 : 0.3);
+      for (const p of ps) poiIcon(b, p.k, p.x, p.y, BIG.has(p.k) ? 0.42 : 0.3);
+    }
+    function groundArt(b, p) {
+      const { x, y } = p;
+      b.lineCap = 'round'; b.lineJoin = 'round';
+      if (p.k === 'temple') {
+        // basamento a gradini e colonne tonde (alcune spezzate): un tempio dorico in rovina
+        b.fillStyle = C.shadow; rrect(b, x - 1.5, y - 0.75, 3.2, 1.7, 0.2); b.fill();
+        b.fillStyle = C['stone-2']; rrect(b, x - 1.6, y - 0.85, 3.2, 1.7, 0.2); b.fill();
+        b.fillStyle = C.stone; rrect(b, x - 1.4, y - 0.68, 2.8, 1.36, 0.16); b.fill();
+        for (let i = 0; i < 6; i++) for (const yy of [-0.48, 0.48]) {
+          const cx = x - 1.15 + i * 0.46, broken = hash(i, yy > 0 ? 1 : 2, 5) < 0.35;
+          b.fillStyle = C.shadow; b.beginPath(); b.arc(cx + 0.05, yy + y + 0.07, 0.15, 0, 7); b.fill();
+          b.fillStyle = broken ? C['stone-2'] : C.stone; b.strokeStyle = C['roof-edge']; b.lineWidth = 0.035; b.beginPath(); b.arc(cx, y + yy, broken ? 0.12 : 0.15, 0, 7); b.fill(); b.stroke();
+        }
+      } else if (p.k === 'theatre') {
+        // cavea a semicerchio con le gradinate, aperta verso sud, e l'orchestra di sabbia
+        const R = 6.5;
+        b.fillStyle = C.shadow; b.beginPath(); b.arc(x + 0.2, y + 0.3, R, Math.PI * 0.95, Math.PI * 2.05); b.closePath(); b.fill();
+        b.fillStyle = C.stone; b.beginPath(); b.arc(x, y, R, Math.PI * 0.95, Math.PI * 2.05); b.closePath(); b.fill();
+        b.strokeStyle = C['stone-2']; b.lineWidth = 0.09;
+        for (let r = 2.1; r < R; r += 0.55) { b.beginPath(); b.arc(x, y, r, Math.PI * 0.97, Math.PI * 2.03); b.stroke(); }
+        for (let k = 1; k < 9; k++) { const a = Math.PI + (k * Math.PI) / 9; b.beginPath(); b.moveTo(x + Math.cos(a) * 2, y + Math.sin(a) * 2); b.lineTo(x + Math.cos(a) * R, y + Math.sin(a) * R); b.stroke(); }
+        b.fillStyle = C.sand; b.beginPath(); b.arc(x, y, 1.8, 0, 7); b.fill();
+        b.strokeStyle = C['roof-edge']; b.lineWidth = 0.05; b.beginPath(); b.arc(x, y, R, Math.PI * 0.95, Math.PI * 2.05); b.closePath(); b.stroke();
+      }
+    }
+    // fonte (contorno vero, vettoriale): bordo di pietra, acqua, ciuffi di papiro lungo il bordo
+    function pond(b, pts) {
+      b.lineJoin = 'round';
+      b.fillStyle = C.shadow; b.beginPath(); b.save(); b.translate(0.1, 0.14); roundPoly(b, pts, 0.5); b.restore(); b.fill();
+      b.strokeStyle = C['stone-2']; b.lineWidth = 0.5; b.beginPath(); roundPoly(b, pts, 0.5); b.stroke();
+      b.strokeStyle = C.stone; b.lineWidth = 0.3; b.stroke();
+      b.fillStyle = C.sea; b.fill();
+      b.save(); b.clip();
+      b.strokeStyle = C['sea-2']; b.lineWidth = 0.05; b.lineCap = 'round';
+      let cx = 0, cy = 0; for (const [px, py] of pts) { cx += px; cy += py; } cx /= pts.length; cy /= pts.length;
+      for (const [dx, dy] of [[-0.5, 0.2], [0.4, -0.3], [0.2, 0.5]]) { b.beginPath(); b.arc(cx + dx, cy + dy, 0.16, 3.6, 5.8); b.stroke(); }
+      b.restore();
+      // papiri: sul bordo, dalla parte più lontana dal centro di ogni lato (un ciuffo ogni ~0,8 caselle, in sequenza fissa)
+      let acc = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length], L = Math.hypot(bx - ax, by - ay);
+        for (let t = 0.3; t < L; t += 0.8) {
+          if (hash(i, Math.floor(t * 10), 61) < 0.25) continue;
+          const px = ax + ((bx - ax) * t) / L, py = ay + ((by - ay) * t) / L, k = 0.22;
+          papyrus(b, px + (cx - px) * k, py + (cy - py) * k, 0.3 + hash(i, Math.floor(t * 10), 62) * 0.12);
+        }
+        acc += L;
+      }
+      void acc;
+    }
+    function papyrus(b, x, y, r) {
+      b.strokeStyle = C['papyrus-2']; b.lineWidth = 0.04;
+      for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k - 2) * 0.42; b.beginPath(); b.moveTo(x, y + r * 0.3); b.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); b.stroke(); }
+      for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k - 2) * 0.42; b.fillStyle = k % 2 ? C.papyrus : C['papyrus-2']; b.beginPath(); b.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, r * 0.32, 0, 7); b.fill(); }
     }
     function umbrella(b, x, y, hv) {
       const cols = [C['umb-1'], C['umb-2'], C['umb-3']], r = 0.34;
@@ -857,7 +974,34 @@
       else if (k === 'pier') { b.fillStyle = C.wood; b.fillRect(-0.06, -0.2, 0.12, 0.4); b.strokeStyle = C['wood-2']; b.beginPath(); for (let i = -1; i <= 1; i++) { b.moveTo(-0.06, i * 0.1); b.lineTo(0.06, i * 0.1); } b.stroke(); b.fillStyle = C.sea; b.fillRect(-0.2, -0.04, 0.12, 0.08); b.fillRect(0.08, -0.04, 0.12, 0.08); }
       else if (k === 'castle') { b.fillStyle = C.castle; b.beginPath(); b.moveTo(-0.16, 0.18); b.lineTo(-0.16, -0.1); b.lineTo(-0.1, -0.1); b.lineTo(-0.1, -0.05); b.lineTo(-0.03, -0.05); b.lineTo(-0.03, -0.1); b.lineTo(0.03, -0.1); b.lineTo(0.03, -0.05); b.lineTo(0.1, -0.05); b.lineTo(0.1, -0.1); b.lineTo(0.16, -0.1); b.lineTo(0.16, 0.18); b.closePath(); b.fill(); ink(); b.fillStyle = C['castle-2']; rrect(b, -0.04, 0.06, 0.08, 0.12, 0.04); b.fill(); b.fillStyle = C.stop; b.beginPath(); b.moveTo(0, -0.1); b.lineTo(0, -0.24); b.lineTo(0.1, -0.2); b.lineTo(0, -0.17); b.fill(); }
       else if (k === 'harbour') { b.fillStyle = C.sail; b.beginPath(); b.moveTo(0, -0.2); b.lineTo(0, 0.04); b.lineTo(0.14, 0.04); b.closePath(); b.fill(); ink(); b.fillStyle = C['boat-2']; b.beginPath(); b.moveTo(-0.16, 0.07); b.lineTo(0.16, 0.07); b.lineTo(0.1, 0.16); b.lineTo(-0.1, 0.16); b.closePath(); b.fill(); ink(); }
-      else if (k === 'sight') { b.fillStyle = C.star; b.beginPath(); for (let i = 0; i < 10; i++) { const a = (i * Math.PI) / 5 - Math.PI / 2, q = i % 2 ? 0.08 : 0.18; b.lineTo(Math.cos(a) * q, Math.sin(a) * q); } b.closePath(); b.fill(); ink(); }
+      else if (k === 'duomo') {
+        // facciata barocca: timpano, colonne, portone e croce
+        b.fillStyle = C.stone; b.beginPath(); b.moveTo(-0.17, 0.19); b.lineTo(-0.17, -0.04); b.lineTo(0, -0.17); b.lineTo(0.17, -0.04); b.lineTo(0.17, 0.19); b.closePath(); b.fill(); ink();
+        b.strokeStyle = C['stone-2']; b.lineWidth = 0.03; b.beginPath(); for (const cx of [-0.11, -0.04, 0.04, 0.11]) { b.moveTo(cx, -0.01); b.lineTo(cx, 0.17); } b.stroke();
+        b.fillStyle = C['tile-1']; rrect(b, -0.035, 0.07, 0.07, 0.12, 0.03); b.fill();
+        b.strokeStyle = C.ink; b.lineWidth = 0.035; b.beginPath(); b.moveTo(0, -0.17); b.lineTo(0, -0.27); b.moveTo(-0.04, -0.23); b.lineTo(0.04, -0.23); b.stroke();
+      } else if (k === 'fountain') {
+        // la fonte: specchio d'acqua, papiri e un'anatra
+        b.fillStyle = C.sea; b.beginPath(); b.ellipse(0, 0.08, 0.2, 0.11, 0, 0, 7); b.fill(); ink();
+        papyrus(b, -0.09, 0.04, 0.17);
+        b.fillStyle = C['duck-b']; b.beginPath(); b.ellipse(0.08, 0.07, 0.07, 0.045, 0, 0, 7); b.arc(0.12, 0.0, 0.035, 0, 7); b.fill(); b.strokeStyle = C.ink; b.lineWidth = 0.02; b.stroke();
+        b.fillStyle = C['beak-b']; b.beginPath(); b.moveTo(0.15, -0.005); b.lineTo(0.19, 0.005); b.lineTo(0.15, 0.015); b.fill();
+      } else if (k === 'temple') {
+        b.fillStyle = C.stone; b.beginPath(); b.moveTo(-0.19, -0.08); b.lineTo(0, -0.2); b.lineTo(0.19, -0.08); b.closePath(); b.fill(); ink();
+        b.fillRect(-0.19, 0.14, 0.38, 0.06); b.strokeRect(-0.19, 0.14, 0.38, 0.06);
+        for (const cx of [-0.13, -0.045, 0.045, 0.13]) { b.fillStyle = C.stone; b.fillRect(cx - 0.025, -0.07, 0.05, 0.21); b.strokeStyle = C['stone-2']; b.lineWidth = 0.02; b.strokeRect(cx - 0.025, -0.07, 0.05, 0.21); }
+      } else if (k === 'theatre') {
+        b.fillStyle = C.stone; b.beginPath(); b.arc(0, 0.08, 0.2, Math.PI, 0); b.closePath(); b.fill(); ink();
+        b.strokeStyle = C['stone-2']; b.lineWidth = 0.025; for (const r of [0.08, 0.13, 0.17]) { b.beginPath(); b.arc(0, 0.08, r, Math.PI, 0); b.stroke(); }
+        b.fillStyle = C.sand; b.beginPath(); b.arc(0, 0.08, 0.05, Math.PI, 0); b.fill();
+        b.fillStyle = C['tile-1']; b.fillRect(-0.2, 0.1, 0.4, 0.05);
+      } else if (k === 'market') {
+        // banco del mercato: tendina a righe e frutta
+        for (let i = 0; i < 4; i++) { b.fillStyle = i % 2 ? C['awning-2'] : C.awning; b.fillRect(-0.18 + i * 0.09, -0.16, 0.09, 0.1); }
+        b.strokeStyle = C.ink; b.lineWidth = 0.03; b.strokeRect(-0.18, -0.16, 0.36, 0.1);
+        b.fillStyle = C.wood; b.fillRect(-0.16, 0.04, 0.32, 0.13); b.strokeRect(-0.16, 0.04, 0.32, 0.13);
+        for (const [fx, fc] of [[-0.09, C['tile-1']], [0, C.papyrus], [0.09, C['beak-b']]]) { b.fillStyle = fc; b.beginPath(); b.arc(fx, 0.02, 0.045, 0, 7); b.fill(); }
+      } else if (k === 'sight') { b.fillStyle = C.star; b.beginPath(); for (let i = 0; i < 10; i++) { const a = (i * Math.PI) / 5 - Math.PI / 2, q = i % 2 ? 0.08 : 0.18; b.lineTo(Math.cos(a) * q, Math.sin(a) * q); } b.closePath(); b.fill(); ink(); }
       b.restore();
     }
     function shopSignO(b, sp, kind) {
@@ -902,16 +1046,34 @@
         if (!q.moor && !rm) { g.strokeStyle = C.foam; g.beginPath(); g.moveTo(-0.55, -0.1); g.lineTo(-0.85, -0.18); g.moveTo(-0.55, 0.1); g.lineTo(-0.85, 0.18); g.stroke(); }
         g.restore();
       }
+      // anatre della Fonte Aretusa: nuotano piano in tondo sulle caselle d'acqua della fonte
+      for (const d of O.ducks) {
+        if (!inView(d.x, d.y, 2)) continue;
+        const a = rm ? d.ph : t * 0.35 + d.ph, x = d.x + Math.cos(a) * d.r, y = d.y + Math.sin(a) * d.r * 0.7, dir = a + Math.PI / 2;
+        g.save(); g.translate(x, y); g.scale(Math.cos(dir) < 0 ? -1 : 1, 1);
+        g.fillStyle = C.shadow; g.beginPath(); g.ellipse(0.03, 0.06, 0.2, 0.1, 0, 0, 7); g.fill();
+        g.fillStyle = C['duck-b']; g.strokeStyle = C.ink; g.lineWidth = 0.03;
+        g.beginPath(); g.ellipse(0, 0, 0.19, 0.11, 0, 0, 7); g.fill(); g.stroke();
+        g.beginPath(); g.arc(0.13, -0.1, 0.08, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = C['beak-b']; g.beginPath(); g.moveTo(0.2, -0.11); g.lineTo(0.29, -0.09); g.lineTo(0.2, -0.07); g.closePath(); g.fill();
+        g.fillStyle = C.ink; g.beginPath(); g.arc(0.15, -0.12, 0.018, 0, 7); g.fill();
+        g.restore();
+      }
     }
     function drawLabels(inView) {
-      const O = osmPrep(), c = s.car, list = O.labels.filter((p) => inView(p.x, p.y, 1)).sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y)).slice(0, 6);
+      const O = osmPrep(), c = s.car, list = O.labels.filter((p) => inView(p.x, p.y, 1)).sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y)).slice(0, 6)
+        .sort((a, b) => (BIG.has(b.k) ? 1 : 0) - (BIG.has(a.k) ? 1 : 0));   // se due cartelli si accavallano vince il monumento
       if (!list.length) return;
       screen();
       const fs = Math.max(10, Math.min(13, TS * 0.3));
       g.font = `800 ${fs}px "M PLUS Rounded 1c", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const used = [];
       for (const p of list) {
         const [px0, sy0] = toS(p.x, p.y), sy = sy0 - TS * 0.62, tw = Math.min(g.measureText(p.name).width, W * 0.5), pw = tw + 14, ph = fs + 8;
         const sx = Math.max(pw / 2 + 4, Math.min(W - pw / 2 - 4, px0));
+        // cartelli che si accavallano: resta quello del luogo più vicino a Hari (la lista è già in quest'ordine)
+        if (used.some((q) => Math.abs(q[0] - sx) < (q[2] + pw) / 2 && Math.abs(q[1] - sy) < ph)) continue;
+        used.push([sx, sy, pw]);
         g.fillStyle = C.street; g.strokeStyle = C['street-ink']; g.lineWidth = 1.2; g.globalAlpha = 0.95;
         rr(sx - pw / 2, sy - ph / 2, pw, ph, ph / 2); g.fill(); g.stroke();
         const tx = Math.max(sx - pw / 2 + 8, Math.min(sx + pw / 2 - 8, px0));

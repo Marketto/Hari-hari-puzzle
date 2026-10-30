@@ -6,6 +6,16 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] Hari Taxi, terza mappa reale da OpenStreetMap: **Ortigia (Siracusa)**, l'isola con il centro di Siracusa sulla
+  terraferma (corso Umberto, Borgata Santa Lucia, stazione, Neapolis con il Teatro Greco), 3,6 × 3,9 km, 198 KB.
+  Ponti sopra l'acqua distinti nel grafo (`bridge=yes` sopra mare/fiume): Ponte Umbertino e Ponte Santa Lucia con
+  impalcato in pietra, parapetto a colonnine, pilastri e archi; stile "stone" (pietra chiara e tetti in coppi caldi);
+  icone e disegni nuovi per Duomo, Fonte Aretusa (contorno vero, papiri e anatre), Tempio di Apollo (rovine), Teatro
+  Greco (cavea), mercato; Porto Grande e Porto Piccolo con barche ormeggiate; slot `drive@ortigia`, selettore a 4 carte
+  (2 × 2 in verticale, una riga in orizzontale). Nessuna chiave i18n nuova (i nomi propri vengono da OSM)
+- [ ] Ortigia su telefono vero: leggibilità dei cartelli nel centro storico fitto, fluidità vicino ai ponti
+
 ## Prossimo
 - [ ] Hari Taxi, mappe reali su telefono vero: fluidità del canvas nelle zone dense, leggibilità dei cartelli
 - [ ] Rally a due su telefoni veri: tempo di costruzione della pista al via (il link aspetta fino a 60 s), comodità dei

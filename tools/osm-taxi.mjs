@@ -1,7 +1,7 @@
 // Hari Taxi: dai dati OpenStreetMap grezzi (in cache, scaricati una volta con tools/osm-taxi-fetch.mjs) ai file dati
 // compatti delle mappe reali, src/games/drive-map-<id>.js (caricati in lazy load solo scegliendo quella mappa),
 // più l'elenco src/games/drive-maps.js (nomi, misure, anteprima per il selettore, attribuzione).
-//   node tools/osm-taxi.mjs --cache DIR [ostia|desenzano ...] [--png DIR]
+//   node tools/osm-taxi.mjs --cache DIR [ostia|desenzano|ortigia ...] [--png DIR]
 // Riproducibile: stessi file in cache → stessi file di uscita. Nessuna dipendenza.
 //
 // Modello del gioco (vedi docs/games/drive.md, "Mappe reali"): griglia di caselle (1 casella = MAPS[id].m metri)
@@ -33,7 +33,9 @@ const RCLASS = {
   secondary: 1, secondary_link: 1, tertiary: 2, tertiary_link: 2,
   unclassified: 3, residential: 3, road: 3, living_street: 4, service: 4, pedestrian: 5,
 };
-const POIK = ['food', 'cafe', 'gelato', 'bakery', 'shop', 'depot', 'taxi', 'station', 'beach', 'pier', 'castle', 'harbour', 'sight', 'square', 'park', 'school', 'church', 'hotel'];
+// (i tipi nuovi vanno in coda: l'indice è nel file dati di ogni mappa)
+const POIK = ['food', 'cafe', 'gelato', 'bakery', 'shop', 'depot', 'taxi', 'station', 'beach', 'pier', 'castle', 'harbour', 'sight', 'square', 'park', 'school', 'church', 'hotel',
+  'duomo', 'fountain', 'temple', 'theatre', 'market'];
 
 /* ---------- utilità ---------- */
 const closed = (w) => w.nds.length > 3 && w.nds[0] === w.nds[w.nds.length - 1];
@@ -224,7 +226,9 @@ export function build(id, cache = CACHE) {
     if (t.highway === 'service' && (['driveway', 'parking_aisle', 'drive-through', 'emergency_access'].includes(t.service) || ['private', 'no'].includes(t.access))) continue;
     if (['private', 'no'].includes(t.access) && c < 5 && t.highway !== 'service') continue;
     const one = t.junction === 'roundabout' || t.oneway === 'yes' || t.oneway === '1' || t.oneway === 'true' ? 1 : t.oneway === '-1' ? -1 : 0;
-    roadWays.push({ w, c, one, name: t.name || '' });
+    // ponte (bridge=yes/viaduct/…): resta "ponte" nel grafo solo se passa sopra l'acqua (vedi sotto)
+    const br = t.bridge && t.bridge !== 'no' ? 1 : 0;
+    roadWays.push({ w, c, one, br, name: t.name || '' });
   }
   const use = new Map();
   for (const { w } of roadWays) w.nds.forEach((n, i) => use.set(n, (use.get(n) || 0) + (i === 0 || i === w.nds.length - 1 ? 2 : 1)));
@@ -232,12 +236,12 @@ export function build(id, cache = CACHE) {
   const nodeOf = (ref) => { if (!gid.has(ref)) { gid.set(ref, gnodes.length); gnodes.push({ p: P(o.nodes.get(ref)), ref }); } return gid.get(ref); };
   let edges = [];
   const MARGIN = 1.5;
-  for (const { w, c, one, name } of roadWays) {
+  for (const { w, c, one, br, name } of roadWays) {
     let cur = [];
     const flush = () => {
       if (cur.length >= 2) {
         const a = nodeOf(cur[0]), b = nodeOf(cur[cur.length - 1]);
-        edges.push({ a, b, pts: cur.map((r) => P(o.nodes.get(r))), c, one, name });
+        edges.push({ a, b, pts: cur.map((r) => P(o.nodes.get(r))), c, one, br, name });
       }
       cur = [];
     };
@@ -282,7 +286,7 @@ export function build(id, cache = CACHE) {
     edges = edges.filter((e) => {
       const k = e.a < e.b ? `${e.a},${e.b}` : `${e.b},${e.a}`, L = plen(e.pts);
       const prev = seen.get(k);
-      if (prev && Math.abs(prev.L - L) < Math.max(1.5, 0.3 * L)) { if (e.c < prev.e.c) prev.e.c = e.c; if (!prev.e.name) prev.e.name = e.name; if (prev.e.one !== e.one) prev.e.one = 0; return false; }
+      if (prev && Math.abs(prev.L - L) < Math.max(1.5, 0.3 * L)) { if (e.c < prev.e.c) prev.e.c = e.c; if (!prev.e.name) prev.e.name = e.name; if (prev.e.one !== e.one) prev.e.one = 0; if (e.br) prev.e.br = 1; return false; }
       if (!prev) seen.set(k, { e, L });
       return true;
     });
@@ -296,13 +300,13 @@ export function build(id, cache = CACHE) {
       const [i, j] = list;
       if (dead.has(i) || dead.has(j) || i === j) continue;
       const e = edges[i], f = edges[j];
-      if ((e.c === 5) !== (f.c === 5) || e.a === e.b || f.a === f.b) continue;
+      if ((e.c === 5) !== (f.c === 5) || e.br !== f.br || e.a === e.b || f.a === f.b) continue;
       const pe = e.b === n ? e.pts : e.pts.slice().reverse(), pf = f.a === n ? f.pts : f.pts.slice().reverse();
       const ea = e.b === n ? e.a : e.b, fb = f.a === n ? f.b : f.a;
       if (ea === fb) continue;
       const oe = e.b === n ? e.one : -e.one, of = f.a === n ? f.one : -f.one;
       const Le = plen(e.pts), Lf = plen(f.pts);
-      edges[i] = { a: ea, b: fb, pts: pe.concat(pf.slice(1)), c: Math.min(e.c, f.c), one: oe === of ? oe : 0, name: (Le >= Lf ? e.name : f.name) || e.name || f.name };
+      edges[i] = { a: ea, b: fb, pts: pe.concat(pf.slice(1)), c: Math.min(e.c, f.c), one: oe === of ? oe : 0, br: e.br, name: (Le >= Lf ? e.name : f.name) || e.name || f.name };
       dead.add(j);
       // il tratto j non esiste più: chi lo usava altrove non c'è (n aveva solo questi due)
     }
@@ -346,6 +350,20 @@ export function build(id, cache = CACHE) {
     e[k] = keepN.get(e[k]);
   }
   for (const e of edges) { e.pts = dp(e.pts, 0.3); e.pts[0] = nodes[e.a]; e.pts[e.pts.length - 1] = nodes[e.b]; }
+  // ponti sopra l'acqua: almeno un quarto dei punti campionati sulla mezzeria cade in mare / lago / fiume (i cavalcavia
+  // sopra strade e binari restano strade normali: la griglia del gioco non ha livelli)
+  let nbr = 0;
+  for (const e of edges) {
+    if (!e.br) continue;
+    let wet = 0, n = 0;
+    for (let i = 1; i < e.pts.length; i++) {
+      const [ax, ay] = e.pts[i - 1], [bx, by] = e.pts[i], L = Math.hypot(bx - ax, by - ay), k = Math.max(1, Math.ceil(L / 0.5));
+      for (let j = 0; j <= k; j++) { const x = ax + ((bx - ax) * j) / k, y = ay + ((by - ay) * j) / k, ix = Math.floor(y) * W + Math.floor(x); n++; if (area[ix] === A.WATER) wet++; }
+    }
+    e.br = wet >= Math.max(1, n / 4) ? 1 : 0;
+    if (e.br) nbr++;
+  }
+  log.push(`ponti sopra l'acqua: ${nbr} tratti (${edges.filter((e) => e.br).map((e) => e.name || '—').join(', ')})`);
   // semafori: nodi OSM highway=traffic_signals → incrocio più vicino (con almeno 3 strade) entro ~30 m
   const deg = new Array(nodes.length).fill(0);
   for (const e of edges) { deg[e.a]++; deg[e.b]++; }
@@ -435,6 +453,28 @@ export function build(id, cache = CACHE) {
     }
     if (inside(c, 2)) pois.push({ k, p: c, name: w.tags.name || '' });
   }
+  // castelli mappati come multipoligono (relazione)
+  for (const r of o.rels.values()) {
+    if (r.tags.type !== 'multipolygon' || r.tags.historic !== 'castle' || !r.tags.name) continue;
+    const ring = rings(r.members.filter((m) => m.type === 'way' && m.role !== 'inner' && o.ways.has(m.ref)).map((m) => o.ways.get(m.ref).nds))[0];
+    if (ring) { const c = centroid(pts(ring).slice(0, -1)); if (inside(c, 2)) pois.push({ k: 'castle', p: c, name: r.tags.name }); }
+  }
+  // luoghi speciali della mappa (MAPS[id].special): un tipo proprio (duomo, fonte, tempio, teatro, mercato…) per un
+  // luogo cercato per nome; prima le aree (vie chiuse, relazioni), poi i punti. at = [lon, lat] dove mettere l'icona
+  // (per i porti, il cui centro è in mezzo al mare). Il luogo prende il posto dei punti con lo stesso nome.
+  const ponds = [];   // contorni veri delle fonti (vettoriali: troppo piccole per la griglia delle zone)
+  for (const sp of M.special || []) {
+    let hit = null;
+    const ok = (t) => t && t.name && sp.re.test(t.name) && !t.highway && (!sp.tag || sp.tag(t));
+    for (const w of o.ways.values()) if (!hit && ok(w.tags) && closed(w)) hit = { name: w.tags.name, p: centroid(pts(w.nds).slice(0, -1)), ring: pts(w.nds).slice(0, -1) };
+    for (const r of o.rels.values()) if (!hit && ok(r.tags)) { const ring = rings(r.members.filter((m) => m.type === 'way' && m.role !== 'inner' && o.ways.has(m.ref)).map((m) => o.ways.get(m.ref).nds))[0]; if (ring) hit = { name: r.tags.name, p: centroid(pts(ring).slice(0, -1)) }; }
+    for (const n of o.nodes.values()) if (!hit && ok(n.tags)) hit = { name: n.tags.name, p: P(n) };
+    if (!hit) { log.push(`ATTENZIONE: luogo speciale ${sp.k} ${sp.re} non trovato`); continue; }
+    if (sp.at) hit.p = P({ lon: sp.at[0], lat: sp.at[1] });
+    for (let i = pois.length - 1; i >= 0; i--) if (pois[i].name === hit.name && !['food', 'cafe', 'gelato', 'bakery', 'shop', 'hotel'].includes(pois[i].k)) pois.splice(i, 1);
+    if (inside(hit.p, 2)) pois.push({ k: sp.k, p: hit.p, name: hit.name });
+    if (sp.k === 'fountain' && hit.ring) ponds.push(dpRing(hit.ring.concat([hit.ring[0]]), 0.1));
+  }
   // spiagge senza nome troppo vicine tra loro: una ogni 20 caselle circa
   const keepP = [];
   for (const p of pois) {
@@ -458,7 +498,7 @@ export function build(id, cache = CACHE) {
   const ze = new Bytes();
   for (const e of edges) {
     ze.u(e.a); ze.u(e.b);
-    ze.u(e.c * 3 + (e.one === 1 ? 1 : e.one === -1 ? 2 : 0));
+    ze.u(e.c * 3 + (e.one === 1 ? 1 : e.one === -1 ? 2 : 0) + (e.br ? 18 : 0));   // ≥ 18 = ponte sopra l'acqua
     ze.u(nm(e.name));
     const inner = e.pts.slice(1, -1);
     ze.u(inner.length);
@@ -482,6 +522,10 @@ export function build(id, cache = CACHE) {
     for (const p of vpolys) put(2, p);
     // mura dei castelli (historic=castle chiusi)
     for (const w of o.ways.values()) if (w.tags.historic === 'castle' && closed(w)) put(3, dpRing(pts(w.nds), 0.15));
+    for (const p of ponds) put(4, p);
+    for (const r of o.rels.values()) if (r.tags.historic === 'castle' && r.tags.type === 'multipolygon') {
+      for (const ring of rings(r.members.filter((m) => m.type === 'way' && m.role !== 'inner' && o.ways.has(m.ref)).map((m) => o.ways.get(m.ref).nds))) put(3, dpRing(pts(ring), 0.15));
+    }
   }
   const zp = new Bytes();
   px = 0; py = 0;
@@ -509,7 +553,7 @@ export function build(id, cache = CACHE) {
     if (list.length) anchors.push(sp.indexOf(list[0]));
   }
   const data = {
-    v: 1, id, name: M.name, W, H, m: M.m, bbox: M.crop || M.bbox, date: o.date.slice(0, 10), extracted: M.extracted,
+    v: 1, id, name: M.name, W, H, m: M.m, bbox: M.crop || M.bbox, date: o.date.slice(0, 10), extracted: M.extracted, ...(M.style ? { style: M.style } : {}),
     area: za.b64(), nodes: zn2.b64(), edges: ze.b64(), blds: zb.b64(), vec: zv.b64(), pois: zp.b64(), poiKinds: POIK, names, anchors,
   };
   const preview = { w: pw, h: ph, rle: pv.b64() };
@@ -547,8 +591,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       const COL = [[236, 226, 210], [150, 210, 130], [245, 222, 160], [110, 180, 235], [240, 235, 225], [190, 140, 100], [200, 200, 210], [205, 225, 160], [150, 140, 150]];
       const rgb = Buffer.alloc(r.W * r.H * 3);
       for (let i = 0; i < r.W * r.H; i++) { const c = r.road[i] ? [90, 90, 110] : COL[r.area[i]]; rgb[i * 3] = c[0]; rgb[i * 3 + 1] = c[1]; rgb[i * 3 + 2] = c[2]; }
+      for (const e of r.edges) if (e.br) for (const [x, y] of e.pts) { const i = Math.floor(y) * r.W + Math.floor(x); if (i >= 0 && i < r.W * r.H) { rgb[i * 3] = 255; rgb[i * 3 + 1] = 140; rgb[i * 3 + 2] = 0; } }
       for (const b of r.blds) { const [x, y] = b.q[0]; const i = Math.floor(y) * r.W + Math.floor(x); if (i >= 0 && i < r.W * r.H && !r.road[i]) { rgb[i * 3] = 240; rgb[i * 3 + 1] = 150; rgb[i * 3 + 2] = 170; } }
-      for (const p of r.pois) { const i = Math.floor(p.p[1]) * r.W + Math.floor(p.p[0]); if (['pier', 'castle', 'harbour', 'station'].includes(p.k)) for (const d of [0, 1, -1, r.W, -r.W]) { rgb[(i + d) * 3] = 255; rgb[(i + d) * 3 + 1] = 0; rgb[(i + d) * 3 + 2] = 0; } }
+      for (const p of r.pois) { const i = Math.floor(p.p[1]) * r.W + Math.floor(p.p[0]); if (['pier', 'castle', 'harbour', 'station', 'duomo', 'fountain', 'temple', 'theatre', 'market'].includes(p.k)) for (const d of [0, 1, -1, r.W, -r.W]) { rgb[(i + d) * 3] = 255; rgb[(i + d) * 3 + 1] = 0; rgb[(i + d) * 3 + 2] = 0; } }
       png(path.join(PNG, `${id}.png`), r.W, r.H, rgb);
     }
   }

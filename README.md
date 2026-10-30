@@ -45,6 +45,6 @@ Il progetto è pronto per lavorare con agenti: [CLAUDE.md](CLAUDE.md) contiene i
 ## Licenza e crediti
 Codice MIT.
 
-Le mappe reali di Hari Taxi (Ostia, Desenzano del Garda) sono dati derivati da **OpenStreetMap**,
+Le mappe reali di Hari Taxi (Ostia, Desenzano del Garda, Ortigia) sono dati derivati da **OpenStreetMap**,
 © OpenStreetMap contributors, disponibili con licenza [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)
 (https://www.openstreetmap.org/copyright). Fonte, date e come rigenerarle: [docs/osm-attribution.md](docs/osm-attribution.md).

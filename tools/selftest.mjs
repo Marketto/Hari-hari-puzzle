@@ -194,7 +194,7 @@ for (const level of [1, 4, 8, 16]) {
 // Hari Taxi, mappe reali (OpenStreetMap): decodifica + geometria una volta per mappa, poi livelli 1/4/8/12 (4 semi):
 // generazione, ogni fermata raggiungibile su strada, tempo limite ≥ 1,5 × percorso a velocità massima, simulazione leggera
 {
-  for (const id of ['ostia', 'desenzano']) {
+  for (const id of ['ostia', 'desenzano', 'ortigia']) {
     vm.runInThisContext(fs.readFileSync(path.join(root, `src/games/drive-map-${id}.js`), 'utf8'), { filename: `drive-map-${id}.js` });
     const { drive } = globalThis.HH;
     let t = performance.now();

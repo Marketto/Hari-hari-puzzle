@@ -2,6 +2,8 @@
 //   node tools/serve.mjs 5201 &  node tools/drive-maps-e2e.mjs [--port 5201] [--shots DIR]
 // - prima apertura: selettore delle mappe (città di Hari già selezionata), anteprime e attribuzione OSM;
 // - Ostia: guida (teletrasporto) sul lungomare, al Pontile e alla spiaggia; Desenzano: porto, lago, castello;
+// - Ortigia: ponti Umbertino e Santa Lucia sopra la Darsena, Duomo, Fonte Aretusa, Porto Grande, Castello Maniace, Tempio
+//   di Apollo, Teatro Greco; isola intera vista dall'alto;
 // - minimappa con l'attribuzione; un livello completato su ogni mappa dal bot dei test (tests/_drive-bot.mjs,
 //   in pagina, a velocità ×6) fino alla finestra di vittoria; progressi separati per mappa;
 // - tema chiaro e scuro (360×760), schermo intero in orizzontale (915×412); nessun errore in console.
@@ -27,7 +29,7 @@ async function open({ w = 360, h = 760, scheme = 'light', store = {} } = {}) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, colorScheme: scheme });
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('pageerror', (e) => { errors.push(e.message); if (process.env.E2E_VERBOSE) console.log('pageerror:', e.stack || e.message); });
   await page.addInitScript((st) => {
     localStorage.setItem('harihari:tut:drive', '1');
     localStorage.setItem('harihari:lang', '"it"');
@@ -84,8 +86,36 @@ async function botWin(page) {
     el.querySelector('.dr-stage').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 100, clientY: 300, pointerId: 9 }));
     el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 9 }));
   });
-  await page.waitForFunction(() => !document.querySelector('#winDlg').hidden, null, { timeout: 120000 });
+  try { await page.waitForFunction(() => !document.querySelector('#winDlg').hidden, null, { timeout: 120000 }); } catch (e) {
+    // diagnosi: stato della partita quando il bot non ce la fa
+    console.log('bot fermo:', await page.evaluate(() => { const s = document.querySelector('#board')._drive.state(); return JSON.stringify({ map: s.mapId, t: s.t, done: s.done, N: s.N, oops: s.oops, car: s.car, ready: s.ready, wait: s.wait, trip: s.trip && s.trip.items.map((i) => i.st) }); }));
+    throw e;
+  }
   await sleep(1600);
+}
+
+// giro di Ortigia: ponti sopra la Darsena, Duomo, Fonte Aretusa, Porto Grande, castello (camera sul luogo)
+async function ortigiaTour(page, suf) {
+  // (la funzione va in pagina come testo: niente chiusure, la regex è scritta dentro)
+  const bridge = (re) => new Function('md', 'g', `const e = g.edges.filter((q) => q.br && ${re}.test(q.name)).sort((a, b) => b.len - a.len)[0]; if (!e) return null; const [x, y] = HH.drive.along(g.center[e.id], e.len / 2); return { x, y, name: e.name };`);
+  const br = await goNear(page, bridge(/corso umberto/i), [0, 0]);
+  await sleep(1800);
+  check(!!br, `Ponte Umbertino (${br && br.name})`);
+  await shot(page, `17-ortigia-ponte-umbertino${suf}`);
+  const br2 = await goNear(page, bridge(/malta/i), [0, 0]);
+  await sleep(1500);
+  check(!!br2, 'Ponte Santa Lucia (via Malta)');
+  await shot(page, `18-ortigia-ponte-santa-lucia${suf}`);
+  // (k, nome) del luogo; la ricerca va in pagina come testo
+  for (const [k, re, name, file] of [['duomo', '', 'Duomo', '19-ortigia-duomo'], ['fountain', '', 'Fonte Aretusa', '20-ortigia-fonte-aretusa'], ['harbour', '/porto grande/i', 'Porto Grande', '21-ortigia-porto-grande'],
+    ['castle', '', 'Castello Maniace', '22-ortigia-castello'], ['temple', '', 'Tempio di Apollo', '23-ortigia-tempio']]) {
+    const r = await goNear(page, new Function('md', `return md.pois.find((p) => p.k === '${k}'${re ? ` && ${re}.test(p.name)` : ''})`), [0, 0]);
+    await sleep(1600);
+    const vis = await page.evaluate(() => [...document.querySelectorAll('.dr-street span')].map((e) => e.textContent).join(' '));
+    check(!!r, `${name} (${r && r.name}) · cartello: ${vis}`);
+    await shot(page, file + suf);
+  }
+  await page.evaluate(() => document.querySelector('#board')._drive.peek());
 }
 
 /* ---------- 1. prima apertura: selettore ---------- */
@@ -93,7 +123,8 @@ async function botWin(page) {
   const { ctx, page } = await open();
   await openDrive(page);
   const sel = await page.evaluate(() => [...document.querySelectorAll('.dr-map-card')].map((b) => ({ id: b.dataset.map, on: b.classList.contains('on'), txt: b.textContent })));
-  check(sel.length === 3 && sel[0].id === 'hari' && sel[0].on, `selettore all'avvio con 3 mappe, città di Hari selezionata (${sel.map((x) => x.id).join(', ')})`);
+  check(sel.length === 4 && sel[0].id === 'hari' && sel[0].on && sel[3].id === 'ortigia', `selettore all'avvio con 4 mappe, città di Hari selezionata (${sel.map((x) => x.id).join(', ')})`);
+  check(await page.evaluate(() => { const r = [...document.querySelectorAll('.dr-map-card')].map((b) => b.getBoundingClientRect()); const box = document.querySelector('.dr-maps-box').getBoundingClientRect(); return r.every((q) => q.left >= box.left - 1 && q.right <= box.right + 1 && q.width > 100); }), 'le 4 carte stanno nel riquadro (2 × 2)');
   check(await page.evaluate(() => /OpenStreetMap contributors/.test(document.querySelector('.dr-maps-osm').textContent)), 'attribuzione OSM nel selettore');
   await shot(page, '01-selettore-chiaro');
 
@@ -144,6 +175,25 @@ async function botWin(page) {
   await shot(page, '10-desenzano-vinto');
   const lv2 = await page.evaluate(() => HH.progress.get('drive@desenzano').level);
   check(lv2 === 2, `livello di Desenzano vinto (livello ${lv2})`);
+  await page.click('#winNext');
+  await sleep(800);
+  await page.evaluate(() => window.__unbot && window.__unbot());
+
+  /* ---------- 3b. Ortigia ---------- */
+  await page.click('.dr-mbtn');
+  await sleep(500);
+  await shot(page, '16-selettore-4-mappe');
+  await page.click('[data-map="ortigia"]');
+  await waitMap(page, 'ortigia');
+  await tapStart(page);
+  check(await page.evaluate(() => document.querySelector('#gLevel').textContent.includes('1')), 'Ortigia parte dal livello 1 (progressi separati)');
+  check(await page.evaluate(() => /OpenStreetMap contributors/.test(document.querySelector('.dr-osm').textContent)), 'attribuzione OSM sul palco di Ortigia');
+  await ortigiaTour(page, '');
+  await page.evaluate(() => document.querySelector('#board')._drive.peek());
+  await botWin(page);
+  await shot(page, '24-ortigia-vinto');
+  const lv3 = await page.evaluate(() => [HH.progress.get('drive@ortigia').level, HH.progress.get('drive@ostia').level]);
+  check(lv3[0] === 2 && lv3[1] === 2, `livello di Ortigia vinto (Ortigia ${lv3[0]}, Ostia ${lv3[1]})`);
   await ctx.close();
 }
 
@@ -166,6 +216,12 @@ async function botWin(page) {
   await goNear(page, (md) => md.pois.find((p) => p.k === 'harbour' && /porto vecchio/i.test(p.name)));
   await sleep(1800);
   await shot(page, '13-desenzano-scuro');
+  await page.click('.dr-mbtn');
+  await sleep(500);
+  await page.click('[data-map="ortigia"]');
+  await waitMap(page, 'ortigia');
+  await tapStart(page);
+  await ortigiaTour(page, '-scuro');
   await ctx.close();
 }
 
@@ -179,6 +235,19 @@ async function botWin(page) {
   await goNear(page, (md, g) => { const e = g.edges.find((q) => /lungomare/i.test(q.name) && q.len > 20); const [x, y] = HH.drive.along(g.center[e.id], e.len / 2); return { x, y }; });
   await sleep(1800);
   await shot(page, '14-ostia-orizzontale');
+  await page.click('.dr-mbtn');
+  await sleep(500);
+  await shot(page, '25-selettore-orizzontale');
+  await page.click('[data-map="ortigia"]');
+  await waitMap(page, 'ortigia');
+  await tapStart(page);
+  await goNear(page, (md, g) => { const e = g.edges.find((q) => q.br && /corso umberto/i.test(q.name)); const [x, y] = HH.drive.along(g.center[e.id], e.len / 2); return { x, y }; }, [0, 0]);
+  await sleep(1800);
+  await shot(page, '26-ortigia-orizzontale-ponti');
+  await goNear(page, (md) => md.pois.find((p) => p.k === 'fountain'), [0, 0]);
+  await sleep(1600);
+  await shot(page, '27-ortigia-orizzontale-fonte');
+  await page.evaluate(() => document.querySelector('#board')._drive.peek());
   // e la città di Hari, ancora com'era
   await page.click('.dr-mbtn');
   await sleep(400);
