@@ -6,11 +6,6 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
-## In revisione (prossima versione)
-- [x] Avviso legale al primo avvio (condizioni d'uso, esclusione di responsabilità, conferma informativa privacy, consigli
-  di sicurezza), prima della domanda sulle statistiche; pagina "Privacy e condizioni" con tre schede dal piè di pagina e da
-  Progressi; licenze di three.js, font OFL e dati OSM con testi integrali; 43 lingue ([docs/legal.md](docs/legal.md))
-
 ## Prossimo
 - [ ] Avviso legale su telefono vero
 - [ ] Ortigia su telefono vero: leggibilità dei cartelli nel centro storico fitto, fluidità vicino ai ponti
@@ -32,6 +27,11 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.25.0)
+- [x] Avviso legale al primo avvio (condizioni d'uso, esclusione di responsabilità, conferma informativa privacy, consigli
+  di sicurezza), prima della domanda sulle statistiche; pagina "Privacy e condizioni" con tre schede dal piè di pagina e da
+  Progressi; licenze di three.js, font OFL e dati OSM con testi integrali; 43 lingue ([docs/legal.md](docs/legal.md))
 
 ## Fatto (v0.24.0)
 - [x] Hari Taxi, terza mappa reale da OpenStreetMap: **Ortigia (Siracusa)**, l'isola con il centro di Siracusa sulla
