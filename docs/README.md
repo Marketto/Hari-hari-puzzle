@@ -30,4 +30,5 @@
 | [games/life.md](games/life.md) | Hari Home: simulazione di vita isometrica senza fine (bisogni, casa da ristrutturare, attività, quartiere, età, traguardi, scala del tempo, bilanciamento) |
 | [games/proposals.md](games/proposals.md) | Altri giochi di logica proposti |
 | [multiplayer.md](multiplayer.md) | Gioco in due sulla rete locale senza internet: abbinamento con la melodia di Hari, QR di riserva, 4 frutti di conferma, WebRTC, sessione host-autoritativa, limiti |
-- [Privacy e statistiche](privacy.md): cosa resta sul telefono, statistiche anonime facoltative con consenso
+- [Privacy e statistiche](privacy.md): cosa resta sul telefono, statistiche anonime facoltative con consenso, font Google
+- [Avviso legale e licenze](legal.md): avviso al primo avvio, pagina "Privacy e condizioni", testi in 43 lingue, componenti di terze parti

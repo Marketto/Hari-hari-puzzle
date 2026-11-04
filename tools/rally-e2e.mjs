@@ -95,7 +95,7 @@ async function phone(name, scheme) {
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
   await page.goto(URL);
   await page.evaluate(() => {
-    for (const [k, v] of Object.entries({ 'tut:rally': 1, lang: 'en', anConsent: false, 'prog:rally': { level: 1 } })) localStorage.setItem('harihari:' + k, JSON.stringify(v));
+    for (const [k, v] of Object.entries({ 'tut:rally': 1, lang: 'en', anConsent: false, legal: { v: 999, at: 1 }, 'prog:rally': { level: 1 } })) localStorage.setItem('harihari:' + k, JSON.stringify(v));
   });
   await page.goto(URL);
   await page.waitForTimeout(400);

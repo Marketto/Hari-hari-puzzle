@@ -21,6 +21,11 @@ let html = read('index.html');
   const js = files.filter((f) => f.endsWith('.js')).map((f) => `<script src="${f}"></script>\n`).join('');
   html = html.replace('<script src="src/app.js"></script>', js + '<script src="src/app.js"></script>').replace('</head>', css + '</head>');
 }
+// testi legali di tutte le lingue e licenze (nel file unico non c'è rete per scaricarli dopo)
+{
+  const legal = fs.readdirSync(path.join(root, 'src/i18n/legal')).filter((f) => f.endsWith('.js')).sort().map((f) => `<script src="src/i18n/legal/${f}"></script>\n`).join('');
+  html = html.replace('<script src="src/app.js"></script>', legal + '<script src="src/app.js"></script>');
+}
 html = html.replace(/<!--build:remove-->[\s\S]*?<!--\/build:remove-->\n?/g, '');
 html = html.replace(/<link rel="stylesheet" href="(src\/[^"]+)">/g, (_, p) => `<style>\n${read(p)}\n</style>`);
 html = html.replace(/<script src="(src\/[^"]+)"><\/script>\n?/g, (_, p) => `<script>\n${read(p).replace(/<\/script/gi, '<\\/script')}\n</script>\n`);

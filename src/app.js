@@ -252,7 +252,8 @@
       <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="Games">${cards}</section>
       ${homeView() === 'carousel' ? `<div class="cf-dots" aria-hidden="true">${HH.catalog.map((g, i) => `<i data-i="${i}"></i>`).join('')}</div>` : ''}
       ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
-      <section class="grid-cards small">${soon}</section>` : ''}`;
+      <section class="grid-cards small">${soon}</section>` : ''}
+      <footer class="home-foot"><button class="lg-foot-link" id="legalLink" type="button">${t('lg_link')}</button></footer>`;
     markRemote();
     if (homeView() === 'carousel') coverFlow();
     askConsent();
@@ -260,11 +261,12 @@
 
   /* ---------- consenso alle statistiche anonime (solo se configurate; si chiede una volta, in home) ---------- */
   let consentAsked = false;
-  function askConsent() {
-    if (consentAsked || !HH.usage.canAsk() || HH.usage.consent() !== null) return;
+  // (solo dopo l'avviso legale: finché non è accettato non si chiede nulla)
+  function askConsent(delay = 4000) {
+    if (consentAsked || !HH.usage.canAsk() || HH.usage.consent() !== null || HH.legal.needs()) return;
     consentAsked = true;
     setTimeout(() => {
-      if (S.game || HH.usage.consent() !== null) { consentAsked = false; return; }
+      if (S.game || HH.usage.consent() !== null || HH.legal.isOpen()) { consentAsked = false; return; }
       const d = document.createElement('div');
       d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
       d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
@@ -272,7 +274,7 @@
         <div class="win-actions"><button class="tool" data-an="0">${lab('an_no', 'No thanks')}</button><button class="candy" data-an="1">${ICON.sparkle}<span>${lab('an_yes', 'Yes, gladly')}</span></button></div></div>`;
       document.body.appendChild(d);
       d.onclick = (e) => { const b = e.target.closest('[data-an]'); if (!b) return; HH.usage.setConsent(b.dataset.an === '1'); sfx.tap(); d.remove(); };
-    }, 4000);
+    }, delay);
   }
 
   /* ---------- modalità di visualizzazione dei giochi: lista · icone 2 per riga · carosello (Cover Flow) ---------- */
@@ -571,6 +573,7 @@
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
+    if (legalGate(() => openGame(id, push))) return;     // avviso legale non ancora accettato: prima quello
     if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
     const g = HH.gameLoaded(id);
     if (!g) {
@@ -896,9 +899,11 @@
       <div class="stat-total">${ICON.acorn}<div><small>${t('score')}</small><b>${nf(P.totalScore())}</b></div><div class="stat-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div></div>
       <div class="stat-time">${ICON.clock}<span>${lab('st_play', 'Playing time')}</span><b>${fmtLong(HH.usage.total(HH.catalog.map((g) => g.id)))}</b></div>
       ${rows}
-      ${HH.usage.canAsk() ? `<label class="stat-consent"><input type="checkbox" id="anToggle"${HH.usage.enabled() ? ' checked' : ''}><span>${lab('an_toggle', 'Send anonymous statistics')}</span></label>` : ''}`;
+      ${HH.usage.canAsk() ? `<label class="stat-consent"><input type="checkbox" id="anToggle"${HH.usage.enabled() ? ' checked' : ''}><span>${lab('an_toggle', 'Send anonymous statistics')}</span></label>` : ''}
+      <div class="stat-legal"><button class="lg-foot-link" id="statsLegal" type="button">${t('lg_link')}</button></div>`;
     const tg = $('#anToggle');
     if (tg) tg.onchange = () => HH.usage.setConsent(tg.checked);
+    $('#statsLegal').onclick = () => { sfx.tap(); HH.legal.openPage('privacy'); };
     $('#statsDlg').hidden = false;
     $('#statsClose').focus();
   }
@@ -961,7 +966,7 @@
   }
   // propone l'installazione solo nella home, mai durante una partita, e non più di una volta ogni 3 giorni
   function offerInstall() {
-    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden) return;
+    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden || HH.legal.needs()) return;
     if (Date.now() < HH.store.get('install:snooze', 0)) return;
     if (installEvt) installSheet(false);
     else if (isAndroid()) installSheet(true);   // browser senza prompt automatico: istruzioni dal menu
@@ -1106,6 +1111,7 @@
         }
         return;
       }
+      if (e.target.closest('#legalLink')) { sfx.tap(); HH.legal.openPage('terms'); return; }
       const vb = e.target.closest('[data-view]');
       if (vb) { sfx.tap(); HH.store.set('homeView', vb.dataset.view); renderHome(); return; }
       const c = e.target.closest('[data-game]');
@@ -1150,9 +1156,22 @@
     setupUpdates();
 
     applyTexts();
-    // riapertura dell'app: si torna alla partita in sospeso
+    // riapertura dell'app: si torna alla partita in sospeso (se l'avviso legale è da accettare, dopo l'accettazione)
     const last = HH.store.get('screen');
-    if (last && P.loadGame(last)) openGame(last);
+    const resume = () => { if (last && P.loadGame(last)) openGame(last); };
+    if (!legalGate(resume)) resume();
+  }
+
+  /* ---------- avviso legale (src/core/legal.js): una volta sola, prima di tutto il resto ----------
+   * Blocca l'app finché non si accettano condizioni e informativa; poi riprende quello che si voleva fare
+   * (partita in sospeso o gioco toccato) e solo dopo chiede il consenso alle statistiche. */
+  function legalGate(then) {
+    if (!HH.legal.needs()) return false;
+    HH.legal.gate({
+      openLang: () => { renderLangSheet(); $('#langDlg').hidden = false; const cur = $('.lang.cur'); if (cur) cur.focus(); },
+      done: () => { if (then) then(); if (!S.game) askConsent(1500); },
+    });
+    return true;
   }
 
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();

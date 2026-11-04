@@ -89,7 +89,7 @@ async function phone(name, scheme) {
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
   await page.goto(URL);
   await page.evaluate(() => {
-    for (const [k, v] of Object.entries({ 'tut:street': 1, 'street:picked': 1, 'street:mode': 'solo', lang: 'en', anConsent: false, 'prog:street': { level: 2 } })) localStorage.setItem('harihari:' + k, JSON.stringify(v));
+    for (const [k, v] of Object.entries({ 'tut:street': 1, 'street:picked': 1, 'street:mode': 'solo', lang: 'en', anConsent: false, legal: { v: 999, at: 1 }, 'prog:street': { level: 2 } })) localStorage.setItem('harihari:' + k, JSON.stringify(v));
   });
   await page.goto(URL);
   await page.waitForTimeout(400);
