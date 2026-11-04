@@ -6,10 +6,12 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.24.0';
+const VERSION = 'hh-v0.25.0';
+// testi legali: en.js e licenses.js sempre offline (SHELL); le altre lingue (src/i18n/legal/<lang>.js) in cache alla prima apertura
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
-  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/usage.js',
+  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/usage.js', 'src/core/legal.js',
+  'src/i18n/legal/en.js', 'src/i18n/legal/licenses.js',
   'src/games/tokens.css', 'src/games/catalog.js', 'src/games/cards.js',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
@@ -17,7 +19,9 @@ const SHELL = [
 importScripts('src/games/catalog.js');
 // (anche i file extra che un gioco carica su richiesta, es. le mappe reali di Hari Taxi: in cache alla prima apertura)
 const GAME_FILES = new Set(self.HH.catalog.flatMap((g) => [...g.files, ...(g.extra || [])]));
-const isGameFile = (url) => { const u = new URL(url, self.registration.scope); return GAME_FILES.has(u.pathname.slice(new URL(self.registration.scope).pathname.length)); };
+const scopePath = (url) => new URL(url, self.registration.scope).pathname.slice(new URL(self.registration.scope).pathname.length);
+// file scaricati su richiesta e poi tenuti offline: quelli dei giochi e i testi legali delle altre lingue
+const isGameFile = (url) => { const p = scopePath(url); return GAME_FILES.has(p) || /^src\/i18n\/legal\/[a-z]{2,3}\.js$/.test(p); };
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
@@ -39,9 +43,11 @@ async function carryGames(c) {
   for (const k of old) for (const req of await (await caches.open(k)).keys()) if (isGameFile(req.url)) have.set(req.url, k);
   // un gioco si porta dietro solo se tutti i suoi file c'erano
   const scope = new URL(self.registration.scope);
+  // i testi legali delle lingue già lette restano offline anche dopo l'aggiornamento
+  const legal = [...have.keys()].map(scopePath).filter((p) => /^src\/i18n\/legal\//.test(p) && !SHELL.includes(p));
   const games = self.HH.catalog.filter((g) => g.files.every((f) => have.has(new URL(f, scope).href)));
   // i file extra già scaricati (es. una mappa reale) seguono il loro gioco
-  await Promise.all(games.flatMap((g) => [...g.files, ...(g.extra || []).filter((f) => have.has(new URL(f, scope).href))].map(async (f) => {
+  await Promise.all([...games.flatMap((g) => [...g.files, ...(g.extra || []).filter((f) => have.has(new URL(f, scope).href))]), ...legal].map(async (f) => {
     const url = new URL(f, scope).href;
     try { const r = await fetch(new Request(url, { cache: 'reload' })); if (r.ok) return c.put(url, r); throw new Error(r.status); }
     catch (e) { const r = await (await caches.open(have.get(url))).match(url); if (r) return c.put(url, r); }

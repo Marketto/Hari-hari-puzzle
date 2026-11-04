@@ -33,6 +33,8 @@ async function open({ w = 360, h = 760, scheme = 'light', store = {} } = {}) {
   await page.addInitScript((st) => {
     localStorage.setItem('harihari:tut:drive', '1');
     localStorage.setItem('harihari:lang', '"it"');
+    // avviso legale già accettato (versione alta: vale anche dopo un aumento di HH.legal.VERSION); si prova a parte
+    localStorage.setItem('harihari:legal', JSON.stringify({ v: 999, at: Date.now() }));
     for (const [k, v] of Object.entries(st)) localStorage.setItem('harihari:' + k, JSON.stringify(v));
   }, store);
   await page.goto(URL);

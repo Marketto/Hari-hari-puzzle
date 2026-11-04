@@ -9,7 +9,9 @@
 | `build-inline.mjs` | Fonde CSS e JS in `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html` |
 | `gen-icons.mjs` | Icone SVG (standard, maskable, mascotte) dal disegno di Hari |
 | `rasterize-icons.py` | PNG 180/192/512 + maskable (richiede `pip install cairosvg`) |
-| `serve.mjs` | Server statico locale senza dipendenze |
+| `serve.mjs` | Server statico locale senza dipendenze (`node tools/serve.mjs [porta]`) |
+| `legal-import.mjs` | Testi legali: importa chiavi `lg_*` e traduzioni, genera `src/i18n/legal/<lang>.js` e `licenses.js` (elenco unico dei componenti), vedi [legal.md](legal.md) |
+| `legal-e2e.mjs` | Prova dell'avviso legale con Playwright: primo avvio in it/ja/ar, chiaro/scuro, verticale/orizzontale, sotto-viste, accettazione → statistiche, piè di pagina, partita ripresa, file unico (`--port`, `--shots DIR`) |
 | `mp-demo.html` | Demo del multigiocatore (due ricci e una fragola): `http://localhost:5173/tools/mp-demo.html` |
 | `mp-e2e.mjs` | Prova reale del multigiocatore con Playwright: due Chromium, microfono e fotocamera finti, percorsi suono/QR/codice, screenshot (`--shots DIR`) |
 | `street-e2e.mjs` | Prova reale di Hari Snack Street a due (modulo HH.mp vero, abbinamento col suono): viste coerenti, input dell'ospite, vittoria su entrambi, caduta del link → Kiki CPU (`--port`, `--shots DIR`) |
