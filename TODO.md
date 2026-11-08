@@ -30,6 +30,11 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.25.3)
+- [x] Tutorial più largo dello schermo su iPhone (Safari/Chrome iOS, WebKit): la colonna della griglia di `.overlay` si
+  dimensionava sul contenuto e `width: min(420px, 100%)` valeva 420 px. Ora `.overlay` ha `grid-template-columns: minmax(0, 1fr)`
+  e `.sheet` `max-width: 100%; min-width: 0`. Verificato con Playwright WebKit: prima 34–454 px su 402, ora 16–386
+
 ## Fatto (v0.25.2)
 - [x] **Aggiornamenti bloccati dalla 0.25.0**: `sw.js` aveva un errore di sintassi (una parentesi in più in `carryGames`), il
   browser scartava il service worker nuovo e tutti i telefoni restavano alla 0.24.0. Corretto; nuovo test in

@@ -422,12 +422,14 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
 
 /* ---------- overlay ---------- */
 .overlay {
-  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  /* una sola colonna larga quanto lo schermo (minmax 0): senza, Safari/WebKit su iPhone dimensiona la colonna sul
+   * contenuto e le percentuali delle finestre (width: min(420px, 100%)) escono a destra dello schermo */
+  position: fixed; inset: 0; z-index: 50; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 16px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   background: rgba(40, 20, 40, .45); backdrop-filter: blur(6px); animation: fade .2s;
 }
 .sheet {
-  width: min(660px, 100%); max-height: min(84vh, 760px); display: flex; flex-direction: column;
+  width: min(660px, 100%); max-width: 100%; min-width: 0; max-height: min(84vh, 760px); display: flex; flex-direction: column;
   background: var(--card-solid); border: 2px solid var(--line); border-radius: 30px; box-shadow: var(--shadow); animation: rise .35s cubic-bezier(.3, 1.5, .5, 1);
 }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 8px; }
