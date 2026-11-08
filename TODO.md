@@ -7,11 +7,11 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)
 - [ ] Colori su telefono vero (voci di sistema per lingua)
 - [ ] Pesca su telefono vero (sensori, iPhone permesso)
 - [ ] Aggiornamento su iPhone vero (Chrome iOS) da una versione vecchia
-- [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
 - [ ] Ortigia su telefono vero: leggibilità dei cartelli nel centro storico fitto, fluidità vicino ai ponti
 - [ ] Hari Taxi, mappe reali su telefono vero: fluidità del canvas nelle zone dense, leggibilità dei cartelli
@@ -19,7 +19,6 @@
   comandi sullo schermo diviso a 800 × 380, fluidità di due viste su un tablet medio
 - [ ] Hari Snack Street su telefono vero: levetta e pulsanti col pollice, schermo diviso in due su tablet, fluidità del canvas
 - [ ] Multigiocatore su telefoni veri: abbinamento col suono in una stanza vera (volume, distanza, rumore), QR con fotocamera, reti ospiti/hotspot, iOS
-- [ ] Da provare su telefono vero: schermo intero tra più giochi, tasto indietro di Android a schermo intero
 - [ ] Hari Rally 3 su telefono vero: comodità dei pedali col tocco multiplo, sensibilità del trascinamento, fluidità con 4 kart vicini
 - [ ] Hari Sudoku su telefono vero: comodità del tastierino in una riga a 360 px e del layout a schermo intero col telefono girato
 - [ ] Hari Escape su telefono vero: comodità dei tocchi su oggetti piccoli (quadri e indizi appesi) e leggibilità degli indizi in miniatura
@@ -32,6 +31,15 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.29.0)
+- [x] **Schermo intero unica modalità dei giochi**: si gioca solo a schermo intero (via `#gFull` e `#homeFsExit`, la home
+  torna in vista normale). Indietro/Esc a schermo intero → subito alla home con la transizione (un solo indietro della
+  history); cambio app, blocco schermo, notifica → il gioco resta in pausa sotto un velo con Hari e il primo tocco
+  rientra a schermo intero riprendendo la stessa partita (distinzione con finestra di 350 ms su `visibilitychange`).
+  Ripresa all'avvio e link diretto: velo, poi tocco. iPhone, iframe e richieste rifiutate: pseudo-schermo intero
+  (`html.fs-on`). Rally e Street riapplicano il blocco in orizzontale al rientro. Chiave `fullExit` tolta (inutilizzata).
+  Prova: `tools/fullscreen-e2e.mjs`, WebKit 402×874 e 874×402 su 7 giochi.
 
 ## Fatto (v0.28.0)
 - [x] **Hari Fishing** (`fish`), simulatore di pesca in 3D cel shading (three.js condiviso con Rally): Hari sul pontile

@@ -690,8 +690,25 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   opacity: .9;
 }
 
-/* schermo intero */
-.icon-btn.full svg { width: 20px; height: 20px; }
+/* schermo intero: l'unica modalità dei giochi (html.fs-on = gioco aperto, a schermo intero vero o pseudo) */
+/* velo "torna a schermo intero" (cambio app, blocco schermo, ripresa senza gesto): Hari e un grande pulsante, sopra
+ * dialoghi e finestre, sotto la transizione */
+.overlay.fs-veil {
+  z-index: 80; grid-template-rows: auto auto auto; align-content: center; gap: 14px; cursor: pointer; touch-action: manipulation;
+  background: radial-gradient(var(--dots) 1.6px, transparent 2.2px) 0 0 / 28px 28px, linear-gradient(180deg, color-mix(in srgb, var(--sky-top) 92%, transparent), color-mix(in srgb, var(--bg) 90%, transparent));
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.fs-veil-hari { width: min(150px, 34vmin); aspect-ratio: 1; animation: float 3s ease-in-out infinite; }
+.fs-veil-hari .hari { width: 100%; height: 100%; filter: drop-shadow(0 10px 12px var(--text-shadow-c)); }
+.fs-veil-go {
+  display: grid; place-items: center; width: 96px; height: 96px; border: 0; border-radius: 50%; cursor: pointer; color: var(--accent-ink);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 72%, var(--card-solid)), var(--accent) 62%);
+  box-shadow: 0 6px 0 var(--accent-2), 0 14px 22px -10px var(--accent-2); animation: tut-pulse 1.8s ease-in-out infinite;
+}
+.fs-veil-go svg { width: 46px; height: 46px; }
+.fs-veil-go:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--accent-2); }
+.fs-veil-tap { margin: 0; font-weight: 800; font-size: 17px; color: var(--ink); text-align: center; }
+@media (max-height: 420px) { .fs-veil-hari { width: 92px; } .fs-veil-go { width: 80px; height: 80px; } .overlay.fs-veil { gap: 8px; } }
 /* schermo intero, riquadro di gioco: barra con logo + titolo (menu) e uscita, indicatori compatti, gioco al centro */
 .fs-bar, .fs-hud, .fs-menu { display: none; }
 /* lo schermo intero è del documento (<html>): resta attivo tra un gioco e l'altro e le finestre (vittoria, tutorial…) restano

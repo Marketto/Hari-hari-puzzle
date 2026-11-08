@@ -812,6 +812,8 @@
     function onVis() { if (!el.isConnected) { detach(); return; } if (document.hidden && !net) pause(); }
     function onResize() { measure(); checkTurn(); draw(performance.now()); }
     function onFull() {
+      // rientro a schermo intero (velo dell'app dopo un cambio d'app): il browser ha tolto il blocco, lo si rimette
+      if (lockedFs && (document.fullscreenElement || document.webkitFullscreenElement)) orient(true);
       later(() => { measure(); checkTurn(); draw(performance.now()); }, 120);
     }
     // a schermo intero si gioca in orizzontale, come il rally: blocco dell'orientamento dove il browser lo permette
@@ -892,6 +894,7 @@
       undo() { toggle(); },
       pause() { pause(); },
       resume() { resume(); },
+      online: () => !!net,          // in rete: il velo dello schermo intero dell'app non mette in pausa
       // l'ospite salva solo i numeri della vista (non riprendibile: alla riapertura si riparte in locale)
       snapshot: () => (net && net.role === 'guest' ? Object.assign({}, v || { v: 1, view: 1, oops: 0, mistakes: 0, moves: 0, waveN: 3, bossNeed: 60, prog: 0 }) : s),
     };

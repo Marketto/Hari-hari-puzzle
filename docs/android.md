@@ -14,11 +14,18 @@
 - *Più tardi* (o prompt rifiutato) = non riproporre per 3 giorni (`harihari:install:snooze`). Il pulsante Installa resta in alto.
 - App già installata (`display-mode: standalone`) o computer: nessuna proposta.
 
+**Schermo intero** (dettagli in `docs/architecture.md`, "Schermo intero")
+- I giochi si giocano solo a schermo intero, anche nell'app installata (`standalone`): la home resta normale.
+- Tasto o gesto indietro mentre si gioca: il sistema toglie lo schermo intero e l'app torna subito alla home (un solo passo).
+- Cambio app, blocco schermo, notifica a tutto schermo: al ritorno il gioco è in pausa sotto il velo di Hari; il primo
+  tocco rientra a schermo intero e riprende. Rally e Street ribloccano l'orizzontale.
+
 **Aggiornamenti** (`setupUpdates` + `sw.js`)
 - Controllo: a ogni avvio, al ritorno in primo piano e ogni 30 minuti (`reg.update()`, `updateViaCache: 'none'`).
 - Il service worker nuovo scarica tutta la shell ignorando la cache HTTP e resta in attesa; si attiva con il messaggio `{type:'skip'}`:
   subito se si è nella home, altrimenti quando l'app va in background, quando si torna alla home o con il pulsante *Aggiorna*.
 - Prima della ricarica la partita viene salvata; all'avvio riparte da dove era e Hari dice "Aggiornata! I tuoi progressi sono al sicuro."
+  Dopo la ricarica non c'è un tocco: la partita riparte sotto il velo dello schermo intero e il primo tocco ci rientra.
 - **Salvataggi al sicuro**: stanno in `localStorage` (prefisso `harihari:`), che il service worker non tocca (cancella solo le sue cache
   vecchie). Livelli e punti non hanno versione. Le partite in corso hanno `SAVE_VERSION`: se cambia, aggiungere una migrazione in
   `HH.progress.MIGRATE[v]`; senza migrazione il salvataggio non viene caricato ma nemmeno cancellato. Se un salvataggio non si apre,

@@ -71,18 +71,46 @@ di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gi
 ## Schermo intero
 - **Bersaglio**: `document.documentElement` (non il riquadro di gioco). Così lo schermo intero sopravvive al cambio di
   gioco (il riquadro `#gPlate` viene ricreato a ogni apertura e, se fosse lui l'elemento a schermo intero, il browser ne
-  uscirebbe) e le finestre di vittoria, sconfitta, tutorial e i dialoghi, che stanno nel `<body>` con `z-index` più alto,
+  uscirebbe, per esempio cambiando mappa in Hari Taxi o lingua) e le finestre di vittoria, sconfitta, tutorial e i dialoghi, che stanno nel `<body>` con `z-index` più alto,
   restano visibili sopra al gioco. A schermo intero `<html>` ha la classe `fs-on`: `.fs-on .plate` copre la pagina con
   `position: fixed` (geometria con `!important`, come il foglio del browser per `:fullscreen`). Le regole di schermo
   intero dei giochi si scrivono `.fs-on .plate …` (stessa specificità del vecchio `.plate:fullscreen`).
-- **Avvio**: aprire un gioco toccando una card porta sempre a schermo intero (`autoFull` all'inizio di `openGame`, dentro il
-  tocco e prima dello scaricamento asincrono). Senza tocco (link diretto, partita ripresa all'avvio) il browser non lo
-  permette e si resta in vista normale. Su iPhone l'API non c'è e non cambia nulla.
-- **Persistenza**: si esce SOLO col pulsante (riquadro, menu del logo, `#homeFsExit` nella barra della home) o col tasto
-  Esc/indietro del sistema. Vittoria, sconfitta, livello successivo, ricomincia, tutorial, home e cambio di gioco non
-  escono. La preferenza è in `sessionStorage` (`hh-fs`): un'uscita fatta dal browser con l'app in primo piano conta come
-  esplicita; se il browser la toglie con l'app in background, al primo tocco su un gioco si rientra (`resumeFull`, solo
-  con `navigator.userActivation.isActive`, così non compaiono errori in console).
+- **Unica modalità**: i giochi si giocano SOLO a schermo intero; non c'è più una vista normale del gioco né un pulsante
+  per entrare o uscire (`#gFull` e `#homeFsExit` tolti). La classe `html.fs-on` è legata al gioco aperto (`showGame` la
+  mette, `leaveGame` la toglie), non allo stato del browser: così uscite e rientri non fanno mai vedere la vista normale.
+- **Home in vista normale**: tornando alla home (barra del gioco, menu del logo, tasto home `#gFsExit` nella barra, vittoria →
+  home, indietro) `leaveGame` esce dallo schermo intero a schermo coperto dalla transizione. Motivo: la home scorre, ha
+  dialoghi (lingue, statistiche, installazione, avviso legale) e non guadagna nulla dallo schermo intero; ogni gioco ci
+  rientra comunque dal tocco sulla card.
+- **Avvio**: `autoFull` all'inizio di `openGame`, dentro il tocco sulla card e prima dello scaricamento e della
+  transizione (che farebbero scadere il gesto). Senza tocco (partita ripresa all'avvio, link diretto, ricarica dopo un
+  aggiornamento) il browser non lo permette: il gioco si apre nella disposizione a tutto schermo coperto dal **velo**
+  (`#fsVeil`: Hari e un grande pulsante con l'icona dello schermo intero, `aria-label` = `full`, testo `pa_tap`); il primo
+  tocco rientra (`requestFullscreen` dentro quel tocco) e il gioco parte. Con `navigator.userActivation` non attivo non si
+  chiama nemmeno `requestFullscreen` (niente errori in console).
+- **Pseudo-schermo intero**: dove l'API non c'è (`canFull()` falso: iPhone in Safari o Chrome, iframe) o il browser
+  rifiuta la richiesta fatta dentro un tocco (permessi, criteri dell'iframe: `fsDenied` per il resto della sessione), la
+  stessa disposizione `.fs-on .plate` occupa tutta la finestra. Niente velo e niente pulsante.
+- **Uscita fatta dal browser mentre si gioca** (`fullscreenchange` senza schermo intero, `fsLost`):
+  - *indietro* (tasto o gesto indietro di Android, Esc su PC) → subito alla home con la transizione (`fsBack`: `goHome`
+    e, se il gioco aveva una voce nella history, un solo `history.back()` con `S.pushed` già a `false`, così il
+    `popstate` che segue non rifà nulla; se il browser manda anche il suo `popstate`, `S.leaving` blocca il secondo
+    `goHome`). La disposizione `fs-on` resta finché la transizione non copre lo schermo: niente passaggio dalla vista normale.
+  - *cambio d'app, blocco schermo, notifica a tutto schermo* → la pagina diventa nascosta: il gioco resta, in pausa sotto
+    il velo; il primo tocco rientra a schermo intero e riprende la partita da dov'era (stesso stato, nessuna ricarica).
+    Se il rientro viene rifiutato, il gioco riparte lo stesso in pseudo-schermo intero.
+  - Come si distinguono (l'ordine di `visibilitychange` e `fullscreenchange` cambia tra i browser): è un cambio d'app se
+    al momento dell'uscita la pagina è nascosta, se si nasconde entro `FS_WAIT` (350 ms) dopo l'uscita, oppure se l'uscita
+    arriva entro `FS_BACK_GRACE` (1 s) dal ritorno in primo piano dopo essere stata nascosta durante lo schermo intero
+    (alcuni Android notificano l'uscita solo al ritorno). Altrimenti, finiti i 350 ms, è un indietro.
+  - Il velo mette in pausa il gioco (`inst.pause()`, ripreso con `inst.resume()` al tocco) solo se non è in rete
+    (`inst.online()`: Rally e Street in rete gestiscono da soli la pagina nascosta e la connessione non deve cadere) e
+    se non è aperta una finestra (tutorial, vittoria, sconfitta). Il cronometro dell'app non avanza col velo.
+  - Rally e Street bloccano l'orizzontale, Hari Fishing il verticale (solo al tocco): al rientro dal velo
+    `fullscreenchange` riapplica il blocco (Rally e Fishing `onFull`, Street `onFull` con `lockedFs`). Hari Colors si
+    ferma da solo con la pagina nascosta (voce compresa) e riparte dal tocco sulla sua copertina, che sblocca la voce.
+- e2e: `tools/fullscreen-e2e.mjs` (Chromium: apertura, indietro una volta sola, cambio d'app nei due ordini, ripresa
+  all'avvio, blocco dell'orientamento, richiesta rifiutata, RTL; `document.hidden` e `visibilitychange` emulati).
 - **Adattamento** (`fitFs` in `app.js`, rilanciato a ogni apertura, nuovo livello, ricomincia e `resize`):
   - **fill** (contratto opzionale, `fill: true` nella voce di `HH.games`): il contenitore del gioco (primo figlio di
     `#board`) riempie tutto lo spazio sotto la barra (`.plate.fs-fill`), e il CSS del gioco dice quale pezzo cresce

@@ -19,7 +19,6 @@
     audio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h3.5L11 5v14l-4.5-4H3z" fill="currentColor"/><path class="wave" d="M14 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><g class="note"><path d="M18 14.5V5.5l4-1v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16.6" cy="14.6" rx="1.9" ry="1.6" fill="currentColor"/><ellipse cx="20.6" cy="12.6" rx="1.9" ry="1.6" fill="currentColor"/></g><path class="mute" d="M14.5 9l6 6M20.5 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    unfull: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -152,7 +151,7 @@
 
   // timer di gioco: avanza solo se la partita è visibile e non ancora vinta
   setInterval(() => {
-    if (!S.inst || S.won || document.hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden || !$('#tutDlg').hidden) return;
+    if (!S.inst || S.won || document.hidden || veilOn() || !$('#winDlg').hidden || !$('#loseDlg').hidden || !$('#tutDlg').hidden) return;
     S.elapsed++;
     HH.usage.tick(S.game.id);
     const tm = $('#hTime');
@@ -266,7 +265,8 @@
     if (consentAsked || !HH.usage.canAsk() || HH.usage.consent() !== null || HH.legal.needs()) return;
     consentAsked = true;
     setTimeout(() => {
-      if (S.game || HH.usage.consent() !== null || HH.legal.isOpen()) { consentAsked = false; return; }
+      // (anche durante l'apertura di un gioco: S.game arriva solo a schermo coperto dalla transizione)
+      if (S.game || S.loading || (HH.transition && HH.transition.busy()) || HH.usage.consent() !== null || HH.legal.isOpen()) { consentAsked = false; return; }
       const d = document.createElement('div');
       d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
       d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
@@ -331,55 +331,137 @@
     }));
   }
 
-  /* ---------- schermo intero (dove il browser lo permette; su iPhone il pulsante non compare) ----------
-   * A schermo intero va tutto il documento (<html>), non il solo riquadro di gioco: così sopravvive al cambio di gioco
-   * (il riquadro viene ricreato a ogni apertura) e le finestre di vittoria, sconfitta, tutorial e i dialoghi, che stanno
-   * nel <body>, restano visibili. Il riquadro di gioco si "ingrandisce" via CSS con la classe html.fs-on.
-   * Si resta a schermo intero finché il giocatore non esce (pulsante, menu del logo, Esc/indietro del sistema). */
+  /* ---------- schermo intero: l'unica modalità dei giochi ----------
+   * Si gioca SEMPRE a schermo intero; la home invece è in vista normale (uscendo da un gioco si esce anche dallo schermo
+   * intero). A schermo intero va tutto il documento (<html>), non il solo riquadro: le finestre di vittoria, sconfitta,
+   * tutorial e i dialoghi, che stanno nel <body>, restano visibili sopra al gioco. La disposizione "a tutto schermo"
+   * (classe html.fs-on, regole .fs-on .plate) è legata al gioco aperto, non allo stato del browser: dove l'API non c'è
+   * (iPhone) o il browser la rifiuta (iframe, permessi) la stessa disposizione fa da pseudo-schermo intero.
+   * Uscita dallo schermo intero fatta dal browser mentre si gioca (vedi docs/architecture.md, "Schermo intero"):
+   *  - pagina visibile = tasto indietro / gesto indietro / Esc → si torna subito alla home (una volta sola);
+   *  - pagina nascosta subito prima o subito dopo (cambio app, blocco schermo, notifica a tutto schermo) → il gioco resta,
+   *    in pausa sotto un velo con Hari: il primo tocco rientra a schermo intero e riprende la partita. */
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   const isFull = () => !!fsEl();
-  // preferenza di sessione: true finché il giocatore non esce. Se il browser lo toglie mentre l'app è in background
-  // (cambio app su Android) la preferenza resta e al primo tocco successivo su un gioco si rientra.
-  const FS_KEY = 'hh-fs';
-  const sess = { get() { try { return G.sessionStorage.getItem(FS_KEY) === '1'; } catch (e) { return false; } }, set(v) { try { if (v) G.sessionStorage.setItem(FS_KEY, '1'); else G.sessionStorage.removeItem(FS_KEY); } catch (e) { /* niente storage */ } } };
-  function enterFull() {
+  const inFs = () => document.documentElement.classList.contains('fs-on');   // gioco aperto (vero o pseudo-schermo intero)
+  const now = () => Date.now();
+  const FS_WAIT = 350;                   // finestra dopo l'uscita: se la pagina si nasconde entro questo tempo è un cambio d'app
+  const FS_BACK_GRACE = 1000;            // uscita notificata entro 1 s dal ritorno in primo piano: era il cambio d'app
+  let fsDenied = false;                  // rifiutato anche con un tocco (iframe, permessi): pseudo-schermo intero per la sessione
+  let fsAsk = null;                      // richiesta in corso (Promise<boolean>)
+  let fsOnAt = 0, hidAt = 0, visAt = 0, lostT = 0;
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hidAt = now(); else visAt = now(); });
+  // entra a schermo intero: va chiamata dentro un gesto (tocco su una card, sul velo, su "Accetto"). sure = il chiamante
+  // sa di essere dentro un tocco: se il browser rifiuta lo stesso, si gioca in pseudo-schermo intero.
+  function enterFull(sure) {
+    if (!canFull() || fsDenied) return Promise.resolve(false);
+    if (isFull()) return Promise.resolve(true);
+    if (fsAsk) return fsAsk;
+    const ua = G.navigator.userActivation;
+    if (ua && !ua.isActive) return Promise.resolve(false);   // senza un tocco il browser rifiuterebbe: niente errori in console
     const d = document.documentElement;
-    sess.set(true);
-    if (isFull()) return;
-    try { const r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (e) { /* non supportato */ }
+    let r;
+    try { r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); } catch (e) { r = Promise.reject(e); }
+    // il vecchio webkitRequestFullscreen non restituisce una Promise: si guarda lo stato poco dopo
+    if (!r || typeof r.then !== 'function') r = new Promise((ok, ko) => setTimeout(() => (isFull() ? ok() : ko()), 400));
+    const p = r.then(() => true, () => { if (sure || ua) fsDenied = true; return false; });
+    fsAsk = p;
+    p.then(() => { if (fsAsk === p) fsAsk = null; });
+    return p;
   }
+  // uscita voluta dall'app (ritorno alla home): non deve contare come "indietro"
   function exitFull() {
-    sess.set(false);
+    clearTimeout(lostT);
     if (!isFull()) return;
     try { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } catch (e) { /* non supportato */ }
   }
-  function toggleFull() { if (isFull()) exitFull(); else enterFull(); }
-  // rientra se il giocatore lo voleva (va chiamata dentro un gesto: tocco su una card o su "Avanti")
-  function resumeFull() {
-    if (!canFull() || isFull() || !sess.get()) return;
-    const ua = G.navigator.userActivation;
-    if (ua && !ua.isActive) return;   // senza un tocco il browser rifiuterebbe: si riprova al prossimo
-    enterFull();
-  }
   // apertura di un gioco: si entra a schermo intero subito, dentro il tocco sulla card (prima dello scaricamento
-  // asincrono, che farebbe scadere il gesto). Se il giocatore esce, resta fuori fino al prossimo gioco aperto.
-  function autoFull() {
-    if (!canFull() || isFull()) return;
-    const ua = G.navigator.userActivation;
-    if (ua && !ua.isActive) return;   // aperto senza un tocco (link diretto, ripresa all'avvio): il browser rifiuterebbe
-    enterFull();
+  // asincrono e della transizione, che farebbero scadere il gesto)
+  function autoFull() { if (!isFull()) enterFull(false); }
+  function fsClass(on) { document.documentElement.classList.toggle('fs-on', !!on); }
+
+  /* velo "torna a schermo intero": Hari e un grande pulsante. Compare quando il browser ha tolto lo schermo intero con
+   * l'app in background, alla ripresa della partita all'avvio e col link diretto (nessun gesto, il browser non lo
+   * permette). La partita resta com'era (nessuna ricarica): il gioco va in pausa solo se non è in rete (i giochi in
+   * rete gestiscono da soli la pagina nascosta, e la connessione non deve cadere). */
+  let veilPaused = false;
+  const veilOn = () => { const v = $('#fsVeil'); return !!(v && !v.hidden); };
+  const netLive = () => !!(S.inst && typeof S.inst.online === 'function' && S.inst.online());
+  // tutorial, vittoria o sconfitta aperti: il gioco è già fermo e lo resta (il velo non lo tocca)
+  const dlgOpen = () => !$('#tutDlg').hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden;
+  function showVeil() {
+    if (!S.game || isFull() || !canFull() || fsDenied) return;
+    let v = $('#fsVeil');
+    if (!v) {
+      v = document.createElement('div');
+      v.id = 'fsVeil'; v.className = 'overlay fs-veil';
+      v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true');
+      document.body.appendChild(v);
+      v.addEventListener('click', onVeilTap);
+      v.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onVeilTap(); } });
+    }
+    v.innerHTML = `<div class="fs-veil-hari">${HH.mascot.svg({ cls: 'hari' })}</div>
+      <button class="fs-veil-go" type="button" aria-label="${lab('full', 'Full screen')}">${ICON.full}</button>
+      <p class="fs-veil-tap" aria-hidden="true">${lab('pa_tap', 'Tap to continue')}</p>`;
+    v.hidden = false;
+    fsMenu(false);
+    if (S.inst && S.inst.pause && !netLive() && !veilPaused && !dlgOpen()) { veilPaused = true; try { S.inst.pause(); } catch (e) { /* gioco già chiuso */ } }
+    HH.music.duck(true);
+    const b = v.querySelector('.fs-veil-go');
+    if (b && !document.hidden) b.focus({ preventScroll: true });
   }
-  function fsClass() { document.documentElement.classList.toggle('fs-on', isFull()); }
-  // a schermo intero la barra degli indicatori entra nel riquadro (compatta), all'uscita torna al suo posto
+  function hideVeil() {
+    const v = $('#fsVeil');
+    if (!v || v.hidden) return;
+    v.hidden = true; v.innerHTML = '';
+    if (!dlgOpen()) HH.music.duck(false);
+    if (veilPaused) { veilPaused = false; if (S.inst && S.inst.resume) { try { S.inst.resume(); } catch (e) { /* gioco già chiuso */ } } }
+    refitSoon();
+  }
+  // primo tocco sul velo: rientra (dentro il tocco) e riprende subito; se il browser rifiuta, si gioca lo stesso
+  function onVeilTap() {
+    sfx.tap();
+    HH.audio.unlock();
+    enterFull(true);
+    hideVeil();
+  }
+  // senza schermo intero mentre si gioca e senza un tocco per entrarci: velo (appena finisce la richiesta in corso)
+  function fsEnsure() {
+    if (!S.game || isFull() || !canFull() || fsDenied) return;
+    if (fsAsk) { fsAsk.then(() => fsEnsure()); return; }
+    showVeil();
+  }
+  // lo schermo intero è finito da solo mentre si giocava: cambio d'app o indietro?
+  function fsLost() {
+    const t0 = now();
+    const bg = () => document.hidden || hidAt >= t0 || (hidAt > fsOnAt && visAt >= hidAt && t0 - visAt < FS_BACK_GRACE);
+    clearTimeout(lostT);
+    if (bg()) { showVeil(); return; }
+    lostT = setTimeout(() => {
+      if (!S.game || S.leaving || isFull()) return;
+      if (bg()) { showVeil(); return; }
+      fsBack();
+    }, FS_WAIT);
+  }
+  // indietro: alla home con la transizione. La voce della history del gioco si toglie qui (S.pushed = false prima,
+  // così il popstate che segue non rifà nulla: goHome è già in corso, S.leaving)
+  function fsBack() {
+    if (!S.game || S.leaving) return;
+    const pushed = S.pushed;
+    S.pushed = false;
+    goHome();
+    if (pushed) { try { history.back(); } catch (e) { /* niente history */ } }
+  }
+  // a schermo intero la barra degli indicatori sta nel riquadro (compatta)
   function placeHud() {
     const hud = document.querySelector('#game .hud'), slot = $('#gFsHud'), plate = $('#gPlate');
     if (!hud || !slot || !plate) return;
-    if (isFull()) { if (hud.parentElement !== slot) slot.appendChild(hud); }
+    if (inFs()) { if (hud.parentElement !== slot) slot.appendChild(hud); }
     else if (hud.parentElement === slot) plate.before(hud);
     fsMenu(false);
   }
-  // menu del logo (solo a schermo intero): le azioni della vista normale
+  // menu del logo: le azioni della barra e degli strumenti del gioco
   function fsMenu(open) {
     const box = $('#gFsMenuBox'), btn = $('#gFsMenu');
     if (!box || !btn) return;
@@ -392,7 +474,6 @@
         ['new', ICON.sparkle, t('newg'), '#gNew'],
         ['help', '<b class="q">?</b>', lab('help', 'How to play'), '#gHelp'],
         ['audio', ICON.audio, audioLabel(), '#audioBtn'],
-        ['exit', ICON.unfull, lab('fullExit', 'Exit full screen'), null],
       ].filter(([, , , sel]) => !sel || $(sel));
       box.innerHTML = items.map(([id, ic, label]) => `<button role="menuitem" data-fs="${id}">${ic}<span>${label}</span></button>`).join('');
       box.querySelectorAll('[data-fs="audio"]').forEach((b) => { b.dataset.state = audioState(); });
@@ -457,7 +538,7 @@
     const pl = $('#gPlate'), bd = $('#board');
     if (!pl || !bd) return;
     clearSide(bd);
-    if (!isFull()) { pl.classList.remove('fs-fit', 'fs-scroll', 'fs-fill'); pl.style.removeProperty('--game-w'); pl.style.removeProperty('--fs-h'); return; }
+    if (!inFs()) { pl.classList.remove('fs-fit', 'fs-scroll', 'fs-fill'); pl.style.removeProperty('--game-w'); pl.style.removeProperty('--fs-h'); return; }
     if (bd.querySelector(':scope > .dr-wrap')) return;               // Hari Taxi riempie già lo schermo da solo
     pl.classList.add('fs-fit');
     pl.classList.remove('fs-scroll');
@@ -555,34 +636,21 @@
     if (parts) tagSide(parts, sideOn); else refitSoon();
   }) : null;
   let fitT = 0, selfResize = false;
-  G.addEventListener('resize', () => { if (selfResize) { selfResize = false; return; } if (!isFull()) return; clearTimeout(fitT); fitT = setTimeout(fitFs, 120); });
-  // il bottone del gioco e quello della home rispecchiano lo stato
-  function fsButtons() {
-    const b = $('#gFull');
-    if (b) {
-      b.innerHTML = isFull() ? ICON.unfull : ICON.full;
-      b.setAttribute('aria-label', isFull() ? lab('fullExit', 'Exit full screen') : lab('full', 'Full screen'));
-    }
-    const h = $('#homeFsExit');
-    if (h) { h.hidden = !isFull(); h.setAttribute('aria-label', lab('fullExit', 'Exit full screen')); h.title = lab('fullExit', 'Exit full screen'); }
-  }
+  G.addEventListener('resize', () => { if (selfResize) { selfResize = false; return; } if (!inFs()) return; clearTimeout(fitT); fitT = setTimeout(fitFs, 120); });
   ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
-    // uscita fatta dal browser (Esc, indietro del sistema) = uscita esplicita; se invece l'app è in background no
-    if (!isFull() && !document.hidden) sess.set(false);
-    fsClass();
-    placeHud();
+    if (isFull()) { fsOnAt = now(); clearTimeout(lostT); hideVeil(); }
+    else if (S.game && !S.leaving) fsLost();       // tolto dal browser mentre si gioca (indietro, Esc, cambio app)
     setTimeout(fitFs, 60);
-    fsButtons();
   }));
   // ogni nuovo livello (vittoria → avanti, ricomincia, nuovo) può cambiare misura: si riadatta il riquadro
   let refitT = 0;
-  const refitSoon = () => { if (!isFull()) return; clearTimeout(refitT); refitT = setTimeout(fitFs, 80); };
+  const refitSoon = () => { if (!inFs()) return; clearTimeout(refitT); refitT = setTimeout(fitFs, 80); };
 
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
     if (legalGate(() => openGame(id, push))) return;     // avviso legale non ancora accettato: prima quello
-    autoFull();                       // i giochi partono sempre a schermo intero (finché c'è il tocco che li apre)
+    autoFull();                       // i giochi si giocano solo a schermo intero: si entra dentro il tocco che li apre
     if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
     // dalla home: transizione kawaii (src/core/transition.js). Il gioco si scarica e si disegna a schermo coperto.
     // Niente transizione alla ripresa della partita all'avvio (S.noTrans) e quando si riapre lo stesso gioco
@@ -592,7 +660,6 @@
     if (anim) {
       if (S.loading || HH.transition.busy()) return;    // doppio tocco o transizione già in corso: si ignora
       S.loading = id;
-      resumeFull();                     // dentro il tocco, prima di qualsiasi attesa
       let failed = false;
       HH.transition.run(async () => {
         try { if (!HH.gameLoaded(id)) await HH.loadGame(id); } catch (e) { failed = true; return; }
@@ -624,7 +691,6 @@
       });
       return;
     }
-    resumeFull();                     // schermo intero voluto ma perso (app in background): si rientra con questo tocco
     showGame(g, push);
   }
 
@@ -643,7 +709,6 @@
       <header class="g-head">
         <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
         <div class="g-title"><h2>${g.name}</h2>${g.endless ? '' : `<span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span>`}</div>
-        ${canFull() ? `<button class="icon-btn full" id="gFull" aria-label="${lab(isFull() ? 'fullExit' : 'full', isFull() ? 'Exit full screen' : 'Full screen')}">${isFull() ? ICON.unfull : ICON.full}</button>` : ''}
         ${g.tutorial ? `<button class="icon-btn help" id="gHelp" aria-label="${lab('help', 'How to play')}">?</button>` : ''}
       </header>
       <div class="hud"${g.endless ? ' id="hMeta"' : ''}>${g.endless ? '' : `
@@ -656,7 +721,7 @@
       <div class="plate ${g.plate || ''}" id="gPlate">
         <div class="fs-bar">
           <button class="fs-logo" id="gFsMenu" aria-haspopup="menu" aria-expanded="false" aria-label="${lab('fsMenu', 'Menu')}">${HH.mascot.mini()}<b>${g.name}</b>${g.endless ? '' : `<span class="fs-lv">${p.level}</span>`}${ICON.chev}</button>
-          <button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('fullExit', 'Exit full screen')}">${ICON.unfull}</button>
+          <button class="icon-btn fs-exit" id="gFsExit" aria-label="${lab('goHome', 'All games')}" title="${lab('goHome', 'All games')}">${ICON.home}</button>
         </div>
         <div class="fs-menu" id="gFsMenuBox" role="menu" hidden></div>
         <div class="fs-hud" id="gFsHud"></div>
@@ -697,16 +762,13 @@
       },
     };
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
-    const fb = $('#gFull');
-    if (fb) fb.onclick = () => { sfx.tap(); toggleFull(); };
-    $('#gFsExit').onclick = () => { sfx.tap(); exitFull(); };
+    $('#gFsExit').onclick = () => { sfx.tap(); $('#gBack').click(); };
     $('#gFsMenu').onclick = (e) => { e.stopPropagation(); sfx.tap(); fsMenu(); };
     $('#gFsMenuBox').onclick = (e) => {
       const it = e.target.closest('[data-fs]');
       if (!it) return;
       const act = it.dataset.fs;
       const map = { home: '#gBack', undo: '#gUndo', restart: '#gRestart', new: '#gNew', help: '#gHelp', audio: '#audioBtn' };
-      if (act === 'exit') { exitFull(); return; }
       const target = $(map[act]);
       if (act === 'audio') { target.click(); fsMenu(true); return; }   // resta aperto per vedere lo stato
       fsMenu(false);
@@ -718,11 +780,14 @@
       G.scrollTo(0, 0);
     }
     keepAwake(true);
-    // già a schermo intero (dal gioco precedente): indicatori nel riquadro e misura adattata
-    if (isFull()) { placeHud(); refitSoon(); }
+    // sempre a schermo intero (vero o pseudo): indicatori nel riquadro e misura adattata
+    fsClass(true);
+    placeHud(); refitSoon();
     // prima volta in questo gioco: tutorial PRIMA di creare la partita (così i giochi a tempo non partono dietro la finestra)
     if (g.tutorial && !HH.store.get('tut:' + g.id)) tutorial(g, () => { if (S.game === g) begin(); });
     else begin();
+    // aperto senza un tocco (ripresa all'avvio, link diretto, dopo un aggiornamento): velo, il primo tocco entra
+    fsEnsure();
 
     function begin() {
     HH.usage.open(g.id);
@@ -825,6 +890,9 @@
     hideSay();
     $('#loseDlg').hidden = true;
     S.game = null; S.inst = null;
+    veilPaused = false; hideVeil();
+    fsClass(false);
+    exitFull();                       // la home è in vista normale (S.game è già null: non conta come "indietro")
     keepAwake(false);
     $('#tutDlg').hidden = true;
     HH.store.set('screen', null);
@@ -992,7 +1060,6 @@
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
     audioUI();
-    fsButtons();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
@@ -1180,10 +1247,6 @@
     $('#langBtn').innerHTML = ICON.globe + '<span id="langCode"></span>';
     $('#audioBtn').innerHTML = ICON.audio;
     $('#installBtn').innerHTML = ICON.install + '<span></span>';
-    // uscita dallo schermo intero anche dalla home (lo schermo intero resta attivo tra un gioco e l'altro)
-    $('#homeFsExit').innerHTML = ICON.unfull;
-    $('#homeFsExit').onclick = () => { sfx.tap(); exitFull(); };
-    fsClass(); fsButtons();
     $('#scoreChip').innerHTML = ICON.acorn + '<b>0</b>';
 
     $('#home').addEventListener('click', (e) => {

@@ -232,7 +232,7 @@ async function ortigiaTour(page, suf) {
   const { ctx, page } = await open({ w: 915, h: 412, store: { 'drive:map': 'ostia', 'drive:mapSeen': 1 } });
   await openDrive(page);
   await waitMap(page, 'ostia');
-  if (await page.$('#gFull')) { await page.click('#gFull'); await sleep(900); }
+  await sleep(900);                                   // il gioco è già a schermo intero (unica modalità)
   await tapStart(page);
   await goNear(page, (md, g) => { const e = g.edges.find((q) => /lungomare/i.test(q.name) && q.len > 20); const [x, y] = HH.drive.along(g.center[e.id], e.len / 2); return { x, y }; });
   await sleep(1800);

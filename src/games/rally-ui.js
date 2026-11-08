@@ -3046,6 +3046,7 @@
       undo() { toggle(); },
       pause() { pause(); },
       resume() { resume(); },
+      online: () => !!net,          // in rete: il velo dello schermo intero dell'app non mette in pausa
       // a due: lo stato della gara (per fragoline e progressi) con dentro la gara in singolo da riprendere
       snapshot: () => (mpMode && s ? Object.assign({}, s, { solo: solo || null, mp: mpMode }) : s),
     };
