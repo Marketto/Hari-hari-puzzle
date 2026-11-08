@@ -362,6 +362,14 @@
     if (ua && !ua.isActive) return;   // senza un tocco il browser rifiuterebbe: si riprova al prossimo
     enterFull();
   }
+  // apertura di un gioco: si entra a schermo intero subito, dentro il tocco sulla card (prima dello scaricamento
+  // asincrono, che farebbe scadere il gesto). Se il giocatore esce, resta fuori fino al prossimo gioco aperto.
+  function autoFull() {
+    if (!canFull() || isFull()) return;
+    const ua = G.navigator.userActivation;
+    if (ua && !ua.isActive) return;   // aperto senza un tocco (link diretto, ripresa all'avvio): il browser rifiuterebbe
+    enterFull();
+  }
   function fsClass() { document.documentElement.classList.toggle('fs-on', isFull()); }
   // a schermo intero la barra degli indicatori entra nel riquadro (compatta), all'uscita torna al suo posto
   function placeHud() {
@@ -574,6 +582,7 @@
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
     if (legalGate(() => openGame(id, push))) return;     // avviso legale non ancora accettato: prima quello
+    autoFull();                       // i giochi partono sempre a schermo intero (finché c'è il tocco che li apre)
     if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
     const g = HH.gameLoaded(id);
     if (!g) {

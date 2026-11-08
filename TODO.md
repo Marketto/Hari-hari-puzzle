@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
 - [ ] Ortigia su telefono vero: leggibilità dei cartelli nel centro storico fitto, fluidità vicino ai ponti
 - [ ] Hari Taxi, mappe reali su telefono vero: fluidità del canvas nelle zone dense, leggibilità dei cartelli
@@ -27,6 +28,9 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.25.1)
+- [x] I giochi partono sempre a schermo intero quando si aprono toccando la card (se il giocatore esce, resta fuori fino al prossimo gioco)
 
 ## Fatto (v0.25.0)
 - [x] Avviso legale al primo avvio (condizioni d'uso, esclusione di responsabilità, conferma informativa privacy, consigli

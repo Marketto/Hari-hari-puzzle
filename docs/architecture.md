@@ -49,6 +49,9 @@ di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gi
   restano visibili sopra al gioco. A schermo intero `<html>` ha la classe `fs-on`: `.fs-on .plate` copre la pagina con
   `position: fixed` (geometria con `!important`, come il foglio del browser per `:fullscreen`). Le regole di schermo
   intero dei giochi si scrivono `.fs-on .plate …` (stessa specificità del vecchio `.plate:fullscreen`).
+- **Avvio**: aprire un gioco toccando una card porta sempre a schermo intero (`autoFull` all'inizio di `openGame`, dentro il
+  tocco e prima dello scaricamento asincrono). Senza tocco (link diretto, partita ripresa all'avvio) il browser non lo
+  permette e si resta in vista normale. Su iPhone l'API non c'è e non cambia nulla.
 - **Persistenza**: si esce SOLO col pulsante (riquadro, menu del logo, `#homeFsExit` nella barra della home) o col tasto
   Esc/indietro del sistema. Vittoria, sconfitta, livello successivo, ricomincia, tutorial, home e cambio di gioco non
   escono. La preferenza è in `sessionStorage` (`hh-fs`): un'uscita fatta dal browser con l'app in primo piano conta come
