@@ -29,7 +29,7 @@ export const DOCS = ['terms', 'privacy', 'licenses'];
  * used = giochi che lo usano (id del catalogo), vuoto = tutta l'app. */
 export const COMPONENTS = [
   { id: 'app', name: APP, author: '© 2026 Marketto', license: 'MIT License', url: 'https://github.com/Marketto/Hari-hari-puzzle', text: 'LICENSE' },
-  { id: 'three', name: 'three.js r160', author: '© 2010-2023 three.js authors', license: 'MIT License', url: 'https://threejs.org', text: 'src/vendor/three.LICENSE', used: ['rally'] },
+  { id: 'three', name: 'three.js r160', author: '© 2010-2023 three.js authors', license: 'MIT License', url: 'https://threejs.org', text: 'src/vendor/three.LICENSE', used: ['rally', 'fish'] },
   { id: 'font-mochiy', name: 'Mochiy Pop One (font)', author: 'FONTDASU', notice: 'Copyright 2020 The Mochiypop Project Authors (https://github.com/fontdasu/Mochiypop)',
     license: 'SIL Open Font License 1.1', url: 'https://fonts.google.com/specimen/Mochiy+Pop+One', text: 'docs/licenses/OFL-1.1.txt' },
   { id: 'font-mplus', name: 'M PLUS Rounded 1c (font)', author: 'Coji Morishita, M+ Fonts Project', notice: 'Copyright 2016 The Rounded M+ Project Authors.',

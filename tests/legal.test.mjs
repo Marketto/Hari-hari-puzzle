@@ -65,7 +65,7 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
     assert.ok(html.includes(f), f);
     assert.ok(COMPONENTS.some((c) => c.url.endsWith(f)), `font ${f} non in elenco`);
   }
-  // three.js: solo Hari Rally lo carica
+  // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing) lo caricano
   const cat = load('src/games/catalog.js').catalog;
   assert.deepEqual(cat.filter((g) => g.files.includes('src/vendor/three.min.js')).map((g) => g.id), COMPONENTS.find((c) => c.id === 'three').used);
 });

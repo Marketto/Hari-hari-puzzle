@@ -51,7 +51,7 @@ un test controlla che sia aggiornato).
 | Componente | Autore | Licenza | Dove |
 |---|---|---|---|
 | Hari Hari Puzzle | © 2026 Marketto | MIT (`LICENSE`) | tutta l'app |
-| three.js r160 | © 2010-2023 three.js authors | MIT (`src/vendor/three.LICENSE`) | solo Hari Rally (`src/vendor/three.min.js`) |
+| three.js r160 | © 2010-2023 three.js authors | MIT (`src/vendor/three.LICENSE`) | Hari Rally e Hari Fishing (`src/vendor/three.min.js`) |
 | Mochiy Pop One | FONTDASU (Copyright 2020 The Mochiypop Project Authors) | SIL OFL 1.1 | titoli, da Google Fonts |
 | M PLUS Rounded 1c | Coji Morishita, M+ Fonts Project (Copyright 2016 The Rounded M+ Project Authors) | SIL OFL 1.1 | testo, da Google Fonts |
 | Baloo Bhaijaan 2 | Ek Type (Copyright 2019 The Baloo 2 Project Authors) | SIL OFL 1.1 | arabo, da Google Fonts |

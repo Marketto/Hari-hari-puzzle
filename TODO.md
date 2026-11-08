@@ -9,6 +9,7 @@
 ## Prossimo
 - [ ] Transizioni su telefono vero (fluidità)
 - [ ] Colori su telefono vero (voci di sistema per lingua)
+- [ ] Pesca su telefono vero (sensori, iPhone permesso)
 - [ ] Aggiornamento su iPhone vero (Chrome iOS) da una versione vecchia
 - [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
@@ -31,6 +32,16 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.28.0)
+- [x] **Hari Fishing** (`fish`), simulatore di pesca in 3D cel shading (three.js condiviso con Rally): Hari sul pontile
+  al lago o al mare (sera col tema scuro), 8 specie kawaii da 1 a 4 stelle, album con foto, il pesce torna in acqua con
+  un cuoricino. Telefono: lancio col gesto della canna, recupero inclinando la punta (taratura a ogni lancio, "Attiva
+  movimento" per iOS, velo "tienilo in verticale" a schermo intero); PC: trascina e lascia, "Tira"/"Allenta" tenuti,
+  tastiera. Livelli con N pesci + pesca speciale, finestra di tensione sempre più stretta; bot nei test che vince ogni
+  livello ([docs/games/fish.md](docs/games/fish.md)). Chiavi `fi_*`, `tu_fish_*`, `r_fish` da tradurre (ora in inglese
+  tranne l'italiano)
+- [x] Testi della pesca tradotti in tutte le 43 lingue
 
 ## Fatto (v0.27.0)
 - [x] Hari Colors (`colors`): Hari dice un colore con la voce del telefono (solo voci locali, fumetto di riserva senza

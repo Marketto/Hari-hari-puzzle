@@ -19,7 +19,8 @@
   "license": "MIT License",
   "url": "https://threejs.org",
   "used": [
-   "rally"
+   "rally",
+   "fish"
   ],
   "text": "src/vendor/three.LICENSE"
  },

@@ -19,9 +19,10 @@ export function generate() {
   ctx.globalThis = ctx.window = ctx.self = ctx;
   vm.createContext(ctx);
   for (const f of CORE) vm.runInContext(read(f), ctx, { filename: f });
-  const out = {};
+  const out = {}, ran = new Set();
   for (const c of ctx.HH.catalog) {
-    for (const f of c.files.filter((x) => x.endsWith('.js'))) vm.runInContext(read(f), ctx, { filename: f });
+    // un file condiviso da più giochi (three.js) si esegue una volta sola, come nel browser
+    for (const f of c.files.filter((x) => x.endsWith('.js') && !ran.has(x))) { ran.add(f); vm.runInContext(read(f), ctx, { filename: f }); }
     const g = ctx.HH.games.find((x) => x.id === c.id);
     if (!g) throw new Error(`${c.id}: il gioco non si registra in HH.games`);
     if (g.name !== c.name) throw new Error(`${c.id}: nome "${g.name}" ≠ catalogo "${c.name}"`);

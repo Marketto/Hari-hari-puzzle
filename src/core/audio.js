@@ -231,6 +231,13 @@
       mel: ['1 3 5 . 6 5 3 .', '4 . 6 4 8 . 6 .', '5 . 7 5 9 8 7 5', '8 - 5 . 3 - - .',
         '6 . 8 6 5 . 3 5', '2 4 6 . 4 . 2 .', '5 6 7 8 9 . 7 .', '8 . 5 . 1 - - .'],
     },
+    // Hari Fishing: pomeriggio sul pontile, barcarola dondolante in 6/8 "finto" (koto + carillon), basso che culla
+    fish: {
+      bpm: 92, root: 62, lead: 'koto', arp: 'musicbox', swing: 0.22, perc: 'lullaby',
+      chords: [1, 4, 1, 5, 6, 4, 5, 1], bass: 'R . . F . . O .',
+      mel: ['3 . 5 6 5 . 3 .', '4 . 6 8 6 - 4 .', '5 . 3 1 3 . 5 .', '2 . 4 5 7 - - .',
+        '6 . 8 9 8 . 6 .', '4 . 6 4 3 . 1 .', '2 3 4 5 6 5 4 2', '1 . 3 . 1 - - .'],
+    },
     // Hari Rally: corsa nel bosco, galoppo energico in Re con le sincopi (pluck + marimba), basso che spinge sulle ottave
     rally: {
       bpm: 138, root: 62, lead: 'pluck', arp: 'marimba', swing: 0.06, perc: 'pop',
@@ -515,6 +522,36 @@
     // ghianda raccolta: piccolo "tin" · buccia o miele lasciati: "plop"
     tink: S((t) => V.bell(sfxBus, sc(12), t, 0.05, 0.05)),
     plop: S((t) => osc(env(sfxBus, t, 0.003, 0.08, t + 0.15), 'sine', 500, t, t + 0.15, 0, 180, 0.12)),
+    // Hari Fishing: lancio (fruscio della lenza che sale, più lungo se il lancio è forte)
+    whoosh: S((t, p = 0.6) => {
+      const d = 0.25 + p * 0.35;
+      const s0 = ac.createBufferSource(); s0.buffer = noise;
+      const b = ac.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 1.6;
+      b.frequency.setValueAtTime(600, t); b.frequency.exponentialRampToValueAtTime(2800 + p * 1600, t + d);
+      s0.connect(b); b.connect(env(sfxBus, t, 0.04, 0.05 + p * 0.03, t + d)); s0.start(t); s0.stop(t + d + 0.05);
+      osc(env(sfxBus, t, 0.02, 0.02, t + d), 'sine', 900, t, t + d, 0, 1800 + p * 900, d);
+    }),
+    // tuffo in acqua: "plunk" basso + spruzzo (k = 0..1 grandezza)
+    splash: S((t, k = 0.6) => {
+      osc(env(sfxBus, t, 0.004, 0.06 + k * 0.06, t + 0.22), 'sine', 260, t, t + 0.22, 0, 90, 0.18);
+      noiseHit(sfxBus, t + 0.01, 0.18 + k * 0.25, 0.03 + k * 0.05, 'bandpass', 1500 + k * 900, 0.7);
+      V.bubble(sfxBus, t + 0.12, 0.05); V.bubble(sfxBus, t + 0.2, 0.04);
+    }),
+    // clic del mulinello (r = 0..1: più forte e più acuto quando si tira di più)
+    reel: S((t, r = 0.5) => {
+      noiseHit(sfxBus, t, 0.018, 0.025 + r * 0.03, 'highpass', 3800 + r * 1500);
+      osc(env(sfxBus, t, 0.001, 0.012 + r * 0.01, t + 0.03), 'square', 1700 + r * 500, t, t + 0.03);
+    }),
+    // lenza che si rompe: "twang" elastico che scende
+    twang: S((t) => {
+      osc(lowpass(env(sfxBus, t, 0.002, 0.08, t + 0.5), 2400), 'sawtooth', 620, t, t + 0.5, 0, 140, 0.45);
+      osc(env(sfxBus, t, 0.002, 0.05, t + 0.35), 'triangle', 1240, t, t + 0.35, 8, 300, 0.3);
+    }),
+    // scatto della fotocamera: due clic + piccolo scintillio
+    shutter: S((t) => {
+      noiseHit(sfxBus, t, 0.025, 0.08, 'highpass', 2600); noiseHit(sfxBus, t + 0.07, 0.035, 0.06, 'bandpass', 1800, 1.2);
+      V.bell(sfxBus, sc(12), t + 0.12, 0.1, 0.04);
+    }),
     setMuted(m) { sfxOn = !m; if (sfxBus) sfxBus.gain.value = sfxOn ? 1 : 0; },
     isMuted: () => !sfxOn,
   };

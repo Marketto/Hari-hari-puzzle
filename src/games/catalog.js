@@ -54,6 +54,10 @@
       rulesEn: 'Kart rally through forests, cities, seaside and snow, by day and by night, with Hari in his strawberry kart: accelerate, brake and steer (automatic speed is an option). Follow the pace notes (6 = fast bend, 1 = hairpin), brake before tight bends or you slide onto the grass, hold a drift for a mini boost, grab surprise gifts for silly power-ups and finish in the top 3 against Bunny, Fox and Panda.',
       // a due giocatori: rally-net.js (gara in rete su HH.mp) e rally-mp.css (schermo diviso, quinto kart)
       files: [...f('rally.css', 'rally-mp.css'), ...NET, 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-net.js', 'rally-ui.js')] },
+    // three.js è condiviso con Hari Rally (stesso file, una sola copia in cache); niente rete: si gioca da soli
+    { id: 'fish', name: 'Hari Fishing', since: '0.28.0', rules: 'r_fish',
+      rulesEn: 'Go fishing with Hari from the jetty, at the lake or by the sea! Cast by swinging your phone like a rod (or drag with the mouse), wait for a bite, then tip the phone up to reel in and down to let out, keeping the line in the green: too tight and it snaps, too loose and the fish slips away. Every fish goes into the album and back into the water with a little heart.',
+      files: [...f('fish.css'), 'src/vendor/three.min.js', ...f('fish-logic.js', 'fish-ui.js')] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
@@ -67,11 +71,14 @@
   const loading = {};
   HH.gameMeta = (id) => HH.catalog.find((c) => c.id === id);
   HH.gameLoaded = (id) => (HH.games || []).find((g) => g.id === id);
+  // file già caricati da un altro gioco (es. three.js, condiviso da Hari Rally e Hari Fishing): non si ricaricano
+  const done = new Set();
   function addFile(src) {
+    if (done.has(src)) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const d = G.document;
       const el = src.endsWith('.css') ? Object.assign(d.createElement('link'), { rel: 'stylesheet', href: src }) : Object.assign(d.createElement('script'), { src, async: false });
-      el.onload = () => resolve();
+      el.onload = () => { done.add(src); resolve(); };
       el.onerror = () => { el.remove(); reject(new Error('load ' + src)); };
       (src.endsWith('.css') ? d.head : d.body).appendChild(el);
     });
