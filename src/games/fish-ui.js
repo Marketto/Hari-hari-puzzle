@@ -49,44 +49,158 @@
   const L = (k) => label(k, EN[k]);
   const spName = (id) => L('fi_sp_' + id);
 
+  /* ---------- forme dei pesci (condivise da 3D e SVG) ---------- */
+  const FB = {
+    // d = metà lunghezza / altezza / larghezza del corpo (m); xm = punto più alto (−1 peduncolo … 1 muso); ped / wp =
+    // altezza / larghezza del peduncolo; nose = superellisse del muso (2 ellisse, >2 più tondo); top / bot = schiena /
+    // pancia; tl / th = lunghezza / metà altezza della coda e pl / pw delle pettorali (× altezza del corpo); ex / ey / ek = occhio
+    minnow: { d: [0.3, 0.112, 0.078], xm: 0.12, ped: 0.24, wp: 0.42, nose: 1.8, top: 1, bot: 0.95, tail: 'fork', tl: 1.3, th: 1.2, pl: 0.8, pw: 0.42, ex: 0.56, ey: 0.16, ek: 1 },
+    goldfish: { d: [0.235, 0.19, 0.13], xm: 0.1, ped: 0.3, wp: 0.42, nose: 2.1, top: 1.06, bot: 1, tail: 'veil2', tl: 1.5, th: 1.0, pl: 0.8, pw: 0.42, ex: 0.5, ey: 0.16, ek: 1 },
+    catfish: { d: [0.42, 0.145, 0.15], xm: 0.05, ped: 0.32, wp: 0.3, wxm: 0.45, nose: 2.6, top: 1, bot: 0.8, tail: 'round', tl: 1.1, th: 0.9, pl: 0.8, pw: 0.42, ex: 0.62, ey: 0.3, ek: 0.8 },
+    koi: { d: [0.4, 0.145, 0.12], xm: 0.18, ped: 0.32, wp: 0.42, nose: 1.9, top: 1.05, bot: 0.92, tail: 'veil', tl: 1.6, th: 1.25, pl: 1.05, pw: 0.42, ex: 0.62, ey: 0.16, ek: 1 },
+    clown: { d: [0.245, 0.155, 0.1], xm: 0.1, ped: 0.4, wp: 0.45, nose: 2.3, top: 1, bot: 1, tail: 'round', tl: 0.95, th: 0.85, pl: 0.8, pw: 0.42, ex: 0.55, ey: 0.16, ek: 1 },
+    puffer: { d: [0.245, 0.23, 0.215], xm: -0.25, ped: 0.4, wp: 0.4, nose: 2.2, top: 1, bot: 1.02, tail: 'small', tl: 0.62, th: 0.55, pl: 0.6, pw: 0.36, ex: 0.48, ey: 0.2, ek: 1 },
+    tuna: { d: [0.52, 0.165, 0.14], xm: 0.0, ped: 0.11, wp: 0.32, nose: 1.55, top: 1, bot: 1, tail: 'lunate', tl: 1.05, th: 2.0, pl: 1.5, pw: 0.3, ex: 0.64, ey: 0.12, ek: 0.95 },
+    golden: { d: [0.3, 0.19, 0.13], xm: 0.12, ped: 0.3, wp: 0.42, nose: 2.0, top: 1.05, bot: 0.98, tail: 'veil2', tl: 1.65, th: 1.1, pl: 0.8, pw: 0.42, ex: 0.55, ey: 0.16, ek: 1 },
+  };
+  // colori delle pinne (1, 2, 3 = --fsh-<specie>-1/2/3): coda, dorsale/anale/ventrali, pettorali
+  const FCOL = { minnow: '111', goldfish: '222', catfish: '333', koi: '222', clown: '111', puffer: '333', tuna: '111', golden: '222' };
+  // dorsale e anale: [chiave, u0, u1 (x della base, −1 … 1), altezza (× altezza del corpo), contorno [u lungo la base, v
+  // altezza], colore ('f' = pinne), sotto (anale), spessore, bordo]
+  const RIDGES = {
+    minnow: [['dor', -0.05, 0.25, 0.9, [[1, 0.1], [0.45, 1], [0.25, 0.9], [0.05, 0.15]], 'f'], ['ana', -0.6, -0.32, 0.6, [[1, 0.1], [0.5, 1], [0.15, 0.8], [0, 0.1]], 'f', 1]],
+    goldfish: [['dor', -0.35, 0.35, 0.95, [[1, 0.15], [0.75, 0.9], [0.45, 1.05], [0.15, 0.85], [-0.08, 0.4], [0, 0.05]], 'f'], ['ana', -0.65, -0.38, 0.62, [[1, 0.1], [0.55, 1], [0.1, 0.9], [0, 0.1]], 'f', 1]],
+    catfish: [['dor', 0.12, 0.38, 0.75, [[1, 0.1], [0.6, 1], [0.3, 0.8], [0, 0.1]], 'f'], ['ana', -0.86, -0.12, 0.45, [[1, 0.1], [0.9, 0.8], [0.5, 1], [0.1, 0.95], [0, 0.1]], 'f', 1]],
+    koi: [['dor', -0.5, 0.35, 0.62, [[1, 0.15], [0.86, 0.9], [0.6, 0.78], [0.3, 0.72], [0.05, 0.6], [-0.06, 0.2]], 'f'], ['ana', -0.62, -0.4, 0.55, [[1, 0.1], [0.5, 1], [0.1, 0.85], [0, 0.1]], 'f', 1]],
+    // pagliaccio: dorsale a due lobi (spinoso davanti, morbido dietro), pinne arancioni bordate di scuro
+    clown: [['dor', -0.62, 0.35, 0.72, [[1, 0.1], [0.9, 0.62], [0.8, 0.78], [0.68, 0.62], [0.57, 0.52], [0.5, 0.45], [0.38, 0.95], [0.18, 1.02], [0.02, 0.62], [-0.04, 0.15]], '1', 0, 0.013, '3'],
+      ['ana', -0.58, -0.18, 0.7, [[1, 0.1], [0.7, 0.9], [0.35, 1], [0.05, 0.7], [0, 0.1]], '1', 1, 0.013, '3']],
+    puffer: [['dor', -0.78, -0.45, 0.42, [[1, 0.1], [0.6, 1], [0.15, 0.85], [0, 0.1]], 'f'], ['ana', -0.78, -0.45, 0.4, [[1, 0.1], [0.6, 1], [0.15, 0.85], [0, 0.1]], 'f', 1]],
+    // tonno: prima dorsale bassa, seconda dorsale e anale gialle a falce
+    tuna: [['dor', 0.05, 0.38, 0.55, [[1, 0.1], [0.78, 1], [0.35, 0.45], [0, 0.1]], '1'], ['dor2', -0.32, -0.1, 1.0, [[1, 0.1], [0.65, 0.6], [0.1, 1], [-0.15, 1.08], [0.15, 0.45], [0, 0.05]], '3'],
+      ['ana', -0.36, -0.14, 0.95, [[1, 0.1], [0.65, 0.6], [0.1, 1], [-0.15, 1.08], [0.15, 0.45], [0, 0.05]], '3', 1]],
+    golden: [['dor', -0.3, 0.35, 0.95, [[1, 0.15], [0.75, 0.95], [0.45, 1.08], [0.15, 0.85], [-0.08, 0.4], [0, 0.05]], 'f'], ['ana', -0.66, -0.38, 0.62, [[1, 0.1], [0.55, 1], [0.1, 0.9], [0, 0.1]], 'f', 1]],
+  };
+  // pettorali: contorno (x verso la coda, −1 = punta; y × larghezza)
+  const PEC = {
+    paddle: [[0.01, 0.3], [-0.35, 0.85], [-0.8, 0.8], [-1, 0.2], [-0.85, -0.45], [-0.4, -0.6], [0.01, -0.3]],
+    sickle: [[0.01, 0.35], [-0.5, 0.42], [-1, 0], [-0.5, -0.3], [0.01, -0.35]],
+  };
+  // profilo (unità: x −1 peduncolo … 1 muso; 1 = altezza/larghezza massima)
+  function fProf(F, d) {
+    const hx = (x, xm, ped, n) => {
+      if (x >= xm) { const u = Math.min(1, (x - xm) / (1 - xm)); return Math.pow(Math.max(0, 1 - Math.pow(u, n)), 1 / n); }
+      const t = Math.min(1, (xm - x) / (xm + 1));
+      return ped + (1 - ped) * (0.5 + 0.5 * Math.cos(Math.PI * t));
+    };
+    const [lx, ly, lz] = d || F.d, wxm = F.wxm != null ? F.wxm : F.xm;
+    const P = {
+      h: (x) => hx(x, F.xm, F.ped, F.nose), w: (x) => hx(x, wxm, F.wp, F.nose),
+      // punto della superficie (x in unità, th angolo attorno all'asse: π/2 schiena, −π/2 pancia, 0 fianco +z)
+      at: (x, th, off = 0, out) => {
+        const s = Math.sin(th), k = 1 + off, r = out || [0, 0, 0];
+        r[0] = x * lx; r[1] = k * P.h(x) * ly * s * (s >= 0 ? F.top : F.bot); r[2] = k * P.w(x) * lz * Math.cos(th);
+        return r;
+      },
+      top: (x) => P.h(x) * ly * F.top, bot: (x) => -P.h(x) * ly * F.bot,
+    };
+    return P;
+  }
+  // contorno simmetrico (metà superiore dalla radice al punto sull'asse, poi la metà inferiore speculare)
+  const symm = (up) => up.concat(up.slice(0, -1).reverse().map(([x, y]) => [x, -y]));
+  const TAILS = {
+    fork: [[0.02, 1], [-0.3, 0.5], [-0.75, 0.9], [-1, 1], [-0.82, 0.55], [-0.62, 0.18], [-0.55, 0]],
+    lunate: [[0.02, 1], [-0.15, 0.35], [-0.45, 0.75], [-1, 1], [-0.62, 0.55], [-0.4, 0.2], [-0.36, 0]],
+    round: [[0.02, 1], [-0.25, 0.55], [-0.6, 0.92], [-0.88, 0.8], [-1, 0.42], [-1.03, 0]],
+    veil: [[0.02, 1], [-0.25, 0.55], [-0.6, 0.95], [-0.92, 1], [-1.04, 0.68], [-0.9, 0.32], [-0.8, 0]],
+  };
+
   /* ---------- disegni SVG (colori solo da token --fsh-*) ---------- */
   const f1 = (n) => +(+n).toFixed(1);
   const o = (w = 2) => `stroke="var(--fsh-ink)" stroke-width="${f1(w)}" stroke-linejoin="round" stroke-linecap="round"`;
-  // pesce kawaii di profilo, verso destra, centrato in (cx, cy), lungo circa 64·k
+  // pesce kawaii di profilo, verso destra (testa a destra, coda a sinistra), centrato in (cx, cy), lungo circa 70·k.
+  // Stesse forme del 3D (FB, TAILS, RIDGES, PEC): corpo dal profilo (muso pieno, peduncolo stretto), coda che si
+  // allarga dal peduncolo verso l'esterno, dorsale, anale, ventrale e pettorale. rx / ry = metà lunghezza / altezza.
   const FISH = {
-    minnow: { rx: 26, ry: 11, tail: 'fork' },
-    goldfish: { rx: 22, ry: 16, tail: 'fan' },
-    catfish: { rx: 28, ry: 14, tail: 'round' },
-    koi: { rx: 28, ry: 13, tail: 'fan' },
-    clown: { rx: 22, ry: 14, tail: 'round' },
-    puffer: { rx: 20, ry: 19, tail: 'small' },
-    tuna: { rx: 32, ry: 13, tail: 'fork' },
-    golden: { rx: 25, ry: 15, tail: 'fan' },
+    minnow: { rx: 26, ry: 10.5 }, goldfish: { rx: 20, ry: 16, k: 0.86 }, catfish: { rx: 28, ry: 12.5, k: 0.94 }, koi: { rx: 28, ry: 12, k: 0.96 },
+    clown: { rx: 21, ry: 14 }, puffer: { rx: 19, ry: 18, k: 0.94 }, tuna: { rx: 31, ry: 11.5, k: 0.94 }, golden: { rx: 23, ry: 15, k: 0.88 },
+  };
+  const pth = (pts) => 'M' + pts.map((p) => `${f1(p[0])} ${f1(p[1])}`).join('L') + 'Z';
+  // contorno morbido: curve quadratiche tra i punti medi (angoli arrotondati, kawaii)
+  const soft = (pts) => {
+    const n = pts.length, m = (a, b) => `${f1((a[0] + b[0]) / 2)} ${f1((a[1] + b[1]) / 2)}`;
+    let d = `M${m(pts[n - 1], pts[0])}`;
+    for (let i = 0; i < n; i++) d += `Q${f1(pts[i][0])} ${f1(pts[i][1])} ${m(pts[i], pts[(i + 1) % n])}`;
+    return d + 'Z';
   };
   function fishArt(sp, cx = 60, cy = 40, k = 1, flip = false) {
-    const F = FISH[sp] || FISH.minnow, c1 = `var(--fsh-${sp}-1)`, c2 = `var(--fsh-${sp}-2)`, c3 = `var(--fsh-${sp}-3)`;
-    const { rx, ry } = F, tx = -rx + 3;
-    const tail = {
-      fork: `<path d="M${tx} 0L${tx - 16} -13Q${tx - 10} 0 ${tx - 16} 13Z" fill="${c1}" ${o(2)}/>`,
-      fan: `<path d="M${tx} 0C${tx - 10} -18 ${tx - 24} -16 ${tx - 22} -6Q${tx - 14} 0 ${tx - 22} 6C${tx - 24} 16 ${tx - 10} 18 ${tx} 0Z" fill="${c2}" ${o(2)}/>`,
-      round: `<path d="M${tx} 0C${tx - 6} -14 ${tx - 20} -12 ${tx - 18} 0C${tx - 20} 12 ${tx - 6} 14 ${tx} 0Z" fill="${c1}" ${o(2)}/>`,
-      small: `<path d="M${tx + 2} 0L${tx - 9} -8Q${tx - 6} 0 ${tx - 9} 8Z" fill="${c3}" ${o(2)}/>`,
-    }[F.tail];
-    let extra = '';
-    if (sp === 'minnow') extra = `<path d="M${-rx + 8} 1Q0 -3 ${rx - 8} 1" fill="none" stroke="${c3}" stroke-width="3" stroke-linecap="round"/>`;
-    if (sp === 'catfish') extra = `<path d="M${rx - 4} 4q10 2 14 10M${rx - 4} 5q12 -1 16 4M${rx - 5} 3q10 -6 16 -6" fill="none" ${o(1.6)}/>`;
-    if (sp === 'koi') extra = `<ellipse cx="-6" cy="-5" rx="8" ry="5" fill="${c3}"/><ellipse cx="10" cy="3" rx="6" ry="4" fill="${c3}"/><ellipse cx="-16" cy="4" rx="4" ry="3" fill="${c3}"/><path d="M${rx - 3} 5q6 3 8 9" fill="none" ${o(1.4)}/>`;
-    if (sp === 'clown') extra = [-9, 7].map((x) => `<path d="M${x - 3} ${-ry + 1}Q${x + 3} 0 ${x - 3} ${ry - 1}L${x + 3} ${ry - 2}Q${x + 9} 0 ${x + 3} ${-ry + 2}Z" fill="${c2}" stroke="${c3}" stroke-width="1.6"/>`).join('');
-    if (sp === 'puffer') extra = Array.from({ length: 9 }, (_, i) => { const a = -2.6 + i * 0.62, x = Math.cos(a) * rx, y = Math.sin(a) * ry; return `<path d="M${f1(x * 0.92)} ${f1(y * 0.92)}L${f1(x * 1.18)} ${f1(y * 1.18)}" ${o(2.2)}/>`; }).join('');
-    if (sp === 'tuna') extra = `${[-14, -8, -2].map((x) => `<path d="M${x} ${ry - 1}l3 4 3 -4" fill="${c3}" ${o(1)}/>`).join('')}`;
-    if (sp === 'golden') extra = `<path d="M-6 ${-ry - 1}l3 -9 4 6 4 -8 3 8 4 -6 1 9Z" fill="${c3}" ${o(1.6)}/><path d="M${rx + 8} -14l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6Z" fill="var(--fsh-spark)"/>`;
-    const belly = sp === 'puffer' || sp === 'clown' || sp === 'koi' ? '' : `<path d="M${-rx + 6} 4Q0 ${ry + 2} ${rx - 6} 5Q0 ${ry - 6} ${-rx + 6} 4Z" fill="${c2}"/>`;
-    const fin = sp === 'puffer' ? `<ellipse cx="2" cy="4" rx="5" ry="3.4" fill="${c3}" ${o(1.4)}/>` : `<path d="M-6 ${-ry + 2}Q2 ${-ry - 9} 10 ${-ry + 3}Z" fill="${sp === 'clown' ? c1 : c2}" ${o(1.6)}/>`;
-    const ex = rx - 10, ey = -3;
-    return `<g transform="translate(${cx} ${cy}) scale(${flip ? -k : k} ${k})">${tail}${sp === 'puffer' ? extra : ''}${fin}<ellipse rx="${rx}" ry="${ry}" fill="${c1}" ${o(2.2)}/>${belly}${sp === 'puffer' ? '' : extra}
-      <circle cx="${ex}" cy="${ey}" r="4.6" fill="var(--fsh-eye)"/><circle cx="${ex + 1.4}" cy="${ey - 1.6}" r="1.8" fill="var(--fsh-hi)"/><circle cx="${ex - 1.2}" cy="${ey + 1.4}" r=".8" fill="var(--fsh-hi)"/>
-      <ellipse cx="${ex - 3}" cy="${ey + 7}" rx="3.4" ry="2" fill="var(--fsh-blush)"/><path d="M${rx - 3} 3q2 2 0 4" fill="none" ${o(1.4)}/>
-      ${sp === 'puffer' ? `<ellipse cx="${-rx + 2}" cy="-2" rx="3" ry="5" fill="${c2}" ${o(1.2)}/>` : ''}</g>`;
+    const F = FB[sp] || FB.minnow, V = FISH[sp] || FISH.minnow, { rx, ry } = V, P = fProf(F, [rx, ry, 1]);
+    const c = (n) => `var(--fsh-${sp}-${n})`, fc = FCOL[sp] || '222';
+    const col = (x) => c(x === 'f' ? fc[1] : x);
+    const L = F.tl * ry, Hh = F.th * ry, a = F.ped * ry * 0.85, x0 = -rx + 1.2;
+    const Y = (x) => -P.top(x), B = (x) => -P.bot(x);   // y del dorso e del ventre (SVG: y in giù)
+    // corpo
+    const N = 24, up = [], dn = [];
+    for (let i = 0; i <= N; i++) { const x = -Math.cos(Math.PI * i / N); up.push([x * rx, Y(x)]); dn.push([x * rx, B(x)]); }
+    const body = pth(up.concat(dn.reverse()));
+    // coda (dal peduncolo verso l'esterno)
+    const tp = (shape, s = 1) => symm(TAILS[shape].map(([x, y], i) => [x0 + x * L * s, i === 0 ? a : y * Hh * s]));
+    let tail = `<path d="${soft(tp(F.tail === 'veil2' ? 'veil' : F.tail === 'small' ? 'round' : F.tail))}" fill="${c(fc[0])}" ${o(2)}/>`;
+    if (F.tail === 'veil2') tail = `<g transform="rotate(14 ${f1(x0)} 0)">${tail}</g><g transform="rotate(-9 ${f1(x0)} 0)">${tail}</g>`;
+    if (F.tail === 'lunate' || F.tail === 'fork') tail = `<path d="${pth(tp(F.tail))}" fill="${c(fc[0])}" ${o(2)}/>`;
+    // dorsale e anale (dietro al corpo), bordo scuro per il pagliaccio
+    const ridges = (RIDGES[sp] || []).map(([, u0, u1, h, pts, cc, down, , bd]) => {
+      const X = (u) => u0 + (u1 - u0) * u, yS = (u) => { const x = Math.max(-1, Math.min(1, X(u))); return down ? B(x) : Y(x); };
+      const sg = down ? 1 : -1, hh = h * ry, sink = 0.3 * hh;
+      const poly = [[X(1) * rx, yS(1) - sg * sink]].concat(pts.map(([u, v]) => [X(u) * rx, yS(u) + sg * v * hh]), [[X(0) * rx, yS(0) - sg * sink]]);
+      return `<path d="${soft(poly)}" fill="${col(cc)}" ${o(bd ? 2.2 : 1.6)}/>`;
+    }).join('');
+    // ventrale (sotto la pancia, verso dietro)
+    const vx = (sp === 'catfish' ? -0.05 : 0.02) * rx, vy = B(vx / rx) - 1.5;
+    const vent = sp === 'puffer' || sp === 'tuna' ? '' : `<path d="${soft([[vx + 2, vy - 1], [vx - 0.45 * F.pl * ry, vy + 0.7 * F.pw * ry], [vx - 0.85 * F.pl * ry, vy + 0.85 * F.pw * ry], [vx - 0.7 * F.pl * ry, vy + 0.3 * F.pw * ry], [vx - 2, vy - 1]])}" fill="${col('f')}" ${o(1.4)}/>`;
+    // pancia più chiara (non nel pagliaccio)
+    let belly = '';
+    if (sp !== 'clown') {
+      const bp = [];
+      for (let i = 0; i <= 14; i++) { const x = -0.84 + (i / 14) * 1.74; bp.push([x * rx, B(x)]); }
+      for (let i = 14; i >= 0; i--) { const x = -0.84 + (i / 14) * 1.74; bp.push([x * rx, B(x) * 0.22 + 1.5]); }
+      belly = `<path d="${soft(bp)}" fill="${c(2)}"/>`;
+    }
+    // dettagli sul corpo (dentro la sagoma)
+    let deco = '', back = '', front = '';
+    if (sp === 'minnow') deco = `<path d="M${f1(-0.78 * rx)} 0.5Q0 -2.5 ${f1(0.5 * rx)} 0" fill="none" stroke="${c(3)}" stroke-width="2.6" stroke-linecap="round"/>`;
+    if (sp === 'clown') {
+      // bande bianche bordate di scuro, curve in avanti a metà fianco
+      const band = (xc, hw, bend) => {
+        const l = [], r = [];
+        for (let i = 0; i <= 8; i++) {
+          const s = -1 + i / 4, q = 1 - s * s;
+          const xl = xc - hw + bend * q, xr = xc + hw + bend * q;
+          l.push([xl * rx, s >= 0 ? s * Y(xl) : -s * B(xl)]); r.push([xr * rx, s >= 0 ? s * Y(xr) : -s * B(xr)]);
+        }
+        return l.concat(r.reverse());
+      };
+      deco = [[0.3, 0.075, 0.07], [-0.12, 0.1, 0.1], [-0.8, 0.06, 0.02]].map(([xc, hw, bend]) => `<path d="${pth(band(xc, hw + 0.04, bend))}" fill="${c(3)}"/><path d="${pth(band(xc, hw, bend))}" fill="${c(2)}"/>`).join('');
+    }
+    if (sp === 'koi') deco = `<path d="M${f1(0.3 * rx)} ${f1(Y(0.3) + 0.5)}q6 -1 9 2q-1 5 -7 4q-4 -1 -2 -6Z" fill="${c(3)}"/><ellipse cx="-4" cy="${f1(Y(-0.15) + 4)}" rx="7.5" ry="3.6" fill="${c(3)}"/><ellipse cx="-16" cy="${f1(Y(-0.57) + 3.4)}" rx="4" ry="2.4" fill="${c(3)}"/><ellipse cx="8" cy="3.4" rx="4" ry="2.6" fill="${c(3)}"/>`;
+    if (sp === 'catfish') front = `<path d="M${f1(rx - 2)} 2q7 1 10 7M${f1(rx - 3)} 3q9 -2 12 2M${f1(rx - 5)} 6q3 3 3 8" fill="none" ${o(1.6)}/>`;
+    if (sp === 'koi') front = `<path d="M${f1(rx - 2)} 3q6 3 7 9" fill="none" ${o(1.4)}/>`;
+    if (sp === 'puffer') back = Array.from({ length: 11 }, (_, i) => {
+      const x = 0.78 - i * 0.155, up2 = i % 2 === 0, yy = up2 ? Y(x) : B(x), dir = up2 ? -1 : 1;
+      return `<path d="M${f1(x * rx - 1.6)} ${f1(yy - dir * 1.5)}L${f1(x * rx + 0.6)} ${f1(yy + dir * 4.5)}L${f1(x * rx + 1.8)} ${f1(yy - dir * 1.5)}Z" fill="${c(3)}" ${o(1.2)}/>`;
+    }).join('');
+    if (sp === 'tuna') back = [0, 1, 2, 3, 4].map((i) => { const x = -0.44 - i * 0.1; return `<path d="M${f1(x * rx + 1.5)} ${f1(Y(x) + 1)}l-1.5 -4 -2.4 4Z" fill="${c(3)}" ${o(0.9)}/><path d="M${f1(x * rx + 1.5)} ${f1(B(x) - 1)}l-1.5 4 -2.4 -4Z" fill="${c(3)}" ${o(0.9)}/>`; }).join('');
+    if (sp === 'golden') front = `<path d="M${f1(0.3 * rx - 8)} ${f1(Y(0.3) + 1.5)}l2 -9 4 6 3 -8 3 8 4 -6 2 9Z" fill="${c(3)}" ${o(1.6)}/><path d="M${f1(rx + 6)} -16l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6Z" fill="var(--fsh-spark)"/>`;
+    // pettorale (dietro l'opercolo, verso dietro e in giù)
+    const pl = F.pl * ry * 0.85, pw = F.pw * ry * 0.85, px = (F.ex - 0.32) * rx, py = Math.min(B((F.ex - 0.32)) - 3, ry * 0.25);
+    const pec = `<g transform="translate(${f1(px)} ${f1(py)}) rotate(-24)"><path d="${soft((sp === 'tuna' ? PEC.sickle : PEC.paddle).map(([x, y]) => [x * pl, y * pw]))}" fill="${c(fc[2])}" ${o(1.4)}/></g>`;
+    // occhio, guancia, bocca
+    const ex = F.ex * rx, ey = -F.ey * ry, er = 4.6 * (F.ek || 1) * (ry < 12 ? 0.92 : 1);
+    const mx = rx - 2.2, my = Math.min(B(1 - 2.2 / rx) * 0.45, 3.4);
+    return `<g transform="translate(${cx} ${cy}) scale(${+((flip ? -k : k) * (V.k || 1)).toFixed(3)} ${+(k * (V.k || 1)).toFixed(3)}) translate(${f1(L / 2 - 2)} 0)">${tail}${ridges}${vent}${back}
+      <path d="${body}" fill="${c(1)}"/>${belly}${deco}<path d="${body}" fill="none" ${o(2.2)}/>${pec}${front}
+      <circle cx="${f1(ex)}" cy="${f1(ey)}" r="${f1(er)}" fill="var(--fsh-eye)"/><circle cx="${f1(ex + er * 0.3)}" cy="${f1(ey - er * 0.35)}" r="${f1(er * 0.4)}" fill="var(--fsh-hi)"/><circle cx="${f1(ex - er * 0.26)}" cy="${f1(ey + er * 0.3)}" r=".8" fill="var(--fsh-hi)"/>
+      <ellipse cx="${f1(ex - 3)}" cy="${f1(ey + er + 2.6)}" rx="3.4" ry="2" fill="var(--fsh-blush)"/><path d="M${f1(mx)} ${f1(my - 1)}q-2 1.6 0 3.2" fill="none" ${o(1.3)}/></g>`;
   }
   const fishSvg = (sp, cls = 'fi-pic') => `<svg class="${cls}" viewBox="0 0 120 80" aria-hidden="true">${fishArt(sp, 62, 42, 1.25)}</svg>`;
   const STAR = (on) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.6l-5.6 3.2 1.3-6.2L3 9.3l6.3-.7Z" fill="${on ? 'var(--fsh-spark)' : 'var(--line-2)'}" ${on ? o(1.2) : ''}/></svg>`;
@@ -600,15 +714,23 @@
       for (const m of list) { const g = m.geometry; nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
       const P = new Float32Array(nv * 3), Nn = new Float32Array(nv * 3), X = new Float32Array(ol ? nv : nv * 3);
       const I = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+      // pesci: aSw = (tipo di parte, cerniera) per il nuoto nel vertex shader; aMix = pancia (colore 2 della mesh)
+      const swOf = (m) => m.userData.sw || (ol && m.parent && m.parent.userData.sw) || null;
+      const A = list.some(swOf) ? new Float32Array(nv * 4) : null;
       let vo = 0, io = 0;
       for (const m of list) {
         const g = m.geometry, pa = g.attributes.position, na = g.attributes.normal, cnt = pa.count;
         BK.m.multiplyMatrices(inv, m.matrixWorld); BK.n.getNormalMatrix(BK.m);
         const col = ol ? null : m.material.color, th = ol ? m.material.userData.ol : 0;
+        const c2 = !ol && m.userData.c2 && g.attributes.aMix ? m.userData.c2 : null, mx = c2 && g.attributes.aMix;
+        const sw = A && swOf(m);
         for (let i = 0; i < cnt; i++) {
           BK.v.fromBufferAttribute(pa, i).applyMatrix4(BK.m); P[(vo + i) * 3] = BK.v.x; P[(vo + i) * 3 + 1] = BK.v.y; P[(vo + i) * 3 + 2] = BK.v.z;
           BK.v.fromBufferAttribute(na, i).applyMatrix3(BK.n).normalize(); Nn[(vo + i) * 3] = BK.v.x; Nn[(vo + i) * 3 + 1] = BK.v.y; Nn[(vo + i) * 3 + 2] = BK.v.z;
-          if (ol) X[vo + i] = th; else { X[(vo + i) * 3] = col.r; X[(vo + i) * 3 + 1] = col.g; X[(vo + i) * 3 + 2] = col.b; }
+          if (ol) X[vo + i] = th;
+          else if (c2) { const k = mx.getX(i); X[(vo + i) * 3] = col.r + (c2.r - col.r) * k; X[(vo + i) * 3 + 1] = col.g + (c2.g - col.g) * k; X[(vo + i) * 3 + 2] = col.b + (c2.b - col.b) * k; }
+          else { X[(vo + i) * 3] = col.r; X[(vo + i) * 3 + 1] = col.g; X[(vo + i) * 3 + 2] = col.b; }
+          if (sw) { A[(vo + i) * 4] = sw[0]; A[(vo + i) * 4 + 1] = sw[1]; A[(vo + i) * 4 + 2] = sw[2]; A[(vo + i) * 4 + 3] = sw[3]; }
         }
         if (g.index) for (let i = 0; i < g.index.count; i++) I[io + i] = g.index.getX(i) + vo;
         else for (let i = 0; i < cnt; i++) I[io + i] = i + vo;
@@ -617,6 +739,7 @@
       const geo = keep(new T.BufferGeometry());
       geo.setAttribute('position', new T.BufferAttribute(P, 3)); geo.setAttribute('normal', new T.BufferAttribute(Nn, 3));
       geo.setAttribute(ol ? 'aTh' : 'color', new T.BufferAttribute(X, ol ? 1 : 3)); geo.setIndex(new T.BufferAttribute(I, 1));
+      if (A) geo.setAttribute('aSw', new T.BufferAttribute(A, 4));
       geo.computeBoundingSphere();
       return new T.Mesh(geo, ol ? olBaked() : vcToon());
     }
@@ -910,33 +1033,280 @@
       R3.fishes[sp] = gF;
       return gF;
     }
+    /* ---------- pesci 3D: forme per specie e nuoto ----------
+     * Corpo generato (non una sfera): profilo d'altezza e di larghezza lungo x, muso pieno (superellisse) e coda che si
+     * assottiglia a S fino al peduncolo caudale stretto; sezione ovale, schiena e pancia possono differire. Pinne sottili
+     * (spessore a lente: 0 sul bordo, così il contorno a guscio segue la sagoma) attaccate dove servono: caudale dal
+     * peduncolo verso l'esterno, dorsale, anale, pettorali dietro l'opercolo, ventrali. Bande, macchie e righe sono
+     * "decalcomanie" che seguono la superficie del corpo. Tutto il pesce (corpo, pinne, occhi) è poi fuso da bake() in
+     * UNA mesh + UN contorno (2 draw call per pesce, erano 4).
+     * Nuoto nel vertex shader (onBeforeCompile su MeshToonMaterial; il contorno usa la stessa funzione): ogni vertice ha
+     * aSw = (tipo, cerniera xyz). Onda del corpo lungo x con ritardo di fase dalla testa alla coda e ampiezza che cresce
+     * verso la coda (nuoto carangiforme; il tonno ha il corpo quasi fermo e la coda rigida che ruota sul peduncolo),
+     * piega a C (curve e fuga), pettorali che remano alternate, dorsale/anale che ondeggiano, code velate in ritardo.
+     * Ogni pesce ha i suoi materiali (stesso programma) con gli uniform del suo nuoto: frequenza, fase e ampiezza
+     * variano per individuo. Colori solo da --fsh-*. */
+    // nuoto per specie: f = colpi di coda al secondo, a = ampiezza in punta (× lunghezza), k = onde nel corpo,
+    // ex = esponente dell'inviluppo (alto = corpo fermo e solo la coda), head = quanto oscilla la testa,
+    // pec / pf = ampiezza (rad) / frequenza delle pettorali, fin = ondeggio di dorsale e anale, veil = coda velata
+    const SWP = {
+      minnow: { f: 2.6, a: 0.13, k: 0.95, ex: 2, head: 0.04, pec: 0.5, pf: 3, fin: 0.25, veil: 0 },
+      goldfish: { f: 1.5, a: 0.095, k: 0.8, ex: 2.2, head: 0.03, pec: 0.65, pf: 2.4, fin: 0.35, veil: 0.75 },
+      catfish: { f: 1.1, a: 0.14, k: 1.25, ex: 1.6, head: 0.05, pec: 0.4, pf: 1.6, fin: 0.3, veil: 0 },
+      koi: { f: 1.1, a: 0.11, k: 0.9, ex: 2, head: 0.03, pec: 0.5, pf: 1.8, fin: 0.25, veil: 0.5 },
+      clown: { f: 2.4, a: 0.085, k: 0.8, ex: 2.2, head: 0.03, pec: 0.8, pf: 4, fin: 0.3, veil: 0 },
+      puffer: { f: 1, a: 0.012, k: 0.5, ex: 3, head: 0.02, pec: 1, pf: 6, fin: 0.5, veil: 0 },
+      tuna: { f: 3.4, a: 0.07, k: 0.55, ex: 5, head: 0.01, pec: 0.12, pf: 1, fin: 0.05, veil: 0 },
+      golden: { f: 1.4, a: 0.095, k: 0.8, ex: 2.2, head: 0.03, pec: 0.6, pf: 2.2, fin: 0.35, veil: 0.8 },
+    };
+    const FISH_GLSL = `uniform vec4 uS1; uniform vec4 uS2; uniform vec4 uK; attribute vec4 aSw;
+float fwZ(float x){ float s = clamp((uK.x - x) / uK.y, 0.0, 1.0); float e = uK.w + (1.0 - uK.w) * pow(s, uS2.w);
+  return uS1.y * e * sin(uS1.x - s * uK.z * 6.2832) + uS1.z * s * s; }
+vec3 fishDef(vec3 p){
+  float k = aSw.x; vec3 h = aSw.yzw;
+  if (k > 0.5 && k < 1.5) { float sd = h.z >= 0.0 ? 1.0 : -1.0; float ph = uS2.x + (sd > 0.0 ? 0.0 : 3.1416);
+    float a = uS2.y * sin(ph) * sd, b = uS2.y * 0.7 * cos(ph) * sd; vec3 q = p - h;
+    q.xz = vec2(q.x * cos(a) - q.z * sin(a), q.x * sin(a) + q.z * cos(a));
+    q.yz = vec2(q.y * cos(b) - q.z * sin(b), q.y * sin(b) + q.z * cos(b)); p = h + q; }
+  else if (k > 1.5 && k < 2.5) { p.z += uS2.z * abs(p.y - h.y) * sin(uS1.x * 0.7 + p.x * 14.0); }
+  else if (k > 3.5) { float sl = (fwZ(h.x + 0.004) - fwZ(h.x - 0.004)) / 0.008; float a = atan(sl) * 1.3; vec3 q = p - h;
+    q.xz = vec2(q.x * cos(a) - q.z * sin(a), q.x * sin(a) + q.z * cos(a)); return h + q + vec3(0.0, 0.0, fwZ(h.x)); }
+  p.z += fwZ(p.x);
+  if (k > 2.5 && k < 3.5) { float d = max(0.0, h.x - p.x); p.z += uS1.w * d * d * sin(uS1.x - 1.8 - d * 9.0); }
+  return p; }
+`;
+    function fishCompile(sh) {
+      Object.assign(sh.uniforms, this.userData.u);
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + FISH_GLSL).replace('#include <begin_vertex>', 'vec3 transformed = fishDef(position);');
+    }
+    function fishMats(u) {
+      const m = keep(new T.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: R3.grad }));
+      m.userData.u = u; m.onBeforeCompile = fishCompile;
+      const o = keep(new T.ShaderMaterial({
+        uniforms: Object.assign({ uC: { value: C.ink.clone() } }, u),
+        vertexShader: FISH_GLSL + 'attribute float aTh; void main(){ vec3 p = fishDef(position); vec4 mv = modelViewMatrix * vec4(p, 1.0); mv.xyz += normalize(normalMatrix * normal) * aTh; gl_Position = projectionMatrix * mv; }',
+        fragmentShader: 'uniform vec3 uC; void main(){ gl_FragColor = vec4(uC, 1.0);\n#include <colorspace_fragment>\n}',
+        side: T.BackSide,
+      }));
+      return [m, o];
+    }
+    // griglia (u, v) → punto: indici con le facce verso l'esterno (controllo sul primo triangolo non degenere)
+    function gridGeo(nu, nv, fn, wrapV, extra) {
+      const pos = [], idx = [], mix = [];
+      for (let i = 0; i <= nu; i++) for (let j = 0; j <= nv; j++) { const r = fn(i / nu, j / nv); pos.push(r[0], r[1], r[2]); if (extra) mix.push(extra(i / nu, j / nv)); }
+      const id = (i, j) => i * (nv + 1) + j;
+      for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) idx.push(id(i, j), id(i + 1, j), id(i, j + 1), id(i + 1, j), id(i + 1, j + 1), id(i, j + 1));
+      const g = new T.BufferGeometry();
+      g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+      if (extra) g.setAttribute('aMix', new T.Float32BufferAttribute(mix, 1));
+      g.setIndex(idx); orient(g); g.computeVertexNormals();
+      return keep(g);
+    }
+    // le facce devono guardare fuori dall'asse del pesce (asse x): se no si girano
+    function orient(g) {
+      const p = g.attributes.position, ix = g.index.array, a = new T.Vector3(), b = new T.Vector3(), c = new T.Vector3();
+      let acc = 0;
+      for (let t = 0; t < ix.length; t += 3) {
+        a.fromBufferAttribute(p, ix[t]); b.fromBufferAttribute(p, ix[t + 1]); c.fromBufferAttribute(p, ix[t + 2]);
+        const cx = (a.y + b.y + c.y) / 3, cz = (a.z + b.z + c.z) / 3;
+        b.sub(a); c.sub(a); b.cross(c);
+        acc += b.y * cx + b.z * cz;
+      }
+      if (acc < 0) for (let t = 0; t < ix.length; t += 3) { const k = ix[t + 1]; ix[t + 1] = ix[t + 2]; ix[t + 2] = k; }
+    }
+    // corpo chiuso: anelli più fitti a muso e coda, punta sul muso, tappo sul peduncolo; aMix = pancia
+    function bodyGeo(F, P, belly) {
+      const NX = 22, NT = 18, pos = [], mix = [], idx = [];
+      const xs = []; for (let i = 0; i < NX; i++) xs.push(-Math.cos(Math.PI * i / NX));
+      const q = [];
+      for (const x of xs) for (let j = 0; j < NT; j++) {
+        const th = (j / NT) * Math.PI * 2;
+        P.at(x, th, 0, q); pos.push(q[0], q[1], q[2]);
+        const s = Math.sin(th);
+        mix.push(belly ? Math.min(1, Math.max(0, (-s - 0.2) / 0.3)) * Math.min(1, Math.max(0, (x + 0.88) / 0.25)) : 0);
+      }
+      const tip = pos.length / 3; pos.push(F.d[0], 0, 0); mix.push(0);
+      const cap = pos.length / 3; pos.push(-F.d[0] - 0.004, 0, 0); mix.push(0);
+      for (let i = 0; i < NX - 1; i++) for (let j = 0; j < NT; j++) {
+        const a = i * NT + j, b = (i + 1) * NT + j, c = i * NT + (j + 1) % NT, d = (i + 1) * NT + (j + 1) % NT;
+        idx.push(a, b, c, b, d, c);
+      }
+      for (let j = 0; j < NT; j++) { idx.push((NX - 1) * NT + j, tip, (NX - 1) * NT + (j + 1) % NT); idx.push(cap, j, (j + 1) % NT); }
+      const g = new T.BufferGeometry();
+      g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('aMix', new T.Float32BufferAttribute(mix, 1));
+      g.setIndex(idx); orient(g); g.computeVertexNormals();
+      return keep(g);
+    }
+    // pinna sottile da un contorno 2D (piano xy, spessore lungo z a lente: 0 sul bordo, t al centro)
+    function finGeo(pts, t) {
+      let area = 0;
+      for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; area += a[0] * b[1] - b[0] * a[1]; }
+      if (area < 0) pts = pts.slice().reverse();
+      const n = pts.length;
+      let cx = 0, cy = 0; for (const p of pts) { cx += p[0]; cy += p[1]; } cx /= n; cy /= n;
+      const pos = [], idx = [];
+      for (const p of pts) pos.push(p[0], p[1], 0);
+      const inner = pts.map((p) => [cx + (p[0] - cx) * 0.62, cy + (p[1] - cy) * 0.62]);
+      for (const sd of [1, -1]) for (const p of inner) pos.push(p[0], p[1], sd * t / 2);
+      const F0 = n, B0 = 2 * n;
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        idx.push(i, j, F0 + j, i, F0 + j, F0 + i);
+        idx.push(i, B0 + j, j, i, B0 + i, B0 + j);
+      }
+      const tri = T.ShapeUtils.triangulateShape(inner.map((p) => new T.Vector2(p[0], p[1])), []);
+      for (const f of tri) { idx.push(F0 + f[0], F0 + f[1], F0 + f[2]); idx.push(B0 + f[0], B0 + f[2], B0 + f[1]); }
+      const g = new T.BufferGeometry();
+      g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+      g.setIndex(idx); g.computeVertexNormals();
+      return keep(g);
+    }
     function buildFish(sp, scene) {
-      const D = { minnow: [0.32, 0.13, 0.1], goldfish: [0.28, 0.2, 0.13], catfish: [0.4, 0.17, 0.15], koi: [0.42, 0.16, 0.14], clown: [0.28, 0.17, 0.12], puffer: [0.26, 0.25, 0.24], tuna: [0.55, 0.2, 0.17], golden: [0.36, 0.2, 0.14] }[sp] || [0.3, 0.15, 0.12];
-      const [lx, ly, lz] = D, c1 = C[sp + '-1'], c2 = C[sp + '-2'], c3 = C[sp + '-3'];
+      const F = FB[sp] || FB.minnow, W = SWP[sp] || SWP.minnow, P = fProf(F);
+      const [lx, ly, lz] = F.d, c1 = C[sp + '-1'], c2 = C[sp + '-2'], c3 = C[sp + '-3'];
       const gF = new T.Group(), body = new T.Group(); gF.add(body);
-      mesh(GEO.sph, c1, body, { s: [lx, ly, lz], ol: 0.012 });
-      if (sp !== 'puffer') mesh(GEO.sph, c2, body, { p: [0.02, -ly * 0.32, 0], s: [lx * 0.82, ly * 0.66, lz * 0.9] });
-      const tail = new T.Group(); tail.position.x = -lx * 0.92; body.add(tail);
-      mesh(GEO.cone, sp === 'goldfish' || sp === 'koi' || sp === 'golden' ? c2 : c1, tail, { p: [-ly * 0.45, 0, 0], r: [0, 0, Math.PI / 2], s: [ly * 0.85, ly * 0.9, lz * 0.25], ol: 0.01 });
-      mesh(GEO.sph, sp === 'clown' ? c1 : c2, body, { p: [0, ly * 0.95, 0], r: [0, 0, -0.4], s: [lx * 0.35, ly * 0.35, lz * 0.15], ol: 0.008 });
+      gF.rotation.order = 'YZX';
+      const key = 'f_' + sp;
+      const G2 = GEO[key] || (GEO[key] = {});
+      const geo = (k, mk) => G2[k] || (G2[k] = mk());
+      const OL = 0.009, OLF = 0.006;
+      // corpo (pancia più chiara nei vertici, tranne il pagliaccio)
+      const bm = mesh(geo('body', () => bodyGeo(F, P, sp !== 'clown')), c1, body, { ol: 0.012 });
+      bm.userData.c2 = c2;
+      const finMesh = (k, pts, t, col, p, r, sw, ol = OLF) => {
+        const m = mesh(geo(k, () => finGeo(pts, t)), col, body, { p, r, ol });
+        m.userData.sw = sw || [0, p[0], p[1], p[2]];
+        return m;
+      };
+      // decalcomania sul corpo: fn(u, v) → [x, th]
+      const decal = (k, nu, nv, fn, off, col) => mesh(geo(k, () => gridGeo(nu, nv, (u, v) => { const [x, th] = fn(u, v); return P.at(x, th, off); })), col, body);
+      // ---- coda: dal peduncolo verso l'esterno ----
+      const L = F.tl * ly, Hh = F.th * ly, a = F.ped * ly * 0.85, x0 = -lx + 0.012;
+      const tailPts = (shape) => symm(TAILS[shape].map(([x, y], i) => [x * L, i === 0 ? a : y * Hh]));
+      const tailCol = C[sp + '-' + FCOL[sp][0]];
+      if (F.tail === 'veil2') {
+        // coda doppia velata: due ventagli aperti a V, un po' cadenti
+        // (ruotati attorno a un asse alto: uniti sopra, aperti sotto, come le code doppie vere)
+        const yp = Hh * 0.45;
+        [-1, 1].forEach((sd) => { const al = sd * 0.4; finMesh('tail' + sd, tailPts('veil'), 0.012, tailCol, [x0, yp * (1 - Math.cos(al)), -yp * Math.sin(al)], [al, 0, 0], [3, x0, 0, 0]); });
+      } else if (F.tail === 'lunate') {
+        finMesh('tail', tailPts('lunate'), 0.016, c1, [x0, 0, 0], null, [4, x0, 0, 0], OL);
+        // carena sul peduncolo
+        mesh(GEO.sphLo, c1, body, { p: [-lx * 0.86, 0, 0], s: [lx * 0.12, ly * 0.1, lz * 0.42] }).userData.sw = [0, 0, 0, 0];
+      } else {
+        const shape = F.tail === 'small' ? 'round' : F.tail;
+        if (sp === 'clown') finMesh('tailB', tailPts('round').map(([x, y]) => [x * 1.08, y * 1.08]), 0.007, c3, [x0 - 0.004, 0, 0], null, [3, x0, 0, 0]);
+        finMesh('tail', tailPts(shape), sp === 'clown' ? 0.014 : 0.012, tailCol, [x0, 0, 0], null, [F.tail === 'veil' ? 3 : 0, x0, 0, 0]);
+      }
+      // ---- dorsale e anale: contorno (u lungo la base dal retro 0 al davanti 1, v altezza sopra la superficie) ----
+      const ridge = (k, u0, u1, h, pts, col, down, t = 0.011, border) => {
+        const X = (u) => (u0 + (u1 - u0) * u), yS = (u) => (down ? P.bot(Math.max(-1, Math.min(1, X(u)))) : P.top(Math.max(-1, Math.min(1, X(u)))));
+        const sg = down ? -1 : 1, sink = 0.22;
+        const poly = [[X(1) * lx, yS(1) - sg * sink * h]].concat(pts.map(([u, v]) => [X(u) * lx, yS(u) + sg * v * h]), [[X(0) * lx, yS(0) - sg * sink * h]]);
+        const hy = yS(0.5);
+        if (border) finMesh(k + 'B', poly.map(([x, y]) => [X(0.5) * lx + (x - X(0.5) * lx) * 1.07, hy + (y - hy) * 1.1]), t * 0.5, border, [0, 0, 0], null, [2, X(0.5) * lx, hy, 0]);
+        finMesh(k, poly, t, col, [0, 0, 0], null, [2, X(0.5) * lx, hy, 0]);
+      };
+      const finC = C[sp + '-' + FCOL[sp][1]], col = (k) => (k === 'f' ? finC : C[sp + '-' + k]);
+      for (const [k, u0, u1, h, pts, cc, down, t, bd] of RIDGES[sp]) ridge(k, u0, u1, ly * h, pts, col(cc), down, t, bd && col(bd));
+      if (sp === 'tuna') {
+        // pinnule gialle su schiena e ventre verso la coda
+        const fl = [[0.012, -0.006], [-0.02, 0.026], [-0.026, -0.006]].map(([x, y]) => [x * ly * 6, y * ly * 6]);
+        for (let i = 0; i < 6; i++) {
+          const x = -0.42 - i * 0.085;
+          finMesh('fl', fl, 0.008, c3, [x * lx, P.top(x) - 0.004, 0], null, null, 0.004);
+          finMesh('fl2', fl.map(([x2, y]) => [x2, -y]), 0.008, c3, [x * lx, P.bot(x) + 0.004, 0], null, null, 0.004);
+        }
+      }
+      // ---- pettorali (dietro l'opercolo, remano) e ventrali ----
+      const pecL = ly * F.pl, pecW = ly * F.pw, pecPts = PEC[sp === 'tuna' ? 'sickle' : 'paddle'];
+      const pecX = F.ex - 0.3, pecY = -0.3;
+      const pecC = C[sp + '-' + FCOL[sp][2]];
       [-1, 1].forEach((sd) => {
-        mesh(GEO.sph, c2, body, { p: [lx * 0.1, -ly * 0.3, sd * lz * 0.9], r: [sd * 0.5, 0, -0.5], s: [lx * 0.22, ly * 0.12, 0.02], ol: 0.006 });
-        const ex = lx * 0.55, ey = ly * 0.18, ez = sd * lz * 0.78;
-        mesh(GEO.sphLo, C.hi, body, { p: [ex, ey, ez], s: [ly * 0.3, ly * 0.32, ly * 0.2] });
-        mesh(GEO.sphLo, C.eye, body, { p: [ex + 0.01, ey, ez + sd * ly * 0.12], s: [ly * 0.2, ly * 0.24, ly * 0.12] });
-        mesh(GEO.sphLo, C.hi, body, { p: [ex + 0.03, ey + ly * 0.08, ez + sd * ly * 0.22], s: ly * 0.06 });
-        mesh(GEO.sphLo, C.blush, body, { p: [ex - ly * 0.12, ey - ly * 0.42, sd * lz * 0.8], s: [ly * 0.16, ly * 0.08, 0.02] });
+        const th = Math.asin(Math.max(-1, Math.min(1, pecY))), q = P.at(pecX, sd > 0 ? th : Math.PI - th, -0.04);
+        if (sp === 'clown') finMesh('pecB', pecPts.map(([x, y]) => [x * pecL * 1.1, y * pecW * 1.12]), 0.006, c3, [q[0], q[1], q[2]], [sd * 0.7, sd * 0.5, 0.3], [1, q[0], q[1], q[2]]);
+        finMesh('pec', pecPts.map(([x, y]) => [x * pecL, y * pecW]), 0.011, pecC, [q[0], q[1], q[2]], [sd * 0.7, sd * 0.5, 0.3], [1, q[0], q[1], q[2]]);
+        if (sp !== 'puffer' && sp !== 'tuna') {
+          const vx = sp === 'catfish' ? -0.05 : 0.02, qv = P.at(vx, sd > 0 ? -1.2 : Math.PI + 1.2, -0.05);
+          finMesh('ven', [[0.015, 0.012], [-0.45 * pecL, -0.7 * pecW], [-0.85 * pecL, -0.85 * pecW], [-0.7 * pecL, -0.3 * pecW], [-0.03, -0.012]], 0.009, finC, [qv[0], qv[1], qv[2]], [-sd * 0.45, 0, 0], [2, qv[0], qv[1], qv[2]]);
+        }
       });
-      if (sp === 'clown') [-0.25, 0.25].forEach((x) => mesh(GEO.sph, c2, body, { p: [x * lx, 0, 0], s: [lx * 0.09, ly * 1.03, lz * 1.04], ol: 0.008 }));
-      if (sp === 'koi') [[0.1, 0.5, 1], [-0.35, 0.4, -1], [0.4, 0.6, -1]].forEach(([x, y, sd]) => mesh(GEO.sphLo, c3, body, { p: [x * lx, y * ly, sd * lz * 0.5], s: [lx * 0.22, ly * 0.4, lz * 0.55] }));
-      if (sp === 'puffer') for (let i = 0; i < 14; i++) { const a = i * 2.39, y = 1 - (i / 13) * 2, rr = Math.sqrt(1 - y * y); const dir = new T.Vector3(Math.cos(a) * rr * lx, y * ly, Math.sin(a) * rr * lz).normalize(); const q = mesh(GEO.cone6, c3, body, { s: [0.025, 0.08, 0.025] }); q.position.set(dir.x * lx, dir.y * ly, dir.z * lz); q.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir); }
-      if (sp === 'catfish' || sp === 'koi') [-1, 1].forEach((sd) => mesh(GEO.cyl8, C.ink, body, { p: [lx * 1.02, -ly * 0.25, sd * lz * 0.3], r: [sd * 0.6, 0, 0.9], s: [0.006, ly * 1.1, 0.006] }));
-      if (sp === 'tuna') for (let i = 0; i < 3; i++) mesh(GEO.cone6, c3, body, { p: [-lx * (0.3 + i * 0.18), -ly * 0.95, 0], r: [0, 0, Math.PI], s: [0.025, 0.05, 0.015] });
-      if (sp === 'golden') { const cr = new T.Group(); cr.userData.fixed = true; cr.position.set(lx * 0.25, ly * 0.95, 0); body.add(cr); for (let i = 0; i < 3; i++) mesh(GEO.cone6, c3, cr, { p: [(i - 1) * 0.05, 0.05, 0], s: [0.025, 0.09, 0.025], ol: 0.006 }); mesh(GEO.cyl8, c3, cr, { s: [0.08, 0.03, 0.05] }); }
+      // ---- occhioni, guance ----
+      [-1, 1].forEach((sd) => {
+        const ex = F.ex, ey = F.ey * ly, ek = F.ek * 1.18;
+        const hy = P.top(ex), zs = P.w(ex) * lz * Math.sqrt(Math.max(0.05, 1 - (ey / hy) * (ey / hy)));
+        const X = ex * lx, Z = sd * zs * 0.84;
+        mesh(GEO.sphLo, C.hi, body, { p: [X, ey, Z], s: [ly * 0.28 * ek, ly * 0.3 * ek, ly * 0.17 * ek] });
+        mesh(GEO.sphLo, C.eye, body, { p: [X + 0.008, ey, Z + sd * ly * 0.1 * ek], s: [ly * 0.19 * ek, ly * 0.23 * ek, ly * 0.1 * ek] });
+        mesh(GEO.sphLo, C.hi, body, { p: [X + 0.026, ey + ly * 0.08 * ek, Z + sd * ly * 0.19 * ek], s: ly * 0.06 * ek });
+        const qb = P.at(ex - 0.12, sd > 0 ? -0.35 : Math.PI + 0.35, 0.004);
+        mesh(GEO.sphLo, C.blush, body, { p: qb, s: [ly * 0.15, ly * 0.08, 0.012] }).rotation.y = sd * 0.5;
+      });
+      // ---- dettagli della specie ----
+      const rod = (root, dir, len, col) => {
+        const v = new T.Vector3(...dir).normalize(), m = mesh(GEO.cyl8, col, body, { s: [0.006, len, 0.006] });
+        m.position.set(root[0] + v.x * len / 2, root[1] + v.y * len / 2, root[2] + v.z * len / 2);
+        m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v);
+      };
+      if (sp === 'clown') {
+        // tre bande bianche bordate di scuro, curve in avanti sui fianchi
+        [[0.3, 0.075, 0.07], [-0.12, 0.1, 0.1], [-0.8, 0.055, 0.02]].forEach(([xc, hw, bend], i) => {
+          const fn = (w) => (u, v) => { const th = v * Math.PI * 2, c = Math.cos(th); return [xc + (u * 2 - 1) * w + bend * c * c, th]; };
+          decal('bandB' + i, 4, 36, fn(hw + 0.035), 0.012, c3);
+          decal('band' + i, 4, 36, fn(hw), 0.024, c2);
+        });
+      }
+      if (sp === 'koi') {
+        // macchie rosse sulla schiena (contorno un po' irregolare)
+        [[0.48, 1.57, 0.12, 0.55], [0.05, 1.9, 0.2, 0.75], [-0.42, 1.25, 0.15, 0.6], [0.22, 0.75, 0.1, 0.45], [-0.2, 2.5, 0.09, 0.35]].forEach(([cx, ct, ax, at], i) => {
+          decal('spot' + i, 4, 20, (u, v) => { const an = v * Math.PI * 2, wob = 1 + 0.18 * Math.sin(an * 3 + i); return [cx + u * ax * wob * Math.cos(an), ct + u * at * wob * Math.sin(an)]; }, 0.012, c3);
+        });
+        [-1, 1].forEach((sd) => rod([lx * 0.93, -ly * 0.22, sd * lz * 0.22], [0.5, -0.8, sd * 0.35], ly * 0.5, C.ink));
+      }
+      if (sp === 'minnow') [1, -1].forEach((sd) => decal('stripe' + sd, 14, 3, (u, v) => { const x = -0.78 + u * 1.2, w = 0.09 * Math.sin(Math.PI * u) + 0.02; return [x, (sd > 0 ? 0.12 : Math.PI - 0.12) + (v * 2 - 1) * w]; }, 0.01, c3));
+      if (sp === 'catfish') [-1, 1].forEach((sd) => {
+        rod([lx * 0.9, -ly * 0.12, sd * lz * 0.3], [0.6, -0.3, sd * 0.75], ly * 1.4, C.ink);
+        rod([lx * 0.84, -ly * 0.5, sd * lz * 0.14], [0.3, -1, sd * 0.3], ly * 0.7, C.ink);
+      });
+      if (sp === 'puffer') for (let i = 0; i < 18; i++) {
+        const x = 0.82 - (i + 0.5) / 18 * 1.55, th = i * 2.39996, q = P.at(x, th, -0.03), dir = new T.Vector3(q[0] - x * lx * 0.6, q[1], q[2]).normalize();
+        const m = mesh(GEO.cone6, c3, body, { s: [0.028, 0.09, 0.028] }); m.position.set(q[0], q[1], q[2]); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir);
+      }
+      if (sp === 'golden') {
+        const cr = new T.Group(); cr.userData.fixed = true; cr.position.set(lx * 0.3, P.top(0.3) + 0.01, 0); body.add(cr);
+        for (let i = 0; i < 3; i++) mesh(GEO.cone6, c3, cr, { p: [(i - 1) * 0.05, 0.05, 0], s: [0.025, 0.09, 0.025], ol: 0.006 });
+        mesh(GEO.cyl8, c3, cr, { s: [0.08, 0.03, 0.05] });
+      }
       gF.visible = false; scene.add(gF);
-      gF.userData = { body, tail, len: lx };
+      const len = 2 * lx + L;
+      const u = { uS1: { value: new T.Vector4(0, 0, 0, 0) }, uS2: { value: new T.Vector4(0, 0, 0, W.ex) }, uK: { value: new T.Vector4(lx, len, W.k, W.head) } };
+      const r = Math.random();
+      gF.userData = { body, len: lx, sw: { u, p: W, len, ph: r * 6.28, pph: r * 3.1, bph: r * 5, e: 0.4, cb: 0, fm: 0.88 + 0.24 * Math.random(), am: 0.85 + 0.3 * Math.random() } };
       bake(gF, false);
+      const [mt, mo] = fishMats(u);
+      body.children.forEach((m) => { if (m.isMesh && m.geometry.attributes.aSw) { m.material = m.material.isShaderMaterial ? mo : mt; m.frustumCulled = false; } });
       return gF;
+    }
+    // nuoto di un pesce: v = spinta 0..1 (velocità), hover = fermo davanti all'esca (lo tengono le pettorali),
+    // flee = fuga, turn = velocità di virata (rad/s: il corpo si piega verso l'interno, a C nelle virate brusche),
+    // thrash = si dimena (lotta, in mano). Nessun oggetto creato: aggiorna gli uniform del pesce.
+    function swimUp(g, dt, v, hover, flee, turn, thrash) {
+      const S = g.userData.sw; if (!S) return;
+      const W = S.p, U = S.u, TAU = Math.PI * 2;
+      S.bph = (S.bph + dt * (0.5 + 0.6 * v) * S.fm * TAU) % (TAU * 50);
+      const burst = Math.sin(S.bph) > -0.35 ? 1 : 0.2;          // colpi di coda a impulsi, poi planata
+      const tgt = v * burst + flee * 1.2 + thrash;
+      S.e += (tgt - S.e) * Math.min(1, dt * (tgt > S.e ? 8 : 3));
+      const e = Math.min(1.6, S.e);
+      const f = W.f * S.fm * (0.4 + 0.7 * Math.min(1, e) + 0.9 * flee + 1.3 * thrash);
+      S.ph = (S.ph + dt * f * TAU) % (TAU * 50);
+      const amp = W.a * S.len * S.am * (0.15 + 0.85 * Math.min(1, e) + 0.35 * flee + 0.6 * thrash) * (1 - 0.75 * hover);
+      const still = Math.max(hover, 1 - Math.min(1, e * 1.4));
+      S.pph = (S.pph + dt * W.pf * S.fm * (0.7 + 0.8 * still) * TAU) % (TAU * 50);
+      const cb = Math.max(-0.32, Math.min(0.32, -turn * 0.07)) * S.len;
+      S.cb += (cb - S.cb) * Math.min(1, dt * 12);
+      U.uS1.value.set(S.ph, amp, S.cb, W.veil * (0.45 + 0.55 * Math.min(1, e)));
+      U.uS2.value.set(S.pph, W.pec * (0.2 + 0.8 * still) * (1 - 0.6 * flee), W.fin * (0.4 + 0.6 * Math.min(1, e)), W.ex);
     }
     function splash(p, n = 10, k = 1) {
       if (!R3) return;
@@ -1111,7 +1481,7 @@
           const ol = new T.InstancedMesh(g, outline(0.012), n); ol.instanceMatrix = im.instanceMatrix;
           im.frustumCulled = ol.frustumCulled = false; scene.add(im); scene.add(ol);
           const sc = { im, n, k, z: zc, x: (r() - 0.5) * 6, y: -1.4 - r() * 2.5, ph: r() * 6, sp: 0.35 + r() * 0.2, scat: 0, off: [], tad };
-          for (let i = 0; i < n; i++) sc.off.push([(r() - 0.5) * 1.4, (r() - 0.5) * 0.7, (r() - 0.5) * 0.8, r() * 6]);
+          for (let i = 0; i < n; i++) sc.off.push([(r() - 0.5) * 1.4, (r() - 0.5) * 0.7, (r() - 0.5) * 0.8, r() * 6, 0.8 + r() * 0.5, 0, 0]);   // + frequenza, imbardata, sua velocità
           U.schools.push(sc);
         };
         if (sea) { mk(12, C['tiny-1'], C['tiny-2'], 0.2, -2.2); mk(9, C['tiny-2'], C.coral, 0.17, -5); }
@@ -1148,6 +1518,40 @@
       e.yaw = 0; e.fresh = true;
       U.byId[id] = e;
       return e;
+    }
+    // QA (Playwright): tavola delle 8 specie (4 × 2) su fondo neutro, di lato o in 3/4, ferme o che nuotano
+    function drawLab(dt, t) {
+      const Q = qa.lab;
+      if (!R3.lab || R3.lab.of !== R3.scene) {
+        const scene = new T.Scene(); scene.background = C['uw-2'].clone();
+        scene.add(new T.HemisphereLight(C['uw-top'], C['uw-2'], (N.amb || 1.4) * 1.05));
+        const sun = new T.DirectionalLight(C.sun, 1.3); sun.position.set(-3, 8, 6); scene.add(sun);
+        const list = ['minnow', 'goldfish', 'catfish', 'koi', 'clown', 'puffer', 'tuna', 'golden'].map((sp, i) => {
+          const g = buildFish(sp, scene); g.visible = true;
+          g.position.set(((i % 4) - 1.5) * 1.8, i < 4 ? 0.95 : -0.95, 0);
+          return { sp, g, i };
+        });
+        R3.lab = { of: R3.scene, scene, list, cam: new T.PerspectiveCamera(22, 1, 0.1, 100) };
+      }
+      const L2 = R3.lab, tt = Q.t != null ? Q.t : t;
+      L2.cam.aspect = W / H; L2.cam.updateProjectionMatrix();
+      const el = Q.elev || 0, d = 17;
+      L2.cam.position.set(0, Math.sin(el) * d, Math.cos(el) * d); L2.cam.lookAt(0, 0, 0);
+      for (const f of L2.list) {
+        const row = f.i < 4 ? 0.95 : -0.95;
+        f.g.visible = !Q.only || Q.only.includes(f.sp);
+        const sk = (Q.k || 1.6) / 1.6;
+        f.g.position.set(((f.i % 4) - 1.5) * 1.8 * sk, (el > 1 ? 0 : row) * sk, (el > 1 ? -row : 0) * sk);
+        f.g.rotation.set(0, Q.yaw || 0, 0);
+        f.g.scale.setScalar(Q.k || 1.6);
+        labPose(f, tt, dt);
+      }
+      R3.renderer.render(L2.scene, L2.cam);
+    }
+    function labPose(f, t, dt) {
+      const S = f.g.userData.sw, Q = qa.lab;
+      if (Q.t != null) { S.ph = t * S.p.f * 6.2832 + f.i; S.pph = t * S.p.pf * 6.2832; S.e = Q.v != null ? Q.v : 0.8; S.bph = 1.5; S.cb = (Q.turn || 0) * -0.07 * S.len; }
+      swimUp(f.g, Q.t != null ? 0 : dt, Q.v != null ? Q.v : 0.8, Q.hover || 0, 0, Q.turn || 0, 0);
     }
     // ---- abitanti (ognuno: un gruppo e una funzione up(t, dt) creata una volta) ----
     const eyes2 = (parent, x, y, z, k = 1, gap = 0.08) => [-1, 1].forEach((sd) => { mesh(GEO.sphLo, C.hi, parent, { p: [x + sd * gap * k, y, z], s: 0.05 * k }); mesh(GEO.sphLo, C.eye, parent, { p: [x + sd * gap * k, y, z + 0.03 * k], s: 0.032 * k }); });
@@ -1320,8 +1724,10 @@
         heldT += dt;
         held.scale.setScalar(1.5);
         held.position.set(tmp.tip.x + 0.35, tmp.tip.y - 0.8, tmp.tip.z + 0.3);
-        held.rotation.set(0, 0.35 + Math.sin(heldT * 1.3) * 0.22, 0.35 + Math.sin(heldT * 9) * 0.1);
-        held.userData.tail.rotation.y = Math.sin(heldT * 14) * 0.5;
+        // appeso per la bocca (muso in su), si dimena a tratti
+        const wr = rm ? 0 : Math.max(0, Math.sin(heldT * 2.2));
+        held.rotation.set(0, 0.35 + Math.sin(heldT * 1.3) * 0.22, 0.55 + Math.sin(heldT * 9) * 0.06 * wr);
+        swimUp(held, rm ? 0 : dt, 0.3, 0.3, 0, Math.sin(heldT * 9) * 7 * wr, 0.6 * wr);
         held.updateMatrixWorld(true);
         tmp.bob.copy(held.localToWorld((tmp.mouth || (tmp.mouth = v3())).set(held.userData.len * 1.02, 0, 0)));   // la lenza arriva alla bocca
       } else heldT = 0;
@@ -1373,8 +1779,8 @@
         else {
           const fm = fish3(J.sp); fm.visible = true; fm.scale.setScalar(1);
           fm.position.lerpVectors(J.from, J.to, u); fm.position.y = Math.sin(u * Math.PI) * J.h - 0.1;
-          fm.rotation.set(0, J.yaw, (0.5 - u) * 2.2);
-          fm.userData.tail.rotation.y = Math.sin(J.t * 20) * 0.6;
+          fm.rotation.set(Math.sin(J.t * 7) * 0.3, J.yaw, (0.5 - u) * 2.2);
+          swimUp(fm, dt, 1, 0, 0, Math.sin(J.t * 15) * 10, 1);   // fuori dall'acqua si dimena
         }
       }
       if (R3.rel) {
@@ -1384,7 +1790,8 @@
         else {
           const fm = fish3(Q.sp); fm.visible = true; fm.scale.setScalar(1.2);
           fm.position.lerpVectors(Q.from, Q.to, u); fm.position.y = lerp(Q.from.y, 0, u) + Math.sin(u * Math.PI) * 1.2;
-          fm.rotation.set(0, Math.PI, -u * 1.8);
+          fm.rotation.set(0, -Math.atan2(Q.to.z - Q.from.z, Q.to.x - Q.from.x), 0.5 - u * 1.9);
+          swimUp(fm, dt, 1, 0, 0.5, 0, 0);
         }
       }
       // goccioline e cerchi
@@ -1482,15 +1889,25 @@
         g.visible = true;
         const near = w.st === 'curious' || w.st === 'circle' || w.st === 'sniff' || w.st === 'bite';
         const zT = near ? 0.05 : ((i % 3) - 1) * 0.6 - 0.3;
-        if (e.fresh) { e.z = zT; e.yaw = w.h > 0 ? 0 : Math.PI; e.fresh = false; }
+        if (e.fresh) { e.z = zT; e.yaw = w.h > 0 ? -0.25 : 0.25 - Math.PI; e.yawV = 0; e.px = w.x; e.py = w.y; e.vx = 0; e.vy = 0; e.roll = 0; e.pitch = 0; e.fresh = false; }
         e.z = lerp(e.z, zT, Math.min(1, dt * 1.5));
-        const yawT = w.h > 0 ? -0.25 : Math.PI + 0.25;
-        e.yaw = lerp(e.yaw, yawT, Math.min(1, dt * 5));
-        const fast = w.st === 'flee' ? 1 : 0;
-        g.position.set(uwX(w.x), uwY(w.y) + Math.sin(t * 2 + i) * 0.03, e.z);
+        // velocità dalla logica (m/s, smussata)
+        if (dt > 0) { const k = Math.min(1, dt * 6); e.vx = lerp(e.vx, (w.x - e.px) * UWX / dt, k); e.vy = lerp(e.vy, -(w.y - e.py) * UWY / dt, k); }
+        e.px = w.x; e.py = w.y;
+        const flee = w.st === 'flee' ? 1 : 0, hover = w.st === 'sniff' || w.st === 'bite' ? 1 : 0;
+        // virata con inerzia (molla critica; nella fuga è uno scatto e il corpo si piega a C); il muso passa verso la camera
+        const yawT = w.h > 0 ? -0.25 : 0.25 - Math.PI, kS = flee ? 260 : 26, cS = 2 * Math.sqrt(kS);
+        for (let n = Math.min(8, Math.ceil(dt / 0.01)), j = 0; j < n; j++) { const h2 = dt / n; e.yawV += (kS * (yawT - e.yaw) - cS * e.yawV) * h2; e.yaw += e.yawV * h2; }
+        const spd = Math.hypot(e.vx, e.vy), v = Math.min(1.2, spd / 0.4);
+        // in curva si inclina, salendo o scendendo alza o abbassa il muso
+        e.roll = lerp(e.roll, clamp(-e.yawV * 0.1, -0.5, 0.5), Math.min(1, dt * 6));
+        e.pitch = lerp(e.pitch, clamp(Math.atan2(e.vy, Math.abs(e.vx) + 0.12) * 0.6, -0.5, 0.5), Math.min(1, dt * 4));
+        swimUp(g, rm ? 0 : dt, v, Math.max(hover, spd < 0.06 ? 0.7 : 0), flee, e.yawV, w.st === 'bite' ? 0.5 : 0);
+        // colpi di coda a impulsi: un piccolo slancio in avanti, poi plana
+        const surge = rm ? 0 : -Math.cos(g.userData.sw.bph) * 0.025 * Math.min(1, v);
+        g.position.set(uwX(w.x) + Math.cos(e.yaw) * surge, uwY(w.y) + Math.sin(t * 1.3 + i) * 0.012 * (1 - Math.min(1, v)), e.z - Math.sin(e.yaw) * surge);
         g.scale.setScalar(1.15);
-        g.rotation.set(0, e.yaw, Math.sin(t * 3 + i) * 0.06 + (w.st === 'sniff' ? Math.sin(t * 14) * 0.08 : 0));
-        g.userData.tail.rotation.y = Math.sin(t * (fast ? 26 : bite && w.st === 'bite' ? 20 : 8) + i) * (fast ? 0.7 : 0.4);
+        g.rotation.set(e.roll, e.yaw, e.pitch + (w.st === 'sniff' ? Math.sin(t * 14) * 0.05 : 0));
         // indicatore sopra la testa: '?' curioso, cuore (più grande con l'interesse), '!' spaventato
         const kind = w.st === 'flee' ? 'x' : w.st === 'bite' ? 'xb' : w.st === 'curious' ? 'q' : (w.st === 'circle' || w.st === 'sniff') ? 'h' : '';
         if (kind) { toScreen(g.position.x, g.position.y + 0.42, g.position.z, tagPt); tagSet(i, tagPt.ok ? kind : '', tagPt.x, tagPt.y, w.int); }
@@ -1510,7 +1927,11 @@
         for (let i = 0; i < sc.n; i++) {
           const of = sc.off[i];
           dm.position.set(hx + of[0] * sp + Math.sin(tt * 2 + of[3]) * 0.08, hy + of[1] * sp + Math.cos(tt * 2.6 + of[3]) * 0.06, sc.z + of[2] * sp);
-          dm.rotation.set(0, dir > 0 ? 0 : Math.PI, Math.sin(tt * 9 + of[3]) * (sc.tad ? 0.4 : 0.12));
+          // ognuno vira col suo ritardo (molla) e scodinzola col suo ritmo: il banco non si muove all'unisono
+          const kY = (14 + of[4] * 10) * (1 + sc.scat * 3), yT = dir > 0 ? -0.15 : 0.15 - Math.PI, h2 = Math.min(dt, 0.05);
+          of[6] += (kY * (yT - of[5]) - 2 * Math.sqrt(kY) * of[6]) * h2; of[5] += of[6] * h2;
+          const wig = Math.sin(tt * (sc.tad ? 9 : 11) * of[4] * (1 + sc.scat * 1.5) + of[3]) * (sc.tad ? 0.45 : 0.22);
+          dm.rotation.set(0, of[5] + wig, Math.sin(tt * 1.7 * of[4] + of[3]) * 0.1);
           dm.scale.set(sc.k * (sc.tad ? 0.8 : 1), sc.k * (sc.tad ? 1 : 0.6), sc.k * 0.45);
           dm.updateMatrix(); sc.im.setMatrixAt(i, dm.matrix);
         }
@@ -1670,7 +2091,7 @@
         case 'run': {
           const p = landPos(s.d, s.x);
           splash(p, 7, 0.7);
-          if (s.d > 3 && !R3.jump && Math.random() < 0.45 && !reduce()) {
+          if (s.d > 3 && !R3.jump && (e.qa || Math.random() < 0.45) && !reduce()) {
             const fr = p.clone(), to = p.clone().add(new T.Vector3((Math.random() - 0.5) * 2, 0, -1.2));
             R3.jump = { sp: s.fish.sp, t: 0, dur: 0.75, from: fr, to, h: 0.9, yaw: Math.atan2(to.z - fr.z, to.x - fr.x) * -1 };
           }
@@ -1813,7 +2234,8 @@
       }
       if (R3 && !qa.noDraw) {
         const f0 = performance.now();
-        if (view === 'uw' && R3.uw && s.lu) drawUW(dt, nowMs / 1000); else draw(dt, nowMs);
+        if (qa.lab && R3.scene) drawLab(dt, nowMs / 1000);
+        else if (view === 'uw' && R3.uw && s.lu) drawUW(dt, nowMs / 1000); else draw(dt, nowMs);
         if (qa.sync) R3.renderer.getContext().finish();
         const fm = performance.now() - f0;
         perf.n++; perf.sum += fm; if (fm > perf.max) perf.max = fm;
@@ -1903,7 +2325,7 @@
     const watch = setInterval(() => { if (!el.isConnected || (wrap && !wrap.isConnected)) detach(); else { renderMode(); } }, 1000);
 
     // QA (Playwright): stato, lancio, mulinello forzato
-    const qa = { hold: false, reel: null, noDraw: false, lure: null, sync: false };
+    const qa = { hold: false, reel: null, noDraw: false, lure: null, sync: false, lab: null };
     el._fish = {
       state: () => s, cast: (p, a) => doCast(p, a || 0), reel: (r) => { qa.reel = r; }, freeze: (on) => { qa.hold = !!on; }, noDraw: (on) => { qa.noDraw = !!on; },
       showFish: (sp) => { if (!s) return; s.phase = 'caught'; s.fish = { sp, g: P.SP[sp].g[1] }; showCaught(); },
@@ -1911,6 +2333,22 @@
       info: () => { if (!R3) return null; const i = R3.renderer.info.render; return { calls: i.calls, tris: i.triangles, pr, view, frame: perf.n ? +(perf.sum / perf.n).toFixed(2) : 0, frameMax: +perf.max.toFixed(1), frames: perf.n }; },
       start: (lv, seed) => begin(P.newLevel(lv, seed ? HH.rng(seed) : Math.random)),
       sync: (on) => { qa.sync = !!on; },
+      // tavola delle specie: { yaw, elev, t (fisso), k } oppure null
+      lab: (o) => { qa.lab = o || null; },
+      // salto del pesce in lotta (come all'evento 'run') · direzione della testa dei pesci sott'acqua (x del mondo)
+      jump: (dur, side) => {
+        if (!s || !s.fish || !R3) return;
+        dispatch({ type: 'run', qa: true });
+        const J = R3.jump; if (!J) return;
+        if (dur) J.dur = dur;
+        if (side) { J.to.copy(J.from).add(new T.Vector3(side, 0, -0.4)); J.h = 1.2; J.yaw = -Math.atan2(J.to.z - J.from.z, J.to.x - J.from.x); }
+      },
+      heads: () => {
+        if (!R3 || !R3.uw) return [];
+        const o = [], v = new T.Vector3(), p = new T.Vector3();
+        for (const w of s.sw || []) { const e = R3.uw.byId[w.id]; if (!e) continue; e.g.updateMatrixWorld(true); e.g.getWorldPosition(p); e.g.localToWorld(v.set(1, 0, 0)).sub(p); o.push({ sp: w.sp, st: w.st, h: w.h, head: +v.x.toFixed(3) }); }
+        return o;
+      },
       perfReset: () => { perf.n = 0; perf.sum = 0; perf.max = 0; },
       lure: (x, y) => { qa.lure = x == null ? null : { x, y: y == null ? 0.45 : y }; }, face: () => face.shown, faceEvent, view: () => view,
     };
@@ -1962,7 +2400,7 @@
   const RULES_EN = 'Go fishing with Hari from the jetty, at the lake or by the sea! Cast by swinging your phone like a rod (or drag with the mouse), wait for a bite, then tip the phone up to reel in and down to let out, keeping the line in the green: too tight and it snaps, too loose and the fish slips away. Every fish goes into the album and back into the water with a little heart.';
   HH.games.push({
     id: 'fish', name: 'Hari Fishing', rules: 'r_fish', rulesEn: RULES_EN,
-    art, create, tutorial: TUT, _face: hariFace,
+    art, create, tutorial: TUT, _face: hariFace, _fishSvg: fishSvg,
     fill: true,                 // a schermo intero la scena riempie tutto il riquadro
     rate: (s) => HH.fish.rate(s),
     parTime: (s) => HH.fish.par(s),

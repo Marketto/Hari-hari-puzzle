@@ -169,8 +169,39 @@ che abbocca o preso, occhi a stella). Il bordo colorato del riquadro cambia con 
 - Cielo a cupola con colori nei vertici, sole (o luna con le stelle e la lanterna accesa la sera), nuvole a palline,
   colline e alberi (lago), isoletta col faro, palme e boa (mare), canne e ninfee, pontile con secchiello e lanterna,
   Hari col cappellino di paglia e la canna a 4 pezzi che si piega con la tensione, lenza che si tende o fa la pancia,
-  galleggiante, ombra del pesce sott'acqua, pesci 3D kawaii (8 specie, occhioni, guance, dettagli: righe del pagliaccio,
-  macchie e baffi della koi, baffi del pesce gatto, aculei del pesce palla, pinnette del tonno, coroncina del pesce d'oro).
+  galleggiante, ombra del pesce sott'acqua, pesci 3D kawaii (vedi sotto).
+- **Pesci** (dopo la v0.30; prima erano un ellissoide con un cono per coda, montato al contrario: base larga sul corpo e punta
+  fuori). Forme condivise dal 3D e dagli SVG (`FB`, `TAILS`, `RIDGES`, `PEC`, `FCOL` in `fish-ui.js`):
+  - **corpo generato** da un profilo d'altezza e uno di larghezza lungo x: muso pieno (superellisse, `nose`), punto più
+    alto `xm`, poi si assottiglia a S fino a un **peduncolo caudale stretto** (`ped`, `wp`); sezione ovale, schiena e
+    pancia diverse (`top`, `bot`); pancia più chiara nei vertici (colore 2), tranne il pagliaccio;
+  - **pinne sottili** a lente (spessore 0 sul bordo, il contorno segue la sagoma), attaccate al peduncolo e larghe verso
+    l'esterno: coda **forcuta** (pesciolino), **a mezzaluna rigida** (tonno, con la carena), **a ventaglio doppia e
+    velata** (pesce rosso, pesce d'oro: due ventagli uniti sopra e aperti sotto), **ventaglio ampio e morbido** (koi),
+    **arrotondata** (pagliaccio, pesce gatto), **piccola** (pesce palla); dorsale (a vela nel pesce rosso, lunga nella
+    koi, a due lobi bordati di scuro nel pagliaccio, bassa + seconda gialla a falce nel tonno), anale, pettorali dietro
+    l'opercolo (a falce nel tonno), ventrali;
+  - dettagli: tre bande bianche bordate di scuro del pagliaccio (decalcomanie che seguono la superficie), macchie rosse
+    della koi, riga del pesciolino, pinnule gialle del tonno su schiena e ventre verso la coda, aculei del pesce palla
+    (corpo quasi sferico), baffi del pesce gatto (due lunghi, due corti) e della koi vicino alla bocca, coroncina del
+    pesce d'oro.
+- **Nuoto** nel vertex shader (`onBeforeCompile` su `MeshToonMaterial`, il contorno usa la stessa `fishDef`): ogni vertice
+  ha `aSw` = (parte, cerniera). Onda del corpo lungo x con ritardo di fase dalla testa alla coda e ampiezza che cresce
+  verso la coda (`head + (1 − head)·s^ex`: la testa oscilla pochissimo, il corpo si piega a S), piega a C nelle virate
+  (proporzionale alla velocità di virata) e nello scatto di fuga; pettorali che remano alternate (più ampie e veloci da
+  fermo davanti all'esca), dorsale e anale che ondeggiano, code velate in ritardo; il pesce palla nuota con le pettorali
+  e la coda quasi ferma; il tonno ha il corpo quasi fermo (`ex` = 5) e la coda rigida e veloce che ruota sul peduncolo.
+  Parametri per specie in `SWP`; frequenza, fase e ampiezza variano per individuo. `swimUp()` aggiorna solo gli uniform
+  (niente oggetti per fotogramma): colpi di coda a impulsi e planata (con un piccolo slancio in avanti), virate con
+  inerzia (molla critica, nella fuga molto rigida = scatto a C), rollio in curva, muso in su o in giù salendo e
+  scendendo. In superficie il pesce si dimena nei salti e, appeso alla bocca, a tratti. I pesciolini dei banchi virano
+  ognuno col suo ritardo e scodinzolano col loro ritmo.
+- **SVG** (album, card, tutorial): stessa sagoma di profilo (corpo dal profilo, coda dal peduncolo verso l'esterno,
+  dorsale, anale, ventrale, pettorale, bande e macchie dentro la sagoma), testa a destra; colori dai token, temi chiaro
+  e scuro.
+- Prove visive (Playwright, `el._fish`): `lab({ yaw, elev, t, v, turn, k, only })` disegna la tavola delle 8 specie
+  su fondo neutro (di lato, in 3/4, dall'alto; `t` fisso = posa del nuoto ripetibile), `jump(durata, lato)` fa saltare
+  il pesce in lotta, `heads()` dà per ogni pesce sott'acqua il verso di marcia della logica e quello della testa.
 - **Sott'acqua** (seconda scena, disegnata al posto della superficie in `wait` e `bite`): sfondo a sfumatura e nebbia
   `--fsh-uw-2` (5–26 m) per la profondità; superficie vista da sotto con bande di luce che scorrono (e al lago le ninfee
   coi gambi fino al fondo); **raggi di luce** (una InstancedMesh additiva); fondale con dune, rocce, coralli (mare) o
@@ -187,12 +218,12 @@ che abbocca o preso, occhi a stella). Il bordo colorato del riquadro cambia con 
 - Colori **solo** da `--fsh-*` in `fish.css`, letti a runtime con `getComputedStyle` (cambio di tema ricostruisce la scena).
 - Prestazioni: pixel ratio ≤ 1,5 (cala fino a 0,7 se i fotogrammi sono lenti e risale), 2 luci (3 di sera), niente
   ombre, ~150 draw call, ~25 k triangoli, gocce da un insieme fisso. In pausa il ciclo si ferma. Sott'acqua: 2 luci,
-  **~41 draw call (lago) / ~47 (mare)** (erano 142 / 230–254), 45–55 k triangoli: `bake()` fonde la geometria statica
-  (fondale, dune, rocce, coralli, tronchi, ninfee) in una mesh con i colori nei vertici + una di contorno con lo
-  spessore nei vertici, e per pesci e creature fonde i pezzi fermi di ogni gruppo animato (corpo e coda di un pesce =
-  4 draw call); piante, raggi, banchi e bollicine sono InstancedMesh / Points; materiali condivisi; niente oggetti creati per fotogramma (vettori riusati, anche
-  in superficie). Misura (Chromium headless con SwiftShader, cioè GPU software, 402×874): **≈ 2,5–3 ms di CPU per
-  fotogramma** sott'acqua (logica + aggiornamenti + invio dei comandi), massimo 6,4 ms; i fotogrammi al secondo in
+  **~35 draw call (lago) / ~45–52 (mare)** (v0.30: 41 / 47–60; prima ancora 142 / 230–254), 38–64 k triangoli:
+  `bake()` fonde la geometria statica (fondale, dune, rocce, coralli, tronchi, ninfee) in una mesh con i colori nei
+  vertici + una di contorno con lo spessore nei vertici, e per le creature fonde i pezzi fermi di ogni gruppo animato;
+  un pesce intero (corpo, pinne, occhi) = **2 draw call** (erano 4), perché si muove nel vertex shader; piante, raggi, banchi e bollicine sono InstancedMesh / Points; materiali condivisi; niente oggetti creati per fotogramma (vettori riusati, anche
+  in superficie). Misura (Chromium headless con SwiftShader, cioè GPU software, 402×874): **≈ 1–2,5 ms di CPU per
+  fotogramma** sott'acqua (logica + aggiornamenti + invio dei comandi), massimo 6,4 ms (coi pesci nuovi); i fotogrammi al secondo in
   SwiftShader non sono indicativi di un telefono (la rasterizzazione software è il collo di bottiglia).
 
 ## Suoni e musica

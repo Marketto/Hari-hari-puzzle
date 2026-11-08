@@ -32,6 +32,16 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.30.1)
+- [x] Hari Fishing, pesci più veri e vivi (feedback: "code al contrario", "sembrano pezzi di legno"): corpo generato
+  affusolato col peduncolo caudale stretto, coda per specie attaccata al peduncolo e larga verso l'esterno (forcuta,
+  mezzaluna rigida, ventaglio doppio velato, ventaglio morbido, arrotondata, piccola), dorsale/anale/pettorali/ventrali,
+  bande bordate del pagliaccio, macchie koi, pinnule del tonno; nuoto nel vertex shader (onda a S dalla testa alla coda,
+  pettorali che remano, code velate in ritardo, coda rigida del tonno, scatto a C nella fuga, virate con inerzia e
+  rollio, colpi di coda a impulsi), variabile per individuo; SVG di album/card/tutorial con le stesse sagome.
+  Draw call sott'acqua: lago 41 → 35, mare 54 → 45–48, mare con 5 pesci 60 → 45–52 (un pesce = 2 invece di 4)
+- [ ] Pesci nuovi su telefono vero: fluidità sott'acqua con 5 pesci, leggibilità delle pinne sottili a 360 px
+
 ## Fatto (v0.30.0)
 - [x] **Hari Fishing sott'acqua**: dopo il lancio la camera si tuffa (velo di bollicine) e si vede il fondo del lago
   o del mare (raggi di luce, piante che ondeggiano su tre strati di parallasse, rocce, coralli o tronchi, ninfee viste
