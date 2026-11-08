@@ -6,7 +6,7 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.25.1';
+const VERSION = 'hh-v0.25.2';
 // testi legali: en.js e licenses.js sempre offline (SHELL); le altre lingue (src/i18n/legal/<lang>.js) in cache alla prima apertura
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
@@ -29,7 +29,8 @@ self.addEventListener('install', (e) => {
     await c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })));
     await carryGames(c);
     // prima installazione: si attiva subito. Aggiornamento: aspetta il via dalla pagina SOLO se la pagina aperta
-    // sa gestirlo (risponde "can-update"); con pagine di versioni vecchie, o ad app chiusa, si attiva subito
+    // sa gestirlo (risponde "can-update" con proto >= 2, dalla 0.25.2); con pagine di versioni vecchie, o ad app chiusa,
+    // si attiva subito: alcune pagine vecchie su iPhone (Chrome/Safari) non mandavano mai il via e l'app restava ferma
     // (altrimenti resterebbe in attesa finché l'app non viene chiusa del tutto).
     if (!self.registration.active || !(await pagesCanUpdate())) await self.skipWaiting();
   })());
@@ -51,7 +52,7 @@ async function carryGames(c) {
     const url = new URL(f, scope).href;
     try { const r = await fetch(new Request(url, { cache: 'reload' })); if (r.ok) return c.put(url, r); throw new Error(r.status); }
     catch (e) { const r = await (await caches.open(have.get(url))).match(url); if (r) return c.put(url, r); }
-  })));
+  }));
 }
 
 async function pagesCanUpdate() {
@@ -59,7 +60,7 @@ async function pagesCanUpdate() {
   if (!list.length) return false;
   return new Promise((resolve) => {
     const t = setTimeout(() => { self.removeEventListener('message', on); resolve(false); }, 1500);
-    function on(e) { if (e.data && e.data.type === 'can-update') { clearTimeout(t); self.removeEventListener('message', on); resolve(true); } }
+    function on(e) { if (e.data && e.data.type === 'can-update' && e.data.proto >= 2) { clearTimeout(t); self.removeEventListener('message', on); resolve(true); } }
     self.addEventListener('message', on);
     list.forEach((c) => c.postMessage({ type: 'ask-update' }));
   });

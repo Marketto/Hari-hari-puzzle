@@ -23,7 +23,14 @@
   vecchie). Livelli e punti non hanno versione. Le partite in corso hanno `SAVE_VERSION`: se cambia, aggiungere una migrazione in
   `HH.progress.MIGRATE[v]`; senza migrazione il salvataggio non viene caricato ma nemmeno cancellato. Se un salvataggio non si apre,
   se ne tiene copia in `save-bak:<id>` e si riparte dal livello raggiunto. `navigator.storage.persist()` evita la pulizia automatica.
-- `tests/pwa.test.mjs` controlla: `VERSION` = `package.json`, shell offline completa, SW che non tocca i dati, migrazioni.
+- Il service worker nuovo aspetta il via SOLO se la pagina risponde `{type:'can-update', proto: 2}` (dalla 0.25.2); pagine
+  più vecchie, che su iPhone a volte non mandavano mai il via, lo fanno attivare subito.
+- **Autoriparazione** (`heal` in `app.js`, a ogni controllo): legge `sw.js` dalla rete senza cache; se la versione pubblicata
+  è più nuova e dopo 20 s non è partita, dà il via a quella in attesa oppure (nessuna in arrivo) cancella registrazione e
+  cache `hh-v*` dell'app e ricarica. I salvataggi non si toccano; un solo tentativo forte per versione (`healTried`).
+- `tests/pwa.test.mjs` controlla: `VERSION` = `package.json`, shell offline completa, SW che non tocca i dati, migrazioni, e
+  **valuta `sw.js` come un service worker vero**: un errore di sintassi lì blocca gli aggiornamenti di tutti (successo con
+  la 0.25.0). Se un utente resta indietro: la versione è scritta accanto al logo (✿ v…).
 
 ## 2. APK / AAB con Trusted Web Activity (Bubblewrap)
 Requisiti: Node 18+, JDK 17, Android SDK (Bubblewrap li scarica se mancano).

@@ -81,3 +81,22 @@ test('lazy load: catalogo completo, file esistenti, card e token generati aggior
   for (const f of ['src/games/catalog.js', 'src/games/cards.js', 'src/games/tokens.css']) assert.ok(SHELL.includes(f), `${f} manca in SHELL`);
   assert.match(sw, /importScripts\('src\/games\/catalog\.js'\)/);
 });
+
+// Un errore di sintassi in sw.js blocca gli aggiornamenti di TUTTI i telefoni (il browser scarta il nuovo service worker
+// e tiene il vecchio): è successo con la 0.25.0. Qui lo si valuta davvero, come farebbe il browser.
+test('sw.js si valuta senza errori in un contesto da service worker', async () => {
+  const vm = await import('node:vm');
+  const handlers = {};
+  const ctx = {
+    URL, Set, Map, Promise, Request: class { constructor(u) { this.url = u; } }, console,
+    registration: { scope: 'https://example.test/app/', active: null },
+    addEventListener: (type, fn) => { handlers[type] = fn; },
+    clients: { matchAll: async () => [] }, caches: { open: async () => ({}), keys: async () => [] },
+  };
+  ctx.self = ctx; ctx.globalThis = ctx;
+  const c = vm.createContext(ctx);
+  ctx.importScripts = (...files) => files.forEach((f) => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), c, { filename: f }));
+  vm.runInContext(sw, c, { filename: 'sw.js' });
+  for (const ev of ['install', 'activate', 'fetch', 'message']) assert.equal(typeof handlers[ev], 'function', 'manca il gestore ' + ev);
+  assert.ok(ctx.HH && ctx.HH.catalog.length > 0, 'catalog.js importato');
+});

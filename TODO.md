@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Aggiornamento su iPhone vero (Chrome iOS) da una versione vecchia
 - [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
 - [ ] Ortigia su telefono vero: leggibilità dei cartelli nel centro storico fitto, fluidità vicino ai ponti
@@ -28,6 +29,15 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.25.2)
+- [x] **Aggiornamenti bloccati dalla 0.25.0**: `sw.js` aveva un errore di sintassi (una parentesi in più in `carryGames`), il
+  browser scartava il service worker nuovo e tutti i telefoni restavano alla 0.24.0. Corretto; nuovo test in
+  `tests/pwa.test.mjs` che valuta `sw.js` come un service worker vero (con `importScripts` di `catalog.js`)
+- [x] Aggiornamento robusto su iPhone (Chrome/Safari): il service worker nuovo aspetta il via solo da pagine che rispondono
+  `can-update` con `proto: 2`; con pagine vecchie si attiva subito. Autoriparazione in `app.js` (`heal`): se online c'è una
+  versione più nuova e dopo 20 s non è partita, si dà il via a quella in attesa o si cancellano registrazione e cache
+  dell'app (non i salvataggi) e si ricarica, una volta per versione
 
 ## Fatto (v0.25.1)
 - [x] I giochi partono sempre a schermo intero quando si aprono toccando la card (se il giocatore esce, resta fuori fino al prossimo gioco)

@@ -1030,6 +1030,39 @@
     bar.hidden = false;
     $('#updGo').onclick = applyUpdate;
   }
+  /* ---------- aggiornamento bloccato: autoriparazione ----------
+   * Su iPhone (Chrome e Safari usano WebKit) la versione nuova può restare "in attesa" per sempre: le schede non si
+   * chiudono mai davvero e il via non arriva. Si confronta la versione pubblicata (sw.js letto dalla rete, senza
+   * cache) con quella in uso: se online ce n'è una PIÙ NUOVA si prova l'aggiornamento normale; se dopo 20 s non è
+   * partito, si dà il via a quella in attesa o, se non c'è, si cancellano registrazione e cache dell'app e si
+   * ricarica. I salvataggi (localStorage) non si toccano. Un solo tentativo forte per versione, così niente cicli. */
+  let healing = false;
+  let reloadingNow = () => false;
+  function heal(reg) {
+    if (healing || typeof fetch !== 'function') return;
+    healing = true;
+    const done = () => { healing = false; };
+    fetch('sw.js?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).then((txt) => {
+      const m = /const VERSION = 'hh-v([0-9.]+)'/.exec(txt || '');
+      if (!m || vnum(m[1]) <= vnum(HH.VERSION)) return done();
+      const remote = m[1];
+      setTimeout(() => {
+        if (reloadingNow()) return done();
+        const w = reg.waiting;
+        if (w) { if (!S.game) { persist(); HH.store.set('justUpdated', 1); w.postMessage({ type: 'skip' }); } return done(); }
+        if (reg.installing) return done();                       // sta ancora scaricando: si riprova al prossimo controllo
+        if (HH.store.get('healTried') === remote || S.game) return done();
+        HH.store.set('healTried', remote);
+        persist();
+        HH.store.set('justUpdated', 1);
+        const regs = G.navigator.serviceWorker.getRegistrations ? G.navigator.serviceWorker.getRegistrations() : Promise.resolve([reg]);
+        regs.then((list) => Promise.all(list.map((x) => x.unregister())))
+          .then(() => (G.caches ? G.caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('hh-v')).map((k) => G.caches.delete(k)))) : null))
+          .catch(() => {})
+          .then(() => location.reload());
+      }, 20000);
+    }).catch(done);
+  }
   /* ---------- giochi nuovi dopo un aggiornamento (anche se l'app era chiusa) ---------- */
   const vnum = (v) => String(v || '0').split('.').reduce((a, x) => a * 1000 + (+x || 0), 0);
   function newGamesCheck() {
@@ -1060,6 +1093,7 @@
     const sw = G.navigator.serviceWorker;
     let hadController = !!sw.controller;
     let reloading = false;
+    reloadingNow = () => reloading;
     sw.addEventListener('controllerchange', () => {
       if (!hadController) { hadController = true; return; }   // prima installazione: niente ricarica
       if (reloading) return;
@@ -1068,13 +1102,13 @@
       location.reload();
     });
     // il service worker nuovo chiede se questa pagina sa aggiornarsi da sola: rispondiamo di sì (al mittente)
-    sw.addEventListener('message', (e) => { if (e.data && e.data.type === 'ask-update' && e.source) e.source.postMessage({ type: 'can-update' }); });
+    sw.addEventListener('message', (e) => { if (e.data && e.data.type === 'ask-update' && e.source) e.source.postMessage({ type: 'can-update', proto: 2 }); });
     sw.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
       const watch = (w) => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && sw.controller) updateReady(w); });
       if (reg.waiting && sw.controller) updateReady(reg.waiting);
       watch(reg.installing);
       reg.addEventListener('updatefound', () => watch(reg.installing));
-      const check = () => { if (G.navigator.onLine !== false) reg.update().catch(() => {}); };
+      const check = () => { if (G.navigator.onLine !== false) { reg.update().catch(() => {}); heal(reg); } };
       check();
       setInterval(check, 30 * 60 * 1000);
       document.addEventListener('visibilitychange', () => {
