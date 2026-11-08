@@ -282,3 +282,190 @@ test('prestazioni: generazione < 1 ms, passo < 20 µs', () => {
   assert.ok(gen < 1 * SLOW, `generazione ${gen.toFixed(3)} ms`);
   assert.ok(st < 0.02 * SLOW, `passo ${(st * 1000).toFixed(1)} µs`);
 });
+
+/* ---------- sott'acqua (v0.30): esca, pesci, interesse e paura ---------- */
+// fino all'atterraggio dell'amo (lancio pieno: 30 m)
+function landed(level, seed, p = 1) {
+  const s = fresh(level, seed);
+  F.cast(s, p, 0);
+  while (s.phase === 'fly') F.tick(s, { reel: 0 });
+  return s;
+}
+// un pesce solo, fermo davanti all'esca: secondi perché arrivi ad annusarla con un'esca data da lure(t)
+function timeToSniff(level, sp, lure, maxT = 60) {
+  const s = landed(level, 3);
+  s.sw = [{ sp, x: 0.45, y: 0.45, tx: 0.45, ty: 0.45, h: -1, int: 0, st: 'roam', t: 99, wary: 0, hungry: true, ang: 0, nib: 0 }];
+  s.wait = 999;
+  const t0 = s.t;
+  while (s.t - t0 < maxT) {
+    F.tick(s, lure(s.t - t0));
+    if (s.sw.length && (s.sw[0].st === 'sniff' || s.sw[0].st === 'bite') || s.phase === 'bite') return s.t - t0;
+    if (s.sw[0] && s.sw[0].st === 'flee') return Infinity;
+  }
+  return Infinity;
+}
+const still = () => ({ reel: 0 });
+const calm = (t) => ({ reel: 0, lx: 0.05 + Math.sin(t * 1.2) * 0.12, ly: 0.45 });
+const crazy = (t) => ({ reel: 0, lx: Math.floor(t * 5) % 2 ? 0.95 : -0.95, ly: 0.45 });
+
+test('sott\'acqua: all\'atterraggio l\'esca si immerge tra i pesci del posto, deterministico e ripreso da JSON', () => {
+  for (const level of [1, 4, 9, 14]) {
+    const s = landed(level, 40 + level), c = F.config(level);
+    assert.equal(s.phase, 'wait');
+    assert.ok(s.lu && Math.abs(s.lu.x) < 1e-9 && s.lu.y > 0 && s.lu.y < 1);
+    assert.equal(s.sw.length, c.crowd);
+    for (const w of s.sw) { assert.ok(c.pool.includes(w.sp)); assert.ok(F.SP[w.sp].minD <= s.d); assert.ok(Math.abs(w.x) <= 1.6 && w.y > 0 && w.y < 1); }
+  }
+  const a = landed(7, 5), b = json(a);
+  for (let i = 0; i < 900; i++) { const inp = calm(i / 60); F.tick(a, inp); F.tick(b, inp); }
+  assert.deepEqual(json(a), json(b));
+});
+
+test('sott\'acqua: un\'esca mossa piano incuriosisce più di una ferma; una velocissima spaventa ("!") e i pesci restano diffidenti', () => {
+  for (const level of [1, 6, 12]) {
+    const tCalm = timeToSniff(level, 'goldfish', calm), tStill = timeToSniff(level, 'goldfish', still);
+    assert.ok(tCalm < tStill, `livello ${level}: piano ${tCalm.toFixed(1)} s, ferma ${tStill.toFixed(1)} s`);
+    assert.equal(timeToSniff(level, 'goldfish', crazy), Infinity, `livello ${level}: scatti velocissimi`);
+  }
+  // spavento: evento 'scare', il pesce scappa (si allontana dall'esca) e poi è diffidente
+  const s = landed(5, 11);
+  let ev = [];
+  for (let i = 0; i < 30; i++) ev.push(...F.tick(s, crazy(i / 60 + 0.1)));
+  const sc = ev.filter((e) => e.type === 'scare');
+  assert.ok(sc.length >= 1);
+  const w = s.sw[sc[0].i];
+  assert.ok(w.wary > 0 && (w.st === 'flee' || w.st === 'roam'));
+  assert.ok(s.scares >= sc.length);
+  // le fasi dell'interesse si susseguono: '?', cuore, assaggio (galleggiante che trema), abboccata
+  const q = landed(2, 8);
+  ev = [];
+  for (let i = 0; i < 60 * 60 && q.phase === 'wait'; i++) ev.push(...F.tick(q, calm(i / 60)));
+  const order = ['curious', 'love', 'bite'].map((t) => ev.findIndex((e) => e.type === t));
+  assert.ok(order.every((x) => x >= 0) && order[0] < order[1] && order[1] < order[2], JSON.stringify(order));
+  assert.equal(q.phase, 'bite');
+});
+
+test('sott\'acqua: le specie rare e il pesce d\'oro sono più diffidenti (interesse più lento, paura più facile)', () => {
+  const order = ['goldfish', 'catfish', 'koi', 'golden'];
+  const ts = order.map((sp) => timeToSniff(8, sp, calm, 120));
+  for (let i = 1; i < ts.length; i++) assert.ok(ts[i] > ts[i - 1], `${order[i]} ${ts[i].toFixed(1)} s > ${order[i - 1]} ${ts[i - 1].toFixed(1)} s`);
+  assert.ok(Number.isFinite(ts[3]), 'il pesce d\'oro arriva lo stesso, con pazienza');
+  // una velocità che il pesce rosso tollera spaventa il pesce d'oro
+  const mid = (t) => ({ reel: 0, lx: Math.sin(t * 3) * 0.25, ly: 0.45 });
+  assert.ok(Number.isFinite(timeToSniff(8, 'goldfish', mid)));
+  assert.equal(timeToSniff(8, 'golden', mid), Infinity);
+});
+
+test('sott\'acqua: il bot che muove l\'esca sempre a scatti velocissimi non prende niente; un bambino che la lascia ferma sì', () => {
+  const jerky = fishBot(HH, { jerky: true });
+  for (const level of [1, 3, 6, 9, 12, 14]) {
+    const s = fresh(level, 500 + level);
+    const ev = jerky.play(s, 300);
+    assert.ok(!F.isWon(s), `livello ${level}`);
+    assert.equal(ev.filter((e) => e.type === 'bite').length, 0, `livello ${level}: abboccate`);
+    assert.ok(s.scares > 20);
+  }
+  // esca ferma: i pesci arrivano lo stesso (più lentamente) ai primi livelli
+  const s = fresh(1, 77);
+  playFixed(s, 0, 300);
+  assert.ok(s.lost >= 1 || s.phase === 'fight', 'abboccate anche con l\'esca ferma');
+});
+
+test('sott\'acqua: garanzia della specie speciale, pesci che arrivano, abboccata mancata', () => {
+  const c = F.config(9);
+  const s = fresh(9, 3);
+  s.since = 2;
+  F.cast(s, 1, 0);
+  while (s.phase === 'fly') F.tick(s, { reel: 0 });
+  assert.equal(s.sw[0].sp, c.target);
+  assert.ok(s.sw.every((w) => w.hungry === (w.sp === c.target)), 'con la garanzia solo la speciale ha fame');
+  const bot = fishBot(HH);
+  // il bot (che segue la speciale) la fa abboccare
+  let ev = [];
+  for (let i = 0; i < 60 * 240 && s.phase === 'wait'; i++) {
+    const b = s.sw.find((w) => w.sp === c.target) || { x: 0, y: 0.45 };
+    ev.push(...F.tick(s, { reel: 0, lx: s.lu.x + Math.max(-0.003, Math.min(0.003, b.x - 0.15 - s.lu.x)), ly: s.lu.y + Math.max(-0.003, Math.min(0.003, b.y - s.lu.y)) }));
+  }
+  assert.equal(s.phase, 'bite'); assert.equal(s.fish.sp, c.target);
+  assert.ok(bot);
+  // senza ferrare il pesce se ne va (esce dalla vista) e ne arrivano altri
+  while (s.phase === 'bite') ev.push(...F.tick(s, { reel: 0 }));
+  assert.ok(ev.some((e) => e.type === 'missed'));
+  assert.ok(s.sw.some((w) => w.st === 'leave'));
+  for (let i = 0; i < 60 * 12; i++) ev.push(...F.tick(s, { reel: 0 }));
+  assert.ok(!s.sw.some((w) => w.st === 'leave'), 'uscito dalla vista');
+  assert.ok(ev.some((e) => e.type === 'arrive'), 'ne arriva un altro');
+});
+
+test('curva sott\'acqua: paura più facile, interesse più lento, pesci più lontani (≥ 4 gradini)', () => {
+  const cs = [1, 3, 6, 9, 12].map(F.config);
+  for (let i = 1; i < cs.length; i++) {
+    const a = cs[i - 1], b = cs[i];
+    assert.ok(b.vFear < a.vFear && b.lureG < a.lureG && b.sense < a.sense && b.spread > a.spread, `gradino ${i}`);
+    assert.ok(b.crowd >= a.crowd);
+  }
+  // il bot calmo non spaventa mai a nessun livello (velocità ≤ 0,3 < paura del pesce d'oro al livello 12)
+  assert.ok(0.3 < F.config(12).vFear * (1 - 0.45 * F.SP.golden.shy) * 0.8);
+  // l'inclinazione laterale: zona morta, simmetrica, oltre la paura solo inclinando tanto
+  assert.equal(F.tiltToLure(2), 0); assert.equal(F.tiltToLure(NaN), 0);
+  assert.ok(Math.abs(F.tiltToLure(10) + F.tiltToLure(-10)) < 1e-12);
+  assert.ok(F.tiltToLure(8) < F.config(1).vFear * 0.5 && F.tiltToLure(40) > F.config(1).vFear * 0.8);
+});
+
+test('salvataggio: le partite della v0.28 (v: 1) si riprendono; sott\'acqua si torna a lanciare', () => {
+  // stato salvato dalla v0.28 durante l'attesa e durante la lotta
+  const old = { v: 1, level: 4, stage: 'lake', seed: 123, phase: 'wait', t: 30, pt: 2, acc: 0, moves: 3, caught: [{ sp: 'minnow', g: 50, photo: false }], lost: 1, snaps: 1, slacks: 0, misses: 0, since: 0,
+    cast: { p: 0.6, x: 0, d0: 20, fly: 0.86 }, d: 20, x: 0, T: 0, brk: 0, slk: 0, wait: 1.2, nib: 1, nibAt: -9, bite: 0, fish: null, won: false };
+  const m = F.migrate(json(old));
+  assert.equal(m.v, 2); assert.equal(m.phase, 'aim'); assert.equal(m.lu, null); assert.equal(m.caught.length, 1);
+  const bot = fishBot(HH);
+  bot.play(m);
+  assert.ok(F.isWon(m));
+  const fight = F.migrate(Object.assign(json(old), { phase: 'fight', pt: 1, T: 0.4, fish: { sp: 'goldfish', g: 120, str: 0.6, spd: 1, sta: 1, staS: 7, run: 0, on: false, runT: 1, dir: 1, x: 0 } }));
+  assert.equal(fight.phase, 'fight'); assert.equal(fight.v, 2);
+  for (let i = 0; i < 60; i++) F.tick(fight, { reel: 0.3 });
+  assert.ok(fight.d < 20);
+});
+
+test('espressioni di Hari: quella voluta segue la situazione, quella mostrata non sfarfalla', () => {
+  const s = landed(6, 2);
+  assert.equal(F.mood(s), 'wait');
+  s.sw[0].st = 'curious'; s.sw[0].sp = 'goldfish';
+  assert.equal(F.mood(s), 'curious');
+  s.sw[0].sp = 'koi'; assert.equal(F.mood(s), 'wow');
+  // in lotta: verde → felice, tensione alta → sforzo, fuori dalla finestra → preoccupato
+  const c = F.config(6);
+  const f = Object.assign(json(s), { phase: 'fight', fish: { sp: 'koi', run: 0 }, brk: 0, slk: 0 });
+  f.T = (c.tMin + c.tMax) / 2; assert.equal(F.mood(f), 'happy');
+  f.T = c.tMax - 0.02; assert.equal(F.mood(f), 'effort');
+  f.T = c.tMax + 0.05; assert.equal(F.mood(f), 'worried');
+  f.T = c.tMin - 0.05; assert.equal(F.mood(f), 'worried');
+  assert.equal(F.mood(Object.assign(f, { phase: 'caught' })), 'win');
+  assert.equal(F.mood(Object.assign(json(f), { phase: 'bite', fish: { sp: 'minnow' } })), 'surprised');
+  // isteresi: voluta che cambia a ogni fotogramma per 6 s → al massimo un cambio ogni 0,7 s
+  const m = F.newMood('happy');
+  let changes = 0, prev = m.cur;
+  for (let i = 0; i < 360; i++) { const cur = F.moodStep(m, i % 2 ? 'effort' : 'happy', 1 / 60); if (cur !== prev) { changes++; prev = cur; } }
+  assert.equal(changes, 0, 'alternanza a ogni fotogramma: nessun cambio');
+  const m2 = F.newMood('happy');
+  changes = 0; prev = m2.cur;
+  for (let i = 0; i < 360; i++) { const cur = F.moodStep(m2, Math.floor(i / 20) % 2 ? 'effort' : 'happy', 1 / 60); if (cur !== prev) { changes++; prev = cur; } }
+  assert.ok(changes >= 2 && changes <= Math.ceil(6 / 0.7), `cambi ${changes}`);
+  // quelle forti passano subito (dopo 0,25 s)
+  const m3 = F.newMood('happy');
+  for (let i = 0; i < 60; i++) F.moodStep(m3, 'happy', 1 / 60);
+  let n = 0;
+  while (F.moodStep(m3, 'sad', 1 / 60) !== 'sad') n++;
+  assert.ok(n <= 2);
+});
+
+test('sensori sott\'acqua: inclinazione di lato dello schermo (anche col telefono quasi in piedi e girato)', () => {
+  const near = (a, b, e = 0.6) => assert.ok(Math.abs(a - b) < e, `${a} ≈ ${b}`);
+  near(F.rollFrom(0, 0, 0), 0);
+  near(F.rollFrom(0, 30, 0), 30);            // piatto, lato destro giù
+  near(F.rollFrom(0, -20, 0), -20);
+  near(F.rollFrom(45, 0, 0), 0);             // inclinato in avanti come una canna: nessun lato
+  assert.ok(F.rollFrom(45, 20, 0) > 10);     // e girato verso destra
+  near(F.rollFrom(45, 20, 0), -F.rollFrom(45, -20, 0));
+  near(F.rollFrom(30, 0, 90), 30, 1);        // girato in orizzontale: il "lato" è l'asse lungo
+});

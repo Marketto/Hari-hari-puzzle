@@ -547,6 +547,16 @@
       osc(lowpass(env(sfxBus, t, 0.002, 0.08, t + 0.5), 2400), 'sawtooth', 620, t, t + 0.5, 0, 140, 0.45);
       osc(env(sfxBus, t, 0.002, 0.05, t + 0.35), 'triangle', 1240, t, t + 0.35, 8, 300, 0.3);
     }),
+    // pesce spaventato sott'acqua: "pip!" che sale di scatto + nuvoletta di bolle
+    fishScare: S((t) => {
+      osc(env(sfxBus, t, 0.003, 0.07, t + 0.14), 'triangle', 620, t, t + 0.14, 0, 1500, 0.1);
+      for (let i = 0; i < 4; i++) V.bubble(sfxBus, t + 0.05 + i * 0.045, 0.06);
+    }),
+    // abboccata: "blob" basso + due campanelle d'avviso
+    fishBite: S((t) => {
+      osc(env(sfxBus, t, 0.004, 0.1, t + 0.2), 'sine', 320, t, t + 0.2, 0, 110, 0.16);
+      V.bell(sfxBus, sc(8), t + 0.08, 0.12, 0.08); V.bell(sfxBus, sc(12), t + 0.2, 0.12, 0.09);
+    }),
     // scatto della fotocamera: due clic + piccolo scintillio
     shutter: S((t) => {
       noiseHit(sfxBus, t, 0.025, 0.08, 'highpass', 2600); noiseHit(sfxBus, t + 0.07, 0.035, 0.06, 'bandpass', 1800, 1.2);

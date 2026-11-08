@@ -32,6 +32,31 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.30.0)
+- [x] **Hari Fishing sott'acqua**: dopo il lancio la camera si tuffa (velo di bollicine) e si vede il fondo del lago
+  o del mare (raggi di luce, piante che ondeggiano su tre strati di parallasse, rocce, coralli o tronchi, ninfee viste
+  da sotto, banchi di pesciolini e girini, abitanti kawaii che non abboccano: granchio, medusa, stella marina, polpo,
+  tartaruga, cavalluccio, conchiglia; al lago rana, lumache, gamberetti). L'esca si muove di lato e in profondità
+  (telefono inclinato di lato e avanti/indietro con taratura neutra, mouse dove si punta, dito trascinando, ◀ ▶ e ←/→):
+  piano o a piccoli scatti i pesci si incuriosiscono ("?", cuore che cresce, annusano, abboccano); troppo veloce
+  sobbalzano ("!"), scappano con le bolle e restano diffidenti. Specie rare e pesce d'oro più diffidenti, curva per
+  livello (paura, interesse, raggio, quanti e quanto lontani). Abboccata con vibrazione, galleggiante giù, "!" e suono;
+  si ferra con "Tira" e la lotta torna in superficie. Logica pura testata (bot calmo vince 1–14, bot a scatti mai una
+  abboccata), salvataggi v0.28 migrati (`v: 2`).
+- [x] **Hari nel riquadro**: 9 espressioni (concentrato, curioso, sorpreso, sforzo, preoccupato, felice, deluso,
+  vittoria, stupito) guidate da `mood(s)` e dagli eventi, con isteresi (`moodStep`); temi chiaro e scuro.
+- [x] 4 chiavi nuove (`fi_lure`, `fi_scared`, `fi_rare`, `tu_fish_5`): EN e IT, inglese nelle altre 41 lingue
+  **da tradurre**. Effetti `fishScare` e `fishBite`.
+- [x] **Colori di Fix-It House corretti** (bug dalla v0.28.0): Hari Fishing usava lo stesso prefisso `--fi-*` di
+  Fix-It House e in `tokens.css` (e caricando `fish.css`) i suoi valori sovrascrivevano quelli di Fix-It (`--fi-ink`,
+  `--fi-water`, `--fi-spark`…), nella card e nel gioco riaperto dopo la pesca. Ora la pesca usa `--fsh-*`;
+  `tests/tokens.test.mjs` fallisce se due giochi (o un gioco e il nucleo) definiscono lo stesso custom property a `:root`.
+- [x] **Meno draw call sott'acqua**: geometria statica fusa (`bake`: colori e spessore del contorno nei vertici), pezzi
+  fermi delle creature e dei pesci fusi per gruppo animato; mare da ~240 a meno di 110 draw call, lago da ~142.
+- [ ] Pesca sott'acqua su telefono vero: fluidità (mare ~230 draw call), sensibilità dell'inclinazione di lato,
+  leggibilità di "?" e cuori a 360 px
+- [x] Testi nuovi della pesca tradotti in tutte le 43 lingue
+
 ## Fatto (v0.29.0)
 - [x] **Schermo intero unica modalità dei giochi**: si gioca solo a schermo intero (via `#gFull` e `#homeFsExit`, la home
   torna in vista normale). Indietro/Esc a schermo intero → subito alla home con la transizione (un solo indietro della

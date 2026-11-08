@@ -4,8 +4,11 @@
  * torna in acqua con un cuoricino. Fasi di un lancio:
  *   aim    pronto a lanciare: cast(s, forza, mira) — la forza (0..1) decide la distanza (5..30 m)
  *   fly    l'amo vola (0,5–1,1 s), poi si posa: 'land'
- *   wait   il galleggiante aspetta: qualche "assaggio" (nibble, il galleggiante trema) e poi l'abboccata
- *          tirare forte subito dopo un assaggio spaventa il pesce ('early'); tirare piano riavvicina l'amo (sotto i 2 m
+ *   wait   sott'acqua: l'esca (s.lu, x −1..1 di lato, y 0..1 di profondità) si muove verso il bersaglio dato
+ *          dall'input { lx, ly }; i pesci (s.sw) nuotano con comportamenti propri. Movimenti lenti e piccoli scatti
+ *          li incuriosiscono (interesse 0..1: '?' → cuore → annusano l'esca → 'nibble' → abboccata); troppo veloci
+ *          (velocità dell'esca > vFear della specie) li spaventano ('scare': scappano e per un po' sono diffidenti).
+ *          Tirare di colpo mentre un pesce annusa lo spaventa ('early'); tirare piano riavvicina l'amo (sotto i 2 m
  *          si torna a 'aim' senza penalità: 'reel')
  *   bite   finestra (cfg.biteWin s) per ferrare tirando (reel > 0,35): 'hook'; se scade il pesce se ne va ('missed')
  *   fight  tira e molla: la tensione T deve restare nella finestra verde [tMin, tMax]
@@ -23,7 +26,8 @@
  *   il fiato cala con la tensione (più tiri, prima si stanca) e risale piano a lenza molle
  *   gli scatti (bursts) arrivano a caso: durano 0,5–1,4 s e fanno salire la forza
  *
- * Input: { reel } in [-1, 1]: > 0 tira (più è alto più tira), < 0 allenta. Telefono: tiltToReel(pitch − zero);
+ * Input: { reel, lx, ly }: reel in [-1, 1] > 0 tira (più è alto più tira), < 0 allenta; lx, ly = dove portare l'esca
+ * sott'acqua (assenti = resta il bersaglio di prima). Telefono: tiltToReel(pitch − zero);
  * pitchFrom(beta, gamma, angolo dello schermo) = inclinazione del lato alto dello schermo; il lancio col telefono è
  * flick(det, t, pitch, acc): indietro e poi avanti di scatto → forza.
  *
@@ -31,6 +35,7 @@
  *      tick(s, inp) → eventi · release(s, photo) → eventi · isWon · isOver · progress · rate · par
  *      tiltToReel(dp) · pitchFrom(b, g, ang) · newFlick() · flick(det, t, pitch, acc) → forza o 0
  *      albumAdd(album, fish, photo) → { album, isNew, record } · fightFrac(s) · zones(s)
+ *      mood(s) → espressione di Hari voluta · newMood() · moodStep(m, voluta, dt) → espressione mostrata (isteresi)
  * Esporta HH.fish.
  */
 (function (G) {
@@ -43,15 +48,16 @@
   /* ---------- specie ----------
    * rar 1 comune · 2 non comune · 3 raro · 4 leggendario; where = lake | sea | both; minD = distanza minima dell'amo (m)
    * str = forza, spd = velocità e frequenza degli scatti, sta = fiato (s di tensione piena per stancarsi), g = grammi */
+  // shy = diffidenza 0..1 (interesse più lento, si spaventa prima, resta diffidente più a lungo); dep = profondità preferita
   const SPECIES = [
-    { id: 'minnow', rar: 1, where: 'lake', str: 0.45, spd: 0.9, sta: 6, minD: 0, g: [30, 120] },
-    { id: 'goldfish', rar: 1, where: 'lake', str: 0.55, spd: 1.0, sta: 7, minD: 0, g: [80, 300] },
-    { id: 'catfish', rar: 2, where: 'lake', str: 0.8, spd: 0.7, sta: 11, minD: 11, g: [600, 2500] },
-    { id: 'koi', rar: 3, where: 'lake', str: 0.75, spd: 1.1, sta: 11, minD: 16, g: [800, 3000] },
-    { id: 'clown', rar: 1, where: 'sea', str: 0.5, spd: 1.15, sta: 6, minD: 0, g: [60, 250] },
-    { id: 'puffer', rar: 2, where: 'sea', str: 0.65, spd: 0.8, sta: 9, minD: 9, g: [200, 900] },
-    { id: 'tuna', rar: 3, where: 'sea', str: 0.95, spd: 1.3, sta: 14, minD: 17, g: [2000, 9000] },
-    { id: 'golden', rar: 4, where: 'both', str: 0.9, spd: 1.25, sta: 13, minD: 21, g: [500, 1500], from: 6 },
+    { id: 'minnow', rar: 1, where: 'lake', str: 0.45, spd: 0.9, sta: 6, minD: 0, g: [30, 120], shy: 0.1, dep: 0.3 },
+    { id: 'goldfish', rar: 1, where: 'lake', str: 0.55, spd: 1.0, sta: 7, minD: 0, g: [80, 300], shy: 0.15, dep: 0.45 },
+    { id: 'catfish', rar: 2, where: 'lake', str: 0.8, spd: 0.7, sta: 11, minD: 11, g: [600, 2500], shy: 0.35, dep: 0.8 },
+    { id: 'koi', rar: 3, where: 'lake', str: 0.75, spd: 1.1, sta: 11, minD: 16, g: [800, 3000], shy: 0.55, dep: 0.55 },
+    { id: 'clown', rar: 1, where: 'sea', str: 0.5, spd: 1.15, sta: 6, minD: 0, g: [60, 250], shy: 0.1, dep: 0.4 },
+    { id: 'puffer', rar: 2, where: 'sea', str: 0.65, spd: 0.8, sta: 9, minD: 9, g: [200, 900], shy: 0.3, dep: 0.6 },
+    { id: 'tuna', rar: 3, where: 'sea', str: 0.95, spd: 1.3, sta: 14, minD: 17, g: [2000, 9000], shy: 0.6, dep: 0.35 },
+    { id: 'golden', rar: 4, where: 'both', str: 0.9, spd: 1.25, sta: 13, minD: 21, g: [500, 1500], from: 6, shy: 0.8, dep: 0.6 },
   ];
   const SP = Object.fromEntries(SPECIES.map((x) => [x.id, x]));
   const RAR_W = [0, 10, 5, 2.2, 0.7];
@@ -75,7 +81,11 @@
       biteWin: 1.6 - 0.7 * k,
       strMul: 1 + 0.4 * k, spdMul: 1 + 0.35 * k,
       wait: [1.5 + k, 3.5 + 1.5 * k], nib: L === 1 ? 1 : 2,
-      par: Math.round(goal * (26 + 18 * k) + (target ? 25 : 0)),
+      // sott'acqua: velocità dell'esca che spaventa (unità/s), interesse guadagnato al secondo, raggio in cui i pesci
+      // la notano, quanti pesci ci sono e quanto lontano dall'esca compaiono
+      vFear: +(1.25 - 0.4 * k).toFixed(3), lureG: +(0.95 - 0.45 * k).toFixed(3), sense: +(1 - 0.2 * k).toFixed(3),
+      crowd: 3 + (L >= 4 ? 1 : 0) + (L >= 9 ? 1 : 0), spread: +(0.3 + 0.4 * k).toFixed(3),
+      par: Math.round(goal * (32 + 22 * k) + (target ? 35 : 0)),
     };
   }
 
@@ -91,16 +101,20 @@
   function newLevel(level, r = Math.random) {
     const c = config(level);
     return {
-      v: 1, level: c.level, stage: c.stage, seed: (Math.floor(r() * 4294967296) >>> 0) || 1,
+      v: 2, level: c.level, stage: c.stage, seed: (Math.floor(r() * 4294967296) >>> 0) || 1,
       phase: 'aim', t: 0, pt: 0, acc: 0, moves: 0,
       caught: [], lost: 0, snaps: 0, slacks: 0, misses: 0, since: 0,
       cast: null, d: 0, x: 0, T: 0, brk: 0, slk: 0, wait: 0, nib: 0, nibAt: -9, bite: 0, fish: null, won: false,
+      lu: null, sw: null, lr: 0, scares: 0, nid: 0,
     };
   }
-  // salvataggio: le fasi "in volo" o in attesa tornano a 'aim' (il galleggiante si riavvolge, nessuna penalità)
+  // salvataggio: le fasi "in volo" o sott'acqua tornano a 'aim' (il galleggiante si riavvolge, nessuna penalità).
+  // Le partite della v0.28 (v: 1, senza esca né pesci sott'acqua) passano a v: 2.
   function migrate(s) {
-    if (!s || s.v !== 1 || !Array.isArray(s.caught)) return null;
-    if (s.phase === 'fly' || s.phase === 'wait' || s.phase === 'bite') { s.phase = 'aim'; s.pt = 0; s.cast = null; s.d = 0; s.fish = null; }
+    if (!s || (s.v !== 1 && s.v !== 2) || !Array.isArray(s.caught)) return null;
+    if (s.v === 1) { s.v = 2; s.lu = null; s.sw = null; s.lr = 0; s.scares = 0; s.nid = 0; }
+    if (s.phase === 'fly' || s.phase === 'wait' || s.phase === 'bite') { s.phase = 'aim'; s.pt = 0; s.cast = null; s.d = 0; s.fish = null; s.lu = null; s.sw = null; }
+    if (s.phase === 'fight') s.sw = null;
     s.acc = 0;
     return s;
   }
@@ -115,29 +129,158 @@
     p = clamp(+p || 0, 0, 1);
     s.phase = 'fly'; s.pt = 0; s.moves++;
     s.cast = { p, x: clamp(+aim || 0, -1, 1), d0: D_MIN + (D_MAX - D_MIN) * p, fly: 0.5 + 0.6 * p };
-    s.d = 0; s.x = s.cast.x; s.T = 0; s.brk = 0; s.slk = 0; s.fish = null;
+    s.d = 0; s.x = s.cast.x; s.T = 0; s.brk = 0; s.slk = 0; s.fish = null; s.lu = null; s.sw = null;
     return [{ type: 'cast', p }];
   }
 
-  // specie che abbocca: tra quelle del livello raggiungibili a questa distanza; la specie speciale arriva sicuro
-  // dopo 2 abboccate senza (se l'amo è abbastanza lontano)
-  function pickFish(s) {
+  // specie di un pesce sott'acqua: tra quelle del livello raggiungibili a questa distanza (le non comuni pesano di più
+  // più l'amo è lontano)
+  function pickSp(s) {
     const c = cfgOf(s);
     const ok = c.pool.filter((id) => SP[id].minD <= s.d);
-    let id = null;
-    const tg = c.target && !hasTarget(s) && SP[c.target].minD <= s.d;
-    if (tg && s.since >= 2) id = c.target;
-    else {
-      const far = s.d / D_MAX;
-      const w = ok.map((x) => RAR_W[SP[x].rar] * (SP[x].rar > 1 ? 1 + 2 * far : 1));
-      let r = rnd(s) * w.reduce((a, b) => a + b, 0);
-      id = ok[ok.length - 1];
-      for (let i = 0; i < ok.length; i++) { r -= w[i]; if (r <= 0) { id = ok[i]; break; } }
-    }
+    const far = s.d / D_MAX;
+    const w = ok.map((x) => RAR_W[SP[x].rar] * (SP[x].rar > 1 ? 1 + 2 * far : 1));
+    let r = rnd(s) * w.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < ok.length; i++) { r -= w[i]; if (r <= 0) return ok[i]; }
+    return ok[ok.length - 1];
+  }
+  // il pesce che ha abboccato: la specie speciale conta le abboccate senza di lei (garanzia dopo 2)
+  function makeFish(s, id) {
+    const c = cfgOf(s);
     if (c.target && !hasTarget(s)) s.since = id === c.target ? 0 : s.since + 1;
     const sp = SP[id];
     const g = Math.round(lerp(sp.g[0], sp.g[1], Math.pow(rnd(s), 1.5)) / 10) * 10;
     return { sp: id, g, str: sp.str * c.strMul, spd: sp.spd * c.spdMul, sta: 1, staS: sp.sta, run: 0, on: false, runT: range(s, 0.6, 1.4), dir: rnd(s) < 0.5 ? -1 : 1, x: s.x };
+  }
+
+  /* ---------- sott'acqua: l'esca e i pesci ----------
+   * Coordinate: x −1..1 (di lato; i pesci arrivano da ±1,6, fuori dalla vista), y 0 (superficie) .. 1 (fondo).
+   * Un pesce (swimmer) = { sp, x, y, tx, ty, h (verso ±1), int (interesse 0..1), st, t, wary, hungry, ang, nib }
+   * st: roam (gira per conto suo) · curious ('?', si avvicina) · circle (cuore, gira attorno all'esca) · sniff (annusa:
+   *     'nibble', poi 'bite') · flee (spaventato: scappa) · leave (se ne va) · bite (attaccato all'amo)
+   * Garanzia della specie speciale: dopo 2 abboccate senza, al lancio c'è lei e gli altri pesci non hanno fame. */
+  const V_MAX = 3, Y_TOP = 0.08, Y_BOT = 0.95;
+  const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  function spawn(s, sp, hungry, edge) {
+    const c = cfgOf(s), S = SP[sp];
+    const side = rnd(s) < 0.5 ? -1 : 1;
+    const x = edge ? side * 1.6 : side * Math.min(1.45, c.spread + rnd(s) * 0.5 + (sp === c.target ? 0.3 : 0));
+    const y = clamp(S.dep + (rnd(s) - 0.5) * 0.4, 0.12, 0.92);
+    s.nid = (s.nid || 0) + 1;
+    return { id: s.nid, sp, x: +x.toFixed(4), y: +y.toFixed(4), tx: -side * rnd(s), ty: y, h: -side, int: 0, st: 'roam', t: range(s, 1.5, 3), wary: 0, hungry, ang: rnd(s) * 6.28, nib: 0 };
+  }
+  function dive(s) {
+    const c = cfgOf(s);
+    s.lu = { x: 0, y: 0.45, tx: 0, ty: 0.45, v: 0 };
+    s.sw = [];
+    const tg = c.target && !hasTarget(s) && SP[c.target].minD <= s.d;
+    const sure = tg && s.since >= 2;
+    for (let i = 0; i < c.crowd; i++) {
+      const sp = sure && i === 0 ? c.target : pickSp(s);
+      s.sw.push(spawn(s, sp, !sure || sp === c.target, false));
+    }
+    s.wait = range(s, 3, 5);
+  }
+  function moveTo(w, tx, ty, v) {
+    const dx = tx - w.x, dy = ty - w.y, d = Math.hypot(dx, dy);
+    if (d < 1e-6) return 0;
+    const st = Math.min(d, v * DT);
+    w.x += (dx / d) * st; w.y += (dy / d) * st;
+    if (Math.abs(dx) > 0.004) w.h = dx > 0 ? 1 : -1;
+    return d;
+  }
+  function scare(s, w, i, ev) {
+    w.st = 'flee'; w.t = 1.1; w.int = 0; w.wary = 3 + 5 * SP[w.sp].shy; w.h = w.x >= s.lu.x ? 1 : -1;
+    s.scares++;
+    ev.push({ type: 'scare', i, sp: w.sp });
+  }
+  // un passo sott'acqua: esca, pesci, abboccata
+  function underwater(s, c, r, inp, ev) {
+    const lu = s.lu;
+    if (inp) {
+      if (inp.lx != null && Number.isFinite(+inp.lx)) lu.tx = clamp(+inp.lx, -1, 1);
+      if (inp.ly != null && Number.isFinite(+inp.ly)) lu.ty = clamp(+inp.ly, Y_TOP, Y_BOT);
+    }
+    // l'esca segue il bersaglio (ritardo 0,1 s, massimo V_MAX unità/s); tirare piano la muove un po' (verso il pontile)
+    let dx = (lu.tx - lu.x) * Math.min(1, DT / 0.1), dy = (lu.ty - lu.y) * Math.min(1, DT / 0.1);
+    const m = Math.hypot(dx, dy), cap = V_MAX * DT;
+    if (m > cap) { dx *= cap / m; dy *= cap / m; }
+    lu.x += dx; lu.y += dy;
+    const sp = Math.hypot(dx, dy) / DT + (r > 0.05 ? r * 0.2 : 0);
+    lu.v += (sp - lu.v) * Math.min(1, DT / 0.12);
+    // esca viva (lenta o a piccoli scatti) = interessante; ferma = poco; troppo veloce = per niente (e spaventa)
+    const live = sm(0.03, 0.22, lu.v) * (1 - sm(0.5 * c.vFear, 0.85 * c.vFear, lu.v));
+    const stim = 0.3 + 0.7 * live;
+    const yank = r > 0.5 && s.lr <= 0.5;
+    let sniffing = -1;
+    for (let i = 0; i < s.sw.length; i++) if (s.sw[i].st === 'sniff') sniffing = i;
+    let alive = 0;
+    for (let i = 0; i < s.sw.length; i++) {
+      const w = s.sw[i], S = SP[w.sp];
+      const spd = 0.16 * S.spd * (1 + 0.15 * c.k);
+      if (w.wary > 0) w.wary = Math.max(0, w.wary - DT);
+      if (w.st === 'leave') { moveTo(w, w.h * 1.8, w.y, spd * 2.5); continue; }
+      alive++;
+      if (w.st === 'flee') {
+        // un sobbalzo sul posto ('!'), poi via di corsa
+        if (w.t < 0.75) moveTo(w, w.x + w.h, clamp(w.y + (w.y > lu.y ? 0.4 : -0.4), 0.08, 0.95), 1.3);
+        w.x = clamp(w.x, -1.7, 1.7);
+        w.t -= DT; if (w.t <= 0) { w.st = 'roam'; w.t = 0; }
+        continue;
+      }
+      const ddx = w.x - lu.x, ddy = (w.y - lu.y) * 1.3, dist = Math.hypot(ddx, ddy);
+      const vf = c.vFear * (1 - 0.45 * S.shy) * (w.wary > 0 ? 0.8 : 1);
+      // troppo veloce, o tirato di colpo mentre annusa: scappa
+      if ((lu.v > vf && dist < c.sense * 1.3) || (w.st === 'sniff' && (lu.v > 0.5 * vf || yank))) {
+        if (w.st === 'sniff' && yank) ev.push({ type: 'early' });
+        scare(s, w, i, ev);
+        if (sniffing === i) sniffing = -1;
+        continue;
+      }
+      // interesse
+      const prox = clamp(1 - dist / c.sense, 0, 1);
+      const aware = prox > 0 ? 0.25 + 0.75 * prox : 0;
+      if (aware > 0) w.int += DT * c.lureG * (1 - 0.65 * S.shy) * stim * aware * (w.wary > 0 ? 0.25 : 1) * (w.hungry ? 1 : 0.6);
+      else w.int -= DT * 0.05;
+      w.int = clamp(w.int, 0, w.hungry ? 1 : 0.7);
+      // stato e movimento
+      if (w.st === 'roam') {
+        w.t -= DT;
+        if (moveTo(w, w.tx, w.ty, spd) < 0.05 || w.t <= 0) {
+          w.tx = clamp((rnd(s) * 2 - 1) * 1.3, -1.3, 1.3); w.ty = clamp(S.dep + (rnd(s) - 0.5) * 0.45, 0.1, 0.94); w.t = range(s, 2, 4);
+        }
+        if (w.int >= 0.25) { w.st = 'curious'; ev.push({ type: 'curious', i, sp: w.sp }); }
+      } else if (w.st === 'curious') {
+        const k = 0.38 / Math.max(0.001, dist);
+        moveTo(w, lu.x + ddx * k, lu.y + (ddy / 1.3) * k, spd * 1.4);
+        if (w.int < 0.15) w.st = 'roam';
+        else if (w.int >= 0.6) { w.st = 'circle'; w.ang = Math.atan2(ddy, ddx); ev.push({ type: 'love', i, sp: w.sp }); }
+      } else if (w.st === 'circle') {
+        w.ang += DT * 1.5;
+        moveTo(w, lu.x + Math.cos(w.ang) * 0.3, lu.y + Math.sin(w.ang) * 0.16, spd * 2);
+        if (w.int < 0.45) w.st = 'curious';
+        else if (w.int >= 1 && w.hungry && sniffing < 0) { w.st = 'sniff'; w.t = range(s, 0.5, 0.9); w.nib = Math.floor(rnd(s) * (c.nib + 1)); sniffing = i; }
+      } else if (w.st === 'sniff') {
+        const near = moveTo(w, lu.x - w.h * 0.07, lu.y, spd * 1.6) < 0.06;
+        if (Math.abs(lu.x - w.x) > 0.02) w.h = lu.x > w.x ? 1 : -1;
+        if (near) w.t -= DT;
+        if (w.t <= 0) {
+          if (w.nib > 0) { w.nib--; w.t = range(s, 0.6, 1.1); s.nibAt = s.t; ev.push({ type: 'nibble', i, sp: w.sp }); }
+          else {
+            w.st = 'bite';
+            s.phase = 'bite'; s.pt = 0; s.bite = c.biteWin; s.fish = makeFish(s, w.sp);
+            ev.push({ type: 'bite', sp: w.sp, i });
+            return;
+          }
+        }
+      }
+    }
+    // pesci che se ne vanno escono dalla vista; ne arrivano di nuovi
+    for (let i = s.sw.length - 1; i >= 0; i--) if (s.sw[i].st === 'leave' && Math.abs(s.sw[i].x) > 1.75) s.sw.splice(i, 1);
+    if (alive < c.crowd) {
+      s.wait -= DT;
+      if (s.wait <= 0) { s.sw.push(spawn(s, pickSp(s), true, true)); s.wait = range(s, 3, 5); ev.push({ type: 'arrive' }); }
+    }
   }
 
   const force = (f) => f.str * (0.35 + 0.75 * f.run) * (0.35 + 0.65 * f.sta);
@@ -156,40 +299,32 @@
     switch (s.phase) {
       case 'fly':
         if (s.pt >= s.cast.fly) {
-          s.phase = 'wait'; s.pt = 0; s.d = s.cast.d0;
-          s.wait = range(s, c.wait[0], c.wait[1]); s.nib = Math.floor(rnd(s) * (c.nib + 1)); s.nibAt = -9;
+          s.phase = 'wait'; s.pt = 0; s.d = s.cast.d0; s.nibAt = -9;
+          dive(s);
           ev.push({ type: 'land', d: s.d });
           const tg = c.target && !hasTarget(s);
           if (tg && SP[c.target].minD > s.d) ev.push({ type: 'far', need: SP[c.target].minD });
         }
         break;
       case 'wait':
-        if (r > 0.5 && s.t - s.nibAt < 0.5) {
-          // ferrato troppo presto: il pesce scappa, se ne aspetta un altro
-          s.nibAt = -9; s.nib = Math.floor(rnd(s) * (c.nib + 1)); s.wait = range(s, c.wait[0], c.wait[1]) + 1;
-          ev.push({ type: 'early' });
-          break;
-        }
+        if (!s.lu || !s.sw) dive(s);
         if (r > 0.05) {
           s.d -= r * 1.6 * DT;
-          if (s.d < 2) { s.phase = 'aim'; s.pt = 0; s.cast = null; s.d = 0; ev.push({ type: 'reel' }); break; }
+          if (s.d < 2) { s.phase = 'aim'; s.pt = 0; s.cast = null; s.d = 0; s.lu = null; s.sw = null; ev.push({ type: 'reel' }); break; }
         }
-        s.wait -= DT;
-        if (s.wait <= 0) {
-          if (s.nib > 0) { s.nib--; s.nibAt = s.t; s.wait = range(s, 0.7, 1.3); ev.push({ type: 'nibble' }); }
-          else { s.phase = 'bite'; s.pt = 0; s.bite = c.biteWin; s.fish = pickFish(s); ev.push({ type: 'bite', sp: s.fish.sp }); }
-        }
+        underwater(s, c, r, inp, ev);
         break;
       case 'bite':
         if (r > 0.35) {
-          s.phase = 'fight'; s.pt = 0; s.T = 0.45; s.brk = 0; s.slk = 0;
+          s.phase = 'fight'; s.pt = 0; s.T = 0.45; s.brk = 0; s.slk = 0; s.sw = null;
           ev.push({ type: 'hook', sp: s.fish.sp });
           break;
         }
         s.bite -= DT;
         if (s.bite <= 0) {
-          s.phase = 'wait'; s.pt = 0; s.fish = null; s.misses++;
-          s.wait = range(s, 1.5, 3); s.nib = 0; s.nibAt = -9;
+          // il pesce se ne va (gli altri restano); ne arriverà un altro
+          s.phase = 'wait'; s.pt = 0; s.fish = null; s.misses++; s.nibAt = -9;
+          if (s.sw) for (const w of s.sw) if (w.st === 'bite') { w.st = 'leave'; w.hungry = false; w.h = w.x >= 0 ? 1 : -1; }
           ev.push({ type: 'missed' });
         }
         break;
@@ -223,7 +358,7 @@
           if (why === 'snap') s.snaps++; else s.slacks++;
           s.lost++;
           ev.push({ type: why, sp: f.sp, x: s.x, d: s.d });
-          s.phase = 'aim'; s.pt = 0; s.cast = null; s.fish = null; s.d = 0; s.T = 0; s.brk = 0; s.slk = 0;
+          s.phase = 'aim'; s.pt = 0; s.cast = null; s.fish = null; s.d = 0; s.T = 0; s.brk = 0; s.slk = 0; s.lu = null; s.sw = null;
           break;
         }
         if (s.d <= LAND) {
@@ -235,6 +370,7 @@
       }
       default: break;
     }
+    s.lr = r;
     return ev;
   }
 
@@ -251,7 +387,7 @@
     if (s.phase !== 'caught' || !s.fish) return [];
     const f = s.fish, c = cfgOf(s);
     s.caught.push({ sp: f.sp, g: f.g, photo: !!photo });
-    s.fish = null; s.cast = null; s.phase = 'aim'; s.pt = 0; s.d = 0;
+    s.fish = null; s.cast = null; s.phase = 'aim'; s.pt = 0; s.d = 0; s.lu = null; s.sw = null;
     const ev = [{ type: 'release', sp: f.sp }];
     if (s.caught.length >= c.goal && hasTarget(s)) { s.won = true; s.phase = 'over'; ev.push({ type: 'win' }); }
     return ev;
@@ -281,6 +417,48 @@
   // zone della tensione per la UI: [tMin, tMax]
   const zones = (s) => { const c = cfgOf(s); return { tMin: c.tMin, tMax: c.tMax }; };
 
+  /* ---------- espressioni di Hari ----------
+   * mood(s): l'espressione che la situazione chiede. wait (concentrato) · curious (un pesce si avvicina) · wow (un
+   * pesce raro o d'oro è interessato, o abbocca) · surprised (abboccata) · happy (tensione nel verde) · effort (tensione
+   * alta o pesce che scatta) · worried (vicino alla rottura o al lasco) · win (preso). sad (lenza rotta, pesce scappato)
+   * e win arrivano anche dagli eventi, nella UI, per un tempo fisso. */
+  function mood(s) {
+    if (!s) return 'wait';
+    const c = cfgOf(s);
+    switch (s.phase) {
+      case 'wait': {
+        let m = 'wait';
+        for (const w of s.sw || []) {
+          if (w.st === 'curious' || w.st === 'circle' || w.st === 'sniff') {
+            if (SP[w.sp].rar >= 3) return 'wow';
+            m = 'curious';
+          }
+        }
+        return m;
+      }
+      case 'bite': return s.fish && SP[s.fish.sp].rar >= 3 ? 'wow' : 'surprised';
+      case 'fight': {
+        const span = c.tMax - c.tMin, mid = (c.tMin + c.tMax) / 2;
+        if (s.brk > 0.3 || s.slk > 0.45 || s.T > c.tMax || s.T < c.tMin) return 'worried';
+        if (s.T > mid + 0.18 * span || (s.fish && s.fish.run > 0.55)) return 'effort';
+        return 'happy';
+      }
+      case 'caught': case 'over': return 'win';
+      default: return 'wait';
+    }
+  }
+  // isteresi: un'espressione resta almeno 0,7 s e la nuova deve essere chiesta per 0,2 s di fila; quelle forti
+  // (sorpresa, stupore, tristezza, vittoria) passano dopo 0,25 s
+  const STRONG = { surprised: 1, wow: 1, sad: 1, win: 1 };
+  const newMood = (m = 'wait') => ({ cur: m, t: 9, cand: '', ct: 0 });
+  function moodStep(m, want, dt) {
+    m.t += dt;
+    if (want === m.cur) { m.cand = ''; m.ct = 0; return m.cur; }
+    if (m.cand === want) m.ct += dt; else { m.cand = want; m.ct = 0; }
+    if ((STRONG[want] && m.t >= 0.25) || (m.ct >= 0.2 && m.t >= 0.7)) { m.cur = want; m.t = 0; m.cand = ''; m.ct = 0; }
+    return m.cur;
+  }
+
   /* ---------- sensori ---------- */
   // inclinazione (gradi) del lato alto dello SCHERMO sopra l'orizzontale: 0 telefono piatto, 90 in piedi davanti a sé,
   // oltre 90 inclinato all'indietro. beta, gamma da deviceorientation; ang = screen.orientation.angle (0, 90, 180, 270)
@@ -298,6 +476,22 @@
     if (dp > 4) return Math.min(1, (dp - 4) / 26);
     if (dp < -4) return Math.max(-1, (dp + 4) / 18);
     return 0;
+  }
+  // inclinazione di lato (gradi) dello schermo: positiva col lato destro più in basso; con l'angolo dello schermo come
+  // pitchFrom (vale anche col telefono quasi in piedi, dove gamma da solo non basta)
+  function rollFrom(beta, gamma, ang = 0) {
+    const b = (beta * Math.PI) / 180, g = (gamma * Math.PI) / 180, a = (ang * Math.PI) / 180;
+    const ux = -Math.cos(b) * Math.sin(g), uy = Math.sin(b);
+    const sx = ux * Math.cos(a) - uy * Math.sin(a);
+    return (Math.asin(clamp(-sx, -1, 1)) * 180) / Math.PI;
+  }
+  // inclinazione laterale rispetto alla posizione neutra (gradi) → velocità dell'esca (unità/s): zona morta ±3°,
+  // massimo 1,1 a 25° (più di vFear: inclinare di colpo e tanto spaventa i pesci)
+  function tiltToLure(dg) {
+    if (!Number.isFinite(dg)) return 0;
+    const a = Math.abs(dg);
+    if (a <= 3) return 0;
+    return Math.sign(dg) * Math.min(1, (a - 3) / 22) * 1.1;
   }
   // gesto del lancio: la punta va indietro (pitch sale) e poi avanti di scatto (pitch scende veloce).
   // det = newFlick(); flick(det, t secondi, pitch gradi, acc m/s² senza gravità o 0) → forza 0..1 quando il lancio parte
@@ -337,6 +531,6 @@
   HH.fish = {
     DT, D_MIN, D_MAX, LAND, SPECIES, SP,
     config, newLevel, migrate, cast, step, tick, release, isWon, isOver, progress, rate, par, fightFrac, zones,
-    pitchFrom, tiltToReel, newFlick, flick, albumAdd, _target: target, _force: force,
+    pitchFrom, rollFrom, tiltToReel, tiltToLure, newFlick, flick, albumAdd, mood, newMood, moodStep, V_MAX, Y_TOP, Y_BOT, _target: target, _force: force,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

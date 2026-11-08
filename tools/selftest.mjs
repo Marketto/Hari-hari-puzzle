@@ -433,13 +433,14 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
-// Hari Fishing: 4+ gradini (1, 3, 6, 9, 12): finestra di tensione, pesci da prendere, specie speciale; generazione
-// (< 10 ms), partita intera del bot (vista del giocatore) vinta e passo di simulazione (< 0,05 ms)
+// Hari Fishing: 4+ gradini (1, 3, 6, 9, 12): finestra di tensione, pesci da prendere, specie speciale, paura e
+// interesse dei pesci sott'acqua; generazione (< 10 ms), partita intera del bot (vista del giocatore, esca mossa piano)
+// vinta, bot a scatti velocissimi senza abboccate, passo di simulazione (< 0,05 ms)
 {
   vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/fish-logic.js'), 'utf8'), { filename: 'fish-logic.js' });
   const FI = globalThis.HH.fish;
   const { fishBot } = await import('../tests/_fish-bot.mjs');
-  const bot = fishBot(globalThis.HH);
+  const bot = fishBot(globalThis.HH), jerky = fishBot(globalThis.HH, { jerky: true });
   for (const level of [1, 3, 6, 9, 12]) {
     let gen = 0, sim = 0, ticks = 0, won = 0, t = 0, lost = 0;
     const T = 10, c = FI.config(level);
@@ -453,7 +454,9 @@ for (const level of [1, 4, 8, 16]) {
       if (FI.isWon(s)) won++;
       t += s.t; lost += s.lost;
     }
-    ok(won === T && gen / T < 10 && sim / ticks < 0.05, `Hari Fishing livello ${level} (${c.stage}): ${c.goal} pesci${c.target ? ' + ' + c.target : ''}, finestra ${c.tMin}–${c.tMax}; bot ${won}/${T} in ${(t / T).toFixed(0)} s (par ${c.par}), ${(lost / T).toFixed(1)} persi; generazione ${(gen / T).toFixed(3)} ms, passo ${(sim / ticks * 1000).toFixed(1)} µs`);
+    const j = FI.newLevel(level, globalThis.HH.rng(level * 77));
+    const jb = jerky.play(j, 240).filter((e) => e.type === 'bite').length;
+    ok(won === T && jb === 0 && gen / T < 10 && sim / ticks < 0.05, `Hari Fishing livello ${level} (${c.stage}): ${c.goal} pesci${c.target ? ' + ' + c.target : ''}, finestra ${c.tMin}–${c.tMax}, paura a ${c.vFear}/s, ${c.crowd} pesci; bot ${won}/${T} in ${(t / T).toFixed(0)} s (par ${c.par}), ${(lost / T).toFixed(1)} persi; a scatti: ${jb} abboccate, ${j.scares} spaventi in 240 s; generazione ${(gen / T).toFixed(3)} ms, passo ${(sim / ticks * 1000).toFixed(1)} µs`);
   }
 }
 

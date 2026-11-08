@@ -1197,56 +1197,76 @@
 :root {
   --tint-fish: #cdeefa;
   
-  --fi-ink: #4a2c22; --fi-eye: #2a160e; --fi-hi: #ffffff; --fi-nose: #3a1e14; --fi-blush: #ff9ab4;
-  --fi-quill: #9a6342; --fi-quill-2: #714330; --fi-face: #fff1e2; --fi-ear: #ffe4cc; --fi-paw: #b97d58;
-  --fi-hat: #ffe08a; --fi-hat-2: #f0c060; --fi-band: #ff7f98;
-  --fi-rod: #ff8fa8; --fi-rod-2: #fffaf0; --fi-reel: #8fd8ff; --fi-line: #fffaf0;
-  --fi-bob-1: #ff5f7a; --fi-bob-2: #ffffff; --fi-heart: #ff6f8e; --fi-spark: #ffd84a;
+  --fsh-ink: #4a2c22; --fsh-eye: #2a160e; --fsh-hi: #ffffff; --fsh-nose: #3a1e14; --fsh-blush: #ff9ab4;
+  --fsh-quill: #9a6342; --fsh-quill-2: #714330; --fsh-face: #fff1e2; --fsh-ear: #ffe4cc; --fsh-paw: #b97d58;
+  --fsh-hat: #ffe08a; --fsh-hat-2: #f0c060; --fsh-band: #ff7f98;
+  --fsh-rod: #ff8fa8; --fsh-rod-2: #fffaf0; --fsh-reel: #8fd8ff; --fsh-line: #fffaf0;
+  --fsh-bob-1: #ff5f7a; --fsh-bob-2: #ffffff; --fsh-heart: #ff6f8e; --fsh-spark: #ffd84a;
   
-  --fi-wood: #d39a68; --fi-wood-2: #b07a50; --fi-post: #9a6342; --fi-rope: #f2dcaa; --fi-bucket: #8fd8ff; --fi-lamp: #fff3c4;
+  --fsh-wood: #d39a68; --fsh-wood-2: #b07a50; --fsh-post: #9a6342; --fsh-rope: #f2dcaa; --fsh-bucket: #8fd8ff; --fsh-lamp: #fff3c4;
   
-  --fi-sky-1: #8fd0ff; --fi-sky-2: #fff0f2; --fi-sun: #fff4b8; --fi-cloud: #ffffff;
-  --fi-hill: #a9dcb8; --fi-hill-2: #8fcfa5; --fi-tree: #6fcf6a; --fi-tree-2: #ffb3cf; --fi-trunk: #9a6342;
-  --fi-reed: #8ccf6a; --fi-lily: #7fd38a; --fi-flower: #ffb8d9; --fi-rock: #c4bfd6; --fi-sand: #f7e2b0;
-  --fi-tower: #fffaf0; --fi-tower-2: #ff6f8e;
+  --fsh-sky-1: #8fd0ff; --fsh-sky-2: #fff0f2; --fsh-sun: #fff4b8; --fsh-cloud: #ffffff;
+  --fsh-hill: #a9dcb8; --fsh-hill-2: #8fcfa5; --fsh-tree: #6fcf6a; --fsh-tree-2: #ffb3cf; --fsh-trunk: #9a6342;
+  --fsh-reed: #8ccf6a; --fsh-lily: #7fd38a; --fsh-flower: #ffb8d9; --fsh-rock: #c4bfd6; --fsh-sand: #f7e2b0;
+  --fsh-tower: #fffaf0; --fsh-tower-2: #ff6f8e;
   
-  --fi-water: #74c9ee; --fi-water-2: #a8e4f8; --fi-water-3: #4eaedd; --fi-foam: #ffffff; --fi-shadow: #2b5f86;
+  --fsh-water: #74c9ee; --fsh-water-2: #a8e4f8; --fsh-water-3: #4eaedd; --fsh-foam: #ffffff; --fsh-shadow: #2b5f86;
   
-  --fi-minnow-1: #a9cfe6; --fi-minnow-2: #e6f4fb; --fi-minnow-3: #7fa8c8;
-  --fi-goldfish-1: #ff9a3d; --fi-goldfish-2: #ffd27a; --fi-goldfish-3: #ff7a4a;
-  --fi-catfish-1: #a8957f; --fi-catfish-2: #e6d8c4; --fi-catfish-3: #6f5a48;
-  --fi-koi-1: #fffaf0; --fi-koi-2: #ffe8dc; --fi-koi-3: #ff6f5a;
-  --fi-clown-1: #ff8a3d; --fi-clown-2: #ffffff; --fi-clown-3: #4a2c22;
-  --fi-puffer-1: #ffe27a; --fi-puffer-2: #fff6d0; --fi-puffer-3: #e8a83a;
-  --fi-tuna-1: #5f80c0; --fi-tuna-2: #dfe8f6; --fi-tuna-3: #ffd84a;
-  --fi-golden-1: #ffd23a; --fi-golden-2: #fff3b0; --fi-golden-3: #ff9a3d;
+  --fsh-minnow-1: #a9cfe6; --fsh-minnow-2: #e6f4fb; --fsh-minnow-3: #7fa8c8;
+  --fsh-goldfish-1: #ff9a3d; --fsh-goldfish-2: #ffd27a; --fsh-goldfish-3: #ff7a4a;
+  --fsh-catfish-1: #a8957f; --fsh-catfish-2: #e6d8c4; --fsh-catfish-3: #6f5a48;
+  --fsh-koi-1: #fffaf0; --fsh-koi-2: #ffe8dc; --fsh-koi-3: #ff6f5a;
+  --fsh-clown-1: #ff8a3d; --fsh-clown-2: #ffffff; --fsh-clown-3: #4a2c22;
+  --fsh-puffer-1: #ffe27a; --fsh-puffer-2: #fff6d0; --fsh-puffer-3: #e8a83a;
+  --fsh-tuna-1: #5f80c0; --fsh-tuna-2: #dfe8f6; --fsh-tuna-3: #ffd84a;
+  --fsh-golden-1: #ffd23a; --fsh-golden-2: #fff3b0; --fsh-golden-3: #ff9a3d;
   
-  --fi-amb: 1.5; --fi-sunI: 1.7; --fi-night: 0;
+  --fsh-uw-1: #8fd8f2; --fsh-uw-2: #3f9fcf; --fsh-uw-top: #d8f6ff; --fsh-ray: #fff8d8; --fsh-bed: #e8d29a; --fsh-bed-2: #d4b97c;
+  --fsh-weed: #6fcf8a; --fsh-weed-2: #9ade6a; --fsh-coral: #ff9ab4; --fsh-coral-2: #ffb86a; --fsh-bubble: #f2fcff;
+  --fsh-bait: #ff86a8; --fsh-tiny-1: #bfe3f2; --fsh-tiny-2: #ffe08a;
   
-  --fi-ui: rgba(255, 250, 246, .92); --fi-ui-line: #4a2c22; --fi-ui-ink: #4a2c22; --fi-veil: rgba(255, 250, 244, .66);
-  --fi-text: #ffffff; --fi-text-line: #4a2c22;
-  --fi-ok: #48d18a; --fi-ok-2: #b8f0cc; --fi-hot: #ff5f7a; --fi-cold: #8fc8ff; --fi-meter: #ffffff; --fi-flash: #ffffff;
+  --fsh-crab: #ff7a5a; --fsh-jelly: #e8b8ff; --fsh-starfish: #ffa24a; --fsh-octo: #c890ff; --fsh-turtle: #7cc68a; --fsh-turtle-2: #c8e8a0;
+  --fsh-seahorse: #ffc24a; --fsh-shell: #ffd8e4; --fsh-pearl: #fffaf0; --fsh-frog: #7ad66a; --fsh-frog-2: #e4f8b8;
+  --fsh-snail: #e8a86a; --fsh-snail-2: #f8e0c0; --fsh-shrimp: #ff9a8a; --fsh-tadpole: #5a6a7a;
+  
+  --fsh-sweat: #a8dcff;
+  
+  --fsh-amb: 1.5; --fsh-sunI: 1.7; --fsh-night: 0;
+  
+  --fsh-ui: rgba(255, 250, 246, .92); --fsh-ui-line: #4a2c22; --fsh-ui-ink: #4a2c22; --fsh-veil: rgba(255, 250, 244, .66);
+  --fsh-text: #ffffff; --fsh-text-line: #4a2c22;
+  --fsh-ok: #48d18a; --fsh-ok-2: #b8f0cc; --fsh-hot: #ff5f7a; --fsh-cold: #8fc8ff; --fsh-meter: #ffffff; --fsh-flash: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --tint-fish: #24405a;
-    --fi-sky-1: #141235; --fi-sky-2: #4a3a80; --fi-sun: #fff6d8; --fi-cloud: #6a5aa0; --fi-hill: #2f3f6a; --fi-hill-2: #263459;
-    --fi-tree: #2f6a5a; --fi-tree-2: #6a4a7a; --fi-reed: #3f6a4a; --fi-lily: #3f7a5a; --fi-rock: #4a4a72; --fi-sand: #7a6a7a;
-    --fi-water: #2f4f8a; --fi-water-2: #5a78b8; --fi-water-3: #233a6e; --fi-foam: #cfe0ff; --fi-shadow: #101a3a;
-    --fi-amb: .95; --fi-sunI: .7; --fi-night: 1;
-    --fi-ui: rgba(40, 32, 66, .9); --fi-ui-line: #e9defa; --fi-ui-ink: #fff5ea; --fi-veil: rgba(28, 21, 48, .7);
+    --fsh-sky-1: #141235; --fsh-sky-2: #4a3a80; --fsh-sun: #fff6d8; --fsh-cloud: #6a5aa0; --fsh-hill: #2f3f6a; --fsh-hill-2: #263459;
+    --fsh-tree: #2f6a5a; --fsh-tree-2: #6a4a7a; --fsh-reed: #3f6a4a; --fsh-lily: #3f7a5a; --fsh-rock: #4a4a72; --fsh-sand: #7a6a7a;
+    --fsh-water: #2f4f8a; --fsh-water-2: #5a78b8; --fsh-water-3: #233a6e; --fsh-foam: #cfe0ff; --fsh-shadow: #101a3a;
+    --fsh-uw-1: #2f5a9a; --fsh-uw-2: #16224e; --fsh-uw-top: #6a8ad0; --fsh-ray: #b8c8ff; --fsh-bed: #4a4a72; --fsh-bed-2: #3c3c62;
+    --fsh-weed: #2f7a6a; --fsh-weed-2: #3f8a5a; --fsh-coral: #b86a9a; --fsh-coral-2: #b8806a; --fsh-bubble: #b8d0ff; --fsh-tiny-1: #7a9ad0; --fsh-tiny-2: #c8b070;
+    --fsh-crab: #c86a6a; --fsh-jelly: #b890ff; --fsh-starfish: #c88a5a; --fsh-octo: #9a7ad0; --fsh-turtle: #4a8a6a; --fsh-turtle-2: #7aa88a;
+    --fsh-seahorse: #c8a05a; --fsh-shell: #c8a8c8; --fsh-frog: #4a9a5a; --fsh-frog-2: #a8c890; --fsh-snail: #b88a6a; --fsh-shrimp: #c8807a; --fsh-tadpole: #2a3048;
+    --fsh-amb: .95; --fsh-sunI: .7; --fsh-night: 1;
+    --fsh-ui: rgba(40, 32, 66, .9); --fsh-ui-line: #e9defa; --fsh-ui-ink: #fff5ea; --fsh-veil: rgba(28, 21, 48, .7);
   }
-  :root:not([data-theme="light"]) .fi-wrap[data-stage="sea"] { --fi-water: #2a5a8a; --fi-water-2: #5a8ac0; --fi-water-3: #1c3f6e; --fi-hill: #2f4a6a; --fi-hill-2: #6a5a6a; }
+  :root:not([data-theme="light"]) .fi-wrap[data-stage="sea"] { --fsh-water: #2a5a8a; --fsh-water-2: #5a8ac0; --fsh-water-3: #1c3f6e; --fsh-hill: #2f4a6a; --fsh-hill-2: #6a5a6a;
+    --fsh-uw-1: #245a8a; --fsh-uw-2: #0f1f48; --fsh-uw-top: #5a8ac8; --fsh-bed: #5a5470; --fsh-bed-2: #4a4462; --fsh-weed: #2a7a7a; --fsh-weed-2: #3a8a7a; }
 }
 :root[data-theme="dark"] {
   --tint-fish: #24405a;
-  --fi-sky-1: #141235; --fi-sky-2: #4a3a80; --fi-sun: #fff6d8; --fi-cloud: #6a5aa0; --fi-hill: #2f3f6a; --fi-hill-2: #263459;
-  --fi-tree: #2f6a5a; --fi-tree-2: #6a4a7a; --fi-reed: #3f6a4a; --fi-lily: #3f7a5a; --fi-rock: #4a4a72; --fi-sand: #7a6a7a;
-  --fi-water: #2f4f8a; --fi-water-2: #5a78b8; --fi-water-3: #233a6e; --fi-foam: #cfe0ff; --fi-shadow: #101a3a;
-  --fi-amb: .95; --fi-sunI: .7; --fi-night: 1;
-  --fi-ui: rgba(40, 32, 66, .9); --fi-ui-line: #e9defa; --fi-ui-ink: #fff5ea; --fi-veil: rgba(28, 21, 48, .7);
+  --fsh-sky-1: #141235; --fsh-sky-2: #4a3a80; --fsh-sun: #fff6d8; --fsh-cloud: #6a5aa0; --fsh-hill: #2f3f6a; --fsh-hill-2: #263459;
+  --fsh-tree: #2f6a5a; --fsh-tree-2: #6a4a7a; --fsh-reed: #3f6a4a; --fsh-lily: #3f7a5a; --fsh-rock: #4a4a72; --fsh-sand: #7a6a7a;
+  --fsh-water: #2f4f8a; --fsh-water-2: #5a78b8; --fsh-water-3: #233a6e; --fsh-foam: #cfe0ff; --fsh-shadow: #101a3a;
+  --fsh-uw-1: #2f5a9a; --fsh-uw-2: #16224e; --fsh-uw-top: #6a8ad0; --fsh-ray: #b8c8ff; --fsh-bed: #4a4a72; --fsh-bed-2: #3c3c62;
+  --fsh-weed: #2f7a6a; --fsh-weed-2: #3f8a5a; --fsh-coral: #b86a9a; --fsh-coral-2: #b8806a; --fsh-bubble: #b8d0ff; --fsh-tiny-1: #7a9ad0; --fsh-tiny-2: #c8b070;
+  --fsh-crab: #c86a6a; --fsh-jelly: #b890ff; --fsh-starfish: #c88a5a; --fsh-octo: #9a7ad0; --fsh-turtle: #4a8a6a; --fsh-turtle-2: #7aa88a;
+  --fsh-seahorse: #c8a05a; --fsh-shell: #c8a8c8; --fsh-frog: #4a9a5a; --fsh-frog-2: #a8c890; --fsh-snail: #b88a6a; --fsh-shrimp: #c8807a; --fsh-tadpole: #2a3048;
+  --fsh-amb: .95; --fsh-sunI: .7; --fsh-night: 1;
+  --fsh-ui: rgba(40, 32, 66, .9); --fsh-ui-line: #e9defa; --fsh-ui-ink: #fff5ea; --fsh-veil: rgba(28, 21, 48, .7);
 }
-:root[data-theme="dark"] .fi-wrap[data-stage="sea"] { --fi-water: #2a5a8a; --fi-water-2: #5a8ac0; --fi-water-3: #1c3f6e; --fi-hill: #2f4a6a; --fi-hill-2: #6a5a6a; }
+:root[data-theme="dark"] .fi-wrap[data-stage="sea"] { --fsh-water: #2a5a8a; --fsh-water-2: #5a8ac0; --fsh-water-3: #1c3f6e; --fsh-hill: #2f4a6a; --fsh-hill-2: #6a5a6a;
+  --fsh-uw-1: #245a8a; --fsh-uw-2: #0f1f48; --fsh-uw-top: #5a8ac8; --fsh-bed: #5a5470; --fsh-bed-2: #4a4462; --fsh-weed: #2a7a7a; --fsh-weed-2: #3a8a7a; }
 /* memory */
 :root {
   --tint-memory: #dff0d2;
