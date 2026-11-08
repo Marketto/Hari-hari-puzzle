@@ -409,6 +409,30 @@ for (const level of [1, 4, 8, 16]) {
   }
 }
 
+// Hari Colors: un livello intero (tutti i round) per 4 gradini della curva; una sola risposta giusta per round, < 10 ms a livello
+{
+  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/colors-logic.js'), 'utf8'), { filename: 'colors-logic.js' });
+  const CO = globalThis.HH.colors;
+  for (const level of [1, 5, 9, 20]) {
+    const T = 40, c = CO.config(level);
+    let ms = 0, good = 0;
+    for (let k = 0; k < T; k++) {
+      const s = CO.newGame(level, level * 389 + k);
+      const t = performance.now();
+      let one = true;
+      while (!CO.isOver(s)) {
+        const r = CO.round(s);
+        const right = r.items.filter((x) => x.ink === r.target).length;
+        if (right !== 1) one = false;
+        CO.answer(s, r, r.items.findIndex((x) => x.ink === r.target), 900);
+      }
+      ms += performance.now() - t;
+      if (one && CO.isWon(s)) good++;
+    }
+    ok(good === T && ms / T < 10, `Hari Colors livello ${level}: ${c.k} colori, ${c.n} oggetti, modalità ${c.mode}, ${c.rounds} round: ${good}/${T} ok, media ${(ms / T).toFixed(2)} ms`);
+  }
+}
+
 const L = vm.runInThisContext(fs.readFileSync(path.join(root, 'src/i18n/locales.js'), 'utf8'));
 ok(Object.keys(globalThis.HH.LOCALES).length >= 43, `Lingue: ${Object.keys(globalThis.HH.LOCALES).length}`);
 process.exit(fail ? 1 : 0);

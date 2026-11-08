@@ -8,6 +8,7 @@
 
 ## Prossimo
 - [ ] Transizioni su telefono vero (fluidità)
+- [ ] Colori su telefono vero (voci di sistema per lingua)
 - [ ] Aggiornamento su iPhone vero (Chrome iOS) da una versione vecchia
 - [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
@@ -30,6 +31,15 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.27.0)
+- [x] Hari Colors (`colors`): Hari dice un colore con la voce del telefono (solo voci locali, fumetto di riserva senza
+  voce o con l'audio spento, pulsante ripeti, musica abbassata mentre parla), si tocca la sagoma di quel colore il più in
+  fretta possibile; da 3 a 11 colori e fino a 12 oggetti, tempo che scende; dal livello 5 parole coerenti, dal 7 effetto
+  Stroop (inchiostro ≠ parola, con esca), dal 10 misto; opzione simboli per il daltonismo; palette come token con test
+  di contrasto e simulazione del daltonismo (docs/games/colors.md). Traduzioni da fare: 28 chiavi (`col_*`, `co_*`,
+  `tu_colors_*`, `r_colors`) ora in inglese nelle 41 lingue diverse da EN e IT
+- [x] Nomi dei colori e testi del gioco tradotti in tutte le 43 lingue
 
 ## Fatto (v0.26.0)
 - [x] Transizione kawaii fra home e giochi (entrata e uscita): 7 varianti casuali (foglie, petali, bolle, stelline e

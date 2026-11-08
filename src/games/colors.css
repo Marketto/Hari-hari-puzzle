@@ -1,0 +1,158 @@
+/* Hari Colors — stile.
+ * Palette dei colori del gioco: gli 11 colori di base come token (--co-<id>), uguali nei due temi (un rosso resta
+ * rosso: il colore è la risposta); cambiano campo, bordi e dettagli. Ogni oggetto ha il bordo --co-edge: i colori
+ * chiari sul campo chiaro (giallo, bianco…) e quelli scuri sul campo scuro (nero, marrone…) restano ben staccati
+ * (il test controlla il contrasto ≥ 3:1 di colore o bordo, in entrambi i temi).
+ * --co-<id>-on = colore dei dettagli disegnati sopra (occhietti, simboli): scuro sui colori chiari, chiaro sugli scuri.
+ */
+:root {
+  --tint-colors: #ffe3f1;
+  --co-red: #e8322e; --co-blue: #1a6ae0; --co-yellow: #ffd817; --co-green: #2fa84f; --co-orange: #ff8a00; --co-purple: #9b3cc8;
+  --co-pink: #ff8cc6; --co-black: #1d1a22; --co-white: #ffffff; --co-brown: #8a5226; --co-grey: #9b98a3;
+  --co-on-dk: #3a2530; --co-on-lt: #ffffff;
+  --co-red-on: var(--co-on-lt); --co-blue-on: var(--co-on-lt); --co-yellow-on: var(--co-on-dk); --co-green-on: var(--co-on-dk);
+  --co-orange-on: var(--co-on-dk); --co-purple-on: var(--co-on-lt); --co-pink-on: var(--co-on-dk); --co-black-on: var(--co-on-lt);
+  --co-white-on: var(--co-on-dk); --co-brown-on: var(--co-on-lt); --co-grey-on: var(--co-on-dk);
+  /* campo, bordi, fumetto (neutro: non suggerisce la risposta), barra del tempo */
+  --co-field: #fbf4ea; --co-field-dot: rgba(75, 46, 40, .07); --co-field-line: rgba(75, 46, 40, .16);
+  --co-edge: #3a2530; --co-text: #6b4438; --co-bubble: #ffffff; --co-bubble-ink: #4b2e28; --co-bubble-line: rgba(75, 46, 40, .25);
+  --co-bar: #f1e3d6; --co-bar-fill: #4fc7ab; --co-bar-low: #ff6f86; --co-good: #2b9e85; --co-bad: #e2486a;
+  --co-badge: #ffffff; --co-badge-ink: #3a2530; --co-glow: #ffc53d; --co-cover: rgba(255, 248, 242, .82); --co-chip: #fff4ea;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-colors: #47304f;
+    --co-field: #2b2340; --co-field-dot: rgba(255, 255, 255, .05); --co-field-line: rgba(255, 230, 240, .18);
+    --co-edge: #fff4fa; --co-text: #ffd6e6; --co-bubble: #3a2d52; --co-bubble-ink: #fbeee8; --co-bubble-line: rgba(255, 230, 240, .3);
+    --co-bar: #3b2f55; --co-bar-fill: #6fdcc3; --co-bar-low: #ff6f86; --co-good: #6fdcc3; --co-bad: #ff6f86;
+    --co-badge: #fff4fa; --co-badge-ink: #2b2340; --co-glow: #ffd27d; --co-cover: rgba(28, 21, 48, .82); --co-chip: #3a2d52;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-colors: #47304f;
+  --co-field: #2b2340; --co-field-dot: rgba(255, 255, 255, .05); --co-field-line: rgba(255, 230, 240, .18);
+  --co-edge: #fff4fa; --co-text: #ffd6e6; --co-bubble: #3a2d52; --co-bubble-ink: #fbeee8; --co-bubble-line: rgba(255, 230, 240, .3);
+  --co-bar: #3b2f55; --co-bar-fill: #6fdcc3; --co-bar-low: #ff6f86; --co-good: #6fdcc3; --co-bad: #ff6f86;
+  --co-badge: #fff4fa; --co-badge-ink: #2b2340; --co-glow: #ffd27d; --co-cover: rgba(28, 21, 48, .82); --co-chip: #3a2d52;
+}
+
+/* ---------- impaginazione ---------- */
+.co-wrap {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px; width: min(var(--game-w), var(--game-max, 520px)); height: min(640px, 76vh); min-height: 380px;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; color: var(--co-text);
+}
+.fs-on .plate .board > .co-wrap { height: 100%; min-height: 0; }
+.co-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.co-hari { flex: none; width: 52px; height: 52px; }
+.co-hari svg { width: 100%; height: 100%; }
+.co-hari.talk svg { animation: co-talk .28s ease-in-out 4 alternate; }
+.co-say {
+  position: relative; flex: 1; min-width: 0; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 6px 14px; border-radius: 20px; background: var(--co-bubble); color: var(--co-bubble-ink); box-shadow: inset 0 0 0 2px var(--co-bubble-line), var(--shadow-s);
+}
+.co-say::before { content: ""; position: absolute; inset-inline-start: -9px; top: 50%; width: 16px; height: 16px; margin-top: -8px; background: var(--co-bubble); transform: rotate(45deg); box-shadow: -2px 2px 0 -0px var(--co-bubble-line); }
+[dir="rtl"] .co-say::before { box-shadow: 2px -2px 0 0 var(--co-bubble-line); }
+.co-word { font-family: var(--font-display); font-size: clamp(20px, 6.4vw, 34px); line-height: 1.1; color: var(--co-bubble-ink); overflow-wrap: anywhere; text-align: center; }
+.co-say.pop { animation: co-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.co-waves { width: 46px; height: 34px; color: var(--co-bubble-ink); }
+.co-waves path { opacity: .25; }
+.co-say.talk .co-waves path { animation: co-wave .6s ease-in-out infinite; }
+.co-say.talk .co-waves path:nth-child(3) { animation-delay: .12s; }
+.co-say.talk .co-waves path:nth-child(4) { animation-delay: .24s; }
+.co-sym { width: 30px; height: 30px; flex: none; }
+.co-btn {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: var(--co-chip); color: var(--co-text); box-shadow: inset 0 0 0 2px var(--co-field-line), 0 3px 0 var(--co-field-line);
+}
+.co-btn svg { width: 24px; height: 24px; }
+.co-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: 0 3px 0 var(--accent-2); }
+.co-btn:active { transform: translateY(2px); }
+
+.co-stats { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.co-track { position: relative; flex: 1; height: 12px; border-radius: 8px; background: var(--co-bar); overflow: hidden; box-shadow: inset 0 0 0 2px var(--co-field-line); }
+.co-time { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: 8px; background: var(--co-bar-fill); transform-origin: left; }
+[dir="rtl"] .co-time { inset: 0 0 0 auto; transform-origin: right; }
+.co-time.low { background: var(--co-bar-low); }
+.co-chip { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 2px 10px; border-radius: 999px; background: var(--co-chip);
+  font-family: var(--font-display); font-size: 14px; color: var(--co-text); box-shadow: inset 0 0 0 2px var(--co-field-line); }
+.co-chip svg { width: 16px; height: 16px; }
+.co-chip.hot { background: var(--co-glow); color: var(--co-badge-ink); animation: co-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.co-new { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 12px; }
+
+/* ---------- campo e oggetti ---------- */
+.co-field {
+  position: relative; min-height: 0; display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr);
+  gap: 8px; padding: 10px; border-radius: 24px; place-items: center;
+  background: radial-gradient(var(--co-field-dot) 1.6px, transparent 2.2px) 0 0 / 22px 22px, var(--co-field);
+  box-shadow: inset 0 0 0 2px var(--co-field-line), var(--shadow-s);
+}
+.co-it {
+  position: relative; display: grid; place-items: center; width: 100%; height: 100%; max-width: var(--cell, 120px); max-height: var(--cell, 120px);
+  padding: 0; border: 0; background: none; border-radius: 22px; touch-action: manipulation;
+  animation: co-in .34s cubic-bezier(.3, 1.5, .5, 1) backwards; animation-delay: calc(var(--k, 0) * 35ms);
+}
+.co-it.word { max-width: none; max-height: calc(var(--cell, 120px) * .7); }
+.co-it svg.co-shape { width: 100%; height: 100%; overflow: visible; }
+.co-shape .b { fill: var(--ink); stroke: var(--co-edge); stroke-width: 5; stroke-linejoin: round; }
+.co-shape .f { fill: var(--on); }
+.co-shape .l { fill: none; stroke: var(--on); stroke-width: 4; stroke-linecap: round; }
+.co-shape .s { fill: none; stroke: var(--co-edge); stroke-width: 4; stroke-linecap: round; }
+.co-w {
+  display: block; max-width: 100%; font-family: var(--font-display); font-weight: 400; line-height: 1.05; white-space: nowrap; color: var(--ink);
+  font-size: var(--fz, 28px);
+  text-shadow: 2px 0 0 var(--co-edge), -2px 0 0 var(--co-edge), 0 2px 0 var(--co-edge), 0 -2px 0 var(--co-edge),
+    1.5px 1.5px 0 var(--co-edge), -1.5px 1.5px 0 var(--co-edge), 1.5px -1.5px 0 var(--co-edge), -1.5px -1.5px 0 var(--co-edge), 0 4px 0 var(--co-edge);
+}
+.co-badge { position: absolute; inset-inline-end: 2px; top: 2px; width: 30%; max-width: 30px; min-width: 20px; aspect-ratio: 1; border-radius: 50%;
+  background: var(--co-badge); box-shadow: 0 0 0 2px var(--co-edge); display: grid; place-items: center; pointer-events: none; }
+.co-badge svg { width: 78%; height: 78%; }
+.co-badge .y, .co-sym .y { fill: var(--co-badge-ink); }
+.co-badge .z, .co-sym .z { fill: none; stroke: var(--co-badge-ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.co-it:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.co-it.miss { animation: co-shake .4s ease; opacity: .38; filter: saturate(.5); }
+.co-it.hit { animation: co-hit .5s cubic-bezier(.3, 1.6, .5, 1) forwards; z-index: 2; }
+.co-it.show { animation: co-glow 1s ease-in-out 1; z-index: 2; border-radius: 26px; }
+.co-field.done .co-it:not(.hit):not(.show) { opacity: .25; transition: opacity .25s; }
+.co-plus { position: absolute; left: 50%; top: 10%; transform: translateX(-50%); font-family: var(--font-display); font-size: 20px; color: var(--co-good);
+  text-shadow: 0 2px 0 var(--co-field); pointer-events: none; animation: co-up .9s ease-out forwards; }
+
+/* copertina: pronto / in pausa */
+.co-cover { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; align-content: center; gap: 10px; padding: 16px; border-radius: 24px;
+  background: var(--co-cover); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); text-align: center; }
+.co-cover b { font-family: var(--font-display); font-size: 22px; color: var(--co-text); }
+.co-cover p { margin: 0; max-width: 28em; color: var(--co-text); font-size: 15px; }
+.co-cover .candy { font-size: 18px; }
+
+/* schermo largo (telefono girato): fumetto e indicatori in colonna a sinistra, campo a destra */
+.co-wrap.wide { grid-template-columns: minmax(180px, 34%) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
+.co-wrap.wide .co-head { grid-column: 1; grid-row: 1; flex-wrap: wrap; }
+.co-wrap.wide .co-stats { grid-column: 1; grid-row: 2; flex-wrap: wrap; }
+.co-wrap.wide .co-field { grid-column: 2; grid-row: 1 / -1; }
+.co-wrap.wide .co-say { flex-basis: calc(100% - 60px); }
+.co-wrap.wide .co-track { flex-basis: 100%; }
+
+/* ---------- card e tutorial ---------- */
+.co-art .b { stroke: var(--co-edge); stroke-width: 3; stroke-linejoin: round; }
+.co-art .f { fill: var(--co-on-dk); }
+.co-art .w { fill: none; stroke: var(--co-bubble-ink); stroke-width: 3; stroke-linecap: round; }
+.co-art .bub { fill: var(--co-bubble); stroke: var(--co-bubble-line); stroke-width: 2; }
+.co-art .hop { animation: co-hop 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.co-tu .tx { font-family: var(--font-display); font-size: 15px; paint-order: stroke fill; stroke: var(--co-edge); stroke-width: 3px; stroke-linejoin: round; }
+.co-tu .nx { font-family: var(--font-display); font-size: 13px; fill: var(--co-bubble-ink); }
+.co-tu .ok { fill: none; stroke: var(--co-good); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.co-tu .no { fill: none; stroke: var(--co-bad); stroke-width: 4; stroke-linecap: round; }
+
+@keyframes co-in { from { transform: scale(.2) rotate(-12deg); opacity: 0; } }
+@keyframes co-pop { 0% { transform: scale(.85); } 100% { transform: none; } }
+@keyframes co-hit { 0% { transform: scale(1); } 40% { transform: scale(1.25) rotate(-6deg); } 100% { transform: scale(1.1); } }
+@keyframes co-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-6px) rotate(-4deg); } 75% { transform: translateX(6px) rotate(4deg); } }
+@keyframes co-glow { 0%, 100% { box-shadow: 0 0 0 0 var(--co-glow); } 50% { box-shadow: 0 0 0 8px var(--co-glow); transform: scale(1.08); } }
+@keyframes co-up { to { transform: translate(-50%, -38px); opacity: 0; } }
+@keyframes co-wave { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes co-talk { to { transform: translateY(-3px) rotate(-4deg); } }
+@keyframes co-hop { 0%, 70%, 100% { transform: none; } 80% { transform: translateY(-6px); } 90% { transform: translateY(0) scale(1.04, .96); } }
+@media (prefers-reduced-motion: reduce) {
+  .co-it, .co-it.hit, .co-it.miss, .co-it.show, .co-say.pop, .co-hari.talk svg, .co-art .hop, .co-plus, .co-chip.hot { animation: none !important; }
+  .co-it.show { box-shadow: 0 0 0 6px var(--co-glow); }
+}

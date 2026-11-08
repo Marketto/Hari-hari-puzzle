@@ -1,7 +1,7 @@
 /* Audio di Hari Hari Puzzle — tutto sintetizzato con WebAudio: nessun file, funziona offline.
  *
  * HH.audio.unlock()            al primo tocco (i browser bloccano l'audio prima di un gesto)
- * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'street', 'drive', 'rally', 'memory', 'spot', 'flight', 'sudoku', 'escape', 'life')
+ * HH.music.play(track, p)      'menu' | uno per gioco (stesso id: 'hedgedoku', 'boba', … 'snack', 'street', 'drive', 'rally', 'memory', 'spot', 'flight', 'sudoku', 'escape', 'life', 'colors')
  * HH.music.setIntensity(p)     0..1 = quanto manca alla soluzione; gli strumenti entrano a strati:
  *                                 0    melodia + pad
  *                                 .12+ basso          .38+ percussioni
@@ -279,6 +279,13 @@
       chords: [1, 6, 4, 5, 1, 4, 2, 1], bass: 'R . . . F . . .',
       mel: ['1 . 2 . 3 . 5 .', '6 . 5 . 3 - - .', '4 . 5 . 6 . 8 .', '7 . 5 . 2 - - .',
         '3 . 4 . 5 . 8 .', '9 . 8 . 6 - - .', '4 . 6 5 4 . 2 .', '1 . . . 1 - - .'],
+    },
+    // Hari Colors: filastrocca vivace e "colorata" in La (marimba + pluck), frasi brevi a domanda e risposta come il gioco
+    colors: {
+      bpm: 116, root: 69, lead: 'marimba', arp: 'pluck', swing: 0.14, perc: 'bubbly',
+      chords: [1, 4, 5, 1, 6, 4, 5, 1], bass: 'R . F . O . F .',
+      mel: ['1 3 5 . 5 6 5 .', '4 6 8 . 6 5 4 .', '5 7 9 . 8 7 5 .', '8 - 5 . 3 - - .',
+        '6 . 8 6 5 . 3 5', '4 . 6 4 8 . 6 .', '5 6 7 . 9 8 7 .', '8 . 5 . 1 - - .'],
     },
     lantern: {
       bpm: 76, root: 62, lead: 'koto', arp: 'koto', swing: 0, perc: 'night',

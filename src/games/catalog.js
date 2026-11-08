@@ -57,6 +57,10 @@
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
+    // voce di sistema (speechSynthesis, solo voci locali) in colors-voice.js; senza voce il nome appare nel fumetto
+    { id: 'colors', name: 'Hari Colors', since: '0.27.0', rules: 'r_colors',
+      rulesEn: 'Hari says a colour out loud: tap the shape of that colour as fast as you can! Quick answers and streaks score more. Later, colour words appear written in a different ink: tap the INK colour you hear, not the word.',
+      files: f('colors.css', 'colors-logic.js', 'colors-voice.js', 'colors-ui.js') },
   ];
 
   /* ---------- caricamento in lazy load ---------- */

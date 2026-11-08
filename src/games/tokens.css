@@ -1231,3 +1231,44 @@
 .mm-art .mm-a-card { transform-box: fill-box; transform-origin: center; }
 .mm-art .mm-a-flip { animation: mm-a-flip 3.2s ease-in-out infinite; }
 @keyframes mm-a-flip { 0%, 40%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.05); } 60%, 90% { transform: scaleX(1); } }
+/* colors */
+:root {
+  --tint-colors: #ffe3f1;
+  --co-red: #e8322e; --co-blue: #1a6ae0; --co-yellow: #ffd817; --co-green: #2fa84f; --co-orange: #ff8a00; --co-purple: #9b3cc8;
+  --co-pink: #ff8cc6; --co-black: #1d1a22; --co-white: #ffffff; --co-brown: #8a5226; --co-grey: #9b98a3;
+  --co-on-dk: #3a2530; --co-on-lt: #ffffff;
+  --co-red-on: var(--co-on-lt); --co-blue-on: var(--co-on-lt); --co-yellow-on: var(--co-on-dk); --co-green-on: var(--co-on-dk);
+  --co-orange-on: var(--co-on-dk); --co-purple-on: var(--co-on-lt); --co-pink-on: var(--co-on-dk); --co-black-on: var(--co-on-lt);
+  --co-white-on: var(--co-on-dk); --co-brown-on: var(--co-on-lt); --co-grey-on: var(--co-on-dk);
+  
+  --co-field: #fbf4ea; --co-field-dot: rgba(75, 46, 40, .07); --co-field-line: rgba(75, 46, 40, .16);
+  --co-edge: #3a2530; --co-text: #6b4438; --co-bubble: #ffffff; --co-bubble-ink: #4b2e28; --co-bubble-line: rgba(75, 46, 40, .25);
+  --co-bar: #f1e3d6; --co-bar-fill: #4fc7ab; --co-bar-low: #ff6f86; --co-good: #2b9e85; --co-bad: #e2486a;
+  --co-badge: #ffffff; --co-badge-ink: #3a2530; --co-glow: #ffc53d; --co-cover: rgba(255, 248, 242, .82); --co-chip: #fff4ea;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tint-colors: #47304f;
+    --co-field: #2b2340; --co-field-dot: rgba(255, 255, 255, .05); --co-field-line: rgba(255, 230, 240, .18);
+    --co-edge: #fff4fa; --co-text: #ffd6e6; --co-bubble: #3a2d52; --co-bubble-ink: #fbeee8; --co-bubble-line: rgba(255, 230, 240, .3);
+    --co-bar: #3b2f55; --co-bar-fill: #6fdcc3; --co-bar-low: #ff6f86; --co-good: #6fdcc3; --co-bad: #ff6f86;
+    --co-badge: #fff4fa; --co-badge-ink: #2b2340; --co-glow: #ffd27d; --co-cover: rgba(28, 21, 48, .82); --co-chip: #3a2d52;
+  }
+}
+:root[data-theme="dark"] {
+  --tint-colors: #47304f;
+  --co-field: #2b2340; --co-field-dot: rgba(255, 255, 255, .05); --co-field-line: rgba(255, 230, 240, .18);
+  --co-edge: #fff4fa; --co-text: #ffd6e6; --co-bubble: #3a2d52; --co-bubble-ink: #fbeee8; --co-bubble-line: rgba(255, 230, 240, .3);
+  --co-bar: #3b2f55; --co-bar-fill: #6fdcc3; --co-bar-low: #ff6f86; --co-good: #6fdcc3; --co-bad: #ff6f86;
+  --co-badge: #fff4fa; --co-badge-ink: #2b2340; --co-glow: #ffd27d; --co-cover: rgba(28, 21, 48, .82); --co-chip: #3a2d52;
+}
+.co-shape .b { fill: var(--ink); stroke: var(--co-edge); stroke-width: 5; stroke-linejoin: round; }
+.co-shape .f { fill: var(--on); }
+.co-shape .l { fill: none; stroke: var(--on); stroke-width: 4; stroke-linecap: round; }
+.co-shape .s { fill: none; stroke: var(--co-edge); stroke-width: 4; stroke-linecap: round; }
+.co-art .b { stroke: var(--co-edge); stroke-width: 3; stroke-linejoin: round; }
+.co-art .f { fill: var(--co-on-dk); }
+.co-art .w { fill: none; stroke: var(--co-bubble-ink); stroke-width: 3; stroke-linecap: round; }
+.co-art .bub { fill: var(--co-bubble); stroke: var(--co-bubble-line); stroke-width: 2; }
+.co-art .hop { animation: co-hop 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes co-hop { 0%, 70%, 100% { transform: none; } 80% { transform: translateY(-6px); } 90% { transform: translateY(0) scale(1.04, .96); } }
