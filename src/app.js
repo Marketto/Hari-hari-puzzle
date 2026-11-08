@@ -584,6 +584,26 @@
     if (legalGate(() => openGame(id, push))) return;     // avviso legale non ancora accettato: prima quello
     autoFull();                       // i giochi partono sempre a schermo intero (finché c'è il tocco che li apre)
     if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
+    // dalla home: transizione kawaii (src/core/transition.js). Il gioco si scarica e si disegna a schermo coperto.
+    // Niente transizione alla ripresa della partita all'avvio (S.noTrans) e quando si riapre lo stesso gioco
+    // (cambio lingua, cambio mappa: S.game è già impostato).
+    const anim = !S.game && !S.noTrans && HH.transition;
+    S.noTrans = false;
+    if (anim) {
+      if (S.loading || HH.transition.busy()) return;    // doppio tocco o transizione già in corso: si ignora
+      S.loading = id;
+      resumeFull();                     // dentro il tocco, prima di qualsiasi attesa
+      let failed = false;
+      HH.transition.run(async () => {
+        try { if (!HH.gameLoaded(id)) await HH.loadGame(id); } catch (e) { failed = true; return; }
+        S.loading = null;
+        if (!S.game) showGame(HH.gameLoaded(id), push);
+      }, { focus: () => $('#gBack') }).catch((e) => { setTimeout(() => { throw e; }); }).then(() => {
+        S.loading = null;
+        if (failed) say('oops', true, lab('dlNeed', 'This game downloads the first time you play: connect to the internet and try again!'));
+      });
+      return;
+    }
     const g = HH.gameLoaded(id);
     if (!g) {
       // primo avvio del gioco: lo scarica (o lo prende dalla cache offline) e poi lo apre
@@ -594,7 +614,7 @@
       HH.loadGame(id).then(() => {
         S.loading = null;
         if (card) card.classList.remove('loading');
-        if (!$('#home').hidden || !S.game) openGame(id, push);
+        if (!$('#home').hidden || !S.game) { S.noTrans = true; openGame(id, push); }
       }).catch(() => {
         S.loading = null;
         if (card) card.classList.remove('loading');
@@ -604,8 +624,13 @@
       });
       return;
     }
-    persist();
     resumeFull();                     // schermo intero voluto ma perso (app in background): si rientra con questo tocco
+    showGame(g, push);
+  }
+
+  function showGame(g, push) {
+    const id = g.id;
+    persist();
     S.game = g; S.inst = null; S.won = false;
     const saved = P.loadGame(slot(g));
     S.elapsed = saved ? saved.elapsed || 0 : 0;
@@ -775,7 +800,27 @@
   // il blocco si perde quando l'app va in background: lo riprendiamo al ritorno se si sta ancora giocando
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
-  function goHome() {
+  // uscita verso la home: con la transizione (salvo 'instant'); a schermo coperto si smonta il gioco e si
+  // ridisegna la home, poi (scoperta finita) eventuale aggiornamento in attesa o proposta di installazione
+  function goHome(how) {
+    if (how !== 'instant' && HH.transition && S.game) {
+      if (S.leaving) return;
+      S.leaving = true;
+      const from = S.game.id;
+      HH.transition.run(() => { if (S.game) leaveGame(); }, { focus: () => document.querySelector(`#home [data-game="${from}"]`) })
+        .catch((e) => { setTimeout(() => { throw e; }); })
+        .then(() => { S.leaving = false; afterHome(); });
+      return;
+    }
+    leaveGame();
+    afterHome();
+  }
+  function afterHome() {
+    if (S.game) return;
+    if (waitingSW) applyUpdate();
+    else setTimeout(offerInstall, 1200);
+  }
+  function leaveGame() {
     persist();
     hideSay();
     $('#loseDlg').hidden = true;
@@ -787,8 +832,6 @@
     $('#home').hidden = false;
     renderHome();
     $('#updBar').hidden = true;
-    if (waitingSW) applyUpdate();
-    else setTimeout(offerInstall, 1200);
   }
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
@@ -1024,6 +1067,7 @@
   }
   function updateReady(w) {
     waitingSW = w;
+    if (HH.transition && HH.transition.busy()) { HH.transition.idle().then(() => updateReady(w)); return; }
     if (!S.game) { applyUpdate(); return; }
     const bar = $('#updBar');
     bar.innerHTML = `<span>${t('updReady')}</span><button class="candy" id="updGo">${ICON.sparkle}<span>${t('updNow')}</span></button>`;
@@ -1049,9 +1093,9 @@
       setTimeout(() => {
         if (reloadingNow()) return done();
         const w = reg.waiting;
-        if (w) { if (!S.game) { persist(); HH.store.set('justUpdated', 1); w.postMessage({ type: 'skip' }); } return done(); }
+        if (w) { if (!S.game && !(HH.transition && HH.transition.busy())) { persist(); HH.store.set('justUpdated', 1); w.postMessage({ type: 'skip' }); } return done(); }
         if (reg.installing) return done();                       // sta ancora scaricando: si riprova al prossimo controllo
-        if (HH.store.get('healTried') === remote || S.game) return done();
+        if (HH.store.get('healTried') === remote || S.game || (HH.transition && HH.transition.busy())) return done();
         HH.store.set('healTried', remote);
         persist();
         HH.store.set('justUpdated', 1);
@@ -1201,7 +1245,7 @@
     applyTexts();
     // riapertura dell'app: si torna alla partita in sospeso (se l'avviso legale è da accettare, dopo l'accettazione)
     const last = HH.store.get('screen');
-    const resume = () => { if (last && P.loadGame(last)) openGame(last); };
+    const resume = () => { if (last && P.loadGame(last)) { S.noTrans = true; openGame(last); } };
     if (!legalGate(resume)) resume();
   }
 

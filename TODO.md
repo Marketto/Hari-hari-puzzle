@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## Prossimo
+- [ ] Transizioni su telefono vero (fluidità)
 - [ ] Aggiornamento su iPhone vero (Chrome iOS) da una versione vecchia
 - [ ] Schermo intero automatico su telefono vero (Android installata e browser)
 - [ ] Avviso legale su telefono vero
@@ -29,6 +30,11 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.26.0)
+- [x] Transizione kawaii fra home e giochi (entrata e uscita): 7 varianti casuali (foglie, petali, bolle, stelline e
+  cuoricini, aculei e ghiande, frutta, nuvolette), ~1,05 s, il gioco si scarica a schermo coperto (Hari rimbalza se
+  ci mette di più), dissolvenza con movimento ridotto, fruscio (`src/core/transition.js`, `tests/transition.test.mjs`)
 
 ## Fatto (v0.25.3)
 - [x] Tutorial più largo dello schermo su iPhone (Safari/Chrome iOS, WebKit): la colonna della griglia di `.overlay` si

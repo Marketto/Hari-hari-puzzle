@@ -6,11 +6,11 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.25.3';
+const VERSION = 'hh-v0.26.0';
 // testi legali: en.js e licenses.js sempre offline (SHELL); le altre lingue (src/i18n/legal/<lang>.js) in cache alla prima apertura
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
-  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/usage.js', 'src/core/legal.js',
+  'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/transition.js', 'src/core/usage.js', 'src/core/legal.js',
   'src/i18n/legal/en.js', 'src/i18n/legal/licenses.js',
   'src/games/tokens.css', 'src/games/catalog.js', 'src/games/cards.js',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',

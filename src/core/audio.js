@@ -437,6 +437,13 @@
       b.frequency.setValueAtTime(400, t); b.frequency.exponentialRampToValueAtTime(3500, t + 0.3);
       s.connect(b); b.connect(env(sfxBus, t, 0.08, 0.07, t + 0.35)); s.start(t); s.stop(t + 0.4);
     }),
+    // fruscio della transizione fra le schermate (foglie, petali…): aria che passa, morbida e breve
+    rustle: S((t, k = 1) => {
+      const s = ac.createBufferSource(); s.buffer = noise;
+      const b = ac.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 0.8;
+      b.frequency.setValueAtTime(900, t); b.frequency.exponentialRampToValueAtTime(2600, t + 0.3); b.frequency.exponentialRampToValueAtTime(700, t + 0.7);
+      s.connect(b); b.connect(env(sfxBus, t, 0.18, 0.045 * k, t + 0.75)); s.start(t); s.stop(t + 0.8);
+    }),
     win: S((t) => {
       [1, 3, 5, 8].forEach((d, i) => V.marimba(sfxBus, sc(d), t + i * 0.1, 0.1, 0.16));
       [1, 3, 5, 8].forEach((d) => V.bell(sfxBus, sc(d), t + 0.45, 0.5, 0.045));

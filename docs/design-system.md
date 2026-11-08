@@ -13,6 +13,8 @@
 | `--sun` | #ffc95e | #ffd27d | ombra adesiva del logo, coriandoli |
 | `--card` | crema traslucida | prugna traslucida | card con blur |
 
+Transizione fra le schermate: token `--tr-*` (foglie `--tr-leaf-1…4`, petali, bolle, aculei, frutta, nuvolette, `--tr-shine`), definiti nei due temi; `--tr-tint-a` è l'intensità della tinta del velo.
+
 Tinte fisse (uguali nei due temi): regioni Hedgedoku `--r0…--r7`, gusti Boba `--f0…--f8`.
 
 ## Tipografia
@@ -30,3 +32,5 @@ Le stelle sono sostituite da **fragoline**: rosse con semini e foglie menta quan
 
 ## Movimento
 Sfondo canvas: 5 bolle di colore che fluttuano, 10–46 petali, 8–40 stelline (densità in base allo schermo). In pausa quando la scheda è nascosta. `prefers-reduced-motion` → un solo fotogramma statico, nessuna animazione CSS.
+
+Transizione home ↔ gioco (`src/core/transition.js`): nuvola di elementi kawaii, ~1 s, variante casuale fra 7 (mai la stessa due volte); con `prefers-reduced-motion` solo una dissolvenza breve. Dettagli in `docs/architecture.md`.

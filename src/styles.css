@@ -33,6 +33,12 @@
   --font-display: "Mochiy Pop One", "M PLUS Rounded 1c", "Baloo Bhaijaan 2", system-ui, sans-serif;
   --font-body: "M PLUS Rounded 1c", "Baloo Bhaijaan 2", system-ui, "Noto Sans", sans-serif;
   --r-lg: 28px; --r-md: 20px;
+  /* transizione fra le schermate (src/core/transition.js) */
+  --tr-leaf-1: #f08a3c; --tr-leaf-2: #e8604c; --tr-leaf-3: #f6c24a; --tr-leaf-4: #b8743a; --tr-vein: rgba(120, 50, 20, .28);
+  --tr-petal-1: #ffc4d6; --tr-petal-2: #ffe3ec; --tr-shine: rgba(255, 255, 255, .6); --tr-star-2: #ffb0d0;
+  --tr-bubble: rgba(190, 225, 255, .6); --tr-bubble-rim: rgba(110, 165, 230, .8);
+  --tr-spine: #8a5838; --tr-spine-2: #b97c55; --tr-lime: #a6d96a; --tr-orange: #ffa24c; --tr-pulp: rgba(255, 250, 228, .9);
+  --tr-cloud: #ffffff; --tr-cloud-2: #ffe9f1; --tr-cloud-rim: rgba(225, 150, 185, .6); --tr-cloud-face: #4b2e28; --tr-blush: rgba(255, 140, 170, .6);
   --link: var(--accent-2); --warn-bg: color-mix(in srgb, var(--sun) 24%, var(--card-solid)); --warn-ink: var(--sun-2);
 }
 @media (prefers-color-scheme: dark) {
@@ -50,6 +56,11 @@
     --hill-1: #33264d; --hill-2: #281e3f;
     --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f; --tint-sushi: #263a52;
     --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 230, 240, .5);
+    --tr-leaf-1: #d97a3a; --tr-leaf-2: #c9564a; --tr-leaf-3: #e0b04a; --tr-leaf-4: #9a6234; --tr-vein: rgba(40, 10, 0, .3);
+    --tr-petal-1: #e88fb0; --tr-petal-2: #f3b6cc; --tr-shine: rgba(255, 255, 255, .35); --tr-star-2: #ff9cc4;
+    --tr-bubble: rgba(150, 170, 255, .38); --tr-bubble-rim: rgba(195, 205, 255, .75);
+    --tr-spine: #7a4a30; --tr-spine-2: #a8704c; --tr-lime: #8fc45a; --tr-orange: #f0913e; --tr-pulp: rgba(255, 240, 215, .78);
+    --tr-tint-a: .16; --tr-cloud: #4a3d72; --tr-cloud-2: #5d4b8e; --tr-cloud-rim: rgba(205, 185, 255, .4); --tr-cloud-face: #fbeee8; --tr-blush: rgba(255, 120, 170, .45);
     --link: var(--accent); --warn-bg: color-mix(in srgb, var(--sun) 14%, var(--card-solid)); --warn-ink: var(--sun);
     color-scheme: dark;
   }
@@ -68,6 +79,11 @@
   --hill-1: #33264d; --hill-2: #281e3f;
   --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f; --tint-sushi: #263a52;
   --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 230, 240, .5);
+  --tr-leaf-1: #d97a3a; --tr-leaf-2: #c9564a; --tr-leaf-3: #e0b04a; --tr-leaf-4: #9a6234; --tr-vein: rgba(40, 10, 0, .3);
+  --tr-petal-1: #e88fb0; --tr-petal-2: #f3b6cc; --tr-shine: rgba(255, 255, 255, .35); --tr-star-2: #ff9cc4;
+  --tr-bubble: rgba(150, 170, 255, .38); --tr-bubble-rim: rgba(195, 205, 255, .75);
+  --tr-spine: #7a4a30; --tr-spine-2: #a8704c; --tr-lime: #8fc45a; --tr-orange: #f0913e; --tr-pulp: rgba(255, 240, 215, .78);
+  --tr-tint-a: .16; --tr-cloud: #4a3d72; --tr-cloud-2: #5d4b8e; --tr-cloud-rim: rgba(205, 185, 255, .4); --tr-cloud-face: #fbeee8; --tr-blush: rgba(255, 120, 170, .45);
   --link: var(--accent); --warn-bg: color-mix(in srgb, var(--sun) 14%, var(--card-solid)); --warn-ink: var(--sun);
   color-scheme: dark;
 }
@@ -986,3 +1002,25 @@ body:has(.legal-dlg) #langDlg { z-index: 58; }
   .lg-page { max-height: calc(100dvh - 16px); }
 }
 .lg-page .sheet-head h2 { font-size: 21px; line-height: 1.2; }
+
+/* ---------- transizione fra home e giochi (src/core/transition.js) ----------
+ * Velo a tutto schermo (sopra a schermo intero, dialoghi e avviso): blocca i tocchi finché la schermata nuova non
+ * è scoperta. Solo transform/opacity animati via Web Animations; le particelle sono SVG con colori da variabili. */
+.trans { position: fixed; inset: 0; z-index: 90; overflow: hidden; pointer-events: auto; touch-action: none; contain: strict; }
+.trans-wash { position: absolute; inset: 0; background: var(--bg); opacity: 0; will-change: opacity; }
+.trans-wash::after { content: ""; position: absolute; inset: 0; background: var(--tr-tint, var(--sky-top)); opacity: var(--tr-tint-a, .3); }
+.trans[data-v="leaves"] { --tr-tint: var(--tr-leaf-3); }
+.trans[data-v="petals"] { --tr-tint: var(--petal); }
+.trans[data-v="bubbles"] { --tr-tint: var(--sky); }
+.trans[data-v="stars"] { --tr-tint: var(--sun); }
+.trans[data-v="spines"] { --tr-tint: var(--acorn); }
+.trans[data-v="fruit"] { --tr-tint: var(--mint); }
+.trans[data-v="clouds"] { --tr-tint: var(--sky-top); }
+.trans .tp { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+.trans .tp svg { width: 100%; height: 100%; overflow: visible; }
+.trans-hari { position: absolute; left: 50%; top: 50%; width: 88px; height: 88px; margin: -44px 0 0 -44px; opacity: 0; transform: scale(.6); transition: opacity .2s, transform .25s; }
+.trans-hari svg { width: 100%; height: 100%; filter: drop-shadow(0 6px 8px var(--text-shadow-c)); }
+.trans.wait .trans-hari { opacity: 1; transform: scale(1); }
+.trans.wait .trans-hari svg { animation: tr-hop .75s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes tr-hop { 0%, 100% { transform: translateY(0) scale(1.04, .96); } 50% { transform: translateY(-14px) scale(.97, 1.03); } }
+@media (prefers-reduced-motion: reduce) { .trans.wait .trans-hari svg { animation: none; } }

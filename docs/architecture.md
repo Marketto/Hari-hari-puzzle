@@ -18,13 +18,15 @@ Fragoline (1–3, al posto delle stelle) da `rate(snapshot)`: Hedgedoku 3 senza 
 
 ## Ordine di caricamento
 ```
-locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → fx.js → <gioco>-logic.js → <gioco>-ui.js … → app.js (boot)
+locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audio.js → fx.js → transition.js → <gioco>-logic.js → <gioco>-ui.js … → app.js (boot)
 ```
 
 ## Flusso
 1. `app.js` → `boot()`: lingua da storage o da `navigator.languages`, `dir` per RTL, sfondo canvas, suono, service worker.
 2. Home: card da `HH.games` + card "in arrivo" (`SOON`).
-3. Tocco card → `openGame(id)`: crea `ctx`, chiama `game.create(boardEl, ctx)`, `history.pushState` per il tasto indietro di Android.
+3. Tocco card → `openGame(id)`: schermo intero (`autoFull()`, sincrono dentro il tocco), poi transizione
+   (`HH.transition.run`); a schermo coperto scarica il gioco se serve (`HH.loadGame`) e `showGame` crea `ctx`, chiama
+   `game.create(boardEl, ctx)`, `history.pushState` per il tasto indietro di Android.
 4. `ctx.win()` → livello +1 salvato, suono, coriandoli, salto di Hari, finestra "Avanti".
 
 ## Contratto del gioco
@@ -41,6 +43,30 @@ solo la musica). La voce del catalogo può avere `rulesEn` come testo di riserva
 e `hog-kit.js`, il riccio animato di Hedgedoku). `build-inline.mjs` li include una volta sola e `gen-cards.mjs` copia i token
 di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gioco ha un suo Hari che parla sulla griglia
 (vedi `docs/audio.md`).
+
+## Transizione fra home e giochi (`src/core/transition.js`)
+- **Quando**: entrando in un gioco dalla home (`openGame`) e tornando alla home (`goHome`: pulsante, tasto indietro /
+  `popstate`, "Home" nelle finestre di vittoria e sconfitta). **Non** alla ripresa della partita all'avvio
+  (`S.noTrans`), al cambio di lingua o di mappa (il gioco è già aperto), a "Prossimo livello", agli aggiornamenti.
+  Con l'avviso legale da accettare si apre prima quello; la transizione parte dopo l'accettazione.
+- **Come**: `HH.transition.run(swap)` copre lo schermo (~480 ms), esegue `swap` (anche async: download del gioco)
+  sotto la copertura, aspetta un fotogramma e scopre (~560 ms): ~1,05 s in tutto. Se `swap` dura più di 250 ms compare
+  un piccolo Hari che rimbalza; si scopre solo a schermata pronta (al massimo dopo 15 s). Tocchi bloccati dal velo
+  (z-index 90, sopra a schermo intero e dialoghi); il focus va su "indietro" nel gioco o sulla card del gioco in home,
+  solo se si era perso.
+- **Varianti** (una a caso, mai la stessa due volte di fila): foglie autunnali, petali, bolle di sapone, stelline e
+  cuoricini, aculei e ghiande di Hari, frutta, nuvolette. ~24–48 SVG su una griglia mossa (posizioni in vw/vh, quindi
+  reggono la rotazione del telefono; in RTL i movimenti si specchiano) + un velo `--bg` che garantisce la copertura
+  piena. Solo transform/opacity (Web Animations API). Colori: token `--tr-*` (tema chiaro e scuro).
+- **Movimento ridotto**: solo il velo, dissolvenza di ~360 ms.
+- **Concorrenza**: un secondo tocco durante la transizione si ignora; un `goHome` doppio è ignorato (`S.leaving`);
+  chiamate a `run` durante la copertura usano la stessa copertura, durante la scoperta partono subito dopo.
+  Aggiornamenti in attesa (`updateReady`, `heal`) aspettano la fine della transizione.
+- **Segnali** per test ed e2e: `<html data-trans="cover|hold|reveal">` e l'evento `hh:trans` (`detail.phase`:
+  `start`, `swap`, `end`). Il gioco è già disegnato sotto il velo durante la scoperta: i click di Playwright aspettano
+  da soli che il velo sparisca.
+- **Suono**: `HH.audio.sfx.rustle`, un fruscio breve (rispetta silenzio e volume degli effetti).
+- Test: `tests/transition.test.mjs` (varianti, particelle deterministiche col seme e copertura, durata, token).
 
 ## Schermo intero
 - **Bersaglio**: `document.documentElement` (non il riquadro di gioco). Così lo schermo intero sopravvive al cambio di

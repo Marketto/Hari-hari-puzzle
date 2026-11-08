@@ -11,6 +11,6 @@ Vedi `docs/design-system.md` per i token completi.
 - **Font**: `Mochiy Pop One` solo per titoli e numeri grandi; `M PLUS Rounded 1c` per il testo; `Baloo Bhaijaan 2` per l'arabo.
 - **Forme**: raggi 18–28 px, bordi 2 px `--line`, ombra morbida `--shadow`. Pulsanti principali a pillola `--accent` con "spessore" sotto.
 - **Mascotte**: un solo disegno (`src/core/mascot.js`). Stati: `breathe` (idle), `blink`, `.jump` (vittoria), `.oops` (errore). Occhioni con 2 riflessi + scintilla; i riflessi seguono il puntatore.
-- **Movimento**: sfondo canvas (bolle di colore, petali, stelline) a bassa intensità; un'animazione forte solo alla vittoria (coriandoli + salto). Rispetta sempre `prefers-reduced-motion`.
+- **Movimento**: sfondo canvas (bolle di colore, petali, stelline) a bassa intensità; un'animazione forte solo alla vittoria (coriandoli + salto). Fra home e giochi la transizione `HH.transition` (src/core/transition.js): 7 varianti SVG (foglie, petali, bolle, stelline, aculei, frutta, nuvolette), colori dai token `--tr-*`; per una variante nuova aggiungi forma in `SHAPES`, voce in `LOOK`, movimento in `particles` e un token per tema. Rispetta sempre `prefers-reduced-motion`.
 - **Accessibilità**: i gusti di Boba Sort hanno anche un simbolo; contrasto AA per il testo; focus visibile.
 - **Icone app**: modifica la mascotte, poi `npm run icons` (SVG) e `python3 tools/rasterize-icons.py` (PNG).
