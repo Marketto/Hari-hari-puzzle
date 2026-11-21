@@ -30,7 +30,7 @@ locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audi
 4. `ctx.win()` → livello +1 salvato, suono, coriandoli, salto di Hari, finestra "Avanti".
 
 ## Contratto del gioco
-Vedi `.claude/skills/add-game/SKILL.md`. Logica pura in `*-logic.js` (testata da `tools/selftest.mjs`), UI in `*-ui.js`.
+Vedi `.claude/skills/add-game/SKILL.md`. Logica pura in `*-logic.js` (testata da `tests/<id>.test.mjs`; `tools/selftest.mjs` è il benchmark), UI in `*-ui.js`.
 
 **Giochi senza fine** (`endless: true` nella voce del catalogo e in `HH.games`, es. Hari Home): niente livello,
 fragoline, cuori, tempo e mosse. L'app chiede al gioco `meta(state)` → `[{ i: icona, v: testo }]` (icone di `ICON` in

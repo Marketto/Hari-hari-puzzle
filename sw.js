@@ -81,7 +81,8 @@ self.addEventListener('fetch', (e) => {
   if (url.hostname.endsWith('googleapis.com') || url.hostname.endsWith('gstatic.com')) {
     e.respondWith(caches.open('hh-fonts').then(async (c) => {
       const hit = await c.match(e.request);
-      const net = fetch(e.request).then((r) => { c.put(e.request, r.clone()); return r; }).catch(() => hit);
+      // in cache solo risposte buone (le opache dei font cross-origin non si possono leggere: si tengono)
+      const net = fetch(e.request).then((r) => { if (r.ok || r.type === 'opaque') c.put(e.request, r.clone()); return r; }).catch(() => hit || Response.error());
       return hit || net;
     }));
     return;
@@ -96,6 +97,7 @@ self.addEventListener('fetch', (e) => {
       if (r.ok) c.put(new URL(e.request.url).origin + new URL(e.request.url).pathname, r.clone());
       return r;
     }
-    return fetch(e.request).catch(() => caches.match('index.html'));
+    // offline: la pagina di riserva solo per le navigazioni, mai al posto di un JS o CSS
+    return fetch(e.request).catch(() => (e.request.mode === 'navigate' ? caches.match('index.html') : Response.error()));
   }));
 });

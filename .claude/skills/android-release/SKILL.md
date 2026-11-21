@@ -20,6 +20,6 @@ bubblewrap build            # -> app-release-signed.apk + app-release-bundle.aab
 Poi pubblica `assetlinks.json` in `.well-known/` (fingerprint SHA-256 della chiave) per togliere la barra URL.
 
 ## Checklist
-- [ ] `npm test` OK · versione incrementata in `package.json`, `sw.js`, `twa-manifest.json`
+- [ ] `npm test` OK · versione incrementata in `package.json`, `sw.js` e `HH.VERSION` di `src/core/core.js` (un test li confronta; `twa-manifest.json` solo quando esiste il pacchetto TWA)
 - [ ] Icone 192/512/maskable presenti · Lighthouse PWA "installabile"
 - [ ] Prova in modalità aereo dopo il primo avvio

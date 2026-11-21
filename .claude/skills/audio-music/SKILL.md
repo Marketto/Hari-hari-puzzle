@@ -24,4 +24,4 @@ lightOn(i), lightOff, star(i), giggle, blip, milestone, open, win, record, honk,
 
 ## Messaggi di Hari (`say(kind)` in `app.js`)
 Categorie: start, good, half, almost, oops, idle, poke, cheer → chiavi `m_*` in tutte le 43 lingue (skill `i18n`).
-Massimo un messaggio ogni 4,5 s, tranne i traguardi (metà, quasi fatto) che hanno la precedenza.
+Massimo un messaggio ogni 9 s (ognuno resta a schermo almeno 4,5 s), tranne i traguardi (metà, quasi fatto) che hanno la precedenza.

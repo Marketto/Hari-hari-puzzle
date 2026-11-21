@@ -11,17 +11,20 @@ Ogni gioco si registra così (in `src/games/<id>-ui.js`):
 HH.games.push({
   id: 'pixel',            // slug, usato in storage e CSS (--tint-<id>)
   name: 'Pixel Mochi',    // nome brand, non tradotto
-  rules: 'r4',            // chiave i18n delle regole
+  rules: 'r_pixel',       // chiave i18n delle regole (nome con l'id: niente collisioni tra rami paralleli)
   art: () => '<svg …>',   // illustrazione 120×90 per la card (solo token CSS)
-  plate: 'night',         // opzionale: piatto scuro per il tabellone
   rate: (s) => 1..3,      // stelle in base allo stato finale
   parTime: (s) => secondi,// tempo di riferimento per il bonus
+  progress: (s) => 0..1,  // OBBLIGATORIO (regola 6): guida musica e frasi di Hari
   create(el, ctx, saved) {// monta il gioco; saved = snapshot salvato (o null)
     // ctx.level · ctx.changed({reset}) dopo ogni mossa · ctx.win() · ctx.sfx.* · ctx.react('oops'|'happy')
-    return { fresh(), restart(), undo(), snapshot() };  // snapshot: oggetto JSON con moves
+    return { fresh(), restart(), undo(), snapshot(), pause?(), resume?() };  // snapshot: JSON con moves
   },
+  // facoltativi: tutorial (passi illustrati) · lives (cuori) · endless (senza livelli) · fill (a tutto schermo
+  // occupa la finestra) · slot() (progressi separati, es. mappe) · plate: 'night' · coach (frasi proprie)
 });
 ```
+Nel catalogo (`src/games/catalog.js`): `{ id, name, since: 'X.Y.Z', rules, rulesEn, files: [...] }` (+ `extra`, `slots` se servono).
 
 ## Passi
 1. `src/games/<id>-logic.js`: funzioni pure `generate(size|level, rnd)`, `check/isSolved`, eventuale `solve`. Esporta su `HH.<id>`.

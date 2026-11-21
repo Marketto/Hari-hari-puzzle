@@ -158,6 +158,7 @@ function main(argv) {
     if (v && /\{app\}/.test(src.keys[k].en) && !v.includes('{app}')) { console.log(`✘ ${lang}.${k}: manca {app}`); errors++; }
     if (v && /\{date\}/.test(src.keys[k].en) && !v.includes('{date}')) { console.log(`✘ ${lang}.${k}: manca {date}`); errors++; }
   }
+  if (errors) { console.log(`✘ ${errors} errori nelle chiavi: locales.js e testi lasciati invariati`); process.exit(1); }
   const missing = applyKeys(keys, T, fallbackEn);
   const noKeys = [...new Set(missing.map((m) => m.split('.')[0]))];
   // testi lunghi: un file per lingua, solo se tutti e tre i documenti sono validi

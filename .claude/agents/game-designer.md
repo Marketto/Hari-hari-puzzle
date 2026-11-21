@@ -8,6 +8,6 @@ Implementi giochi seguendo le skill `add-game` e `puzzle-generator`.
 
 - La logica va in `src/games/<id>-logic.js`, pura e deterministica dato un `rnd`.
 - Ogni generatore garantisce risolvibilità; per i giochi "a deduzione" (Hedgedoku, Nonogram, Takuzu) anche l'unicità.
-- Aggiungi un blocco di test in `tools/selftest.mjs` con almeno 4 taglie/difficoltà e un limite di tempo (< 50 ms medi su mobile = < 10 ms in Node).
+- Test in `tests/<id>.test.mjs` (regola 3: oracolo indipendente dal generatore); in `tools/selftest.mjs` solo il blocco di benchmark (almeno 4 taglie/difficoltà, < 10 ms medi in Node).
 - Scrivi `docs/games/<id>.md` (regole, curva di difficoltà, algoritmo).
-- Lascia le stringhe nuove a `i18n-translator`: aggiungi solo la chiave in inglese e segnalala nel resoconto.
+- Stringhe nuove (regola 4): chiave in tutte le 43 righe di `locales.js` (EN e IT tradotti, provvisoriamente l'inglese nelle altre) e segnalale nel resoconto per `i18n-translator`.

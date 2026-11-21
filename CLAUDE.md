@@ -41,6 +41,10 @@ src/core/core.js           HH.store (localStorage) · HH.i18n
 src/core/fx.js             sfondo animato · coriandoli · suoni WebAudio
 src/core/usage.js          tempo di gioco locale + statistiche anonime facoltative (GoatCounter, con consenso)
 src/core/mascot.js         SVG di Hari (grande e mini)
+src/core/audio.js          musica generativa ed effetti (HH.music, sfx)
+src/core/legal.js          avviso legale al primo avvio, privacy e licenze (testi in src/i18n/legal/)
+src/core/transition.js     transizioni animate entrando e uscendo dai giochi
+src/net/                   multigiocatore in rete locale (abbinamento col suono/QR, WebRTC), lazy load
 src/games/*-logic.js       logica pura dei giochi
 src/games/*-ui.js          interfaccia dei giochi, si registra in HH.games
 src/games/catalog.js       elenco dei giochi e dei loro file + HH.loadGame (lazy load)
@@ -52,7 +56,7 @@ docs/                      documentazione strutturata
 
 ## Comandi
 - `npm run dev` — server locale su http://localhost:5173
-- `npm test` — selftest logica + controllo traduzioni
+- `npm test` — unit test (`tests/*.test.mjs`) + controllo traduzioni · `npm run bench` — benchmark dei generatori (`tools/selftest.mjs`)
 - `npm run build` — `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html`
 - `npm run icons` — rigenera le icone dalla mascotte
 - `npm run cards` — rigenera illustrazioni e token delle card dopo aver toccato `art` o i colori di un gioco

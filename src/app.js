@@ -56,15 +56,8 @@
   const word = (w, cls) => `<span class="lw ${cls}">${[...w].map((ch, i) => `<span style="--k:${i}">${ch}</span>`).join('')}</span>`;
 
   // Giochi proposti (in arrivo): solo card
-  const SOON = [
-    { id: 'pixel', name: 'Pixel Mochi', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[
-      '0110110', '1111111', '1111111', '0111110', '0011100', '0001000'].map((row, r) => [...row].map((v, c) =>
-      `<rect x="${25 + c * 10}" y="${14 + r * 10}" width="9" height="9" rx="2.5" fill="${v === '1' ? 'var(--accent)' : 'var(--hair)'}"/>`).join('')).join('')}</svg>` },
-    { id: 'yarn', name: 'Yarn Link', art: `<svg viewBox="0 0 120 90" aria-hidden="true"><path d="M22 20h40v25h36" fill="none" stroke="var(--f1)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 70h20V45" fill="none" stroke="var(--f4)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="20" r="8" fill="var(--f1)"/><circle cx="98" cy="45" r="8" fill="var(--f1)"/><circle cx="22" cy="70" r="8" fill="var(--f4)"/><circle cx="42" cy="45" r="8" fill="var(--f4)"/><circle cx="98" cy="72" r="8" fill="var(--f3)"/><circle cx="68" cy="72" r="8" fill="var(--f3)"/></svg>` },
-    { id: 'mochi', name: 'Mochi Binary', art: `<svg viewBox="0 0 120 90" aria-hidden="true">${[[1, 0, 0, 1], [0, 1, 1, 0], [1, 1, 0, 0]].map((row, r) => row.map((v, c) =>
-      v ? `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><circle r="8.5" fill="var(--ink)"/><circle r="5.5" fill="var(--card-solid)"/><circle r="3" fill="var(--f6)"/></g>`
-        : `<g transform="translate(${30 + c * 20} ${20 + r * 20})"><rect x="-9" y="-6" width="18" height="12" rx="6" fill="var(--card-solid)" stroke="var(--ink)" stroke-width="1.6"/><rect x="-9" y="-6" width="18" height="6" rx="3" fill="var(--f6)"/></g>`).join('')).join('')}</svg>` },
-  ];
+  // giochi «in arrivo» mostrati in fondo alla home ({ id, name, art }); spariscono da soli quando quello vero è nel catalogo
+  const SOON = [];
 
   /* ---------- stato ---------- */
   const S = { game: null, inst: null, elapsed: 0, won: false, pushed: false, best: 0, ms: {}, lastMove: 0, idleSaid: false };
@@ -195,11 +188,14 @@
     });
   }, { passive: true });
 
+  // partita in sospeso più recente di un gioco, anche negli slot (es. Hari Taxi: drive@ostia …)
+  const lastSave = (g) => [g.id].concat(g.slots || []).map((k) => P.loadGame(k)).filter(Boolean).sort((a, b) => (b.ts || 0) - (a.ts || 0))[0] || null;
+
   /* ---------- Home ---------- */
   function renderHome() {
     HH.music.play('menu', 0.45);
     HH.music.duck(false);
-    const saves = HH.catalog.map((g) => ({ g, s: P.loadGame(g.id) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
+    const saves = HH.catalog.map((g) => ({ g, s: lastSave(g) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
     const r = saves[0];
     const resume = r ? `
       <button class="resume" data-game="${r.g.id}">
@@ -248,7 +244,7 @@
       </section>
       ${resume}
       <div class="view-bar" role="radiogroup" aria-label="${lab('viewLabel', 'View')}">${VIEWS.map((v) => `<button class="view-btn${v.id === homeView() ? ' on' : ''}" role="radio" aria-checked="${v.id === homeView()}" data-view="${v.id}" aria-label="${lab(v.key, v.en)}" title="${lab(v.key, v.en)}">${ICON[v.icon]}</button>`).join('')}</div>
-      <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="Games">${cards}</section>
+      <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="${lab('goHome', 'All games')}">${cards}</section>
       ${homeView() === 'carousel' ? `<div class="cf-dots" aria-hidden="true">${HH.catalog.map((g, i) => `<i data-i="${i}"></i>`).join('')}</div>` : ''}
       ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
       <section class="grid-cards small">${soon}</section>` : ''}
@@ -268,12 +264,13 @@
       // (anche durante l'apertura di un gioco: S.game arriva solo a schermo coperto dalla transizione)
       if (S.game || S.loading || (HH.transition && HH.transition.busy()) || HH.usage.consent() !== null || HH.legal.isOpen()) { consentAsked = false; return; }
       const d = document.createElement('div');
-      d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'anTitle');
       d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
-        <h2>${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
+        <h2 id="anTitle">${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
         <div class="win-actions"><button class="tool" data-an="0">${lab('an_no', 'No thanks')}</button><button class="candy" data-an="1">${ICON.sparkle}<span>${lab('an_yes', 'Yes, gladly')}</span></button></div></div>`;
       document.body.appendChild(d);
       d.onclick = (e) => { const b = e.target.closest('[data-an]'); if (!b) return; HH.usage.setConsent(b.dataset.an === '1'); sfx.tap(); d.remove(); };
+      const f = d.querySelector('[data-an="1"]'); if (f) f.focus({ preventScroll: true });
     }, delay);
   }
 
@@ -707,7 +704,7 @@
     scr.hidden = false;
     scr.innerHTML = `
       <header class="g-head">
-        <button class="icon-btn" id="gBack" aria-label="Home">${ICON.back}</button>
+        <button class="icon-btn" id="gBack" aria-label="${lab('goHome', 'All games')}">${ICON.back}</button>
         <div class="g-title"><h2>${g.name}</h2>${g.endless ? '' : `<span class="ribbon-tag inline" id="gLevel">${t('level')} ${p.level}</span>`}</div>
         ${g.tutorial ? `<button class="icon-btn help" id="gHelp" aria-label="${lab('help', 'How to play')}">?</button>` : ''}
       </header>
@@ -796,8 +793,9 @@
     } catch (err) {
       // salvataggio illeggibile (es. dopo un aggiornamento): ne teniamo una copia e si riparte dal livello raggiunto
       if (!saved) throw err;
-      HH.store.set('save-bak:' + id, saved);
-      P.clearGame(id);
+      const k = slot(g);              // la partita viene dallo slot (es. drive@ostia), non dall'id del gioco
+      HH.store.set('save-bak:' + k, saved);
+      P.clearGame(k);
       S.elapsed = 0;
       S.inst = g.create($('#board'), ctx, null);
     }
@@ -931,7 +929,7 @@
     $('#winBox').innerHTML = `
       <div class="win-rays" aria-hidden="true"></div>
       <div class="win-hari">${HH.mascot.svg({ cls: 'hari happy jump' })}</div>
-      <h2 class="ribbon"><span>${t('win')}</span></h2>
+      <h2 class="ribbon" id="winTitle"><span>${t('win')}</span></h2>
       <p class="cheer">${pick('cheer')}</p>
       <div class="win-stars">${[0, 1, 2].map((i) => `<span class="ws${i < st ? ' on' : ''}" style="--d:${0.35 + i * 0.3}s">${STAR(i < st)}</span>`).join('')}</div>
       ${rec ? `<p class="newrec">${ICON.trophy}${t('newrec')}</p>` : ''}
@@ -941,7 +939,7 @@
         <div class="hi"><dt>${ICON.acorn}${t('score')}</dt><dd id="winScore">0</dd></div>
       </dl>
       <div class="win-actions">
-        <button class="tool round" id="winHome" aria-label="Home">${ICON.home}</button>
+        <button class="tool round" id="winHome" aria-label="${lab('goHome', 'All games')}">${ICON.home}</button>
         <button class="candy big" id="winNext">${ICON.sparkle}<span>${t('next')}</span></button>
       </div>`;
     for (let i = 0; i < st; i++) setTimeout(() => sfx.star(i), 350 + i * 300);
@@ -978,11 +976,11 @@
     $('#loseDlg').hidden = false;
     $('#loseBox').innerHTML = `
       <div class="lose-hari">${HH.mascot.svg({ cls: 'hari oops sad' })}</div>
-      <h2>${t({ moves: 'nomoves', stuck: 'stuck' }[kind] || 'nolives')}</h2>
+      <h2 id="loseTitle">${t({ moves: 'nomoves', stuck: 'stuck' }[kind] || 'nolives')}</h2>
       ${kind === 'moves' ? `<div class="lose-moves">${ICON.paw}<b>0</b></div>` : kind === 'lives' ? `<div class="lose-hearts">${livesHTML(0, S.game.lives)}</div>` : ''}
       <p>${pick('oops')}</p>
       <div class="win-actions">
-        <button class="tool round" id="loseHome" aria-label="Home">${ICON.home}</button>
+        <button class="tool round" id="loseHome" aria-label="${lab('goHome', 'All games')}">${ICON.home}</button>
         <button class="candy big" id="loseRetry">${ICON.restart}<span>${t('retry')}</span></button>
       </div>`;
     $('#loseRetry').focus();
@@ -1059,6 +1057,7 @@
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
+    document.querySelectorAll('.icon-btn.close').forEach((b) => b.setAttribute('aria-label', lab('er_close', 'Close')));
     audioUI();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
@@ -1299,7 +1298,9 @@
     };
     $('#home').addEventListener('click', (e) => { if (e.target.closest('#shareBtn')) { e.stopPropagation(); share(); } }, true);
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { $('#langDlg').hidden = true; $('#statsDlg').hidden = true; }
+      if (e.key !== 'Escape') return;
+      $('#langDlg').hidden = true; $('#statsDlg').hidden = true; $('#installDlg').hidden = true;
+      const an = $('#anDlg'); if (an) an.remove();   // Esc = «non ora»: nessuna scelta salvata, la domanda torna a un prossimo avvio
     });
 
     setupInstall();
@@ -1308,7 +1309,8 @@
     applyTexts();
     // riapertura dell'app: si torna alla partita in sospeso (se l'avviso legale è da accettare, dopo l'accettazione)
     const last = HH.store.get('screen');
-    const resume = () => { if (last && P.loadGame(last)) { S.noTrans = true; openGame(last); } };
+    const lastG = last && HH.catalog.find((g) => g.id === last);
+    const resume = () => { if (lastG && lastSave(lastG)) { S.noTrans = true; openGame(last); } };
     if (!legalGate(resume)) resume();
   }
 
