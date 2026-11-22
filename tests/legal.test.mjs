@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { root, load } from './_load.mjs';
 import { licensesFile, docProblems, DOCS, COMPONENTS } from '../tools/legal-import.mjs';
 
@@ -114,10 +115,96 @@ test('tre caselle obbligatorie: sicurezza, condizioni, privacy', () => {
   // EN e IT dicono davvero "avvertenze di sicurezza" e "sollevo da responsabilità"
   assert.match(HH.LOCALES.en.lg_chk_safety, /safety warnings.*own risk.*releasing the author/);
   assert.match(HH.LOCALES.it.lg_chk_safety, /avvertenze di sicurezza.*mia responsabilità.*sollevando l'autore/);
-  // le caselle della finestra sono quelle di CHECKS (stesso id usato dagli e2e)
-  const src = fs.readFileSync(path.join(root, 'src/core/legal.js'), 'utf8');
-  assert.match(src, /id="lgChk-safety" data-chk="safety"/);
-  assert.match(src, /id="lgChk-\$\{k\}" data-chk="\$\{k\}"/);
+});
+
+/* ---------- finestra vera (L.gate) con un document minimo ---------- */
+// contesto vm separato con document: legal.js disegna la finestra; le caselle si spuntano con eventi change finti
+// e il clic su «Accetto» con un evento click finto, come farebbero i gestori del browser.
+function gateDom() {
+  const store = new Map();
+  const listeners = {};
+  const stubs = new Map();
+  const dlg = {
+    className: '', id: '', attrs: {}, _html: '',
+    set innerHTML(h) { this._html = h; stubs.clear(); },
+    get innerHTML() { return this._html; },
+    setAttribute(k, v) { this.attrs[k] = v; },
+    addEventListener(t, f) { (listeners[t] = listeners[t] || []).push(f); },
+    contains: () => false,
+    remove() { body.children = body.children.filter((x) => x !== dlg); },
+    // elementi trovati nel markup disegnato: l'attributo disabled iniziale viene da lì
+    querySelector(sel) {
+      const id = sel.replace(/:not\(\[disabled\]\)$/, '');
+      if (!stubs.has(id)) {
+        const m = id.startsWith('#') && this._html.match(new RegExp(`<[a-z]+[^>]*id="${id.slice(1)}"[^>]*>`));
+        stubs.set(id, { disabled: !!m && /\sdisabled[\s>]/.test(m[0]), hidden: false, focus() { ctx.document.activeElement = this; } });
+      }
+      const st = stubs.get(id);
+      return sel.endsWith(':not([disabled])') && st.disabled ? null : st;
+    },
+  };
+  const body = { children: [], appendChild(c) { this.children.push(c); return c; } };
+  const app = { inert: false };
+  const ctx = {
+    console, Promise, Date, Math, Error, JSON, Intl, setTimeout, clearTimeout,
+    localStorage: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) },
+    history: { state: null, pushState(s) { this.state = s; }, replaceState(s) { this.state = s; } },
+    addEventListener() {}, removeEventListener() {},
+    document: {
+      body, activeElement: null, documentElement: {},
+      createElement: () => dlg,
+      querySelector: (sel) => (sel === '.app' ? app : null),
+      getElementById: () => null,
+      addEventListener() {}, removeEventListener() {},
+    },
+  };
+  ctx.globalThis = ctx;
+  vm.createContext(ctx);
+  for (const f of ['src/i18n/locales.js', 'src/core/core.js', 'src/core/legal.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
+  ctx.HH.loadFile = () => Promise.reject(new Error('offline'));   // testi lunghi non necessari qui
+  const fire = (type, e) => (listeners[type] || []).forEach((f) => f(e));
+  return {
+    L: ctx.HH.legal, dlg, body, app,
+    accept: () => dlg.querySelector('#lgAccept'),
+    tick: (chk, checked = true) => fire('change', { target: { closest: (s) => (s === '[data-chk]' ? { dataset: { chk }, checked } : null) } }),
+    clickAccept: () => fire('click', { target: { closest: (s) => (s === '#lgAccept' ? {} : null) } }),
+  };
+}
+
+test('finestra dell\'avviso: caselle disegnate da CHECKS, «Accetto» acceso solo con tutte e tre, poi done()', () => {
+  const W = gateDom();
+  let done = 0;
+  assert.equal(W.L.needs(), true);
+  assert.equal(W.L.gate({ done: () => done++ }), true);
+  assert.equal(W.L.isOpen(), true);
+  assert.deepEqual(W.body.children, [W.dlg]);
+  assert.equal(W.app.inert, true, 'il resto dell\'app è inerte');
+  // caselle nel markup disegnato: una per CHECKS, con l'id usato dagli e2e
+  const boxes = [...W.dlg.innerHTML.matchAll(/<input type="checkbox" id="lgChk-([a-z]+)" data-chk="([a-z]+)"/g)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(boxes, [...W.L.CHECKS].map((k) => [k, k]));
+  assert.equal(W.accept().disabled, true, 'spento all\'inizio');
+  W.tick('safety'); W.tick('terms');
+  assert.equal(W.accept().disabled, true, 'due caselle su tre');
+  W.clickAccept();                                 // clic su un pulsante spento: niente
+  assert.equal(done, 0);
+  assert.equal(W.L.needs(), true);
+  W.tick('privacy');
+  assert.equal(W.accept().disabled, false, 'tre caselle');
+  W.tick('terms', false);
+  assert.equal(W.accept().disabled, true, 'tolta una casella si rispegne');
+  W.tick('terms');
+  // una seconda chiamata non apre un'altra finestra
+  assert.equal(W.L.gate({ done: () => done++ }), true);
+  assert.equal(W.body.children.length, 1);
+  W.clickAccept();
+  assert.equal(done, 1);
+  assert.equal(W.L.needs(), false);
+  assert.equal(W.L.isOpen(), false);
+  assert.deepEqual(W.body.children, []);
+  assert.equal(W.app.inert, false);
+  // accettato: niente più finestra
+  assert.equal(W.L.gate({ done: () => done++ }), false);
+  assert.equal(done, 1);
 });
 
 test('formattazione: escape, {app}, **grassetto**', () => {

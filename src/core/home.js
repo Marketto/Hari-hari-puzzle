@@ -14,13 +14,15 @@
   const SOON = [];
 
   // partita in sospeso di un gioco nel posto che si riaprirà (es. Hari Taxi: la mappa corrente drive@ostia …)
-  const lastSave = (g) => P.loadGame(HH.store.get('slot:' + g.id) || g.id);
+  // (scelta pura in HH.rules: resumeSlot / resumable, testata in tests/resume.test.mjs)
+  const storeGet = (k) => HH.store.get(k);
+  const lastSave = (g) => P.loadGame(HH.rules.resumeSlot(g.id, storeGet));
 
   /* ---------- Home ---------- */
   function renderHome() {
     HH.music.play('menu', 0.45);
     HH.music.duck(false);
-    const saves = HH.catalog.map((g) => ({ g, s: lastSave(g) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
+    const saves = HH.rules.resumable(HH.catalog, storeGet, P.loadGame);
     const r = saves[0];
     const resume = r ? `
       <button class="resume" data-game="${r.g.id}">

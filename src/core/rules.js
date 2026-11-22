@@ -3,6 +3,7 @@
  * HH.rules.rateMoves(moves, min, max) fragoline: 3 col minimo esatto,
  *                                     2 se usi al massimo il 70% delle mosse in più concesse (per difetto), 1 oltre
  * HH.rules.solvedOnResume(g, state)   la partita salvata è già vinta? (vittoria assegnata alla riapertura)
+ * HH.rules.slotOf(g) · resumeSlot(id, get) · resumable(games, get, load)   quale partita riprendere (vedi sotto)
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -23,7 +24,16 @@
       return !(g.lives && (state.mistakes || 0) >= g.lives);
     } catch (e) { return false; }
   }
-  HH.rules = { extraMoves, rateMoves, solvedOnResume };
+  /* Ripresa delle partite (card «Riprendi», card dei giochi, avvio dell'app). Ogni gioco salva nel suo "posto":
+   * l'id, oppure g.slot() se il gioco ne ha più d'uno (es. Hari Taxi: drive@ostia, una mappa reale); app.js ricorda in
+   * slot:<id> il posto che si riaprirà. Funzioni pure: get(k) legge lo store, load(posto) dà il salvataggio o null.
+   * slotOf(g)                    posto attuale del gioco (salvataggio e save-bak:<posto>)
+   * resumeSlot(id, get)          posto da riprendere: quello ricordato in slot:<id>, altrimenti l'id
+   * resumable(games, get, load)  [{ g, s }] dei giochi con una partita in sospeso, la più recente (s.ts) per prima */
+  const slotOf = (g) => (g && typeof g.slot === 'function' ? g.slot() : g.id);
+  const resumeSlot = (id, get) => get('slot:' + id) || id;
+  const resumable = (games, get, load) => games.map((g) => ({ g, s: load(resumeSlot(g.id, get)) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
+  HH.rules = { extraMoves, rateMoves, solvedOnResume, slotOf, resumeSlot, resumable };
 
 /* Manina dei tutorial (SVG): punta del dito in (x, y). cls = animazione (tut-tap, tut-go…), style per le variabili CSS. */
 HH.tutHand = (x, y, cls = 'tut-tap', style = '') => `<g transform="translate(${x} ${y})"><g class="${cls}" style="${style}">

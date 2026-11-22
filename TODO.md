@@ -6,6 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] Test di comportamento al posto delle regex sul sorgente: `tests/sw.test.mjs` (gestori veri di install/activate/fetch/message
+  con cache e rete finte, `tests/_sw.mjs`), coda di `HH.transition.run` (`transition.test.mjs`), scelta della partita da
+  riprendere estratta in `HH.rules.slotOf/resumeSlot/resumable` (`resume.test.mjs`), finestra vera dell'avviso legale
+  (`legal.test.mjs`), statistiche con `fetch` finto (`usage.test.mjs`); skill `puzzle-generator`: tabella della curva di difficoltà
+
 ## Prossimo
 - [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)

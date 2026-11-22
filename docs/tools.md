@@ -4,6 +4,7 @@
 | Script | Cosa fa |
 |---|---|
 | `../tests/*.test.mjs` | Unit test (`node --test`): livelli Hedgedoku validati da solver indipendente, Boba, Lantern, i18n. Lanciati da `npm test` |
+| `../tests/_sw.mjs` | Banco di prova del service worker: esegue `sw.js` in un contesto `vm` con `self`, `caches`, `fetch`, `clients`, `registration` e `importScripts` finti e chiama i gestori `install`/`activate`/`fetch`/`message` (usato da `sw.test.mjs` e `usage.test.mjs`) |
 | `selftest.mjs` | Benchmark rapido dei generatori (`npm run bench`) |
 | `i18n-check.mjs` | Ogni lingua ha tutte le chiavi, nessun vuoto, lingue obbligatorie presenti |
 | `privacy-check.mjs` | Repo pubblico: nessuna email personale (ammesse solo le «noreply»), token o chiavi nei file tracciati, nessun `.env`. Lanciato da `npm test` |

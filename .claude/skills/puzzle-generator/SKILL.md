@@ -16,4 +16,4 @@ description: Tecniche per generare livelli risolvibili e a soluzione unica (back
 - Mai stato iniziale già risolto.
 
 ## Difficoltà
-Misura con il solver: numero di nodi visitati o di deduzioni forzate. Salva in `docs/games/<id>.md` la tabella livello → taglia → nodi medi.
+Misura con il solver: numero di nodi visitati o di deduzioni forzate. Salva in `docs/games/<id>.md` la tabella della curva di difficoltà (parametri per livello: taglia, tempo, nodi/tentativi del generatore dove misurati).

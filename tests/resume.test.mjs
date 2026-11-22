@@ -107,3 +107,66 @@ test('i giochi con RAF continui, sensori, voce o rete espongono destroy()', () =
     assert.match(src, /\n\s*destroy(: |\(\) \{)/, `${id}: manca destroy()`);
   }
 });
+
+/* ---------- quale partita riprendere: posto ricordato (slot:<id>) e card «Riprendi» ---------- */
+// salvataggi veri (HH.store + HH.progress di core.js su un localStorage finto), scelta da HH.rules.resumable/resumeSlot
+// come in home.js (lastSave, renderHome) e posto da HH.rules.slotOf come in app.js (persist, save-bak:<posto>)
+const mem = new Map();
+globalThis.localStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+load('src/core/core.js');
+const get = (k) => HH.store.get(k);
+const P = HH.progress;
+const save = (slot, ts, level = 1) => HH.store.set('save:' + slot, { v: P.SAVE_VERSION, ts, level, elapsed: 0, state: { moves: level } });
+const pick = (games) => R.resumable(games, get, P.loadGame);
+const ids = (list) => list.map((x) => x.g.id + ':' + x.s.level);
+
+test('ripresa: gioco senza slot → il salvataggio sotto il suo id', () => {
+  mem.clear();
+  const boba = { id: 'boba' };
+  assert.equal(R.slotOf(boba), 'boba');
+  assert.equal(R.resumeSlot('boba', get), 'boba');
+  assert.deepEqual(pick([boba]), []);
+  save('boba', 100, 4);
+  assert.deepEqual(ids(pick([boba])), ['boba:4']);
+});
+
+test('ripresa: Hari Taxi con slot drive@ostia ricordato → la partita di Ostia, non quella della città', () => {
+  mem.clear();
+  let map = 'ostia';
+  const drive = { id: 'drive', slot: () => (map === 'hari' ? 'drive' : 'drive@' + map) };
+  assert.equal(R.slotOf(drive), 'drive@ostia');
+  // app.js (persist) ricorda il posto e salva lì
+  HH.store.set('slot:drive', R.slotOf(drive));
+  save('drive@ostia', 200, 7);
+  save('drive', 300, 2);                          // partita vecchia della città di Hari, più recente ma non è il posto ricordato
+  assert.equal(R.resumeSlot('drive', get), 'drive@ostia');
+  assert.deepEqual(ids(pick([drive])), ['drive:7']);
+  // tornato in città: il posto ricordato cambia
+  map = 'hari';
+  HH.store.set('slot:drive', R.slotOf(drive));
+  assert.deepEqual(ids(pick([drive])), ['drive:2']);
+});
+
+test('ripresa: slot ricordato senza salvataggio → null (niente ripiego su un altro posto)', () => {
+  mem.clear();
+  HH.store.set('slot:drive', 'drive@ortigia');
+  save('drive', 300, 2);
+  assert.equal(P.loadGame(R.resumeSlot('drive', get)), null);
+  assert.deepEqual(pick([{ id: 'drive' }]), []);
+});
+
+test('ripresa: più giochi → card «Riprendi» sul più recente, poi gli altri in ordine', () => {
+  mem.clear();
+  const games = [{ id: 'boba' }, { id: 'sushi' }, { id: 'drive' }, { id: 'lantern' }];
+  save('boba', 100, 1);
+  save('sushi', 500, 2);
+  HH.store.set('slot:drive', 'drive@ostia');
+  save('drive@ostia', 300, 3);
+  save('drive', 900, 9);                          // non ricordato: ignorato
+  // lantern: niente salvataggio
+  assert.deepEqual(ids(pick(games)), ['sushi:2', 'drive:3', 'boba:1']);
+  assert.equal(pick(games)[0].g, games[1]);
+  // salvataggio di una versione vecchia senza migrazione: non si riprende
+  HH.store.set('save:sushi', { v: P.SAVE_VERSION - 1, ts: 999, level: 2, state: {} });
+  assert.deepEqual(ids(pick(games)), ['drive:3', 'boba:1']);
+});

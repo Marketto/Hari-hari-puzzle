@@ -73,7 +73,7 @@
 
   // "posto" dei progressi e del salvataggio: di solito l'id del gioco; un gioco può averne più d'uno (g.slot(),
   // es. Hari Taxi: una mappa = livelli e partita propri; la città di Hari resta su 'drive')
-  const slot = (g) => (g && typeof g.slot === 'function' ? g.slot() : g.id);
+  const slot = HH.rules.slotOf;
   function persist() {
     if (!S.game || !S.inst || S.won) return;
     const state = S.inst.snapshot();

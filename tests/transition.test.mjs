@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { root, load } from './_load.mjs';
 
 const HH = load('src/core/rng.js', 'src/core/transition.js');
@@ -106,4 +107,100 @@ test('nucleo: in index.html, nella shell offline, e usata da app.js per entrare 
   const open = app.slice(app.indexOf('function openGame('), app.indexOf('function showGame('));
   assert.ok(open.indexOf('autoFull();') > 0 && open.indexOf('autoFull();') < open.indexOf('HH.transition.run('));
   assert.ok(/function goHome\(how\)[\s\S]*?HH\.transition\.run\(/.test(app));
+});
+
+/* ---------- coda di run() con un document minimo e requestAnimationFrame finto ---------- */
+// contesto vm separato: document con body, <html> con dataset, movimento ridotto (durate brevi), animate() finto.
+// raf: 'auto' = il fotogramma arriva da solo; 'manual' = lo fa partire il test (frames.shift()()).
+function domTransition() {
+  const events = [];
+  const frames = [];
+  const el = () => ({
+    className: '', dataset: {}, style: {}, innerHTML: '', children: [],
+    classList: { add() {}, remove() {} },
+    animate: () => ({ cancel() {} }),
+    setAttribute() {}, appendChild(c) { this.children.push(c); return c; }, insertAdjacentHTML() {},
+    querySelectorAll: () => [], remove() { ctx.document.body.children = ctx.document.body.children.filter((x) => x !== this); },
+  });
+  const ctx = {
+    console, Promise, Date, Math, Error,
+    setTimeout: (f, ms) => { const t = setTimeout(f, ms); if (ms >= 15000) t.unref(); return t; }, clearTimeout,
+    matchMedia: () => ({ matches: true }),
+    CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } },
+    raf: 'auto',
+    requestAnimationFrame: (f) => { if (ctx.raf === 'auto') setTimeout(f, 1); else frames.push(f); },
+    document: {
+      documentElement: { dataset: {}, dir: 'ltr' },
+      body: el(),
+      createElement: el,
+      dispatchEvent: (e) => events.push(e.detail.phase),
+    },
+  };
+  ctx.globalThis = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, 'src/core/transition.js'), 'utf8'), ctx, { filename: 'transition.js' });
+  return { T: ctx.HH.transition, ctx, events, frames };
+}
+const within = (p, ms = 3000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('run rimasta in coda')), ms).unref())]);
+
+test('run: più run in fila eseguono entrambi gli swap, in ordine; busy() torna falso alla fine', async () => {
+  const { T, ctx, events } = domTransition();
+  const order = [];
+  assert.equal(T.busy(), false);
+  const a = T.run(() => { order.push('a'); return 1; });
+  assert.equal(T.busy(), true);
+  assert.equal(ctx.document.documentElement.dataset.trans, 'cover');
+  const b = T.run(async () => { await new Promise((r) => setTimeout(r, 5)); order.push('b'); return 2; });
+  const b2 = T.run(() => { order.push('b2'); return 3; });
+  assert.deepEqual(await within(Promise.all([a, b, b2])), [1, 2, 3]);
+  assert.deepEqual(order, ['a', 'b', 'b2']);
+  assert.equal(T.busy(), false);
+  assert.equal(ctx.document.documentElement.dataset.trans, undefined);
+  assert.equal(ctx.document.body.children.length, 0, 'velo rimosso');
+  await within(T.idle());
+  // una run chiesta durante la scoperta parte dopo, in una nuova copertura (mai due insieme)
+  const c = T.run(() => order.push('c'));
+  await new Promise((r) => setTimeout(r, 200));   // copertura (160 ms) finita: ora scopre
+  assert.equal(ctx.document.documentElement.dataset.trans, 'reveal');
+  const d = T.run(() => { assert.equal(T.busy(), true); order.push('d'); });
+  await within(Promise.all([c, d]));
+  assert.deepEqual(order, ['a', 'b', 'b2', 'c', 'd']);
+  assert.equal(T.busy(), false);
+  assert.equal(events.filter((x) => x === 'start').length, 3, 'a, b, b2: una copertura; c e d: una ciascuna');
+});
+
+test('run: una run arrivata nell\'ultimo fotogramma della fase hold viene eseguita (v0.30.2)', async () => {
+  const { T, ctx, frames } = domTransition();
+  ctx.raf = 'manual';
+  const order = [];
+  const a = T.run(() => order.push('a'));
+  while (!frames.length) await new Promise((r) => setTimeout(r, 5));   // swap fatto, si aspetta il fotogramma
+  assert.equal(ctx.document.documentElement.dataset.trans, 'hold');
+  const late = T.run(() => { order.push('late'); return 'ok'; });
+  frames.shift()();
+  assert.equal(await within(late), 'ok');
+  await within(a);
+  assert.deepEqual(order, ['a', 'late']);
+  assert.equal(T.busy(), false);
+});
+
+test('run: un errore nello swap non blocca le run successive', async () => {
+  const { T } = domTransition();
+  const order = [];
+  const bad = T.run(() => { throw new Error('boom'); });
+  const queued = T.run(() => { order.push('queued'); return 'q'; });
+  const badChecked = assert.rejects(within(bad), /boom/);
+  await badChecked;
+  assert.equal(await within(queued), 'q');
+  assert.equal(T.busy(), false);
+  // errore in una run accodata: rifiuta solo quella
+  const ok1 = T.run(() => order.push('ok1'));
+  const bad2 = T.run(async () => { throw new Error('boom2'); });
+  const ok2 = T.run(() => order.push('ok2'));
+  const bad2Checked = assert.rejects(within(bad2), /boom2/);
+  await within(ok1); await bad2Checked; await within(ok2);
+  // e dopo ancora una nuova transizione
+  await within(T.run(() => order.push('after')));
+  assert.deepEqual(order, ['queued', 'ok1', 'ok2', 'after']);
+  assert.equal(T.busy(), false);
 });
