@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Tipos de letra",
-    "p": [
-     "Para mostrar as suas letras arredondadas, a app pode transferir tipos de letra do Google Fonts (fonts.googleapis.com, fonts.gstatic.com) na primeira vez que é aberta online. Este pedido revela o teu endereço IP à Google, nos termos da política de privacidade da Google. Não são enviados outros dados."
-    ]
-   },
-   {
     "h": "Modo de dois jogadores",
     "p": [
      "Dois dispositivos ligam-se diretamente na mesma rede Wi-Fi ou hotspot: não é usado nenhum servidor de jogo nem a internet. O microfone serve apenas para ouvir a melodia do outro telemóvel durante o emparelhamento, e a câmara apenas para ler o código QR: o som e as imagens são analisados em memória, nunca gravados nem enviados, e ambos são desligados assim que os telemóveis ficam ligados. As mensagens do jogo são cifradas entre os dois dispositivos."

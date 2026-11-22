@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Letur",
-    "p": [
-     "Til að sýna ávölu stafina sína getur appið sótt leturgerðir frá Google Fonts (fonts.googleapis.com, fonts.gstatic.com) í fyrsta skipti sem það er opnað á netinu. Þessi beiðni birtir Google IP-tölu þína, samkvæmt persónuverndarstefnu Google. Engin önnur gögn eru send."
-    ]
-   },
-   {
     "h": "Tveggja leikmanna hamur",
     "p": [
      "Tvö tæki tengjast beint á sama Wi-Fi-neti eða heitum reit: enginn leikjaþjónn og ekkert internet er notað. Hljóðneminn er aðeins notaður til að hlusta á lag hins símans við pörun og myndavélin aðeins til að lesa QR-kóðann: hljóð og myndir eru greind í minni, aldrei tekin upp eða send, og slökkt er á hvoru tveggja um leið og símarnir eru tengdir. Leikjaskilaboð eru dulkóðuð milli tækjanna tveggja."

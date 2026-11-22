@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Clónna",
-    "p": [
-     "Chun a litreacha cruinne a thaispeáint, féadfaidh an aip clónna a íoslódáil ó Google Fonts (fonts.googleapis.com, fonts.gstatic.com) an chéad uair a osclaítear í ar líne. Nochtann an t-iarratas seo do sheoladh IP do Google, faoi réir pholasaí príobháideachta Google. Ní sheoltar aon sonraí eile."
-    ]
-   },
-   {
     "h": "Mód beirt imreoirí",
     "p": [
      "Ceanglaíonn dhá ghléas go díreach ar an Wi-Fi nó ar an hotspot céanna: ní úsáidtear freastalaí cluiche ná an t-idirlíon. Ní úsáidtear an micreafón ach chun éisteacht le fonn an fhóin eile le linn an phéireála, agus an ceamara ach chun an cód QR a léamh: déantar fuaim agus íomhánna a anailísiú sa chuimhne, ní thaifeadtar ná ní sheoltar riamh iad, agus múchtar an dá cheann chomh luath agus a bhíonn na fóin ceangailte. Criptítear teachtaireachtaí an chluiche idir an dá ghléas."

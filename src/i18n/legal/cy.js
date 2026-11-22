@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Ffontiau",
-    "p": [
-     "I ddangos ei lythrennau crwn, gall yr ap lwytho ffontiau i lawr o Google Fonts (fonts.googleapis.com, fonts.gstatic.com) y tro cyntaf y caiff ei agor ar-lein. Mae'r cais hwn yn datgelu dy gyfeiriad IP i Google, dan bolisi preifatrwydd Google. Ni anfonir unrhyw ddata arall."
-    ]
-   },
-   {
     "h": "Modd dau chwaraewr",
     "p": [
      "Mae dwy ddyfais yn cysylltu'n uniongyrchol ar yr un Wi-Fi neu hotspot: ni ddefnyddir gweinydd gemau na'r rhyngrwyd. Defnyddir y meicroffon dim ond i wrando ar alaw'r ffôn arall wrth baru, a'r camera dim ond i ddarllen y cod QR: dadansoddir sain a delweddau yn y cof, ni chânt byth eu recordio na'u hanfon, ac mae'r ddau'n cael eu diffodd cyn gynted ag y bydd y ffonau wedi cysylltu. Mae negeseuon y gêm wedi'u hamgryptio rhwng y ddwy ddyfais."

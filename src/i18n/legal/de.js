@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Schriftarten",
-    "p": [
-     "Um ihre runden Buchstaben anzuzeigen, kann die App beim ersten Öffnen mit Internetverbindung Schriftarten von Google Fonts (fonts.googleapis.com, fonts.gstatic.com) herunterladen. Diese Anfrage gibt Google deine IP-Adresse preis; es gilt die Datenschutzerklärung von Google. Es werden keine weiteren Daten gesendet."
-    ]
-   },
-   {
     "h": "Zwei-Spieler-Modus",
     "p": [
      "Zwei Geräte verbinden sich direkt im selben WLAN oder Hotspot: Es werden weder ein Spielserver noch das Internet verwendet. Das Mikrofon dient nur dazu, beim Koppeln die Melodie des anderen Handys zu hören, und die Kamera nur zum Lesen des QR-Codes: Ton und Bilder werden im Arbeitsspeicher ausgewertet, nie aufgezeichnet oder gesendet, und beide werden abgeschaltet, sobald die Handys verbunden sind. Spielnachrichten werden zwischen den beiden Geräten verschlüsselt."

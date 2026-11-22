@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fonts",
-    "p": [
-     "Biex turi l-ittri tondi tagħha, l-app tista' tniżżel fonts minn Google Fonts (fonts.googleapis.com, fonts.gstatic.com) l-ewwel darba li tinfetaħ online. Din it-talba tiżvela l-indirizz IP tiegħek lil Google, skont il-politika tal-privatezza ta' Google. Ma tintbagħat ebda data oħra."
-    ]
-   },
-   {
     "h": "Modalità ta' żewġ plejers",
     "p": [
      "Żewġ apparati jikkonnettjaw direttament fuq l-istess Wi-Fi jew hotspot: ma jintuża ebda server tal-logħob u ebda internet. Il-mikrofonu jintuża biss biex jisma' l-melodija tat-telefon l-ieħor waqt it-tqabbil, u l-kamera biss biex taqra l-kodiċi QR: il-ħoss u l-immaġini jiġu analizzati fil-memorja, qatt ma jiġu rreġistrati jew mibgħuta, u t-tnejn jintfew hekk kif it-telefons ikunu konnessi. Il-messaġġi tal-logħba huma kriptati bejn iż-żewġ apparati."

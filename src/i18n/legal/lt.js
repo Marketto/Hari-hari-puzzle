@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Šriftai",
-    "p": [
-     "Kad parodytų savo apvalias raides, programėlė, pirmą kartą atidaryta prisijungus prie interneto, gali atsisiųsti šriftus iš Google Fonts (fonts.googleapis.com, fonts.gstatic.com). Ši užklausa atskleidžia tavo IP adresą Google, kaip numatyta Google privatumo politikoje. Jokie kiti duomenys nesiunčiami."
-    ]
-   },
-   {
     "h": "Dviejų žaidėjų režimas",
     "p": [
      "Du įrenginiai jungiasi tiesiogiai tame pačiame Wi-Fi tinkle ar prieigos taške: nenaudojamas nei žaidimų serveris, nei internetas. Mikrofonas naudojamas tik kito telefono melodijai išgirsti susiejimo metu, o kamera – tik QR kodui nuskaityti: garsas ir vaizdai analizuojami atmintyje, niekada neįrašomi ir nesiunčiami, o abu išjungiami, kai tik telefonai susijungia. Žaidimo žinutės tarp dviejų įrenginių yra šifruojamos."

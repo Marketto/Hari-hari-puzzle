@@ -4,6 +4,7 @@
  *   HH.legal.VERSION              versione delle condizioni: aumentandola l'avviso ricompare a tutti
  *   HH.legal.accepted() → { v, at } | null   (null se mai accettate o accettate in una versione precedente)
  *   HH.legal.needs() · HH.legal.accept(now)
+ *   HH.legal.CHECKS · HH.legal.ready(stato)   le tre caselle obbligatorie (sicurezza, condizioni, privacy)
  *   HH.legal.inline(text) → HTML      escape + {app} + **grassetto**
  * Testi lunghi: src/i18n/legal/<lang>.js (HH.LEGAL[lang], generati da tools/legal-import.mjs) e
  * src/i18n/legal/licenses.js (HH.LEGAL_COMPONENTS, HH.LEGAL_TEXTS). Si scaricano solo quando servono (HH.loadFile);
@@ -19,13 +20,17 @@
   const APP = 'Hari Hari Puzzle';
   const KEY = 'legal';
   const TABS = ['terms', 'privacy', 'licenses'];
+  // caselle obbligatorie dell'avviso (R14): sicurezza e responsabilità, condizioni, privacy
+  const CHECKS = ['safety', 'terms', 'privacy'];
   const t = (k) => HH.i18n.t(k);
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const inline = (s) => esc(String(s).split('{app}').join(APP)).replace(/\*\*([\s\S]+?)\*\*/g, '<b>$1</b>');
 
   const L = {
-    VERSION: 1,
+    VERSION: 2,              // 2: terza casella (sicurezza), privacy senza Google Fonts
     TABS,
+    CHECKS,
+    ready: (st) => CHECKS.every((k) => !!(st && st[k])),
     inline,
     accepted() {
       const a = HH.store.get(KEY, null);
@@ -133,7 +138,7 @@
     if (!L.needs()) return false;
     if (gateEl) return true;
     const d = G.document;
-    const st = { terms: false, privacy: false, view: null };
+    const st = { safety: false, terms: false, privacy: false, view: null };
     const app = $('.app');
     const el = d.createElement('div');
     el.className = 'overlay legal-dlg'; el.id = 'legalDlg';
@@ -149,13 +154,16 @@
             <p class="lg-intro" id="lgIntro">${inline(t('lg_intro'))}</p>
           </div>
           <div class="lg-right">
-            <div class="lg-safety" role="note">${ICON.warn}<p>${inline(t('lg_safety'))}</p></div>
+            <div class="lg-safety">${ICON.warn}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+              <p id="lgSafetyText">${inline(t('lg_safety'))}</p>
+              <div class="lg-chk"><label><input type="checkbox" id="lgChk-safety" data-chk="safety" aria-describedby="lgSafetyText"${st.safety ? ' checked' : ''}><span>${esc(t('lg_chk_safety'))}</span></label></div>
+            </div></div>
             ${['terms', 'privacy'].map((k) => `<div class="lg-chk">
               <label><input type="checkbox" id="lgChk-${k}" data-chk="${k}"${st[k] ? ' checked' : ''}><span>${esc(t('lg_chk_' + k))}</span></label>
               <button class="lg-link" type="button" data-doc="${k}">${esc(t('lg_' + k))}${ICON.chev}</button></div>`).join('')}
             <div class="lg-act">
               <button class="lg-link small" type="button" data-doc="licenses">${esc(t('lg_licenses'))}</button>
-              <button class="candy big" id="lgAccept" type="button"${st.terms && st.privacy ? '' : ' disabled'}><span>${esc(t('lg_accept'))}</span></button>
+              <button class="candy big" id="lgAccept" type="button"${L.ready(st) ? '' : ' disabled'}><span>${esc(t('lg_accept'))}</span></button>
             </div>
           </div>
         </div>
@@ -166,12 +174,12 @@
       </div>`;
       if (st.view) viewer($('.lg-sub-body', el), st.view);
     }
-    const focusMain = () => { const f = $('#lgAccept:not([disabled])', el) || $('#lgChk-terms', el); if (f) f.focus({ preventScroll: true }); };
+    const focusMain = () => { const f = $('#lgAccept:not([disabled])', el) || $('#lgChk-safety', el); if (f) f.focus({ preventScroll: true }); };
     el.addEventListener('change', (e) => {
       const c = e.target.closest('[data-chk]');
       if (!c) return;
       st[c.dataset.chk] = c.checked;
-      $('#lgAccept', el).disabled = !(st.terms && st.privacy);
+      $('#lgAccept', el).disabled = !L.ready(st);
     });
     el.addEventListener('click', (e) => {
       const doc = e.target.closest('[data-doc]');
@@ -188,11 +196,11 @@
         st.view = null;
         $('.lg-sub', el).hidden = true; $('.lg-main', el).hidden = false;
         const link = $(`.lg-main [data-doc="${st.from}"]`, el);
-        (link || $('#lgChk-terms', el)).focus({ preventScroll: true });
+        (link || $('#lgChk-safety', el)).focus({ preventScroll: true });
         return;
       }
       if (e.target.closest('#lgLang')) { sfx().tap(); opts.openLang(); return; }
-      if (e.target.closest('#lgAccept') && st.terms && st.privacy) {
+      if (e.target.closest('#lgAccept') && L.ready(st)) {
         L.accept();
         sfx().blip();
         close();

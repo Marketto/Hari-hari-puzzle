@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Tipos de letra",
-    "p": [
-     "Para mostrar as súas letras redondeadas, a aplicación pode descargar tipos de letra de Google Fonts (fonts.googleapis.com, fonts.gstatic.com) a primeira vez que se abre con conexión. Esta solicitude revela o teu enderezo IP a Google, segundo a política de privacidade de Google. Non se envía ningún outro dato."
-    ]
-   },
-   {
     "h": "Modo de dous xogadores",
     "p": [
      "Dous dispositivos conéctanse directamente na mesma wifi ou punto de acceso: non se usa ningún servidor de xogo nin internet. O micrófono só serve para escoitar a melodía do outro teléfono durante o emparellamento, e a cámara só para ler o código QR: o son e as imaxes analízanse na memoria, nunca se gravan nin se envían, e ámbolos dous se apagan en canto os teléfonos están conectados. As mensaxes do xogo cífranse entre os dous dispositivos."

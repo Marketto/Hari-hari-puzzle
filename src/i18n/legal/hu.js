@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Betűtípusok",
-    "p": [
-     "A lekerekített betűk megjelenítéséhez az alkalmazás az első online megnyitáskor betűtípusokat tölthet le a Google Fonts szolgáltatásból (fonts.googleapis.com, fonts.gstatic.com). Ez a kérés felfedi az IP-címedet a Google előtt, a Google adatvédelmi irányelvei szerint. Más adat nem kerül elküldésre."
-    ]
-   },
-   {
     "h": "Kétjátékos mód",
     "p": [
      "Két eszköz közvetlenül kapcsolódik egymáshoz ugyanazon a Wi-Fi-n vagy hotspoton: nincs szükség játékszerverre vagy internetre. A mikrofon csak arra szolgál, hogy párosításkor meghallja a másik telefon dallamát, a kamera pedig csak a QR-kód beolvasására: a hangot és a képet a memóriában elemezzük, soha nem rögzítjük és nem küldjük el, és mindkettő kikapcsol, amint a telefonok összekapcsolódtak. A játéküzenetek titkosítva utaznak a két eszköz között."

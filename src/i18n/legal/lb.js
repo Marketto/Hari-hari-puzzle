@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Schrëften",
-    "p": [
-     "Fir hir ofgerount Buschtawen ze weisen, kann d'App beim éischten Opmaache mat Internet Schrëften iwwer Google Fonts (fonts.googleapis.com, fonts.gstatic.com) eroflueden. Dës Ufro weist Google deng IP-Adress, no der Dateschutzerklärung vu Google. Et gi keng aner Donnéeë geschéckt."
-    ]
-   },
-   {
     "h": "Zwee-Spiller-Modus",
     "p": [
      "Zwee Apparater verbanne sech direkt am selwechte WLAN oder Hotspot: et gëtt kee Spillserver an keen Internet benotzt. De Mikro gëtt nëmme benotzt, fir beim Koppelen d'Melodie vum aneren Handy ze héieren, an d'Kamera nëmme fir de QR-Code ze liesen: Toun a Biller ginn am Späicher analyséiert, ni opgeholl oder geschéckt, a béid ginn ausgeschalt, soubal d'Handyen verbonne sinn. D'Spillmessagen tëscht deenen zwee Apparater si verschlësselt."

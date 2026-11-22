@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fonti",
-    "p": [
-     "Lai parādītu savus noapaļotos burtus, lietotne, pirmo reizi atverot to tiešsaistē, var lejupielādēt fontus no Google Fonts (fonts.googleapis.com, fonts.gstatic.com). Šis pieprasījums atklāj tavu IP adresi uzņēmumam Google saskaņā ar Google privātuma politiku. Citi dati netiek sūtīti."
-    ]
-   },
-   {
     "h": "Divu spēlētāju režīms",
     "p": [
      "Divas ierīces savienojas tieši tajā pašā Wi-Fi tīklā vai tīklājā: netiek izmantots ne spēļu serveris, ne internets. Mikrofons tiek izmantots tikai, lai savienošanas laikā klausītos otra tālruņa melodiju, un kamera – tikai QR koda nolasīšanai: skaņa un attēli tiek analizēti atmiņā, nekad netiek ierakstīti vai sūtīti, un abi tiek izslēgti, tiklīdz tālruņi ir savienoti. Spēles ziņojumi starp abām ierīcēm ir šifrēti."

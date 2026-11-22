@@ -11,7 +11,7 @@ globalThis.localStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), se
 const HH = load('src/i18n/locales.js', 'src/core/core.js', 'src/core/legal.js');
 const dir = path.join(root, 'src/i18n/legal');
 for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.js'))) load('src/i18n/legal/' + f);
-const KEYS = ['lg_title', 'lg_intro', 'lg_safety', 'lg_chk_terms', 'lg_chk_privacy', 'lg_accept', 'lg_terms', 'lg_privacy', 'lg_licenses', 'lg_link', 'lg_back', 'lg_accepted', 'lg_official', 'lg_offline'];
+const KEYS = ['lg_title', 'lg_intro', 'lg_safety', 'lg_chk_safety', 'lg_chk_terms', 'lg_chk_privacy', 'lg_accept', 'lg_terms', 'lg_privacy', 'lg_licenses', 'lg_link', 'lg_back', 'lg_accepted', 'lg_official', 'lg_offline'];
 
 test('chiavi brevi in tutte le 43 lingue, con {app} e {date} dove servono', () => {
   assert.equal(HH.LANGS.length, 43);
@@ -41,7 +41,11 @@ test('testi lunghi: ogni lingua ha i tre documenti con la stessa struttura dell\
     }
     // i nomi che non si traducono restano
     const priv = JSON.stringify(docs.privacy);
-    for (const w of ['GoatCounter', 'Google Fonts', 'github.com/Marketto/Hari-hari-puzzle']) assert.ok(priv.includes(w), `${l.code}.privacy senza ${w}`);
+    for (const w of ['GoatCounter', 'github.com/Marketto/Hari-hari-puzzle']) assert.ok(priv.includes(w), `${l.code}.privacy senza ${w}`);
+    // font inclusi nell'app: nessun servizio di Google nei testi (privacy, condizioni, licenze)
+    const all3 = JSON.stringify(docs);
+    for (const w of ['Google Fonts', 'fonts.googleapis', 'fonts.gstatic']) assert.ok(!all3.includes(w), `${l.code}: ${w} ancora citato nei testi legali`);
+    assert.equal(docs.privacy.sections.length, 6, `${l.code}.privacy: 6 sezioni (senza Font)`);
     assert.ok(JSON.stringify(docs.terms).includes('OpenStreetMap'), `${l.code}.terms senza OpenStreetMap`);
     // il file dichiara la sua lingua
     assert.match(fs.readFileSync(path.join(dir, l.code + '.js'), 'utf8'), new RegExp(`\\["${l.code}"\\]`));
@@ -59,11 +63,13 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
   assert.match(HH.LEGAL_TEXTS.LICENSE, /Copyright \(c\) 2026 Marketto/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/OFL-1.1.txt'], /SIL OPEN FONT LICENSE Version 1\.1/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/ODbL-1.0.txt'], /Open Database License/);
-  // i font elencati sono quelli caricati davvero da index.html
-  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  for (const f of ['Baloo+Bhaijaan+2', 'M+PLUS+Rounded+1c', 'Mochiy+Pop+One']) {
-    assert.ok(html.includes(f), f);
-    assert.ok(COMPONENTS.some((c) => c.url.endsWith(f)), `font ${f} non in elenco`);
+  // i font usati dai fogli di stile sono in elenco, con la SIL OFL, e nessuno rimanda a Google Fonts
+  const css = fs.readFileSync(path.join(root, 'src/styles.css'), 'utf8');
+  for (const f of ['Mochiy Pop One', 'M PLUS Rounded 1c', 'Baloo Bhaijaan 2']) {
+    assert.ok(css.includes(`"${f}"`), f);
+    const c = COMPONENTS.find((x) => x.name.startsWith(f + ' '));
+    assert.ok(c, `font ${f} non in elenco`);
+    assert.equal(c.license, 'SIL Open Font License 1.1', f);
   }
   // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing) lo caricano
   const cat = load('src/games/catalog.js').catalog;
@@ -73,18 +79,40 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
 test('accettazione: una volta sola, di nuovo quando aumenta la versione', () => {
   const L = HH.legal;
   mem.clear();
-  assert.equal(L.VERSION, 1);
+  assert.equal(L.VERSION, 2);
   assert.equal(L.needs(), true);
   const a = L.accept(1700000000000);
-  assert.deepEqual(a, { v: 1, at: 1700000000000 });
+  assert.deepEqual(a, { v: 2, at: 1700000000000 });
   assert.equal(L.needs(), false);
   assert.deepEqual(JSON.parse(mem.get('harihari:legal')), a);
-  L.VERSION = 2;                                 // condizioni nuove: si richiede l'accettazione
+  HH.store.set('legal', { v: 1, at: 1700000000000 });   // accettato con il testo v1: l'avviso ricompare
+  assert.equal(L.needs(), true);
+  assert.equal(L.accepted(), null);
+  L.accept(); assert.equal(L.needs(), false);
+  L.VERSION = 3;                                 // condizioni nuove: si richiede l'accettazione
   assert.equal(L.needs(), true);
   L.accept(); assert.equal(L.needs(), false);
-  L.VERSION = 1;
+  L.VERSION = 2;
   HH.store.set('legal', { at: 5 }); assert.equal(L.needs(), true);   // dato rovinato = non accettato
   HH.store.set('legal', 'x'); assert.equal(L.needs(), true);
+});
+
+test('tre caselle obbligatorie: sicurezza, condizioni, privacy', () => {
+  const L = HH.legal;
+  assert.deepEqual([...L.CHECKS], ['safety', 'terms', 'privacy']);
+  assert.equal(L.ready({}), false);
+  assert.equal(L.ready({ terms: true, privacy: true }), false, 'senza la casella di sicurezza resta spento');
+  assert.equal(L.ready({ safety: true, terms: true }), false);
+  assert.equal(L.ready({ safety: true, privacy: true }), false);
+  assert.equal(L.ready({ safety: true, terms: true, privacy: true }), true);
+  for (const k of L.CHECKS) for (const l of HH.LANGS) assert.ok(String(HH.LOCALES[l.code]['lg_chk_' + k] || '').trim(), `${l.code}.lg_chk_${k}`);
+  // EN e IT dicono davvero "avvertenze di sicurezza" e "sollevo da responsabilità"
+  assert.match(HH.LOCALES.en.lg_chk_safety, /safety warnings.*own risk.*releasing the author/);
+  assert.match(HH.LOCALES.it.lg_chk_safety, /avvertenze di sicurezza.*mia responsabilità.*sollevando l'autore/);
+  // le caselle della finestra sono quelle di CHECKS (stesso id usato dagli e2e)
+  const src = fs.readFileSync(path.join(root, 'src/core/legal.js'), 'utf8');
+  assert.match(src, /id="lgChk-safety" data-chk="safety"/);
+  assert.match(src, /id="lgChk-\$\{k\}" data-chk="\$\{k\}"/);
 });
 
 test('formattazione: escape, {app}, **grassetto**', () => {

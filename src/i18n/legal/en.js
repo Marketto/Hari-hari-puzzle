@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fonts",
-    "p": [
-     "To display its rounded letters, the app may download fonts from Google Fonts (fonts.googleapis.com, fonts.gstatic.com) the first time it is opened online. This request reveals your IP address to Google, under Google's privacy policy. No other data is sent."
-    ]
-   },
-   {
     "h": "Two-player mode",
     "p": [
      "Two devices connect directly on the same Wi-Fi or hotspot: no game server and no internet are used. The microphone is used only to listen to the other phone's tune during pairing, and the camera only to read the QR code: sound and images are analysed in memory, never recorded or sent, and both are switched off as soon as the phones are connected. Game messages are encrypted between the two devices."

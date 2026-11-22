@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Tipografies",
-    "p": [
-     "Per mostrar les seves lletres arrodonides, l'aplicació pot baixar tipografies de Google Fonts (fonts.googleapis.com, fonts.gstatic.com) la primera vegada que s'obre amb connexió. Aquesta sol·licitud revela la teva adreça IP a Google, d'acord amb la política de privadesa de Google. No s'envien altres dades."
-    ]
-   },
-   {
     "h": "Mode de dos jugadors",
     "p": [
      "Dos dispositius es connecten directament a la mateixa Wi-Fi o punt d'accés: no s'utilitza cap servidor de joc ni internet. El micròfon només serveix per escoltar la melodia de l'altre telèfon durant l'aparellament, i la càmera només per llegir el codi QR: el so i les imatges s'analitzen a la memòria, mai no s'enregistren ni s'envien, i tots dos s'apaguen tan bon punt els telèfons estan connectats. Els missatges del joc es xifren entre els dos dispositius."

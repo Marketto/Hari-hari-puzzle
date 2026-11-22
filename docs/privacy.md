@@ -4,9 +4,10 @@ L'informativa mostrata ai giocatori (43 lingue, scheda "Informativa privacy" del
 l'avviso da accettare al primo avvio sono descritti in [legal.md](legal.md). Questa pagina è la versione tecnica.
 
 ## Avviso al primo avvio
-Prima di tutto il resto (anche della domanda sulle statistiche) il giocatore accetta condizioni d'uso ed esclusione di
-responsabilità e conferma di aver letto l'informativa. Si salva solo in locale: `harihari:legal = { v, at }`
-(versione delle condizioni e data). Se la versione aumenta, l'avviso ricompare.
+Prima di tutto il resto (anche della domanda sulle statistiche) il giocatore spunta tre caselle: avvertenze di
+sicurezza e uso sotto la propria responsabilità, condizioni d'uso con esclusione di responsabilità, lettura
+dell'informativa. Si salva solo in locale: `harihari:legal = { v, at }` (versione del testo e data). Se la versione
+aumenta (oggi `2`), l'avviso ricompare.
 
 ## Cosa resta sul telefono (sempre)
 - Salvataggi, progressi, impostazioni, lingua: `localStorage` del browser, prefisso `harihari:`.
@@ -23,11 +24,10 @@ Il multigiocatore ([multiplayer.md](multiplayer.md)) collega due telefoni **dire
   e le porte: valgono per quella sola partita;
 - i messaggi di gioco viaggiano cifrati (DTLS) tra i due telefoni; i 4 frutti confermano che l'altro è proprio il telefono accanto.
 
-## Font (Google Fonts)
-`index.html` carica i font Mochiy Pop One, M PLUS Rounded 1c e Baloo Bhaijaan 2 da Google Fonts
-(`fonts.googleapis.com`, `fonts.gstatic.com`) la prima volta che l'app si apre online; poi il service worker li tiene in
-cache (`hh-fonts`). La richiesta rivela l'indirizzo IP a Google (secondo l'informativa di Google) e nessun altro dato.
-Il file unico `dist/hari-hari-puzzle.html` fa la stessa richiesta se c'è rete. Font locali: vedi TODO.
+## Font
+I font (Mochiy Pop One, M PLUS Rounded 1c, Baloo Bhaijaan 2, SIL OFL 1.1) sono **file inclusi nell'app**: nessuna
+richiesta a Google Fonts o ad altri servizi. Per questo l'informativa mostrata ai giocatori non ha più la sezione
+"Font" (rimossa con la versione 2 dei testi legali); le licenze dei font restano nella scheda "Licenze".
 
 ## Statistiche anonime (facoltative)
 `src/core/usage.js` può inviare conteggi anonimi a [GoatCounter](https://www.goatcounter.com) (servizio senza cookie):
