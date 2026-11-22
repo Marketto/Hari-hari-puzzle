@@ -1407,6 +1407,8 @@
       undo() { toggle(); },
       pause() { pause(); },          // usato dall'app quando si apre il tutorial
       resume() { resume(); },
+      // uscita dal gioco (contratto): RAF, tasti e timer si fermano subito
+      destroy() { stop(); detach(); },
       snapshot: () => s,
     };
   }
@@ -1437,6 +1439,8 @@
     rate: (s) => HH.snack.rate(s),
     // durata del copione più il tempo medio per riempire l'animalone (circa 15–40 s)
     parTime: (s) => Math.round(s.end + 25 + s.bossMax / 18),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.snack.isWon(s),
     progress: (s) => HH.snack.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

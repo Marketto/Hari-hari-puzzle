@@ -1002,6 +1002,8 @@
       undo() { paused ? resume() : pause(); },
       pause() { pause(); },
       resume() { resume(); },
+      // uscita dal gioco (contratto): RAF, tasti e timer si fermano subito
+      destroy: detach,
       snapshot: () => s,
     };
   }

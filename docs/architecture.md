@@ -11,6 +11,26 @@
 - L'app salva a ogni mossa (`ctx.changed()`), ogni 5 s di timer, e quando la pagina va in background (`visibilitychange`, `pagehide`).
 - All'avvio, se `screen` indica un gioco con partita salvata, si riapre direttamente quella partita (tempo e mosse inclusi). In home compare il banner "Partita in sospeso" e le card mostrano "Continua".
 - Alla vittoria il salvataggio viene cancellato e il livello avanza.
+- **Partita già risolta alla riapertura**: tra la soluzione e `ctx.win()` c'è un ritardo (animazioni, 0,4–2,6 s); se si
+  esce lì, il salvataggio è la griglia finita. In `begin()` l'app chiede `HH.rules.solvedOnResume(game, saved.state)`
+  (src/core/rules.js): `game.solved(s)` se il gioco lo dichiara (tutti i giochi a livelli lo fanno, con `isWon`/`isSolved`
+  della logica), altrimenti `progress(s) >= 1` senza cuori finiti; mai per i giochi `endless`. Se è vinta, `win(saved.state)`
+  assegna la vittoria con fragoline e mosse dello stato salvato. Una volta sola: `win()` pulisce il salvataggio e `S.won`
+  ignora le chiamate `ctx.win()` del gioco stesso (es. Hari Escape, che la richiede da solo alla ripresa).
+  Non si sceglie "non salvare a progress = 1" perché il giocatore perderebbe l'ultima mossa e la vittoria meritata, e
+  perché in alcuni giochi 1 non vuol dire vinto (Hedgedoku conta i ricci messi, anche sbagliati).
+
+## Ciclo di vita dei giochi
+- `create(el, ctx, saved)` restituisce l'istanza; `destroy()` facoltativo la chiude. Il nucleo (`endInst()` in app.js)
+  lo chiama **una volta sola**, in try/catch, dopo l'ultimo `persist()`: in `leaveGame` (home), in `showGame` prima di
+  ricreare (cambio lingua, nuova apertura), in `ctx.reslot` (cambio mappa di Hari Taxi) e prima della ricarica per
+  aggiornamento (`controllerchange`). Dopo `destroy()` S.inst è già null: eventuali `ctx.changed()` non salvano più.
+- `destroy()` ferma subito RAF, timer (anche la vittoria in ritardo), sensori (`deviceorientation`/`devicemotion`),
+  voce (`speechSynthesis.cancel`), WebGL e rete: nel multigiocatore chiude il link con `link.close()` (motivo `'local'`),
+  come prima; l'altro telefono passa all'IA/CPU. Lo implementano fish, colors, street, rally (+ rally-net), drive, snack,
+  parade, flight, escape, life, memory, sudoku, hedgedoku, spot, sushi.
+- Il controllo `el.isConnected` (setInterval o nel ciclo) resta come rete di sicurezza per i giochi che non hanno destroy.
+- Prova: `tools/lifecycle-e2e.mjs` (Memory risolta e uscita nel ritardo; spie su Fishing e Colors).
 
 ## Punteggio
 `100 + 25 × livello + 60 × stelle + bonus tempo` dove bonus = 2 × secondi risparmiati rispetto a `parTime`.

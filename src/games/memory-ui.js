@@ -224,6 +224,8 @@
       fresh,
       restart,
       undo() { /* in un Memory annullare farebbe sbirciare le carte: non fa nulla */ },
+      // uscita dal gioco (contratto): timer e ascolto del ridimensionamento si fermano subito
+      destroy() { clearTimers(); G.removeEventListener('resize', onResize); },
       snapshot: () => s,
     };
   }
@@ -233,6 +235,8 @@
     rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
     rate: (s) => HH.memory.rate(s),
     parTime: (s) => HH.memory.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.memory.isSolved(s),
     progress: (s) => HH.memory.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

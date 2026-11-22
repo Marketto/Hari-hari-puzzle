@@ -869,6 +869,8 @@
     // fragoline: 3 col minimo esatto (A*), 2 se usi al massimo il 70% delle mosse in più concesse, 1 oltre
     rate: (s) => (HH.rules && HH.rules.rateMoves ? HH.rules.rateMoves(s.moves, s.L.min, s.max) : HH.ropes.rate(s.moves, s.L.min)),
     parTime: (s) => 15 + s.L.ropes.length * 8 + s.L.min * 6,
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.ropes.isSolved(s.st),
     progress: (s) => HH.ropes.progress(s.L, s.st),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

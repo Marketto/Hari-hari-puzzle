@@ -126,6 +126,16 @@
     HH.store.set('slot:' + S.game.id, k);   // la ripresa (card e avvio) guarda questo posto, quello che si riaprirà
     P.saveGame(k, { level: P.get(k).level, elapsed: S.elapsed, state, meta: S.game.meta ? S.game.meta(state) : undefined });
   }
+  // fine dell'istanza del gioco (uscita, cambio partita/posto, ricarica per aggiornamento): si stacca da S.inst e,
+  // se il gioco lo prevede, si chiama destroy() una volta sola (RAF, voce, sensori, rete si fermano subito)
+  const destroyed = new WeakSet();
+  function endInst() {
+    const inst = S.inst;
+    S.inst = null;
+    if (!inst || typeof inst.destroy !== 'function' || destroyed.has(inst)) return;
+    destroyed.add(inst);
+    try { inst.destroy(); } catch (e) { setTimeout(() => { throw e; }); }
+  }
   function hud() {
     if (!S.inst) return;
     const snap = S.inst.snapshot();
@@ -695,7 +705,8 @@
   function showGame(g, push) {
     const id = g.id;
     persist();
-    S.game = g; S.inst = null; S.won = false;
+    endInst();                        // la partita di prima (cambio lingua, cambio posto) si chiude davvero
+    S.game = g; S.won = false;
     const gen = ++S.gen;              // generazione: i timer di un gioco chiuso non toccano quello aperto dopo
     const live = () => gen === S.gen;
     const saved = P.loadGame(slot(g));
@@ -736,10 +747,10 @@
     const ctx = {
       get level() { return P.get(slot(g)).level; },
       // cambia "posto" (es. un'altra mappa di Hari Taxi): salva la partita di adesso, poi riapre il gioco sul nuovo
-      // (S.inst = null: openGame non deve risalvare la partita vecchia nel posto nuovo)
-      reslot(fn) { persist(); S.inst = null; if (fn) fn(); openGame(g.id, false); },
+      // (endInst: openGame non deve risalvare la partita vecchia nel posto nuovo)
+      reslot(fn) { persist(); endInst(); if (fn) fn(); openGame(g.id, false); },
       sfx, react,
-      win: (...a) => { if (live()) win(...a); },
+      win: () => { if (live()) win(); },
       changed(o) {
         const reset = !!(o && o.reset);
         if (reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; $('#loseDlg').hidden = true; HH.music.duck(false); refitSoon(); }
@@ -792,6 +803,8 @@
 
     function begin() {
     HH.usage.open(g.id);
+    // partita salvata già risolta (si era usciti durante il ritardo prima di ctx.win): la vittoria si assegna qui
+    const solvedAtResume = !!saved && HH.rules.solvedOnResume(g, saved.state);
     try {
       S.inst = g.create($('#board'), ctx, saved && saved.state);
     } catch (err) {
@@ -818,6 +831,7 @@
       if (S.inst && S.inst.pause) S.inst.pause();
       tutorial(g, () => { if (S.inst && S.inst.resume) S.inst.resume(); });
     };
+    if (solvedAtResume) win(saved.state);   // una volta sola: win() pulisce il salvataggio e S.won blocca i doppioni
     }
   }
 
@@ -890,9 +904,10 @@
   function leaveGame() {
     persist();
     S.gen++;
+    endInst();
     hideSay();
     $('#loseDlg').hidden = true;
-    S.game = null; S.inst = null;
+    S.game = null;
     veilPaused = false; hideVeil();
     fsClass(false);
     exitFull();                       // la home è in vista normale (S.game è già null: non conta come "indietro")
@@ -906,11 +921,12 @@
   }
   G.addEventListener('popstate', () => { S.pushed = false; if (S.game) goHome(); });
 
-  function win() {
+  // state: lo stato risolto salvato (vittoria assegnata alla riapertura), altrimenti quello della partita in corso
+  function win(state) {
     const g = S.game;
     if (!g || S.won) return;
     S.won = true;
-    const snap = S.inst.snapshot();
+    const snap = state || S.inst.snapshot();
     const k = slot(g);
     const p = P.get(k);
     const level = p.level;
@@ -1214,6 +1230,7 @@
       if (reloading) return;
       reloading = true;
       persist();
+      endInst();
       location.reload();
     });
     // il service worker nuovo chiede se questa pagina sa aggiornarsi da sola: rispondiamo di sì (al mittente)

@@ -134,6 +134,8 @@
     rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => s.n * s.n * 3,
     // lanterne accese in più rispetto all'inizio
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.lantern.isSolved(s.grid),
     progress: (s) => {
       const lit0 = s.start.filter(Boolean).length, lit = s.grid.filter(Boolean).length;
       return Math.max(0, Math.min(1, (lit - lit0) / Math.max(1, s.grid.length - lit0)));

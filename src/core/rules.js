@@ -2,6 +2,7 @@
  * HH.rules.extraMoves(min)            mosse in più concesse: 15% del minimo, almeno 2, al massimo 6
  * HH.rules.rateMoves(moves, min, max) fragoline: 3 col minimo esatto,
  *                                     2 se usi al massimo il 70% delle mosse in più concesse (per difetto), 1 oltre
+ * HH.rules.solvedOnResume(g, state)   la partita salvata è già vinta? (vittoria assegnata alla riapertura)
  */
 (function (G) {
   const HH = (G.HH = G.HH || {});
@@ -11,7 +12,18 @@
     const used = moves - min;
     return used <= 0 ? 3 : used <= Math.floor(extra * 0.7) ? 2 : 1;
   }
-  HH.rules = { extraMoves, rateMoves };
+  /* Partita salvata già risolta? (uscita durante il ritardo tra la soluzione e ctx.win: alla riapertura l'app assegna
+   * la vittoria). Mai per i giochi endless. Controllo preciso g.solved(s) se il gioco lo dichiara; altrimenti
+   * progress(s) >= 1 senza cuori finiti. Un errore nel controllo vale "no" (la partita si riapre come prima). */
+  function solvedOnResume(g, state) {
+    if (!g || !state || typeof state !== 'object' || g.endless) return false;
+    try {
+      if (typeof g.solved === 'function') return g.solved(state) === true;
+      if (typeof g.progress !== 'function' || !(g.progress(state) >= 1)) return false;
+      return !(g.lives && (state.mistakes || 0) >= g.lives);
+    } catch (e) { return false; }
+  }
+  HH.rules = { extraMoves, rateMoves, solvedOnResume };
 
 /* Manina dei tutorial (SVG): punta del dito in (x, y). cls = animazione (tut-tap, tut-go…), style per le variabili CSS. */
 HH.tutHand = (x, y, cls = 'tut-tap', style = '') => `<g transform="translate(${x} ${y})"><g class="${cls}" style="${style}">

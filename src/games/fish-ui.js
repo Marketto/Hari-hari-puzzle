@@ -2365,6 +2365,8 @@ vec3 fishDef(vec3 p){
       undo() { toggle(); },
       pause() { pause(); },
       resume() { resume(); },
+      // uscita dal gioco (contratto): RAF, sensori, WebGL e timer si fermano subito
+      destroy: detach,
       snapshot: () => s,
     };
   }
@@ -2404,6 +2406,8 @@ vec3 fishDef(vec3 p){
     fill: true,                 // a schermo intero la scena riempie tutto il riquadro
     rate: (s) => HH.fish.rate(s),
     parTime: (s) => HH.fish.par(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.fish.isWon(s),
     progress: (s) => HH.fish.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -3047,6 +3047,8 @@
       pause() { pause(); },
       resume() { resume(); },
       online: () => !!net,          // in rete: il velo dello schermo intero dell'app non mette in pausa
+      // uscita dal gioco (contratto): RAF, motore, sensori, WebGL e rete (link.close('local')) si fermano subito
+      destroy: detach,
       // a due: lo stato della gara (per fragoline e progressi) con dentro la gara in singolo da riprendere
       snapshot: () => (mpMode && s ? Object.assign({}, s, { solo: solo || null, mp: mpMode }) : s),
     };
@@ -3076,6 +3078,8 @@
     tutorial: TUT,
     rate: (s) => HH.rally.rate(s),
     parTime: (s) => HH.rally.par(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.rally.isWon(s),
     progress: (s) => HH.rally.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

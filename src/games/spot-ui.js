@@ -284,6 +284,8 @@
       restart,
       // annulla: niente da annullare (le differenze trovate restano); riporta lo zoom a 1×
       undo() { setView({ x: 0, y: 0, k: 1 }); },
+      // uscita dal gioco (contratto): timer (anche la vittoria in ritardo)
+      destroy() { clearTimers(); },
       snapshot: () => s,
     };
   }
@@ -296,6 +298,8 @@
     rate: (s) => HH.spot.rate(s),
     // 20 s + 12 s a differenza; dal livello 4 ogni tocco a vuoto toglie 4 s
     parTime: (s) => HH.spot.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => s.n > 0 && s.found.length >= s.n,
     progress: (s) => HH.spot.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
