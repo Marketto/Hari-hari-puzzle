@@ -76,7 +76,7 @@ test('Hari Spot: vinta con tutte le differenze trovate', () => {
 });
 
 test('Hari Escape: vinta solo con la porta aperta (s.won)', () => {
-  const g = game('escape', 'src/games/escape-logic.js', 'src/games/escape-art.js', 'src/games/dom-patch.js', 'src/games/escape-ui.js');
+  const g = game('escape', 'src/games/escape-puzzles.js', 'src/games/escape-logic.js', 'src/games/escape-art.js', 'src/games/dom-patch.js', 'src/games/escape-ui.js');
   const s = HH.escape.newGame(1, 42, []);
   assert.equal(R.solvedOnResume(g, s), false);
   assert.equal(R.solvedOnResume(g, Object.assign({}, s, { won: true })), true);

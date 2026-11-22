@@ -7,7 +7,9 @@ l'impostazione (città dall'alto, camera che segue l'auto) è quella dei classic
 **Niente violenza**: chi viene urtato fa "bonk" (nuvoletta con stelline) o un salto spaventato con "!", mai danni.
 
 - id `drive`, brand **Hari Taxi** (non tradotto), regole `r13`, brano `drive`, tinta `--tint-drive`, token `--dr-*`.
-- File: `src/games/drive-logic.js` (logica pura), `src/games/drive-ui.js` (canvas), `src/games/drive.css`,
+- File: `src/games/drive-logic.js` (logica pura; monta `drive-osm.js` mappe reali e `drive-traffic.js` traffico, pedoni e
+  urti, caricati prima), `src/games/drive-ui.js` (canvas; monta `drive-art.js` disegni SVG, `drive-city.js` città
+  procedurale, `drive-osm-paint.js` mappe reali dipinte, `drive-draw.js` disegno a ogni fotogramma), `src/games/drive.css`,
   `tests/drive.test.mjs` + `tests/_drive-bot.mjs` (bot), blocco "Hari Taxi" in `tools/selftest.mjs`.
 - Effetti nuovi in `src/core/audio.js`: `honk` (clacson "bip bip" del traffico) e `boing` (il "bonk" di gomma).
 

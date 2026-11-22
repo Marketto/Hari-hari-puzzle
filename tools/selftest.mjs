@@ -169,7 +169,8 @@ for (const level of [1, 4, 8, 16]) {
 // Hari Taxi: 5 gradini di città (3×3 → 6×6 isolati), generazione < 10 ms, ogni fermata raggiungibile su strada,
 // tempo limite della prima corsa ≥ 1,5 × il percorso più corto a velocità massima, simulazione < 0,1 ms a fotogramma (1/60 s)
 {
-  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/drive-logic.js'), 'utf8'), { filename: 'drive-logic.js' });
+  // la logica di Hari Taxi è divisa in drive-osm.js e drive-traffic.js (montati da drive-logic.js, che va per ultimo)
+  for (const f of ['drive-osm.js', 'drive-traffic.js', 'drive-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/' + f), 'utf8'), { filename: f });
   const { drive } = globalThis.HH;
   for (const level of [1, 3, 6, 10, 14]) {
     let ms = 0, good = 0, sim = 0, size = '';
@@ -367,7 +368,8 @@ for (const level of [1, 4, 8, 16]) {
 // Hari Escape: 1 → 3 stanze, 3 → 10 enigmi (≥ 4 gradini); grafo risolvibile (simulazione), tipi tutti diversi nel livello,
 // sotto-puzzle mai già risolti; generazione < 10 ms
 {
-  vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/escape-logic.js'), 'utf8'), { filename: 'escape-logic.js' });
+  // escape-puzzles.js (sotto-puzzle) prima di escape-logic.js, che lo monta
+  for (const f of ['escape-puzzles.js', 'escape-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games/' + f), 'utf8'), { filename: f });
   const X = globalThis.HH.escape;
   for (const level of [1, 3, 5, 8, 12, 20]) {
     let ms = 0, good = 0, types = 0;

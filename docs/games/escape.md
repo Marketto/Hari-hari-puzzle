@@ -6,7 +6,8 @@ seme, sempre diversi. Niente di pauroso (anche la stanza buia è un cielo prugna
 Tutti gli enigmi sono **visivi e senza parole**: colori + forme (6 "gemme": cuore rosso, stella gialla, foglia verde,
 goccia blu, luna viola, fiore arancione), cifre, simboli, giocattoli.
 
-File: `src/games/escape-logic.js` (logica pura, `HH.escape`) · `src/games/escape-art.js` (disegni SVG, `HH.escapeArt`) ·
+File: `src/games/escape-logic.js` (logica pura, `HH.escape`; i sotto-puzzle e la creazione degli enigmi stanno in
+`src/games/escape-puzzles.js`, caricato prima e montato da escape-logic.js) · `src/games/escape-art.js` (disegni SVG, `HH.escapeArt`) ·
 `src/games/escape-ui.js` · `src/games/escape.css` (token `--er-*`, tinta card `--tint-escape`) · `tests/escape.test.mjs`.
 Chiave regole `r18` (per ora testo inglese `rulesEn` nel catalogo, `since: '0.19.0'`), prefisso CSS `er-`, brano `escape`
 ed effetto `unlock` in `src/core/audio.js`, tutorial `tu_escape_1..3`.

@@ -26,6 +26,10 @@
       sudoku, hedgedoku, spot, sushi); e2e `tools/lifecycle-e2e.mjs`
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
 - [ ] Guida della home (regola R13, `src/core/wizard.js` + `wizard.css`): al primo avvio, dopo l'avviso legale e prima della domanda sulle statistiche, 6 passi con riquadro di focus e nuvoletta di Hari (card/Riprendi, vista, lingua+suono, ghiande/progressi, Condividi+Installa, «?»); dopo un aggiornamento solo le novità (`NEWS` nel modulo + giochi con `since`); una volta sola (`wizard: { v }`); pulsante «?» nella barra in alto. Da fare al rilascio: allineare la chiave `NEWS['0.31.0']` alla versione vera; traduzioni `wz_*` (ora inglese in 41 lingue)
+- [x] File dei giochi divisi in moduli < ~800 righe (R19), refactoring puro senza cambi di comportamento:
+  Hari Rally (`rally-ui.js` → art, 3d, scenery, decor, karts, view, hud, duo), Hari Fishing (`fish-ui.js` → art,
+  3d, models, uw, view, hud), Hari Taxi (`drive-ui.js` → art, city, osm-paint, draw; `drive-logic.js` → osm,
+  traffic), Hari Escape (`escape-logic.js` → puzzles). Moduli nel catalogo (lazy load), test e benchmark aggiornati.
 
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
