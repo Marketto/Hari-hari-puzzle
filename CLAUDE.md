@@ -10,11 +10,12 @@ Vanilla JS senza build obbligatoria: ogni file in `src/` è uno script classico 
 4. **i18n completo**: ogni stringa visibile passa da `HH.i18n.t(key)`. Una chiave nuova va in tutte le 43 righe di `src/i18n/locales.js`.
 5. **Token di design**: colori solo tramite variabili in `src/styles.css` (tema chiaro + scuro). Mai colori letterali nei componenti.
 6. **Ogni gioco salva la partita**: `snapshot()` serializzabile + `create(el, ctx, saved)`; chiama `ctx.changed()` dopo ogni mossa; espone `progress(s)` (0..1) che guida musica e messaggi.
-7. Prima di chiudere un task: `npm test` (unit test + i18n-check) e `npm run build`.
+7. Prima di chiudere un task: `npm test` (unit test + i18n-check + privacy-check) e `npm run build`.
 8. **Consegna = commit + push su `main`**: il workflow `pages.yml` pubblica su https://marketto.github.io/Hari-hari-puzzle/.
    Non inviare file o anteprime in chat. Prima del push: incrementa `VERSION` in `sw.js`, `version` in `package.json` e `HH.VERSION` in `src/core/core.js` (un test li confronta; senza, i telefoni
    non ricevono l'aggiornamento automatico), autore commit `Marketto <Marketto@users.noreply.github.com>` (repo pubblico: mai email o dati personali),
    poi attendi l'esito del deploy e verifica che `sw.js` online riporti la nuova versione.
+9. **Eccezioni alle regole comuni R01–R20** (scelte del proprietario): la musica di sottofondo parte accesa (R16), con il pulsante sempre visibile per spegnerla e la scelta ricordata.
 
 ## Router — da richiesta a skill/agente
 
@@ -56,7 +57,7 @@ docs/                      documentazione strutturata
 
 ## Comandi
 - `npm run dev` — server locale su http://localhost:5173
-- `npm test` — unit test (`tests/*.test.mjs`) + controllo traduzioni · `npm run bench` — benchmark dei generatori (`tools/selftest.mjs`)
+- `npm test` — unit test (`tests/*.test.mjs`) + controllo traduzioni + `tools/privacy-check.mjs` (niente email o segreti nel repo pubblico) · `npm run bench` — benchmark dei generatori (`tools/selftest.mjs`)
 - `npm run build` — `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html`
 - `npm run icons` — rigenera le icone dalla mascotte
 - `npm run cards` — rigenera illustrazioni e token delle card dopo aver toccato `art` o i colori di un gioco

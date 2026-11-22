@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "node tools/serve.mjs",
-    "test": "node --test tests/*.test.mjs && node tools/i18n-check.mjs",
+    "test": "node --test tests/*.test.mjs && node tools/i18n-check.mjs && node tools/privacy-check.mjs",
     "bench": "node tools/selftest.mjs",
     "build": "node tools/build-inline.mjs",
     "icons": "node tools/gen-icons.mjs",
