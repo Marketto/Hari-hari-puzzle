@@ -29,8 +29,8 @@
   "name": "Mochiy Pop One (font)",
   "author": "FONTDASU",
   "license": "SIL Open Font License 1.1",
-  "url": "https://fonts.google.com/specimen/Mochiy+Pop+One",
-  "notice": "Copyright 2020 The Mochiypop Project Authors (https://github.com/fontdasu/Mochiypop)",
+  "url": "https://github.com/fontdasu/Mochiypop",
+  "notice": "Copyright 2020 The Mochiypop Project Authors (https://github.com/fontdasu/Mochiypop). Included in the app (woff2 files in assets/fonts/, from the @fontsource packages): nothing is downloaded from external servers.",
   "text": "docs/licenses/OFL-1.1.txt"
  },
  {
@@ -38,8 +38,8 @@
   "name": "M PLUS Rounded 1c (font)",
   "author": "Coji Morishita, M+ Fonts Project",
   "license": "SIL Open Font License 1.1",
-  "url": "https://fonts.google.com/specimen/M+PLUS+Rounded+1c",
-  "notice": "Copyright 2016 The Rounded M+ Project Authors.",
+  "url": "https://github.com/coz-m/MPLUS_FONTS",
+  "notice": "Copyright 2016 The Rounded M+ Project Authors. Included in the app (woff2 files in assets/fonts/, from the @fontsource packages): nothing is downloaded from external servers.",
   "text": "docs/licenses/OFL-1.1.txt"
  },
  {
@@ -47,8 +47,8 @@
   "name": "Baloo Bhaijaan 2 (font)",
   "author": "Ek Type",
   "license": "SIL Open Font License 1.1",
-  "url": "https://fonts.google.com/specimen/Baloo+Bhaijaan+2",
-  "notice": "Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2)",
+  "url": "https://github.com/EkType/Baloo2",
+  "notice": "Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2). Included in the app (woff2 files in assets/fonts/, from the @fontsource packages): nothing is downloaded from external servers.",
   "text": "docs/licenses/OFL-1.1.txt"
  },
  {

@@ -100,7 +100,7 @@
     const V = HH.colorsVoice;
     if (V) V.init();
     let s, r = null, phase = 'cover', t0 = 0, raf = 0, wrap, field, sayEl, wordEl, symEl, hariEl, timeEl, chips = {}, items = [];
-    let viaVoice = false, symOn = !!(HH.store && HH.store.get('colors:sym', false)), timers = new Set(), ro = null, dead = false;
+    let viaVoice = false, symOn = !!(HH.store && HH.store.get('colors:sym', HH.store.get('cvd', false))), timers = new Set(), ro = null, dead = false;
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers.clear(); };
     const muted = () => !!(ctx.sfx && ctx.sfx.isMuted && ctx.sfx.isMuted());

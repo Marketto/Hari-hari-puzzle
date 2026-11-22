@@ -63,13 +63,18 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
   assert.match(HH.LEGAL_TEXTS.LICENSE, /Copyright \(c\) 2026 Marketto/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/OFL-1.1.txt'], /SIL OPEN FONT LICENSE Version 1\.1/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/ODbL-1.0.txt'], /Open Database License/);
-  // i font usati dai fogli di stile sono in elenco, con la SIL OFL, e nessuno rimanda a Google Fonts
+  // i font elencati sono quelli inclusi davvero nell'app (assets/fonts/fonts.css): usati dai fogli di stile, in elenco
+  // con la SIL OFL e la nota «inclusi nell'app» (nessun rimando a Google Fonts)
   const css = fs.readFileSync(path.join(root, 'src/styles.css'), 'utf8');
-  for (const f of ['Mochiy Pop One', 'M PLUS Rounded 1c', 'Baloo Bhaijaan 2']) {
+  const fonts = fs.readFileSync(path.join(root, 'assets/fonts/fonts.css'), 'utf8');
+  const fams = [...new Set([...fonts.matchAll(/font-family:'([^']+)'/g)].map((m) => m[1]))];
+  assert.deepEqual(fams.sort(), ['Baloo Bhaijaan 2', 'M PLUS Rounded 1c', 'Mochiy Pop One']);
+  for (const f of fams) {
     assert.ok(css.includes(`"${f}"`), f);
-    const c = COMPONENTS.find((x) => x.name.startsWith(f + ' '));
+    const c = COMPONENTS.find((x) => x.name === `${f} (font)`);
     assert.ok(c, `font ${f} non in elenco`);
     assert.equal(c.license, 'SIL Open Font License 1.1', f);
+    assert.match(c.notice, /Included in the app/);
   }
   // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing) lo caricano
   const cat = load('src/games/catalog.js').catalog;

@@ -49,7 +49,7 @@ Codice MIT. Nell'app: avviso da accettare al primo avvio e pagina "Privacy e con
 privacy, licenze dei componenti) in 43 lingue, vedi [docs/legal.md](docs/legal.md).
 
 Componenti di terze parti: [three.js](https://threejs.org) (MIT, Hari Rally e Hari Fishing); font Mochiy Pop One, M PLUS Rounded 1c
-e Baloo Bhaijaan 2 da Google Fonts (SIL Open Font License 1.1). QR Code è un marchio registrato di DENSO WAVE INCORPORATED.
+e Baloo Bhaijaan 2 inclusi nell'app in `assets/fonts/` (SIL Open Font License 1.1, testi in `docs/licenses/`). QR Code è un marchio registrato di DENSO WAVE INCORPORATED.
 
 Le mappe reali di Hari Taxi (Ostia, Desenzano del Garda, Ortigia) sono dati derivati da **OpenStreetMap**,
 © OpenStreetMap contributors, disponibili con licenza [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)

@@ -1022,10 +1022,12 @@
       <div class="stat-total">${ICON.acorn}<div><small>${t('score')}</small><b>${nf(P.totalScore())}</b></div><div class="stat-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div></div>
       <div class="stat-time">${ICON.clock}<span>${lab('st_play', 'Playing time')}</span><b>${fmtLong(HH.usage.total(HH.catalog.map((g) => g.id)))}</b></div>
       ${rows}
+      <label class="stat-consent"><input type="checkbox" id="cvdToggle"${HH.fx.cvd.on() ? ' checked' : ''}><span>${lab('cvd_toggle', 'Colour-blind friendly colours')}</span></label>
       ${HH.usage.canAsk() ? `<label class="stat-consent"><input type="checkbox" id="anToggle"${HH.usage.enabled() ? ' checked' : ''}><span>${lab('an_toggle', 'Send anonymous statistics')}</span></label>` : ''}
       <div class="stat-legal"><button class="lg-foot-link" id="statsLegal" type="button">${t('lg_link')}</button></div>`;
     const tg = $('#anToggle');
     if (tg) tg.onchange = () => HH.usage.setConsent(tg.checked);
+    $('#cvdToggle').onchange = (e) => HH.fx.cvd.set(e.target.checked);
     $('#statsLegal').onclick = () => { sfx.tap(); HH.legal.openPage('privacy'); };
     $('#statsDlg').hidden = false;
     $('#statsClose').focus();

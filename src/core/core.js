@@ -43,6 +43,18 @@
     clearGame(id) { HH.store.del('save:' + id); },
   };
 
+  // font giapponesi (~120 fette per peso, assets/fonts/fonts-ja.css): solo in giapponese. Il foglio va PRIMA di
+  // fonts.css, così per i caratteri in comune (ASCII) vincono le fette latine, come nell'ordine di @fontsource.
+  // Il file unico (HH.INLINE) non li ha: lì il giapponese usa i font di sistema, come cinese e coreano.
+  function jaFonts(code) {
+    if (code !== 'ja' || HH.INLINE || document.getElementById('fontsJa')) return;
+    const base = document.querySelector('link[href$="fonts/fonts.css"]');
+    if (!base) return;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.id = 'fontsJa'; l.href = base.getAttribute('href').replace('fonts.css', 'fonts-ja.css');
+    base.parentNode.insertBefore(l, base);
+  }
+
   const listeners = [];
   const i18n = {
     code: 'en',
@@ -64,6 +76,7 @@
       const meta = HH.LANGS.find((l) => l.code === code);
       document.documentElement.lang = code;
       document.documentElement.dir = meta ? meta.dir : 'ltr';
+      jaFonts(code);
       listeners.forEach((fn) => fn(code));
     },
     t(key) { return (HH.LOCALES[i18n.code] || {})[key] || HH.LOCALES.en[key] || key; },

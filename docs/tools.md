@@ -7,10 +7,11 @@
 | `selftest.mjs` | Benchmark rapido dei generatori (`npm run bench`) |
 | `i18n-check.mjs` | Ogni lingua ha tutte le chiavi, nessun vuoto, lingue obbligatorie presenti |
 | `privacy-check.mjs` | Repo pubblico: nessuna email personale (ammesse solo le «noreply»), token o chiavi nei file tracciati, nessun `.env`. Lanciato da `npm test` |
-| `build-inline.mjs` | Fonde CSS e JS in `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html` |
+| `build-inline.mjs` | Fonde CSS, JS e i font della shell (data URI) in `dist/hari-hari-puzzle.html` (file unico) e `dist/artifact.html` |
 | `gen-icons.mjs` | Icone SVG (standard, maskable, mascotte) dal disegno di Hari |
 | `rasterize-icons.py` | PNG 180/192/512 + maskable (richiede `pip install cairosvg`) |
 | `serve.mjs` | Server statico locale senza dipendenze (`node tools/serve.mjs [porta]`) |
+| `fonts-import.mjs` | Font dell'app: copia i woff2 dai pacchetti @fontsource (scaricati con `npm pack`) in `assets/fonts/`, scrive `fonts.css` e `fonts-ja.css` e le licenze OFL in `docs/licenses/` (vedi "Tipografia" in [design-system.md](design-system.md)) |
 | `legal-import.mjs` | Testi legali: importa chiavi `lg_*` e traduzioni, genera `src/i18n/legal/<lang>.js` e `licenses.js` (elenco unico dei componenti); `--export DIR` esporta i testi attuali in JSON da modificare e reimportare, vedi [legal.md](legal.md) |
 | `legal-e2e.mjs` | Prova dell'avviso legale con Playwright: primo avvio in it/ja/ar, tre caselle, chiaro/scuro, verticale/orizzontale (anche 402×874 e 874×402), sotto-viste, riaccettazione dopo la v1, accettazione → statistiche, piè di pagina, partita ripresa, file unico (`--port`, `--shots DIR`) |
 | `mp-demo.html` | Demo del multigiocatore (due ricci e una fragola): `http://localhost:5173/tools/mp-demo.html` |

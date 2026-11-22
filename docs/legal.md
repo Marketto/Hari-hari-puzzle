@@ -60,9 +60,9 @@ un test controlla che sia aggiornato).
 |---|---|---|---|
 | Hari Hari Puzzle | © 2026 Marketto | MIT (`LICENSE`) | tutta l'app |
 | three.js r160 | © 2010-2023 three.js authors | MIT (`src/vendor/three.LICENSE`) | Hari Rally e Hari Fishing (`src/vendor/three.min.js`) |
-| Mochiy Pop One | FONTDASU (Copyright 2020 The Mochiypop Project Authors) | SIL OFL 1.1 | titoli, file incluso nell'app |
-| M PLUS Rounded 1c | Coji Morishita, M+ Fonts Project (Copyright 2016 The Rounded M+ Project Authors) | SIL OFL 1.1 | testo, file incluso nell'app |
-| Baloo Bhaijaan 2 | Ek Type (Copyright 2019 The Baloo 2 Project Authors) | SIL OFL 1.1 | arabo, file incluso nell'app |
+| Mochiy Pop One | FONTDASU (Copyright 2020 The Mochiypop Project Authors) | SIL OFL 1.1 | titoli, incluso nell'app (`assets/fonts/`) |
+| M PLUS Rounded 1c | Coji Morishita, M+ Fonts Project (Copyright 2016 The Rounded M+ Project Authors) | SIL OFL 1.1 | testo, incluso nell'app (`assets/fonts/`) |
+| Baloo Bhaijaan 2 | Ek Type (Copyright 2019 The Baloo 2 Project Authors) | SIL OFL 1.1 | arabo, incluso nell'app (`assets/fonts/`) |
 | Dati OpenStreetMap | © OpenStreetMap contributors | ODbL 1.0 | mappe reali di Hari Taxi ([osm-attribution.md](osm-attribution.md)) |
 | QR Code | marchio registrato di DENSO WAVE INCORPORATED | avviso di marchio | codificatore/lettore QR del gioco in due: codice originale (MIT) |
 
@@ -70,7 +70,8 @@ Codice scritto per l'app (nessuna libreria esterna): Reed-Solomon e modem acusti
 (`src/net/qr.js`, base45 secondo RFC 9285), WebRTC del multigiocatore (`src/net/mp.js`).
 
 **Servizi** (non inclusi nell'app, descritti nell'informativa privacy): solo GoatCounter (statistiche anonime facoltative,
-[privacy.md](privacy.md)). I font sono file inclusi nell'app: nessuna richiesta a Google Fonts.
+[privacy.md](privacy.md)). I font non sono un servizio: i file stanno nell'app (`assets/fonts/`, `tools/fonts-import.mjs`),
+nessuna richiesta a Google Fonts.
 
 ## Prove
 - `node --test tests/legal.test.mjs`

@@ -8,9 +8,9 @@ description: Linee guida visive di Hari Hari Puzzle (palette, font, mascotte, an
 Vedi `docs/design-system.md` per i token completi.
 
 - **Mondo**: pasticceria giapponese — latte alla fragola, menta, crema, cacao (il riccio), lanterne di carta. Di notte: "giardino notturno" prugna con stelle.
-- **Font**: `Mochiy Pop One` solo per titoli e numeri grandi; `M PLUS Rounded 1c` per il testo; `Baloo Bhaijaan 2` per l'arabo.
+- **Font**: `Mochiy Pop One` solo per titoli e numeri grandi; `M PLUS Rounded 1c` per il testo; `Baloo Bhaijaan 2` per l'arabo. Sono file locali in `assets/fonts/` (`tools/fonts-import.mjs`), mai CDN.
 - **Forme**: raggi 18–28 px, bordi 2 px `--line`, ombra morbida `--shadow`. Pulsanti principali a pillola `--accent` con "spessore" sotto.
 - **Mascotte**: un solo disegno (`src/core/mascot.js`). Stati: `breathe` (idle), `blink`, `.jump` (vittoria), `.oops` (errore). Occhioni con 2 riflessi + scintilla; i riflessi seguono il puntatore.
 - **Movimento**: sfondo canvas (bolle di colore, petali, stelline) a bassa intensità; un'animazione forte solo alla vittoria (coriandoli + salto). Fra home e giochi la transizione `HH.transition` (src/core/transition.js): 7 varianti SVG (foglie, petali, bolle, stelline, aculei, frutta, nuvolette), colori dai token `--tr-*`; per una variante nuova aggiungi forma in `SHAPES`, voce in `LOOK`, movimento in `particles` e un token per tema. Rispetta sempre `prefers-reduced-motion`.
-- **Accessibilità**: i gusti di Boba Sort hanno anche un simbolo; contrasto AA per il testo; focus visibile.
+- **Accessibilità**: i gusti di Boba Sort hanno anche un simbolo; contrasto AA per il testo; focus visibile (`--focus`). Ogni token nuovo che porta informazione va anche nei blocchi alto contrasto (`prefers-contrast: more`) e daltonici (`[data-cvd]`, Okabe-Ito) di `styles.css`; mai il solo colore come indizio.
 - **Icone app**: modifica la mascotte, poi `npm run icons` (SVG) e `python3 tools/rasterize-icons.py` (PNG).
