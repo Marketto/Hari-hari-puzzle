@@ -120,5 +120,5 @@ renderebbe il gioco un abbinamento di forme.
 ## Limiti noti
 - Le voci disponibili dipendono dal telefono: su Android servono i dati della lingua di Sintesi vocale Google (o di un
   altro motore) installati; altrimenti si gioca con il fumetto. Da provare su telefoni veri (TODO).
-- I nomi dei colori nelle 41 lingue diverse da EN e IT sono per ora in inglese (da tradurre: `col_*` e le altre chiavi
-  `co_*`, `tu_colors_*`, `r_colors`); finché non tradotti la voce di quella lingua leggerebbe parole inglesi.
+- Nomi dei colori e testi del gioco (`col_*`, `co_*`, `tu_colors_*`, `r_colors`) tradotti in tutte le 43 lingue (v0.27.0),
+  in forma base del dizionario: la voce del telefono li legge nella lingua dell'app.

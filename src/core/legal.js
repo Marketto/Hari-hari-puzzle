@@ -127,7 +127,7 @@
   }
 
   /* ---------- avviso al primo avvio ---------- */
-  let gateEl = null;
+  let gateEl = null, gateLang = null;
   L.isOpen = () => !!gateEl;
   L.gate = function (opts = {}) {
     if (!L.needs()) return false;
@@ -220,12 +220,12 @@
       G.removeEventListener('popstate', onPop);
       if (app) app.inert = false;
       el.remove();
-      gateEl = null;
+      gateEl = null; gateLang = null;
       if (G.history.state && G.history.state.legal) { try { G.history.replaceState(null, ''); } catch (err) { /* niente history */ } }
     }
     d.addEventListener('keydown', onKey, true);
     G.addEventListener('popstate', onPop);
-    HH.i18n.onChange(onLang);
+    gateLang = onLang;              // ascoltatore unico registrato una volta sola (core.js non ha offChange)
     try { G.history.pushState({ legal: 1 }, ''); } catch (err) { /* niente history */ }
     draw();
     d.body.appendChild(el);
@@ -258,5 +258,6 @@
   };
 
   // cambio di lingua: i testi della lingua nuova si scaricano subito, così restano leggibili anche offline
+  if (HH.i18n && HH.i18n.onChange) HH.i18n.onChange(() => { if (gateLang) gateLang(); });
   if (HH.i18n && HH.i18n.onChange) HH.i18n.onChange((code) => { if (!L.needs() && G.navigator.onLine !== false) L.load(code).catch(() => {}); });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

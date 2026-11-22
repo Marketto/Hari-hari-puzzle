@@ -60,7 +60,7 @@
   const SOON = [];
 
   /* ---------- stato ---------- */
-  const S = { game: null, inst: null, elapsed: 0, won: false, pushed: false, best: 0, ms: {}, lastMove: 0, idleSaid: false };
+  const S = { gen: 0, game: null, inst: null, elapsed: 0, won: false, pushed: false, best: 0, ms: {}, lastMove: 0, idleSaid: false };
 
   /* ---------- Hari parla ---------- */
   const SAY = {
@@ -123,6 +123,7 @@
     const state = S.inst.snapshot();
     if (!state) return;
     const k = slot(S.game);
+    HH.store.set('slot:' + S.game.id, k);   // la ripresa (card e avvio) guarda questo posto, quello che si riaprirà
     P.saveGame(k, { level: P.get(k).level, elapsed: S.elapsed, state, meta: S.game.meta ? S.game.meta(state) : undefined });
   }
   function hud() {
@@ -188,8 +189,8 @@
     });
   }, { passive: true });
 
-  // partita in sospeso più recente di un gioco, anche negli slot (es. Hari Taxi: drive@ostia …)
-  const lastSave = (g) => [g.id].concat(g.slots || []).map((k) => P.loadGame(k)).filter(Boolean).sort((a, b) => (b.ts || 0) - (a.ts || 0))[0] || null;
+  // partita in sospeso di un gioco nel posto che si riaprirà (es. Hari Taxi: la mappa corrente drive@ostia …)
+  const lastSave = (g) => P.loadGame(HH.store.get('slot:' + g.id) || g.id);
 
   /* ---------- Home ---------- */
   function renderHome() {
@@ -208,7 +209,7 @@
         <span class="candy">${ICON.play}<span>${t('resume')}</span></span>
       </button>` : '';
     const cards = HH.catalog.map((g, idx) => {
-      const p = P.get(g.id), s = P.loadGame(g.id);
+      const p = P.get(g.id), s = lastSave(g);
       return `<button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id});--i:${idx}">
         <span class="card-art">
           ${g.endless ? '' : `<span class="ribbon-tag">${t('level')} ${p.level}</span>`}
@@ -266,11 +267,11 @@
       const d = document.createElement('div');
       d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'anTitle');
       d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
-        <h2 id="anTitle">${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
+        <h2 id="anTitle" tabindex="-1">${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
         <div class="win-actions"><button class="tool" data-an="0">${lab('an_no', 'No thanks')}</button><button class="candy" data-an="1">${ICON.sparkle}<span>${lab('an_yes', 'Yes, gladly')}</span></button></div></div>`;
       document.body.appendChild(d);
       d.onclick = (e) => { const b = e.target.closest('[data-an]'); if (!b) return; HH.usage.setConsent(b.dataset.an === '1'); sfx.tap(); d.remove(); };
-      const f = d.querySelector('[data-an="1"]'); if (f) f.focus({ preventScroll: true });
+      d.querySelector('#anTitle').focus({ preventScroll: true });   // focus sul titolo, non su un pulsante: il consenso dev'essere una scelta attiva
     }, delay);
   }
 
@@ -695,6 +696,8 @@
     const id = g.id;
     persist();
     S.game = g; S.inst = null; S.won = false;
+    const gen = ++S.gen;              // generazione: i timer di un gioco chiuso non toccano quello aperto dopo
+    const live = () => gen === S.gen;
     const saved = P.loadGame(slot(g));
     S.elapsed = saved ? saved.elapsed || 0 : 0;
     HH.store.set('screen', id);
@@ -735,7 +738,8 @@
       // cambia "posto" (es. un'altra mappa di Hari Taxi): salva la partita di adesso, poi riapre il gioco sul nuovo
       // (S.inst = null: openGame non deve risalvare la partita vecchia nel posto nuovo)
       reslot(fn) { persist(); S.inst = null; if (fn) fn(); openGame(g.id, false); },
-      sfx, react, win,
+      sfx, react,
+      win: (...a) => { if (live()) win(...a); },
       changed(o) {
         const reset = !!(o && o.reset);
         if (reset) { S.elapsed = 0; S.won = false; $('#winDlg').hidden = true; $('#loseDlg').hidden = true; HH.music.duck(false); refitSoon(); }
@@ -749,13 +753,13 @@
         sfx.bad();
         setTimeout(() => sfx.heart(), 250);
         react('oops');
-        if (left <= 0) setTimeout(() => lose('lives'), 1000);
+        if (left <= 0) setTimeout(() => { if (live()) lose('lives'); }, 1000);
         else setTimeout(() => { const l = $('#hLives'); if (l) l.innerHTML = livesHTML(left, g.lives); }, 900);
       },
       // mosse finite senza aver risolto (Boba Sort)
       outOfMoves(kind = 'moves') {
         react('oops');
-        setTimeout(() => lose(kind), 450);
+        setTimeout(() => { if (live()) lose(kind); }, 450);
       },
     };
     $('#gBack').onclick = () => (S.pushed ? history.back() : goHome());
@@ -885,6 +889,7 @@
   }
   function leaveGame() {
     persist();
+    S.gen++;
     hideSay();
     $('#loseDlg').hidden = true;
     S.game = null; S.inst = null;
@@ -1057,7 +1062,7 @@
   function applyTexts() {
     $('#langBtn').setAttribute('aria-label', t('lang'));
     $('#scoreChip').setAttribute('aria-label', t('stats'));
-    document.querySelectorAll('.icon-btn.close').forEach((b) => b.setAttribute('aria-label', lab('er_close', 'Close')));
+    document.querySelectorAll('#langDlg .close, #statsClose').forEach((b) => b.setAttribute('aria-label', lab('er_close', 'Close')));
     audioUI();
     $('#installBtn span').textContent = t('install');
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
@@ -1299,7 +1304,7 @@
     $('#home').addEventListener('click', (e) => { if (e.target.closest('#shareBtn')) { e.stopPropagation(); share(); } }, true);
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      $('#langDlg').hidden = true; $('#statsDlg').hidden = true; $('#installDlg').hidden = true;
+      $('#langDlg').hidden = true; $('#statsDlg').hidden = true; if (!$('#installDlg').hidden) closeInstall(3);
       const an = $('#anDlg'); if (an) an.remove();   // Esc = «non ora»: nessuna scelta salvata, la domanda torna a un prossimo avvio
     });
 

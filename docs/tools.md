@@ -19,7 +19,7 @@
 
 ## Struttura agentica (Claude Code)
 ```
-CLAUDE.md / AGENTS.md        regole d'oro + tabella ROUTER (richiesta → skill → agente → tool)
+CLAUDE.md (AGENTS.md rimanda qui) regole d'oro + tabella ROUTER (richiesta → skill → agente → tool)
 .claude/agents/
   router.md                  scompone richieste multi-area e delega
   game-designer.md           nuovi giochi, generatori, solver

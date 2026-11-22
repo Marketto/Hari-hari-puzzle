@@ -32,6 +32,17 @@
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
 
+## Fatto (v0.30.2) — revisione in 2 giri
+- [x] Bug: salvataggio illeggibile copiato/cancellato nello slot giusto (Hari Taxi); ripresa e card «Riprendi» sul posto
+  che si riaprirà (`slot:<id>`); timer di vittoria/sconfitta di un gioco chiuso non toccano il gioco aperto dopo
+  (generazione `S.gen`); transizione: chiamate arrivate nell'ultimo fotogramma di copertura non restano in coda
+- [x] Service worker: cache dei font solo con risposte buone, pagina di riserva offline solo per le navigazioni
+- [x] Accessibilità: etichette tradotte (Tutti i giochi, Chiudi), titoli collegati alle finestre, Esc su consenso e
+  Installa, focus del consenso sul titolo (nessun «sì» con un Invio per caso)
+- [x] Strumenti: legal-import non scrive nulla con errori; serve.mjs robusto a URL malformati
+- [x] Documentazione per agenti allineata al codice (AGENTS.md → CLAUDE.md, qa-check unica checklist, game-designer,
+  release-android, add-game, audio-music, README, docs)
+
 ## Fatto (v0.30.1)
 - [x] Hari Fishing, pesci più veri e vivi (feedback: "code al contrario", "sembrano pezzi di legno"): corpo generato
   affusolato col peduncolo caudale stretto, coda per specie attaccata al peduncolo e larga verso l'esterno (forcuta,

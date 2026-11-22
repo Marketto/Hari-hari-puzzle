@@ -218,6 +218,11 @@
         ov.classList.remove('wait');
         // un fotogramma perché la schermata nuova sia disegnata sotto la copertura
         await new Promise((r) => (G.requestAnimationFrame ? G.requestAnimationFrame(() => r()) : setTimeout(r, 16)));
+        // chiamate arrivate proprio in quel fotogramma (fase ancora 'hold'): eseguite qui, mai lasciate in coda
+        while (state.queue.length) {
+          const q = state.queue.shift();
+          try { q.res(await cap(Promise.resolve().then(q.swap))); } catch (e) { q.rej(e); }
+        }
         state.phase = 'reveal';
         root.dataset.trans = 'reveal';
         if (opts.focus) {
