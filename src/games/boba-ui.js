@@ -446,6 +446,8 @@
     rate: (s) => HH.rules.rateMoves(s.moves, s.par, s.max),
     parTime: (s) => (s.start.length - 2) * 22,
     // somma degli strati "giusti" alla base di ogni bicchiere: 0 all'inizio, 1 a soluzione
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.boba.isSolved(s.cups),
     progress: (s) => {
       const colors = s.start.length - 2;
       let sum = 0;

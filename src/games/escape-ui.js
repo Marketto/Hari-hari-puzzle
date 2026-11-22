@@ -564,6 +564,8 @@
     return {
       fresh, restart,
       undo() { /* in una escape room non si torna indietro: non serve (niente sconfitta) */ },
+      // uscita dal gioco (contratto): orologio e timer (anche la vittoria in ritardo) si fermano subito
+      destroy() { clearTimers(); clearInterval(clock); },
       snapshot: () => s,
     };
   }
@@ -573,6 +575,8 @@
     rulesEn: 'Hari is locked in a cute house, castle, ship or lab: help him escape! Look around, find hidden objects, combine them and solve the puzzles with the clues in the rooms to open every door. The light bulb gives a hint, but costs strawberries.',
     rate: (s) => HH.escape.rate(s),
     parTime: (s) => HH.escape.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.escape.isWon(s),
     progress: (s) => HH.escape.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

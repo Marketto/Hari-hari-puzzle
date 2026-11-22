@@ -409,6 +409,8 @@
     return {
       fresh, restart,
       undo() { /* gioco di rapidità: annullare non ha senso */ },
+      // uscita dal gioco (contratto): voce, RAF e timer si fermano subito
+      destroy: detach,
       snapshot: () => s,
       pause() { pause(); },
       resume() { /* si riprende con un tocco sulla copertina (serve anche a sbloccare la voce) */ },
@@ -420,6 +422,8 @@
     rulesEn: 'Hari says a colour out loud: tap the shape of that colour as fast as you can! Quick answers and streaks score more. Later, colour words appear written in a different ink: tap the INK colour you hear, not the word.',
     rate: (s) => HH.colors.rate(s),
     parTime: (s) => HH.colors.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.colors.isWon(s),
     progress: (s) => HH.colors.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

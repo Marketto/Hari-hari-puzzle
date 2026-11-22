@@ -1921,6 +1921,8 @@
       undo() { toggle(); },
       pause() { pause(); },          // usato dall'app quando si apre il tutorial
       resume() { resume(); },
+      // uscita dal gioco (contratto): RAF, tasti e timer si fermano subito
+      destroy() { stop(); detach(); },
       snapshot: () => s,
     };
   }
@@ -1957,6 +1959,8 @@
     // (s assente solo per un attimo: mappa reale ancora in download)
     rate: (s) => (s ? HH.drive.rate(s) : 0),
     parTime: (s) => (s ? HH.drive.par(s) : 0),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => !!s && HH.drive.isWon(s),
     progress: (s) => (s ? HH.drive.progress(s) : 0),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

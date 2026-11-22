@@ -662,6 +662,8 @@
       },
       pause() { paused = true; stop(); if (wrap) wrap.classList.add('fl-paused'); },
       resume() { paused = false; if (wrap && !introOpen) wrap.classList.remove('fl-paused'); start(); },
+      // uscita dal gioco (contratto): RAF e timer si fermano subito
+      destroy() { stop(); clearTimers(); },
       snapshot: () => s,
     };
   }
@@ -671,6 +673,8 @@
     rulesEn: 'Hari is the flight attendant! Count the passengers at boarding, stow the bags in the overhead bins, make sure every seatbelt is fastened, cook for the captain and heat the meals, serve what everyone asks for and collect the rubbish before landing.',
     rate: (s) => HH.flight.rate(s),
     parTime: (s) => HH.flight.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.flight.isWon(s),
     progress: (s) => HH.flight.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

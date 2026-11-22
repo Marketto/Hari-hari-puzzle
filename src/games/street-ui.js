@@ -674,6 +674,7 @@
       status(L('st_lan_wait'));
       let link = null;
       try { link = await HH.mp.pair({ game: 'street', players: 2, title: 'Hari Snack Street' }); } catch (e) { link = null; }
+      if (gone || !el.isConnected) { if (link) try { link.close(); } catch (e) { /* già chiuso */ } return; }   // gioco chiuso durante l'abbinamento
       status('');
       if (!link) { paused = false; if (s && !P.isOver(s)) start(); else begin(newState(ctx.level)); return; }
       mode = 'lan';
@@ -835,7 +836,9 @@
     function onBlur() { pads.forEach((pd) => { pd.keys = {}; }); }
     const mq = G.matchMedia ? G.matchMedia('(prefers-color-scheme: dark)') : null;
     function onTheme() { themeAt = 0; }
+    let gone = false;
     function detach() {
+      gone = true;
       stop();
       if (lockedFs) { lockedFs = false; orient(false); }
       leaveNet();
@@ -895,6 +898,8 @@
       pause() { pause(); },
       resume() { resume(); },
       online: () => !!net,          // in rete: il velo dello schermo intero dell'app non mette in pausa
+      // uscita dal gioco (contratto): RAF, timer e rete (link.close('local')) si fermano subito
+      destroy: detach,
       // l'ospite salva solo i numeri della vista (non riprendibile: alla riapertura si riparte in locale)
       snapshot: () => (net && net.role === 'guest' ? Object.assign({}, v || { v: 1, view: 1, oops: 0, mistakes: 0, moves: 0, waveN: 3, bossNeed: 60, prog: 0 }) : s),
     };
@@ -920,6 +925,8 @@
     tutorial: TUT,
     rate: (s) => HH.street.rate(s),
     parTime: (s) => HH.street.parTime(s),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.street.isWon(s),
     progress: (s) => HH.street.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

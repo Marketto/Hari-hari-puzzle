@@ -305,6 +305,8 @@
     tutorial: TUT,
     rate: (s) => HH.fixit.rate(s),
     parTime: (s) => (s.problems ? s.problems.length : 5) * 15,
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.fixit.isSolved(s),
     progress: (s) => HH.fixit.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

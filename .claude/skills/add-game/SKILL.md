@@ -16,9 +16,16 @@ HH.games.push({
   rate: (s) => 1..3,      // stelle in base allo stato finale
   parTime: (s) => secondi,// tempo di riferimento per il bonus
   progress: (s) => 0..1,  // OBBLIGATORIO (regola 6): guida musica e frasi di Hari
+  solved: (s) => bool,    // OBBLIGATORIO nei giochi a livelli: true solo a partita vinta (isWon/isSolved della logica).
+                          // Riaprendo uno stato già risolto (uscita durante il ritardo prima di ctx.win) l'app assegna la
+                          // vittoria (HH.rules.solvedOnResume); senza solved userebbe progress(s) >= 1
   create(el, ctx, saved) {// monta il gioco; saved = snapshot salvato (o null)
     // ctx.level · ctx.changed({reset}) dopo ogni mossa · ctx.win() · ctx.sfx.* · ctx.react('oops'|'happy')
-    return { fresh(), restart(), undo(), snapshot(), pause?(), resume?() };  // snapshot: JSON con moves
+    return { fresh(), restart(), undo(), snapshot(), pause?(), resume?(), destroy?() };  // snapshot: JSON con moves
+    // destroy(): chiamato UNA volta all'uscita (home, ricreazione, cambio posto, ricarica per aggiornamento), dopo
+    // l'ultimo salvataggio. Ferma subito RAF, timer (anche il ctx.win in ritardo), sensori, voce, WebGL e rete
+    // (link.close() → 'local'). Obbligatorio se il gioco usa RAF continui, sensori, voce, rete o timer lunghi;
+    // tieni comunque il controllo el.isConnected come rete di sicurezza.
   },
   // facoltativi: tutorial (passi illustrati) · lives (cuori) · endless (senza livelli) · fill (a tutto schermo
   // occupa la finestra) · slot() (progressi separati, es. mappe) · plate: 'night' · coach (frasi proprie)

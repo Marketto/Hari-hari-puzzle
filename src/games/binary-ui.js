@@ -401,6 +401,8 @@
     id: 'binary', name: 'Mochi Binary', rules: 'r8', art, create, lives: LIVES, tutorial,
     rate: (s) => Math.max(1, 3 - (s.mistakes || 0)),
     parTime: (s) => Math.round(s.n * s.n * 1.6),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.binary.isSolved(s.solution, s.board),
     progress: (s) => {
       let ok = 0;
       s.board.forEach((v, i) => { if (v && v === s.solution[i]) ok++; });

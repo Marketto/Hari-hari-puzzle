@@ -446,6 +446,8 @@
       // il nastro e la pazienza si fermano mentre è aperto il tutorial
       pause() { cancelAnimationFrame(raf); raf = 0; },
       resume() { if (!S.isOver(s)) start(); },
+      // uscita dal gioco (contratto): il nastro si ferma subito
+      destroy() { cancelAnimationFrame(raf); raf = 0; },
       snapshot: () => s,
     };
   }
@@ -469,6 +471,8 @@
     tutorial: TUT,
     rate: (s) => HH.sushi.rate(s),
     parTime: (s) => s.goal * 9,
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.sushi.isWon(s) && !HH.sushi.isLost(s),
     progress: (s) => Math.max(0, Math.min(1, s.served / s.goal)),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

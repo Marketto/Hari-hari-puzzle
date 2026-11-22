@@ -448,6 +448,8 @@
     // fragoline: 3 con ≤ 1 ripensamento (≤ 2 con 8+ colori), 2 fino a un ripensamento per colore, 1 oltre
     rate: (s) => HH.yarn.rate(s.rethinks, s.ends.length),
     parTime: (s) => Math.round(s.n * s.n * 1.6),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.yarn.isSolved(s.n, s.ends, s.paths),
     progress: (s) => HH.yarn.progress(s.n, s.ends, s.paths),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

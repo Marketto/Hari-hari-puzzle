@@ -532,6 +532,8 @@
       fresh,
       restart,
       undo,
+      // uscita dal gioco (contratto): timer della vittoria e dei suggerimenti
+      destroy() { clearTimeout(winTimer); clearInterval(idleTimer); },
       snapshot: () => s,
     };
   }
@@ -547,6 +549,8 @@
     rate: (s) => Math.max(1, Math.min(3, 3 - (s.mistakes || 0) - ((s.hints || 0) > 2 ? 1 : 0))),
     // tempo di riferimento: più caselle vuote e tecniche più difficili = più tempo
     parTime: (s) => Math.round(HH.sudoku.toFill(s) * (5 + 2 * Math.max(1, s.tech || 1))),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.sudoku.isSolved(s),
     progress: (s) => HH.sudoku.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

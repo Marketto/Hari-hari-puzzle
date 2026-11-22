@@ -603,6 +603,8 @@
       undo() { toggle(); },
       pause() { pause(); },          // usato dall'app quando si apre il tutorial
       resume() { resume(); },
+      // uscita dal gioco (contratto): RAF, tasti e timer si fermano subito
+      destroy() { stop(); detach(); },
       snapshot: () => s,
     };
   }
@@ -627,6 +629,8 @@
     rate: (s) => HH.parade.rate(s),
     // circa mezza diagonale del prato per frutto, alla velocità del livello, più le pause "Pronti?"
     parTime: (s) => Math.round((s.goal * (s.cols + s.rows) * 0.55) / s.speed + 6),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.parade.isWon(s) && !HH.parade.isLost(s),
     progress: (s) => HH.parade.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

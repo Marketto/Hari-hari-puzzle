@@ -416,6 +416,8 @@
         s.moves = Math.max(0, s.moves - 1);
         paint(); ctx.sfx.mark(); ctx.changed();
       },
+      // uscita dal gioco (contratto): timer della vittoria e dei ricci che si guardano intorno
+      destroy() { clearTimeout(winTimer); clearInterval(idle); idle = 0; },
       snapshot: () => s,
     };
   }
@@ -429,6 +431,8 @@
     ],
     rate: (s) => Math.max(1, 3 - (s.mistakes || 0)),
     parTime: (s) => s.n * s.n * 2,
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.hedgedoku.check(s.n, s.regions, s.board).solved,
     progress: (s) => {
       const placed = s.board.filter((v) => v === 2).length - s.given.length;
       return Math.max(0, Math.min(1, placed / Math.max(1, s.n - s.given.length)));

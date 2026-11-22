@@ -19,6 +19,12 @@
 - [x] Tema scuro scritto una volta sola in `styles.css`
 - [ ] Traduzioni di `cvd_toggle` (ora in inglese nelle lingue diverse da it)
 - [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
+- [x] Partita risolta salvata senza vittoria (uscita durante il ritardo prima di `ctx.win`): alla riapertura l'app assegna la
+      vittoria una volta sola (`HH.rules.solvedOnResume`, `solved(s)` in ogni gioco a livelli); test `tests/resume.test.mjs`
+- [x] `destroy()` facoltativo nel contratto dei giochi, chiamato dal nucleo all'uscita/ricreazione/aggiornamento: RAF, voce,
+      sensori e rete si fermano subito (fish, colors, street, rally, drive, snack, parade, flight, escape, life, memory,
+      sudoku, hedgedoku, spot, sushi); e2e `tools/lifecycle-e2e.mjs`
+- [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
 
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)

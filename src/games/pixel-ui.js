@@ -385,6 +385,8 @@
     rate: (s) => HH.pixel.rate(s),
     // circa 1,6 s per cella: 5×5 = 40 s, 10×10 = 160 s
     parTime: (s) => Math.round((s.board ? s.board.length : 25) * 1.6),
+    // partita vinta (controllo preciso): alla riapertura di uno stato risolto l'app assegna la vittoria
+    solved: (s) => HH.pixel.isSolved(HH.pixel.puzzleOf(s), s.board),
     progress: (s) => HH.pixel.progress(s),
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
