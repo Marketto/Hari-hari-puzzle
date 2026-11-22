@@ -11,7 +11,7 @@ import { botKit } from './_drive-bot.mjs';
 // i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
 const SLOW = process.env.CI ? 3 : 1;
 
-const HH = load('src/core/rng.js', 'src/games/drive-logic.js');
+const HH = load('src/core/rng.js', 'src/games/drive-osm.js', 'src/games/drive-traffic.js', 'src/games/drive-logic.js');
 const D = HH.drive;
 const DT = 1 / 60;
 const { roadDist, tile, graph, makeBot, play, fresh } = botKit(HH);

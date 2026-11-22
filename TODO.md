@@ -6,6 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] File dei giochi divisi in moduli < ~800 righe (R19), refactoring puro senza cambi di comportamento:
+  Hari Rally (`rally-ui.js` → art, 3d, scenery, decor, karts, view, hud, duo), Hari Fishing (`fish-ui.js` → art,
+  3d, models, uw, view, hud), Hari Taxi (`drive-ui.js` → art, city, osm-paint, draw; `drive-logic.js` → osm,
+  traffic), Hari Escape (`escape-logic.js` → puzzles). Moduli nel catalogo (lazy load), test e benchmark aggiornati.
+
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)

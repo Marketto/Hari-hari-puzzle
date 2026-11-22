@@ -11,7 +11,7 @@ import { load, root } from './_load.mjs';
 // i server di GitHub sono più lenti e variabili: i limiti di tempo valgono il triplo in CI
 const SLOW = process.env.CI ? 3 : 1;
 
-const HH = load('src/games/escape-logic.js');
+const HH = load('src/games/escape-puzzles.js', 'src/games/escape-logic.js');
 const E = HH.escape;
 const LEVELS = Array.from({ length: 20 }, (_, i) => i + 1);
 const SEEDS = [1, 7, 42, 99, 1234, 31337];

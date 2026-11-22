@@ -618,7 +618,8 @@ test('aderenza limitata: troppo veloci in curva si va larghi e si derapa; la der
 });
 
 test('hitbox coerenti con la grafica: kart, ostacoli, muri e imbuti usano le misure e la posa della logica', () => {
-  const ui = fs.readFileSync(path.join(root, 'src/games/rally-ui.js'), 'utf8');
+  // la grafica è divisa in più moduli (rally-art, -3d, -scenery, -decor, -karts, -view, -hud, -duo, -ui): si leggono tutti
+  const ui = ['art', '3d', 'scenery', 'decor', 'karts', 'view', 'hud', 'duo', 'ui'].map((m) => fs.readFileSync(path.join(root, `src/games/rally-${m}.js`), 'utf8')).join('\n');
   // kart costruiti con P.CAR_L × P.CAR_W e messi nella posa della logica (P.pose); ostacoli col loro raggio; bordi e imbuti
   for (const k of ['P.CAR_L', 'P.CAR_W', 'P.pose(g, c)', 'rk.r', 'pr.r', 'P.edgeAt', 'P.sideAt', 'P.RAIL', 'P.TUBE', 'P.FUN', 'P.PU.boxR', 'P.PU.honeyR', 'P.PU.bananaR']) assert.ok(ui.includes(k), `la grafica non usa ${k}`);
   // visuale pilota: la camera è dietro il centro del kart in modo che il bordo del cofano coincida col muso del rettangolo

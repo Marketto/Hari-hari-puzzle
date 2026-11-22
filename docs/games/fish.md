@@ -6,7 +6,10 @@ spaventa), poi si torna in superficie per la lotta, con le espressioni di Hari i
 gioca muovendo il telefono come una canna da pesca (sensori di movimento); su PC col mouse e due comandi a schermo.
 
 - id `fish`, brand **Hari Fishing** (non tradotto), regole `r_fish`, brano `fish`, tinta `--tint-fish`, token `--fsh-*`.
-- File: `src/games/fish-logic.js` (logica pura), `src/games/fish-ui.js` (three.js), `src/games/fish.css`,
+- File: `src/games/fish-logic.js` (logica pura), `src/games/fish-ui.js` (three.js: `create()`, comandi, eventi, ciclo;
+  monta con un contesto condiviso `FX` i moduli `fish-art.js` forme dei pesci e disegni SVG · `fish-3d.js` renderer e
+  scena · `fish-models.js` pesci 3D · `fish-uw.js` sott'acqua · `fish-view.js` disegno della superficie · `fish-hud.js`
+  DOM e indicatori), `src/games/fish.css`,
   `tests/fish.test.mjs`, `tests/_fish-bot.mjs` (bot dei test), blocco in `tools/selftest.mjs`.
 - three.js r160 è lo stesso file di Hari Rally (`src/vendor/three.min.js`): nel catalogo è tra i `files` di entrambi;
   `HH.loadGame` non ricarica un file già caricato da un altro gioco e il service worker lo mette in cache una volta.

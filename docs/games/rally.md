@@ -11,7 +11,11 @@ alberi, rocce e transenne fermano o fanno girare, chi esce troppo viene riportat
 tra kart sono spintarelle, i power-up fanno scivolare, appiccicare o rallentare un attimo.
 
 - id `rally`, brand **Hari Rally** (non tradotto), regole `r14`, brano `rally`, tinta `--tint-rally`, token `--ry-*`.
-- File: `src/games/rally-logic.js` (logica pura, niente DOM né THREE), `src/games/rally-ui.js` (three.js + HUD HTML),
+- File: `src/games/rally-logic.js` (logica pura, niente DOM né THREE), `src/games/rally-ui.js` (three.js + HUD HTML:
+  `create()`, stato, comandi, eventi, ciclo; monta i moduli della grafica con un contesto condiviso `RX`: `rally-art.js`
+  testi e disegni SVG · `rally-3d.js` renderer, materiali, terreno, cielo · `rally-scenery.js` blocchi di scenario ·
+  `rally-decor.js` bosco, città, mare, neve · `rally-karts.js` kart, particelle, power-up in pista · `rally-view.js`
+  camera e disegno · `rally-hud.js` DOM e indicatori · `rally-duo.js` a due giocatori),
   `src/games/rally.css`, `src/games/rally-net.js` + `src/games/rally-mp.css` (a due giocatori, vedi sotto), `src/vendor/three.min.js` + `src/vendor/three.LICENSE`, `tests/rally.test.mjs` +
   `tests/_rally-bot.mjs` (bot pilota), blocco "Hari Rally" in `tools/selftest.mjs`.
 - Audio in `src/core/audio.js`: brano `rally`, `pace(dir, g)` (bip del navigatore a destra/sinistra),

@@ -31,7 +31,8 @@
     // slots = progressi separati per mappa (prog:drive@ostia …), contati nel punteggio totale
     { id: 'drive', name: 'Hari Taxi', since: '0.14.0', rules: 'r13',
       rulesEn: 'Drive Hari around the city seen from above: pick up passengers with the taxi, deliver hot food by scooter and parcels by van before time runs out. Every bump into a car or an animal crossing the street costs a heart!',
-      files: f('drive.css', 'drive-logic.js', 'drive-maps.js', 'drive-ui.js'),
+      // logica in drive-osm.js + drive-traffic.js (montati da drive-logic.js); grafica in drive-art, -city, -osm-paint, -draw (montati da drive-ui.js)
+      files: f('drive.css', 'drive-osm.js', 'drive-traffic.js', 'drive-logic.js', 'drive-maps.js', 'drive-art.js', 'drive-city.js', 'drive-osm-paint.js', 'drive-draw.js', 'drive-ui.js'),
       extra: f('drive-map-ostia.js', 'drive-map-desenzano.js', 'drive-map-ortigia.js'), slots: ['drive@ostia', 'drive@desenzano', 'drive@ortigia'] },
     { id: 'spot', name: 'Hari Spot', since: '0.16.0', rules: 'r16',
       rulesEn: 'Two pictures of the city or the forest, almost the same: find every difference! Tap it on either picture to circle it. The magnifier shows where to look, but costs a strawberry; random taps cost a little time.',
@@ -45,7 +46,7 @@
       files: f('hedgedoku.css', 'sudoku.css', 'hog-kit.js', 'sudoku-logic.js', 'sudoku-ui.js') },
     { id: 'escape', name: 'Hari Escape', since: '0.19.0', rules: 'r18',
       rulesEn: 'Hari is locked in a cute house, castle, ship or lab: help him escape! Look around, find hidden objects, combine them and solve the puzzles with the clues in the rooms to open every door. The light bulb gives a hint, but costs strawberries.',
-      files: f('escape.css', 'escape-logic.js', 'escape-art.js', 'dom-patch.js', 'escape-ui.js') },
+      files: f('escape.css', 'escape-puzzles.js', 'escape-logic.js', 'escape-art.js', 'dom-patch.js', 'escape-ui.js') },
     { id: 'life', name: 'Hari Home', since: '0.12.0', rules: 'r12', endless: true,
       rulesEn: 'Hari’s life sim: start in a shabby studio with a few acorns. Fix it up and furnish it, start a business, go shopping, see the doctor, play sports and invite friends. Keep Hari happy, healthy and rested as he grows up, all the way to grandpa!',
       files: f('life.css', 'life-data.js', 'life-logic.js', 'life-art.js', 'life-draw.js', 'life-ui.js') },
@@ -53,11 +54,14 @@
     { id: 'rally', name: 'Hari Rally', since: '0.17.0', rules: 'r14',
       rulesEn: 'Kart rally through forests, cities, seaside and snow, by day and by night, with Hari in his strawberry kart: accelerate, brake and steer (automatic speed is an option). Follow the pace notes (6 = fast bend, 1 = hairpin), brake before tight bends or you slide onto the grass, hold a drift for a mini boost, grab surprise gifts for silly power-ups and finish in the top 3 against Bunny, Fox and Panda.',
       // a due giocatori: rally-net.js (gara in rete su HH.mp) e rally-mp.css (schermo diviso, quinto kart)
-      files: [...f('rally.css', 'rally-mp.css'), ...NET, 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-net.js', 'rally-ui.js')] },
+      // la grafica è divisa in moduli (art, 3d, scenery, decor, karts, view, hud, duo) montati da rally-ui.js, che va per ultimo
+      files: [...f('rally.css', 'rally-mp.css'), ...NET, 'src/vendor/three.min.js', ...f('rally-logic.js', 'rally-net.js',
+        'rally-art.js', 'rally-3d.js', 'rally-scenery.js', 'rally-decor.js', 'rally-karts.js', 'rally-view.js', 'rally-hud.js', 'rally-duo.js', 'rally-ui.js')] },
     // three.js è condiviso con Hari Rally (stesso file, una sola copia in cache); niente rete: si gioca da soli
     { id: 'fish', name: 'Hari Fishing', since: '0.28.0', rules: 'r_fish',
       rulesEn: 'Go fishing with Hari from the jetty, at the lake or by the sea! Cast by swinging your phone like a rod (or drag with the mouse), wait for a bite, then tip the phone up to reel in and down to let out, keeping the line in the green: too tight and it snaps, too loose and the fish slips away. Every fish goes into the album and back into the water with a little heart.',
-      files: [...f('fish.css'), 'src/vendor/three.min.js', ...f('fish-logic.js', 'fish-ui.js')] },
+      // la grafica è divisa in moduli (art, 3d, models, uw, view, hud) montati da fish-ui.js, che va per ultimo
+      files: [...f('fish.css'), 'src/vendor/three.min.js', ...f('fish-logic.js', 'fish-art.js', 'fish-3d.js', 'fish-models.js', 'fish-uw.js', 'fish-view.js', 'fish-hud.js', 'fish-ui.js')] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },
