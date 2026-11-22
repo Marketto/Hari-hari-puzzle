@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Yazı tipleri",
-    "p": [
-     "Yuvarlak harflerini gösterebilmek için uygulama, çevrimiçi ilk açıldığında Google Fonts’tan (fonts.googleapis.com, fonts.gstatic.com) yazı tipleri indirebilir. Bu istek, Google’ın gizlilik politikası kapsamında IP adresini Google’a açığa çıkarır. Başka hiçbir veri gönderilmez."
-    ]
-   },
-   {
     "h": "İki oyunculu mod",
     "p": [
      "İki cihaz aynı Wi-Fi veya hotspot üzerinden doğrudan bağlanır: oyun sunucusu veya internet kullanılmaz. Mikrofon yalnızca eşleştirme sırasında diğer telefonun melodisini dinlemek için, kamera ise yalnızca QR kodunu okumak için kullanılır: ses ve görüntüler bellekte analiz edilir, asla kaydedilmez veya gönderilmez ve telefonlar bağlanır bağlanmaz ikisi de kapatılır. Oyun mesajları iki cihaz arasında şifrelenir."

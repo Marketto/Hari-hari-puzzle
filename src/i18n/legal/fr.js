@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Polices",
-    "p": [
-     "Pour afficher ses lettres arrondies, l’app peut télécharger des polices depuis Google Fonts (fonts.googleapis.com, fonts.gstatic.com) la première fois qu’elle est ouverte en ligne. Cette requête révèle ton adresse IP à Google, conformément à la politique de confidentialité de Google. Aucune autre donnée n’est envoyée."
-    ]
-   },
-   {
     "h": "Mode deux joueurs",
     "p": [
      "Deux appareils se connectent directement sur le même Wi-Fi ou point d’accès : aucun serveur de jeu ni internet n’est utilisé. Le micro sert uniquement à écouter la mélodie de l’autre téléphone pendant l’appairage, et la caméra uniquement à lire le QR code : les sons et les images sont analysés en mémoire, jamais enregistrés ni envoyés, et les deux sont désactivés dès que les téléphones sont connectés. Les messages de jeu sont chiffrés entre les deux appareils."

@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fontit",
-    "p": [
-     "Näyttääkseen pyöreät kirjaimensa sovellus voi ladata fontteja Google Fonts -palvelusta (fonts.googleapis.com, fonts.gstatic.com), kun se avataan ensimmäisen kerran verkossa. Tämä pyyntö paljastaa IP-osoitteesi Googlelle Googlen tietosuojakäytännön mukaisesti. Muita tietoja ei lähetetä."
-    ]
-   },
-   {
     "h": "Kahden pelaajan tila",
     "p": [
      "Kaksi laitetta muodostaa suoran yhteyden samassa Wi-Fi-verkossa tai hotspotissa: pelipalvelinta tai internetiä ei käytetä. Mikrofonia käytetään vain toisen puhelimen sävelmän kuunteluun parinmuodostuksen aikana ja kameraa vain QR-koodin lukemiseen: ääntä ja kuvia analysoidaan muistissa, niitä ei koskaan tallenneta eikä lähetetä, ja molemmat sammutetaan heti, kun puhelimet ovat yhteydessä. Pelin viestit salataan kahden laitteen välillä."

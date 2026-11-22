@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Písma",
-    "p": [
-     "Aby mohla zobraziť svoje zaoblené písmená, aplikácia môže pri prvom otvorení online stiahnuť písma z Google Fonts (fonts.googleapis.com, fonts.gstatic.com). Táto požiadavka prezradí tvoju IP adresu spoločnosti Google podľa zásad ochrany súkromia Google. Žiadne iné údaje sa neposielajú."
-    ]
-   },
-   {
     "h": "Režim pre dvoch hráčov",
     "p": [
      "Dve zariadenia sa prepoja priamo v tej istej sieti Wi-Fi alebo hotspote: nepoužíva sa žiadny herný server ani internet. Mikrofón slúži len na počúvanie melódie druhého telefónu počas párovania a fotoaparát len na čítanie QR kódu: zvuk a obraz sa analyzujú v pamäti, nikdy sa nenahrávajú ani neodosielajú a obe sa vypnú, hneď ako sú telefóny prepojené. Herné správy sú medzi oboma zariadeniami šifrované."

@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Lettertypen",
-    "p": [
-     "Om de ronde letters te tonen kan de app lettertypen downloaden van Google Fonts (fonts.googleapis.com, fonts.gstatic.com) wanneer hij voor het eerst online wordt geopend. Dit verzoek maakt je IP-adres bekend aan Google, volgens het privacybeleid van Google. Er worden geen andere gegevens verstuurd."
-    ]
-   },
-   {
     "h": "Tweespelermodus",
     "p": [
      "Twee apparaten maken rechtstreeks verbinding via hetzelfde wifi-netwerk of dezelfde hotspot: er wordt geen gameserver en geen internet gebruikt. De microfoon wordt alleen gebruikt om tijdens het koppelen naar het melodietje van de andere telefoon te luisteren, en de camera alleen om de QR-code te lezen: geluid en beelden worden in het geheugen geanalyseerd, nooit opgenomen of verstuurd, en beide worden uitgeschakeld zodra de telefoons verbonden zijn. Spelberichten worden tussen de twee apparaten versleuteld."

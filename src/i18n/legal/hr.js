@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fontovi",
-    "p": [
-     "Kako bi prikazala svoja zaobljena slova, aplikacija pri prvom otvaranju online može preuzeti fontove s Google Fonts (fonts.googleapis.com, fonts.gstatic.com). Taj zahtjev otkriva tvoju IP adresu Googleu, u skladu s Googleovim pravilima privatnosti. Drugi se podaci ne šalju."
-    ]
-   },
-   {
     "h": "Način za dva igrača",
     "p": [
      "Dva se uređaja spajaju izravno na istoj Wi-Fi mreži ili hotspotu: ne koristi se ni poslužitelj igre ni internet. Mikrofon služi samo za slušanje melodije drugog mobitela tijekom uparivanja, a kamera samo za čitanje QR koda: zvuk i slike analiziraju se u memoriji, nikad se ne snimaju ni šalju, a oboje se isključuje čim se mobiteli povežu. Poruke igre šifrirane su između dvaju uređaja."

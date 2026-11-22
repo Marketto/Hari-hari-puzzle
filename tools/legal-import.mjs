@@ -3,6 +3,9 @@
 //   node tools/legal-import.mjs                                  rigenera solo src/i18n/legal/licenses.js
 //   node tools/legal-import.mjs <source.json> [tr.json ...]      importa chiavi brevi e testi lunghi
 //   node tools/legal-import.mjs --fallback-en <source.json> ...  lingue senza traduzione: chiavi in inglese (provvisorio)
+//   node tools/legal-import.mjs --export <dir>                    esporta i testi attuali (locales.js + src/i18n/legal/<lang>.js)
+//                                                                in <dir>/source.json e <dir>/tr-<lang>.json, pronti da modificare
+//                                                                e reimportare: node tools/legal-import.mjs <dir>/source.json <dir>/tr-*.json
 //
 // source.json = { keys: { lg_*: { en, it } }, docs: { terms|privacy|licenses: { en: doc, it: doc } } }
 // tr.json     = { "<lang>": { keys: {...}, docs: { terms, privacy, licenses } } }   (più lingue in un file)
@@ -123,6 +126,29 @@ function applyKeys(keys, T, fallbackEn) {
   return missing;
 }
 
+/* ---------- esportazione (giro completo: export → modifica → import) ---------- */
+export function exportAll(dir) {
+  const c = vm.createContext({}); vm.runInContext(read('src/i18n/locales.js'), c);
+  const H = c.HH;
+  for (const f of fs.readdirSync(path.join(root, 'src/i18n/legal')).filter((f) => /^[a-z]{2,3}\.js$/.test(f))) vm.runInContext(read('src/i18n/legal/' + f), c);
+  const keys = H.I18N_KEYS.filter((k) => k.startsWith('lg_'));
+  const row = (code) => H._I18N_ROWS.find((r) => r[0] === code);
+  const val = (code, k) => row(code)[3 + H.I18N_KEYS.indexOf(k)];
+  const docs = (code) => JSON.parse(JSON.stringify(H.LEGAL[code]));
+  fs.mkdirSync(dir, { recursive: true });
+  const src = { keys: {}, docs: {} };
+  for (const k of keys) src.keys[k] = { en: val('en', k), it: val('it', k) };
+  for (const d of DOCS) src.docs[d] = { en: docs('en')[d], it: docs('it')[d] };
+  fs.writeFileSync(path.join(dir, 'source.json'), JSON.stringify(src, null, 1) + '\n');
+  const out = ['source.json'];
+  for (const { code } of H.LANGS) {
+    if (code === 'en' || code === 'it' || !H.LEGAL[code]) continue;
+    fs.writeFileSync(path.join(dir, `tr-${code}.json`), JSON.stringify({ keys: Object.fromEntries(keys.map((k) => [k, val(code, k)])), docs: docs(code) }, null, 1) + '\n');
+    out.push(`tr-${code}.json`);
+  }
+  return out;
+}
+
 /* ---------- main ---------- */
 function readTr(p) {
   const j = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -131,6 +157,8 @@ function readTr(p) {
 }
 
 function main(argv) {
+  const ex = argv.indexOf('--export');
+  if (ex >= 0) { const files = exportAll(path.resolve(argv[ex + 1] || 'legal-src')); console.log(`esportati ${files.length} file`); return 0; }
   const fallbackEn = argv.includes('--fallback-en');
   const args = argv.filter((a) => !a.startsWith('--'));
   fs.mkdirSync(path.join(root, 'src/i18n/legal'), { recursive: true });

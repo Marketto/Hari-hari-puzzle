@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Skrifttyper",
-    "p": [
-     "For å vise de runde bokstavene sine kan appen laste ned skrifttyper fra Google Fonts (fonts.googleapis.com, fonts.gstatic.com) første gang den åpnes på nett. Denne forespørselen avslører IP-adressen din for Google, i henhold til Googles personvernerklæring. Ingen andre data sendes."
-    ]
-   },
-   {
     "h": "Tospillermodus",
     "p": [
      "To enheter kobler seg direkte til hverandre på samme Wi-Fi eller hotspot: Ingen spillserver og ikke noe internett brukes. Mikrofonen brukes bare til å lytte til den andre telefonens melodi under sammenkoblingen, og kameraet bare til å lese QR-koden: Lyd og bilder analyseres i minnet, blir aldri tatt opp eller sendt, og begge slås av så snart telefonene er koblet sammen. Spillmeldinger krypteres mellom de to enhetene."

@@ -48,6 +48,7 @@ for (const lang of ['it', 'ja', 'ar']) {
   await page.waitForSelector('#legalDlg');
   await sleep(500);
   ok(await page.evaluate(() => document.activeElement && !!document.activeElement.closest('#legalDlg')), 'focus nella modale');
+  ok(await page.evaluate(() => document.activeElement.id === 'lgChk-safety'), 'focus iniziale sulla casella di sicurezza');
   ok(await page.evaluate(() => document.querySelector('.app').inert === true), 'app dietro inerte');
   ok(await fits(page, '.lg-sheet'), 'modale dentro lo schermo (verticale)');
   await page.screenshot({ path: `${SHOTS}${lang}_360_light.png` });
@@ -55,10 +56,16 @@ for (const lang of ['it', 'ja', 'ar']) {
   await page.keyboard.press('Escape');
   await page.mouse.click(5, 5);
   ok(await page.isVisible('#legalDlg'), 'Esc e clic fuori non la chiudono');
+  ok(await page.evaluate(() => !!document.querySelector('.lg-safety #lgChk-safety') && document.querySelector('#lgChk-safety').closest('label').textContent.trim() === HH.i18n.t('lg_chk_safety')), 'casella di sicurezza dentro il riquadro, con la sua label');
   await page.check('#lgChk-terms');
   ok(await page.isDisabled('#lgAccept'), 'una sola casella: ancora disattivato');
   await page.check('#lgChk-privacy');
-  ok(!(await page.isDisabled('#lgAccept')), 'due caselle: attivo');
+  ok(await page.isDisabled('#lgAccept'), 'condizioni e privacy senza sicurezza: ancora disattivato');
+  await page.focus('#lgChk-safety'); await page.keyboard.press('Space');   // da tastiera
+  ok(await page.isChecked('#lgChk-safety') && !(await page.isDisabled('#lgAccept')), 'tre caselle: attivo');
+  await page.uncheck('#lgChk-terms');
+  ok(await page.isDisabled('#lgAccept'), 'tolta una casella: di nuovo disattivato');
+  await page.check('#lgChk-terms');
   // testo completo e ritorno
   await page.click('.lg-main [data-doc="terms"]');
   await page.waitForSelector('.lg-sub:not([hidden]) .lg-doc h4');
@@ -71,7 +78,7 @@ for (const lang of ['it', 'ja', 'ar']) {
   await sleep(200);
   await page.screenshot({ path: `${SHOTS}${lang}_360_licenses.png` });
   await page.keyboard.press('Escape');                          // Esc nella sotto-vista = indietro
-  ok(await page.isVisible('.lg-main') && await page.isChecked('#lgChk-terms') && await page.isChecked('#lgChk-privacy'), 'ritorno: caselle conservate');
+  ok(await page.isVisible('.lg-main') && await page.isChecked('#lgChk-safety') && await page.isChecked('#lgChk-terms') && await page.isChecked('#lgChk-privacy'), 'ritorno: caselle conservate');
   // tasto indietro del browser: la modale resta
   await page.goBack().catch(() => {});
   await sleep(300);
@@ -83,7 +90,7 @@ for (const lang of ['it', 'ja', 'ar']) {
   await page.screenshot({ path: `${SHOTS}${lang}_360_stats_after.png` });
   await page.click('[data-an="0"]');
   const acc = await page.evaluate(() => JSON.parse(localStorage.getItem('harihari:legal')));
-  ok(acc && acc.v === 1 && acc.at > 0, 'salvata in HH.store {v, at}');
+  ok(acc && acc.v === 2 && acc.at > 0, 'salvata in HH.store {v: 2, at}');
   await page.reload();
   await page.waitForFunction(() => window.HH && HH.legal);
   await sleep(600);
@@ -112,13 +119,15 @@ for (const lang of ['it', 'ja', 'ar']) {
   await ctx.close();
 
   // scuro e orizzontale
-  for (const [w, h, scheme] of [[360, 760, 'dark'], [915, 412, 'light'], [915, 412, 'dark']]) {
+  for (const [w, h, scheme] of [[360, 760, 'dark'], [915, 412, 'light'], [915, 412, 'dark'], [402, 874, 'light'], [402, 874, 'dark'], [874, 402, 'light'], [874, 402, 'dark']]) {
     const { ctx: c2, page: p2 } = await open({ lang, w, h, scheme });
     await p2.waitForSelector('#legalDlg');
     await sleep(500);
     ok(await fits(p2, '.lg-sheet'), `modale dentro lo schermo ${w}x${h} ${scheme}`);
     const acc2 = await p2.evaluate(() => { const b = document.querySelector('#lgAccept'); b.scrollIntoView({ block: 'nearest' }); const r = b.getBoundingClientRect(); return r.bottom <= innerHeight && r.top >= 0; });
     ok(acc2, 'pulsante raggiungibile (scorrimento interno)');
+    const chk = await p2.evaluate(() => { const r = document.querySelector('#lgChk-safety').getBoundingClientRect(), s = document.querySelector('.lg-safety').getBoundingClientRect(); return r.width > 0 && r.left >= s.left - 0.5 && r.right <= s.right + 0.5 && document.querySelector('.lg-safety').scrollWidth <= document.querySelector('.lg-safety').clientWidth + 1; });
+    ok(chk, 'casella di sicurezza visibile e dentro il riquadro');
     await p2.evaluate(() => { const m = document.querySelector('.lg-main'); m.scrollTop = 0; });
     await p2.screenshot({ path: `${SHOTS}${lang}_${w}_${scheme}.png` });
     if (w > h) {
@@ -135,7 +144,7 @@ for (const lang of ['it', 'ja', 'ar']) {
 // partita ripresa: la modale blocca finché non si accetta, poi si torna alla partita
 {
   console.log('== partita ripresa');
-  const { ctx, page } = await open({ lang: 'it', store: { legal: { v: 1, at: 1 }, anConsent: false, 'tut:boba': 1 } });
+  const { ctx, page } = await open({ lang: 'it', store: { legal: { v: 2, at: 1 }, anConsent: false, 'tut:boba': 1 } });
   await page.click('.card[data-game="boba"]');
   await page.waitForSelector('#board');
   await sleep(6000);
@@ -145,8 +154,23 @@ for (const lang of ['it', 'ja', 'ar']) {
   await page.waitForSelector('#legalDlg');
   await sleep(400);
   ok(await page.isHidden('#game'), 'gioco non aperto prima di accettare');
-  await page.check('#lgChk-terms'); await page.check('#lgChk-privacy'); await page.click('#lgAccept');
+  await page.check('#lgChk-safety'); await page.check('#lgChk-terms'); await page.check('#lgChk-privacy'); await page.click('#lgAccept');
   await page.waitForSelector('#game:not([hidden]) #board', { timeout: 8000 }).then(() => ok(true, 'dopo l\'accettazione riparte la partita'), () => ok(false, 'dopo l\'accettazione riparte la partita'));
+  await ctx.close();
+}
+
+// accettato con il testo v1: l'avviso ricompare una volta, poi non più
+{
+  console.log('== accettazione v1 → riaccettare');
+  const { ctx, page } = await open({ lang: 'it', store: { legal: { v: 1, at: 1 }, anConsent: false } });
+  await page.waitForSelector('#legalDlg', { timeout: 6000 }).then(() => ok(true, 'v:1 salvata: l\'avviso ricompare'), () => ok(false, 'v:1 salvata: l\'avviso ricompare'));
+  for (const k of ['safety', 'terms', 'privacy']) await page.check('#lgChk-' + k);
+  await page.click('#lgAccept');
+  ok(await page.evaluate(() => JSON.parse(localStorage.getItem('harihari:legal')).v === 2), 'salvata la v:2');
+  await page.reload();
+  await page.waitForFunction(() => window.HH && HH.legal);
+  await sleep(600);
+  ok(!(await page.isVisible('#legalDlg')), 'dopo la riaccettazione non riappare');
   await ctx.close();
 }
 
@@ -156,11 +180,12 @@ for (const lang of ['it', 'ja', 'ar']) {
   const { ctx, page } = await open({ lang: 'it' });
   await page.waitForSelector('#legalDlg');
   await page.check('#lgChk-terms');
+  await page.check('#lgChk-safety');
   await page.click('#lgLang');
   await page.click('#langList [data-lang="ar"]');
   await sleep(400);
   ok(await page.evaluate(() => document.documentElement.dir === 'rtl' && document.querySelector('#lgTitle').textContent === HH.LOCALES.ar.lg_title), 'testi in arabo');
-  ok(await page.isChecked('#lgChk-terms') && !(await page.isChecked('#lgChk-privacy')), 'caselle conservate');
+  ok(await page.isChecked('#lgChk-safety') && await page.isChecked('#lgChk-terms') && !(await page.isChecked('#lgChk-privacy')), 'caselle conservate');
   await page.screenshot({ path: `${SHOTS}it_to_ar.png` });
   await ctx.close();
 }

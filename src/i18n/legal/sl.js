@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Pisave",
-    "p": [
-     "Za prikaz zaobljenih črk lahko aplikacija ob prvem odprtju s povezavo prenese pisave iz Google Fonts (fonts.googleapis.com, fonts.gstatic.com). Ta zahteva razkrije tvoj naslov IP družbi Google v skladu s pravilnikom o zasebnosti družbe Google. Drugi podatki se ne pošiljajo."
-    ]
-   },
-   {
     "h": "Način za dva igralca",
     "p": [
      "Dve napravi se povežeta neposredno v istem omrežju Wi-Fi ali dostopni točki: ne uporabljata se niti strežnik iger niti internet. Mikrofon se uporablja le za poslušanje melodije drugega telefona med seznanjanjem, kamera pa le za branje kode QR: zvok in slike se analizirajo v pomnilniku, nikoli se ne snemajo ali pošiljajo, oba pa se izklopita takoj, ko sta telefona povezana. Sporočila igre so med napravama šifrirana."

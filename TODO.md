@@ -6,6 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] Avviso legale v2 (R14): terza casella obbligatoria `lg_chk_safety` (avvertenze di sicurezza, uso sotto la propria
+  responsabilità, autori sollevati) dentro il riquadro di sicurezza; "Accetto e gioco" solo con tre caselle;
+  `HH.legal.VERSION = 2` (chi aveva accettato la v1 riaccetta una volta); privacy senza la sezione Font/Google Fonts
+  (font inclusi nell'app) in 43 lingue; `legal-import.mjs --export` per il giro export → modifica → import
+
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)

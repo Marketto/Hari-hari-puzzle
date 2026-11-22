@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Typsnitt",
-    "p": [
-     "För att visa sina runda bokstäver kan appen ladda ner typsnitt från Google Fonts (fonts.googleapis.com, fonts.gstatic.com) första gången den öppnas med internetanslutning. Den förfrågan avslöjar din IP-adress för Google, enligt Googles integritetspolicy. Inga andra data skickas."
-    ]
-   },
-   {
     "h": "Tvåspelarläge",
     "p": [
      "Två enheter ansluter direkt på samma wifi eller hotspot: ingen spelserver och inget internet används. Mikrofonen används bara för att lyssna på den andra telefonens melodi under parkopplingen och kameran bara för att läsa QR-koden: ljud och bilder analyseras i minnet, spelas aldrig in eller skickas, och båda stängs av så snart telefonerna är anslutna. Spelmeddelanden krypteras mellan de två enheterna."

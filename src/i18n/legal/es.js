@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fuentes",
-    "p": [
-     "Para mostrar sus letras redondeadas, la app puede descargar fuentes de Google Fonts (fonts.googleapis.com, fonts.gstatic.com) la primera vez que se abre con conexión. Esta solicitud revela tu dirección IP a Google, conforme a la política de privacidad de Google. No se envía ningún otro dato."
-    ]
-   },
-   {
     "h": "Modo de dos jugadores",
     "p": [
      "Dos dispositivos se conectan directamente en la misma red Wi-Fi o punto de acceso: no se usa ningún servidor de juego ni internet. El micrófono se usa solo para escuchar la melodía del otro teléfono durante el emparejamiento, y la cámara solo para leer el código QR: el sonido y las imágenes se analizan en memoria, nunca se graban ni se envían, y ambos se apagan en cuanto los teléfonos están conectados. Los mensajes del juego van cifrados entre los dos dispositivos."

@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Font",
-    "p": [
-     "Per mostrare le sue lettere arrotondate, l'app può scaricare i font da Google Fonts (fonts.googleapis.com, fonts.gstatic.com) la prima volta che viene aperta online. Questa richiesta rivela il tuo indirizzo IP a Google, secondo l'informativa privacy di Google. Non vengono inviati altri dati."
-    ]
-   },
-   {
     "h": "Modalità a due giocatori",
     "p": [
      "Due dispositivi si collegano direttamente sulla stessa Wi-Fi o hotspot: non si usano server di gioco né internet. Il microfono serve solo ad ascoltare la melodia dell'altro telefono durante l'abbinamento e la fotocamera solo a leggere il QR: suoni e immagini sono analizzati in memoria, mai registrati né inviati, e si spengono appena i telefoni sono collegati. I messaggi di gioco sono cifrati tra i due dispositivi."

@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Czcionki",
-    "p": [
-     "Aby wyświetlać zaokrąglone litery, aplikacja może przy pierwszym uruchomieniu online pobrać czcionki z Google Fonts (fonts.googleapis.com, fonts.gstatic.com). To żądanie ujawnia twój adres IP firmie Google, zgodnie z polityką prywatności Google. Żadne inne dane nie są wysyłane."
-    ]
-   },
-   {
     "h": "Tryb dla dwóch graczy",
     "p": [
      "Dwa urządzenia łączą się bezpośrednio w tej samej sieci Wi-Fi lub hotspocie: nie jest używany żaden serwer gry ani internet. Mikrofon służy wyłącznie do usłyszenia melodii drugiego telefonu podczas parowania, a aparat wyłącznie do odczytania kodu QR: dźwięk i obraz są analizowane w pamięci, nigdy nie są nagrywane ani wysyłane, a oba wyłączają się, gdy tylko telefony się połączą. Wiadomości gry są szyfrowane między oboma urządzeniami."

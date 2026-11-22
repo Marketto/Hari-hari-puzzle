@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Letra-tipoak",
-    "p": [
-     "Letra biribilduak erakusteko, aplikazioak letra-tipoak deskarga ditzake Google Fonts-etik (fonts.googleapis.com, fonts.gstatic.com) linean irekitzen den lehen aldian. Eskaera horrek zure IP helbidea erakusten dio Googleri, Googleren pribatutasun-politikaren arabera. Ez da beste daturik bidaltzen."
-    ]
-   },
-   {
     "h": "Bi jokalariko modua",
     "p": [
      "Bi gailu zuzenean konektatzen dira Wi-Fi edo hotspot berean: ez da joko-zerbitzaririk ez internetik erabiltzen. Mikrofonoa parekatzean beste telefonoaren doinua entzuteko bakarrik erabiltzen da, eta kamera QR kodea irakurtzeko bakarrik: soinua eta irudiak memorian aztertzen dira, ez dira inoiz grabatzen ez bidaltzen, eta biak itzaltzen dira telefonoak konektatu bezain laster. Jokoaren mezuak bi gailuen artean zifratuta daude."

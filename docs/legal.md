@@ -1,12 +1,17 @@
 # Avviso legale, condizioni d'uso, privacy e licenze
 
 ## Cosa vede il giocatore
-- **Al primo avvio** (e ogni volta che aumenta `HH.legal.VERSION` in `src/core/legal.js`, oggi `1`) compare la finestra
+- **Al primo avvio** (e ogni volta che aumenta `HH.legal.VERSION` in `src/core/legal.js`, oggi `2`) compare la finestra
   "Prima di giocare" con Hari: introduzione (`lg_intro`: software libero senza garanzia, uso a proprio rischio, l'autore e
   gli autori delle librerie sono sollevati da ogni responsabilità), riquadro di sicurezza (`lg_safety`: pause, malessere,
-  luci lampeggianti, bambini con un adulto, mai camminando o guidando), due caselle obbligatorie
-  (`lg_chk_terms`, `lg_chk_privacy`) con i link ai testi completi e il link "Licenze". "Accetto e gioco" resta spento
-  finché non sono spuntate entrambe.
+  luci lampeggianti, bambini con un adulto, mai camminando o guidando) e **tre caselle obbligatorie** (regola R14):
+  `lg_chk_safety` dentro il riquadro di sicurezza ("Ho letto le avvertenze di sicurezza e uso l'app sotto la mia
+  responsabilità, sollevando l'autore e gli autori delle librerie da ogni responsabilità", legata al testo del riquadro
+  con `aria-describedby`), poi `lg_chk_terms` e `lg_chk_privacy` con i link ai testi completi, e il link "Licenze".
+  "Accetto e gioco" resta spento finché non sono spuntate tutte e tre (`HH.legal.CHECKS`, `HH.legal.ready(stato)`);
+  il focus iniziale va sulla casella di sicurezza.
+- Versioni del testo: `1` = prima versione; `2` = terza casella e privacy senza la sezione Font (i font sono inclusi
+  nell'app). Chi aveva salvato `{ v: 1 }` rivede l'avviso una volta.
 - La finestra **non si chiude** con Esc, clic fuori o tasto indietro; l'app dietro è `inert`, il focus resta dentro
   (Tab gira in tondo). I testi completi si aprono **dentro la finestra** (sotto-vista con "Indietro" e le tre schede):
   le caselle restano come erano. Il pulsante con il globo apre la scelta della lingua sopra l'avviso.
@@ -22,7 +27,7 @@
 ## Dove stanno i testi
 | File | Contenuto | Caricamento |
 |---|---|---|
-| `src/i18n/locales.js` | 14 chiavi brevi `lg_*` (43 lingue) | sempre |
+| `src/i18n/locales.js` | 15 chiavi brevi `lg_*` (43 lingue) | sempre |
 | `src/i18n/legal/<lang>.js` | `HH.LEGAL[lang] = { terms, privacy, licenses }`, ognuno `{ title, sections: [{ h, p: [] }] }` | al bisogno (`HH.legal.load` → `HH.loadFile`) |
 | `src/i18n/legal/licenses.js` | `HH.LEGAL_COMPONENTS` (elenco componenti) e `HH.LEGAL_TEXTS` (testi integrali in inglese) | aprendo la scheda Licenze |
 | `docs/licenses/OFL-1.1.txt`, `docs/licenses/ODbL-1.0.txt`, `LICENSE`, `src/vendor/three.LICENSE` | testi ufficiali delle licenze | sorgente del generatore |
@@ -36,6 +41,9 @@ Tutti i file di `src/i18n/legal/` sono **generati** da `tools/legal-import.mjs`:
   si sostituiscono a runtime (`HH.legal.inline`, che fa anche l'escape HTML).
 
 ## Aggiornare i testi
+I sorgenti JSON non stanno nel repo: si ricavano dai file generati con `node tools/legal-import.mjs --export DIR`
+(`DIR/source.json` con chiavi e testi EN/IT, `DIR/tr-<lang>.json` per le altre 41 lingue). Il giro
+export → import senza modifiche non cambia nessun file.
 1. Testi sorgente EN/IT in un `source.json` (`{ keys: { lg_*: { en, it } }, docs: { terms|privacy|licenses: { en, it } } }`),
    traduzioni in file `{ "<lang>": { keys, docs } }` (o `{ keys, docs }` con la lingua nel nome del file).
 2. `node tools/legal-import.mjs source.json tr-*.json` → aggiorna `locales.js` e i file `src/i18n/legal/*.js`.
@@ -52,21 +60,21 @@ un test controlla che sia aggiornato).
 |---|---|---|---|
 | Hari Hari Puzzle | © 2026 Marketto | MIT (`LICENSE`) | tutta l'app |
 | three.js r160 | © 2010-2023 three.js authors | MIT (`src/vendor/three.LICENSE`) | Hari Rally e Hari Fishing (`src/vendor/three.min.js`) |
-| Mochiy Pop One | FONTDASU (Copyright 2020 The Mochiypop Project Authors) | SIL OFL 1.1 | titoli, da Google Fonts |
-| M PLUS Rounded 1c | Coji Morishita, M+ Fonts Project (Copyright 2016 The Rounded M+ Project Authors) | SIL OFL 1.1 | testo, da Google Fonts |
-| Baloo Bhaijaan 2 | Ek Type (Copyright 2019 The Baloo 2 Project Authors) | SIL OFL 1.1 | arabo, da Google Fonts |
+| Mochiy Pop One | FONTDASU (Copyright 2020 The Mochiypop Project Authors) | SIL OFL 1.1 | titoli, file incluso nell'app |
+| M PLUS Rounded 1c | Coji Morishita, M+ Fonts Project (Copyright 2016 The Rounded M+ Project Authors) | SIL OFL 1.1 | testo, file incluso nell'app |
+| Baloo Bhaijaan 2 | Ek Type (Copyright 2019 The Baloo 2 Project Authors) | SIL OFL 1.1 | arabo, file incluso nell'app |
 | Dati OpenStreetMap | © OpenStreetMap contributors | ODbL 1.0 | mappe reali di Hari Taxi ([osm-attribution.md](osm-attribution.md)) |
 | QR Code | marchio registrato di DENSO WAVE INCORPORATED | avviso di marchio | codificatore/lettore QR del gioco in due: codice originale (MIT) |
 
 Codice scritto per l'app (nessuna libreria esterna): Reed-Solomon e modem acustico (`src/net/sonic.js`), QR
 (`src/net/qr.js`, base45 secondo RFC 9285), WebRTC del multigiocatore (`src/net/mp.js`).
 
-**Servizi** (non inclusi nell'app, descritti nell'informativa privacy): GoatCounter (statistiche anonime facoltative,
-[privacy.md](privacy.md)) e Google Fonts (i tre font sopra, scaricati al primo avvio online).
+**Servizi** (non inclusi nell'app, descritti nell'informativa privacy): solo GoatCounter (statistiche anonime facoltative,
+[privacy.md](privacy.md)). I font sono file inclusi nell'app: nessuna richiesta a Google Fonts.
 
 ## Prove
 - `node --test tests/legal.test.mjs`
-- `tools/legal-e2e.mjs` (Playwright): primo avvio in it/ja/ar, verticale chiaro/scuro e orizzontale, pulsante
-  disattivato/attivo, testi completi e ritorno con le caselle conservate, Esc/clic fuori/indietro, accettazione → domanda
+- `tools/legal-e2e.mjs` (Playwright): primo avvio in it/ja/ar, verticale chiaro/scuro e orizzontale (anche 402×874 e
+  874×402), pulsante disattivato/attivo con le tre caselle (anche da tastiera), riaccettazione dopo `{ v: 1 }`, testi completi e ritorno con le caselle conservate, Esc/clic fuori/indietro, accettazione → domanda
   statistiche, ricarica, piè di pagina, Progressi, partita ripresa bloccata fino all'accettazione, cambio lingua dalla
   finestra, file unico offline. Gli altri e2e preimpostano `harihari:legal` per non fermarsi sull'avviso.

@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Shkronjat",
-    "p": [
-     "Për të shfaqur shkronjat e veta të rrumbullakëta, aplikacioni mund të shkarkojë shkronja nga Google Fonts (fonts.googleapis.com, fonts.gstatic.com) herën e parë që hapet në internet. Kjo kërkesë i zbulon Google-it adresën tënde IP, sipas politikës së privatësisë së Google. Nuk dërgohen të dhëna të tjera."
-    ]
-   },
-   {
     "h": "Modaliteti me dy lojtarë",
     "p": [
      "Dy pajisje lidhen drejtpërdrejt në të njëjtin Wi-Fi ose hotspot: nuk përdoret asnjë server loje dhe as interneti. Mikrofoni përdoret vetëm për të dëgjuar melodinë e telefonit tjetër gjatë çiftimit, dhe kamera vetëm për të lexuar kodin QR: zëri dhe imazhet analizohen në memorie, nuk regjistrohen dhe nuk dërgohen kurrë, dhe të dyja fiken sapo telefonat lidhen. Mesazhet e lojës janë të enkriptuara midis dy pajisjeve."

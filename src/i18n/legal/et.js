@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fondid",
-    "p": [
-     "Ümarate tähtede kuvamiseks võib rakendus esimesel võrgus avamisel laadida fonte teenusest Google Fonts (fonts.googleapis.com, fonts.gstatic.com). See päring avaldab Google’ile sinu IP-aadressi vastavalt Google’i privaatsuspoliitikale. Muid andmeid ei saadeta."
-    ]
-   },
-   {
     "h": "Kahe mängija režiim",
     "p": [
      "Kaks seadet ühenduvad otse samas Wi-Fi-võrgus või kuumkohas: mänguserverit ega internetti ei kasutata. Mikrofoni kasutatakse ainult teise telefoni meloodia kuulamiseks sidumise ajal ja kaamerat ainult QR-koodi lugemiseks: heli ja pilte analüüsitakse mälus, neid ei salvestata ega saadeta kunagi ning mõlemad lülitatakse välja kohe, kui telefonid on ühendatud. Mängusõnumid krüpteeritakse kahe seadme vahel."

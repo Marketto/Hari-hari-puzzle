@@ -78,12 +78,6 @@
     ]
    },
    {
-    "h": "Fonturi",
-    "p": [
-     "Pentru a-și afișa literele rotunjite, aplicația poate descărca fonturi de la Google Fonts (fonts.googleapis.com, fonts.gstatic.com) prima dată când este deschisă online. Această cerere îi dezvăluie adresa ta IP companiei Google, conform politicii de confidențialitate Google. Nu se trimit alte date."
-    ]
-   },
-   {
     "h": "Modul pentru doi jucători",
     "p": [
      "Două dispozitive se conectează direct în aceeași rețea Wi-Fi sau același hotspot: nu se folosesc nici server de joc, nici internet. Microfonul este folosit doar pentru a asculta melodia celuilalt telefon în timpul asocierii, iar camera doar pentru a citi codul QR: sunetul și imaginile sunt analizate în memorie, nu sunt niciodată înregistrate sau trimise și ambele se opresc imediat ce telefoanele sunt conectate. Mesajele jocului sunt criptate între cele două dispozitive."
