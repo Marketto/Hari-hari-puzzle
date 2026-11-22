@@ -87,12 +87,12 @@ test('forme SVG: colori solo da variabili di design (definite nei due temi)', ()
       for (const m of svg.matchAll(/var\((--[a-z0-9-]+)\)/g)) assert.ok(css.includes(m[1] + ':'), `${m[1]} non definita in styles.css`);
     }
   }
-  // ogni token --tr-* del tema chiaro c'è anche nei due blocchi del tema scuro
+  // ogni token --tr-* del tema chiaro c'è anche nel tema scuro
   const light = new Set([...css.split('@media (prefers-color-scheme: dark)')[0].matchAll(/(--tr-[a-z0-9-]+):/g)].map((m) => m[1]));
-  const darkA = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'), css.indexOf(':root[data-theme="dark"]'));
-  const darkB = css.slice(css.indexOf(':root[data-theme="dark"]'), css.indexOf('* { box-sizing'));
-  assert.ok(light.size >= 10);
-  for (const k of light) { assert.ok(darkA.includes(k + ':'), `${k} manca nel tema scuro (media)`); assert.ok(darkB.includes(k + ':'), `${k} manca in data-theme=dark`); }
+  // tema scuro: un solo blocco (media query), il doppione :root[data-theme="dark"] non c'è più
+  const darkA = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'), css.indexOf('/* ---------- Alto contrasto'));
+  assert.ok(!css.includes(':root[data-theme="dark"]'), 'tema scuro scritto due volte');
+  for (const k of light) assert.ok(darkA.includes(k + ':'), `${k} manca nel tema scuro (media)`);
 });
 
 test('nucleo: in index.html, nella shell offline, e usata da app.js per entrare e uscire', () => {

@@ -1,6 +1,7 @@
 /* Service worker: app completamente offline + aggiornamenti automatici.
  * - precache della shell (cache-first), scaricata ignorando la cache HTTP così ogni versione è completa e coerente
- * - font Google in cache al primo avvio online (stale-while-revalidate)
+ * - font inclusi nell'app (assets/fonts/, niente rete esterna): in SHELL i sottoinsiemi delle lingue dell'app
+ *   (latino, cirillico, greco, arabo); gli altri (fette giapponesi, vietnamita…) in cache al primo uso
  * - aggiornamento: la versione nuova si installa in background e aspetta; la pagina le manda {type:'skip'}
  *   in un momento sicuro (home o app in background) dopo aver salvato la partita. I salvataggi stanno in localStorage:
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
@@ -13,6 +14,14 @@ const SHELL = [
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/transition.js', 'src/core/usage.js', 'src/core/legal.js',
   'src/i18n/legal/en.js', 'src/i18n/legal/licenses.js',
   'src/games/tokens.css', 'src/games/catalog.js', 'src/games/cards.js',
+  'assets/fonts/fonts.css',
+  'assets/fonts/mplus-latin-400.woff2', 'assets/fonts/mplus-latin-700.woff2', 'assets/fonts/mplus-latin-800.woff2',
+  'assets/fonts/mplus-latin-ext-400.woff2', 'assets/fonts/mplus-latin-ext-700.woff2', 'assets/fonts/mplus-latin-ext-800.woff2',
+  'assets/fonts/mplus-cyrillic-400.woff2', 'assets/fonts/mplus-cyrillic-700.woff2', 'assets/fonts/mplus-cyrillic-800.woff2',
+  'assets/fonts/mplus-greek-400.woff2', 'assets/fonts/mplus-greek-700.woff2', 'assets/fonts/mplus-greek-800.woff2',
+  'assets/fonts/mochiy-latin-400.woff2',
+  'assets/fonts/baloo-arabic-500.woff2', 'assets/fonts/baloo-arabic-700.woff2', 'assets/fonts/baloo-arabic-800.woff2',
+  'assets/fonts/baloo-latin-500.woff2', 'assets/fonts/baloo-latin-700.woff2', 'assets/fonts/baloo-latin-800.woff2',
   'assets/icons/icon.svg', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
 // file dei giochi: scaricati e messi in cache solo quando il gioco viene aperto la prima volta (lazy load)
@@ -20,8 +29,10 @@ importScripts('src/games/catalog.js');
 // (anche i file extra che un gioco carica su richiesta, es. le mappe reali di Hari Taxi: in cache alla prima apertura)
 const GAME_FILES = new Set(self.HH.catalog.flatMap((g) => [...g.files, ...(g.extra || [])]));
 const scopePath = (url) => new URL(url, self.registration.scope).pathname.slice(new URL(self.registration.scope).pathname.length);
-// file scaricati su richiesta e poi tenuti offline: quelli dei giochi e i testi legali delle altre lingue
-const isGameFile = (url) => { const p = scopePath(url); return GAME_FILES.has(p) || /^src\/i18n\/legal\/[a-z]{2,3}\.js$/.test(p); };
+// font fuori dalla shell (fette giapponesi e sottoinsiemi rari): in cache al primo uso, poi offline
+const isFont = (p) => /^assets\/fonts\/[a-z0-9-]+\.(woff2|css)$/.test(p);
+// file scaricati su richiesta e poi tenuti offline: quelli dei giochi, i testi legali delle altre lingue, i font
+const isGameFile = (url) => { const p = scopePath(url); return GAME_FILES.has(p) || /^src\/i18n\/legal\/[a-z]{2,3}\.js$/.test(p) || isFont(p); };
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
@@ -45,7 +56,12 @@ async function carryGames(c) {
   // un gioco si porta dietro solo se tutti i suoi file c'erano
   const scope = new URL(self.registration.scope);
   // i testi legali delle lingue già lette restano offline anche dopo l'aggiornamento
-  const legal = [...have.keys()].map(scopePath).filter((p) => /^src\/i18n\/legal\//.test(p) && !SHELL.includes(p));
+  // (e i fogli dei font fuori dalla shell, es. fonts-ja.css: si riscaricano come loro)
+  const legal = [...have.keys()].map(scopePath).filter((p) => (/^src\/i18n\/legal\//.test(p) || /^assets\/fonts\/.*\.css$/.test(p)) && !SHELL.includes(p));
+  // i woff2 già scaricati non cambiano fra le versioni (il nome dice famiglia, sottoinsieme e peso): si copiano senza rete
+  await Promise.all([...have.keys()].filter((u) => /\.woff2$/.test(u) && isFont(scopePath(u)) && !SHELL.includes(scopePath(u))).map(async (u) => {
+    const r = await (await caches.open(have.get(u))).match(u); if (r) await c.put(u, r);
+  }));
   const games = self.HH.catalog.filter((g) => g.files.every((f) => have.has(new URL(f, scope).href)));
   // i file extra già scaricati (es. una mappa reale) seguono il loro gioco
   await Promise.all([...games.flatMap((g) => [...g.files, ...(g.extra || []).filter((f) => have.has(new URL(f, scope).href))]), ...legal].map(async (f) => {
@@ -72,21 +88,13 @@ self.addEventListener('message', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== 'hh-fonts').map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  // cancella le cache delle versioni vecchie, compresa 'hh-fonts' (i font Google delle versioni fino alla 0.30)
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
-  if (url.hostname.endsWith('googleapis.com') || url.hostname.endsWith('gstatic.com')) {
-    e.respondWith(caches.open('hh-fonts').then(async (c) => {
-      const hit = await c.match(e.request);
-      // in cache solo risposte buone (le opache dei font cross-origin non si possono leggere: si tengono)
-      const net = fetch(e.request).then((r) => { if (r.ok || r.type === 'opaque') c.put(e.request, r.clone()); return r; }).catch(() => hit || Response.error());
-      return hit || net;
-    }));
-    return;
-  }
   if (url.origin !== location.origin) return;
   e.respondWith(caches.open(VERSION).then(async (c) => {
     const hit = await c.match(e.request, { ignoreSearch: true });

@@ -6,6 +6,16 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] Font dentro l'app (`assets/fonts/`, da @fontsource, `tools/fonts-import.mjs`): niente più Google Fonts. Shell con latino,
+  latino esteso, cirillico, greco (M PLUS), latino di Mochiy, arabo + latino di Baloo (+372 KB); fette giapponesi solo in
+  giapponese (`fonts-ja.css`) e in cache al primo uso; file unico con i font della shell incorporati (+488 KB)
+- [x] Alto contrasto con `prefers-contrast: more` (chiaro e scuro): testo e bordi netti, pannelli pieni, focus marcato
+- [x] Colori per daltonici (Okabe-Ito) a scelta in Progressi (`data-cvd`, chiave `cvd_toggle`); Hari Colors parte con i simboli
+- [x] Tema scuro scritto una volta sola in `styles.css`
+- [ ] Traduzioni di `cvd_toggle` (ora in inglese nelle lingue diverse da it)
+- [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
+
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)
@@ -26,7 +36,6 @@
 - [ ] Hari Taxi su telefono: fluidità del canvas nei livelli grandi e comodità della levetta
 - [ ] Hari Rally su telefono vero: fluidità (pixel ratio adattivo), taratura dei sensori in orizzontale
 - [ ] Altri giochi dalla lista proposte (Hari Push / Sokoban, Mochi Slide, Candy Code…)
-- [ ] Font locali in `assets/fonts/` (woff2 sottoinsieme) per offline già al primo avvio
 - [ ] Hedgedoku: pulsante suggerimento (usa `logicSolve` per indicare la prossima deduzione) e ✕ automatiche opzionali
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi

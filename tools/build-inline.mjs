@@ -1,6 +1,6 @@
 // Crea la versione "tutto in un file" dell'app:
 //   node tools/build-inline.mjs
-// -> dist/hari-hari-puzzle.html  (documento completo, apribile con doppio clic, offline tranne i font)
+// -> dist/hari-hari-puzzle.html  (documento completo, apribile con doppio clic, tutto offline)
 // -> dist/artifact.html          (frammento senza <html>/<head>/<body>, per anteprime Claude Artifact)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -28,6 +28,21 @@ let html = read('index.html');
 }
 html = html.replace(/<!--build:remove-->[\s\S]*?<!--\/build:remove-->\n?/g, '');
 html = html.replace(/<link rel="stylesheet" href="(src\/[^"]+)">/g, (_, p) => `<style>\n${read(p)}\n</style>`);
+// font: dentro come data URI i woff2 della shell offline (SHELL di sw.js: latino, cirillico, greco, arabo);
+// le altre @font-face (fette giapponesi, sottoinsiemi rari) si tolgono: lì restano i font di sistema
+{
+  const sw = read('sw.js');
+  const shell = new Set(JSON.parse(sw.match(/const SHELL = (\[[\s\S]*?\]);/)[1].replace(/'/g, '"').replace(/,\s*\]/, ']')));
+  let bytes = 0;
+  const css = read('assets/fonts/fonts.css').replace(/@font-face\{[^}]*url\(([^)]+)\)[^}]*\}\n?/g, (rule, f) => {
+    if (!shell.has('assets/fonts/' + f)) return '';
+    const b = fs.readFileSync(path.join(root, 'assets/fonts', f));
+    bytes += b.length;
+    return rule.replace(`url(${f})`, `url(data:font/woff2;base64,${b.toString('base64')})`);
+  });
+  html = html.replace('<link rel="stylesheet" href="assets/fonts/fonts.css">', `<style>\n${css}</style>`);
+  console.log(`font incorporati: ${(bytes / 1024).toFixed(0)} KB (base64 ${(bytes * 4 / 3 / 1024).toFixed(0)} KB)`);
+}
 html = html.replace(/<script src="(src\/[^"]+)"><\/script>\n?/g, (_, p) => `<script>\n${read(p).replace(/<\/script/gi, '<\\/script')}\n</script>\n`);
 html = html.replace('<script>\n', '<script>window.HH = { INLINE: true };</script>\n<script>\n');
 // icona inline

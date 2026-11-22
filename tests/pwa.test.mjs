@@ -100,3 +100,18 @@ test('sw.js si valuta senza errori in un contesto da service worker', async () =
   for (const ev of ['install', 'activate', 'fetch', 'message']) assert.equal(typeof handlers[ev], 'function', 'manca il gestore ' + ev);
   assert.ok(ctx.HH && ctx.HH.catalog.length > 0, 'catalog.js importato');
 });
+
+test('font locali: niente Google Fonts, file presenti, shell con latino/cirillico/greco/arabo', () => {
+  assert.ok(!/googleapis|gstatic/.test(html + sw), 'nessun font esterno in index.html o sw.js');
+  for (const css of ['assets/fonts/fonts.css', 'assets/fonts/fonts-ja.css']) {
+    const s = fs.readFileSync(path.join(root, css), 'utf8');
+    const urls = [...s.matchAll(/url\(([^)]+)\)/g)].map((m) => m[1]);
+    assert.ok(urls.length > 10, css);
+    for (const u of urls) assert.ok(fs.existsSync(path.join(root, 'assets/fonts', u)), `${u} manca`);
+    assert.equal((s.match(/@font-face/g) || []).length, (s.match(/font-display:swap/g) || []).length, `${css}: font-display swap`);
+  }
+  for (const f of ['mplus-latin-400', 'mplus-latin-ext-800', 'mplus-cyrillic-700', 'mplus-greek-400', 'mochiy-latin-400', 'baloo-arabic-500'])
+    assert.ok(SHELL.includes(`assets/fonts/${f}.woff2`), `${f} fuori dalla shell`);
+  // le fette giapponesi restano fuori dalla shell (in cache al primo uso)
+  assert.ok(!SHELL.some((f) => /-\d+-\d+\.woff2$/.test(f) || f.endsWith('fonts-ja.css')));
+});

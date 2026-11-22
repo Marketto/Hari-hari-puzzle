@@ -41,6 +41,8 @@
   --tr-cloud: #ffffff; --tr-cloud-2: #ffe9f1; --tr-cloud-rim: rgba(225, 150, 185, .6); --tr-cloud-face: #4b2e28; --tr-blush: rgba(255, 140, 170, .6);
   --link: var(--accent-2); --warn-bg: color-mix(in srgb, var(--sun) 24%, var(--card-solid)); --warn-ink: var(--sun-2);
 }
+/* Tema scuro: UNA definizione. Segue il sistema (prefers-color-scheme); data-theme="light" sull'html lo forza chiaro
+ * (oggi l'app non lo imposta: fx.js lo osserva). Prima il tema scuro era scritto due volte (anche per data-theme=dark). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #1c1530; --sky-top: #2c2050; --ink: #fbeee8; --ink-2: #cbb6c4;
@@ -65,27 +67,53 @@
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #1c1530; --sky-top: #2c2050; --ink: #fbeee8; --ink-2: #cbb6c4;
-  --card: rgba(48, 36, 68, .88); --card-solid: #2e2242; --line: rgba(255, 230, 240, .15); --line-2: rgba(255, 230, 240, .24);
-  --accent: #ff8fb3; --accent-2: #c95a85; --accent-ink: #2a1626;
-  --mint: #6fdcc3; --mint-2: #3aa88f; --on-mint: #0f2e27; --sun: #ffd27d; --sun-2: #d99a34; --sky: #9ccaff;
-  --bad: #ff6f86; --star-off: rgba(255, 230, 240, .18);
-  --shadow: 0 14px 32px -14px rgba(0, 0, 0, .65); --shadow-s: 0 5px 14px -6px rgba(0, 0, 0, .55); --text-shadow-c: rgba(0, 0, 0, .4);
-  --blob-1: rgba(255, 110, 170, .22); --blob-2: rgba(80, 200, 180, .16); --blob-3: rgba(255, 180, 100, .12); --blob-4: rgba(120, 130, 255, .24);
-  --petal: rgba(255, 160, 200, .5); --petal-2: rgba(255, 240, 250, .3); --star: rgba(255, 236, 170, .95);
-  --cloud: rgba(150, 130, 210, .13); --night: 1; --mochi: #f3e9ff;
-  --dots: rgba(255, 255, 255, .045);
-  --hill-1: #33264d; --hill-2: #281e3f;
-  --tint-hedgedoku: #4a2f4c; --tint-boba: #22403f; --tint-lantern: #3a2f4f; --tint-sushi: #263a52;
-  --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 230, 240, .5);
-  --tr-leaf-1: #d97a3a; --tr-leaf-2: #c9564a; --tr-leaf-3: #e0b04a; --tr-leaf-4: #9a6234; --tr-vein: rgba(40, 10, 0, .3);
-  --tr-petal-1: #e88fb0; --tr-petal-2: #f3b6cc; --tr-shine: rgba(255, 255, 255, .35); --tr-star-2: #ff9cc4;
-  --tr-bubble: rgba(150, 170, 255, .38); --tr-bubble-rim: rgba(195, 205, 255, .75);
-  --tr-spine: #7a4a30; --tr-spine-2: #a8704c; --tr-lime: #8fc45a; --tr-orange: #f0913e; --tr-pulp: rgba(255, 240, 215, .78);
-  --tr-tint-a: .16; --tr-cloud: #4a3d72; --tr-cloud-2: #5d4b8e; --tr-cloud-rim: rgba(205, 185, 255, .4); --tr-cloud-face: #fbeee8; --tr-blush: rgba(255, 120, 170, .45);
-  --link: var(--accent); --warn-bg: color-mix(in srgb, var(--sun) 14%, var(--card-solid)); --warn-ink: var(--sun);
-  color-scheme: dark;
+
+/* ---------- Alto contrasto (prefers-contrast: more), chiaro e scuro ----------
+ * Testo e bordi più netti, pannelli pieni (niente trasparenze), focus molto visibile, accento più scuro per il testo bianco. */
+:root { --focus: var(--accent); --focus-w: 3px; }
+@media (prefers-contrast: more) {
+  :root {
+    --ink: #1e0d09; --ink-2: #3d241e; --card: var(--card-solid); --card-solid: #ffffff; --line: #4b2e28; --line-2: #2a1410;
+    --accent: #c4245e; --accent-2: #8c1440; --accent-ink: #ffffff; --mint-2: #1d7360; --on-mint: #0a2620; --sun-2: #9a6400;
+    --bad: #b8002a; --berry-2: #9c1636; --star-off: rgba(75, 46, 40, .45); --text-shadow-c: transparent;
+    --glass: #ffffff; --glass-edge: #2a1410; --hair: rgba(60, 30, 25, .26); --wall: #2a1410; --dots: transparent;
+    --link: #8c1440; --warn-ink: #7a4c00; --focus: #1e0d09; --focus-w: 4px;
+  }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #ffffff; --ink-2: #f0e2ec; --card: var(--card-solid); --card-solid: #1b1328; --line: #f3e6ee; --line-2: #ffffff;
+    --accent: #ffa3c4; --accent-2: #ff6f9c; --accent-ink: #1a0d16; --mint: #86f0d6; --on-mint: #08231d; --sun: #ffe08f;
+    --bad: #ff9aa9; --star-off: rgba(255, 240, 248, .45); --text-shadow-c: transparent;
+    --glass: #1b1328; --glass-edge: #ffffff; --hair: rgba(255, 240, 248, .24); --dots: transparent;
+    --link: #ffa3c4; --warn-ink: #ffe08f; --focus: #ffffff; --focus-w: 4px;
+  }
+}
+
+/* ---------- Colori per daltonici (palette Okabe-Ito): scelta del giocatore, data-cvd sull'html (Progressi) ----------
+ * Nessuna media query di sistema esiste per il daltonismo. Si rimappano solo i token che portano informazione:
+ * accento, stato (successo/errore/avviso), zone di Hedgedoku (--r*), gusti di Boba (--f*). Le fragoline restano rosse:
+ * guadagnate e spente si distinguono già per luminosità. */
+:root[data-cvd] {
+  --accent: #cc79a7; --accent-2: #9e4f7d; --accent-ink: #ffffff;
+  --mint: #009e73; --mint-2: #00785a; --on-mint: #ffffff; --sun: #f0e442; --sun-2: #e69f00; --sky: #56b4e9;
+  --bad: #d55e00; --gold: #e69f00; --gold-2: #a87400; --link: #0072b2;
+  --r0: #e6bcd3; --r1: #f7f1a0; --r2: #80cfb9; --r3: #abdaf4; --r4: #80b9d8; --r5: #f3cf80; --r6: #eaaf80; --r7: #e6e6e6;
+  --f0: #cc79a7; --f1: #009e73; --f2: #0072b2; --f3: #e69f00; --f4: #56b4e9; --f5: #f0e442; --f6: #d55e00; --f7: #8b5a43; --f8: #bbbbbb;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-cvd]:not([data-theme="light"]) {
+    --accent: #e39cc3; --accent-2: #b0628f; --accent-ink: #2a1626;
+    --mint: #2fc596; --mint-2: #00916a; --on-mint: #062a20; --sun: #f5ec6e; --sun-2: #e69f00; --sky: #7cc6f0;
+    --bad: #ff8a3d; --link: #7cc6f0;
+  }
+}
+/* daltonici + alto contrasto: stessi colori Okabe-Ito, più scuri (chiaro) o più chiari (scuro) per il testo */
+@media (prefers-contrast: more) {
+  :root[data-cvd] { --accent: #a1457a; --accent-2: #6e2a52; --mint: #007a59; --mint-2: #005a41; --bad: #a84400; --link: #005a8c; --focus: #1e0d09; }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root[data-cvd]:not([data-theme="light"]) { --accent: #f0b6d6; --accent-2: #cc79a7; --mint: #5fe0b8; --bad: #ffab70; --link: #9fd6f5; --focus: #ffffff; }
 }
 
 * { box-sizing: border-box; }
@@ -104,7 +132,11 @@ body::after {
 }
 [dir="rtl"] body { font-family: "Baloo Bhaijaan 2", var(--font-body); }
 button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+button:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: 3px; }
+@media (prefers-contrast: more) {
+  :focus-visible { outline: var(--focus-w) solid var(--focus) !important; outline-offset: 3px; }
+  .overlay { backdrop-filter: none; }
+}
 svg { display: block; }
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 

@@ -9,7 +9,7 @@ description: Checklist di verifica prima di commit/merge/release di Hari Hari Pu
 1. `CI=1 npm test` (unit test + i18n-check) e `node --check sw.js`.
 2. `npm run build` riesce (il file unico contiene tutti i giochi: nessun limite di dimensione).
 3. Solo i file del **nucleo** in `index.html` e `SHELL` di `sw.js`; i file dei giochi solo in `src/games/catalog.js` (lazy load, lo verifica `tests/pwa.test.mjs`). Dopo aver toccato `art` o i colori di un gioco: `npm run cards`.
-4. Nessuna chiamata di rete a runtime in `src/` tranne GoatCounter in `src/core/usage.js` (solo con consenso) e i font in `index.html`.
+4. Nessuna chiamata di rete esterna a runtime (`src/`, `index.html`, `sw.js`) tranne GoatCounter in `src/core/usage.js` (solo con consenso). I font sono locali (`assets/fonts/`): niente Google Fonts.
 5. Nessun colore letterale nuovo fuori dai blocchi di token.
 6. Prima del push: alzate tutte e tre le versioni (`VERSION` in `sw.js`, `version` in `package.json`, `HH.VERSION` in `src/core/core.js`); nessuna email o dato personale nei file.
 

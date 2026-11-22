@@ -201,9 +201,12 @@
       cancelAnimationFrame(raf);
       if (!document.hidden && !reduce()) raf = requestAnimationFrame(loop);
     });
-    const mq = G.matchMedia && G.matchMedia('(prefers-color-scheme: dark)');
-    mq && mq.addEventListener && mq.addEventListener('change', readPalette);
-    new MutationObserver(readPalette).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    // la tavolozza del cielo segue tema, alto contrasto e colori per daltonici
+    for (const q of ['(prefers-color-scheme: dark)', '(prefers-contrast: more)']) {
+      const mq = G.matchMedia && G.matchMedia(q);
+      mq && mq.addEventListener && mq.addEventListener('change', readPalette);
+    }
+    new MutationObserver(readPalette).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-cvd'] });
     start();
     return { refresh: readPalette };
   }
@@ -238,6 +241,16 @@
     })();
   }
 
+  /* ---------- Colori per daltonici ----------
+   * Scelta del giocatore (non esiste una media query di sistema): HH.store 'cvd' -> attributo data-cvd sull'html,
+   * che in styles.css rimappa i token che portano informazione alla palette Okabe-Ito (chiaro e scuro). */
+  const cvd = {
+    on: () => !!(HH.store && HH.store.get('cvd', false)),
+    apply() { document.documentElement.toggleAttribute('data-cvd', cvd.on()); },
+    set(on) { if (HH.store) HH.store.set('cvd', !!on); cvd.apply(); },
+  };
+  if (G.document) cvd.apply();
+
   // i suoni vivono in src/core/audio.js
-  HH.fx = { background, confetti, sfx: HH.audio.sfx };
+  HH.fx = { background, confetti, cvd, sfx: HH.audio.sfx };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

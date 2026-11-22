@@ -59,11 +59,14 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
   assert.match(HH.LEGAL_TEXTS.LICENSE, /Copyright \(c\) 2026 Marketto/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/OFL-1.1.txt'], /SIL OPEN FONT LICENSE Version 1\.1/);
   assert.match(HH.LEGAL_TEXTS['docs/licenses/ODbL-1.0.txt'], /Open Database License/);
-  // i font elencati sono quelli caricati davvero da index.html
-  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  for (const f of ['Baloo+Bhaijaan+2', 'M+PLUS+Rounded+1c', 'Mochiy+Pop+One']) {
-    assert.ok(html.includes(f), f);
-    assert.ok(COMPONENTS.some((c) => c.url.endsWith(f)), `font ${f} non in elenco`);
+  // i font elencati sono quelli inclusi davvero nell'app (assets/fonts/fonts.css), e la pagina lo dice
+  const fonts = fs.readFileSync(path.join(root, 'assets/fonts/fonts.css'), 'utf8');
+  const fams = [...new Set([...fonts.matchAll(/font-family:'([^']+)'/g)].map((m) => m[1]))];
+  assert.equal(fams.length, 3);
+  for (const f of fams) {
+    const c = COMPONENTS.find((x) => x.name === `${f} (font)`);
+    assert.ok(c, `font ${f} non in elenco`);
+    assert.match(c.notice, /Included in the app/);
   }
   // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing) lo caricano
   const cat = load('src/games/catalog.js').catalog;
