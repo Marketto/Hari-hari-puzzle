@@ -26,6 +26,7 @@ const INIT = () => {
   sessionStorage.setItem('lc-init', '1');
   localStorage.setItem('harihari:legal', JSON.stringify({ v: 999, at: 1 }));
   localStorage.setItem('harihari:anConsent', 'false');
+  localStorage.setItem('harihari:wizard', JSON.stringify({ v: '999' }));   // guida della home già vista
   for (const id of ['memory', 'fish', 'colors']) localStorage.setItem('harihari:tut:' + id, '1');
 };
 // spie: istante (performance.now) delle chiamate che contano e di quando #game si svuota
