@@ -25,6 +25,7 @@
       sensori e rete si fermano subito (fish, colors, street, rally, drive, snack, parade, flight, escape, life, memory,
       sudoku, hedgedoku, spot, sushi); e2e `tools/lifecycle-e2e.mjs`
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
+- [ ] Guida della home (regola R13, `src/core/wizard.js` + `wizard.css`): al primo avvio, dopo l'avviso legale e prima della domanda sulle statistiche, 6 passi con riquadro di focus e nuvoletta di Hari (card/Riprendi, vista, lingua+suono, ghiande/progressi, Condividi+Installa, «?»); dopo un aggiornamento solo le novità (`NEWS` nel modulo + giochi con `since`); una volta sola (`wizard: { v }`); pulsante «?» nella barra in alto. Da fare al rilascio: allineare la chiave `NEWS['0.31.0']` alla versione vera; traduzioni `wz_*` (ora inglese in 41 lingue)
 
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)

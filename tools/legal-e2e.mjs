@@ -34,6 +34,7 @@ async function open({ lang, w = 360, h = 760, scheme = 'light', store = {}, sw =
     if (sessionStorage.getItem('init')) return;
     sessionStorage.setItem('init', '1');
     localStorage.setItem('harihari:lang', JSON.stringify(l));
+    localStorage.setItem('harihari:wizard', JSON.stringify({ v: '999' }));   // guida della home già vista (qui si prova l'avviso)
     for (const [k, v] of Object.entries(st)) localStorage.setItem('harihari:' + k, JSON.stringify(v));
   }, [lang, store]);
   await page.goto(URL);
@@ -221,7 +222,7 @@ for (const lang of ['it', 'ja', 'ar']) {
   const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, offline: true });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('inline: ' + e.message));
-  await page.addInitScript(() => localStorage.setItem('harihari:lang', '"ja"'));
+  await page.addInitScript(() => { localStorage.setItem('harihari:lang', '"ja"'); localStorage.setItem('harihari:wizard', '{"v":"999"}'); });
   await page.goto('file://' + path.join(root, 'dist/hari-hari-puzzle.html'));
   await page.waitForSelector('#legalDlg');
   await page.click('.lg-main [data-doc="licenses"]');
