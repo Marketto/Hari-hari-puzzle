@@ -81,13 +81,22 @@ Se una scena non riesce a ospitare N differenze valide se ne genera un'altra (in
 Densità della scena `d = (livello − 1) / 14`: più edifici e più stretti, più arredo, auto, uccellini; oggetti in media da ~14 (livello 1)
 a ~29 (livello 20). Il fattore di dimensione scende da 1,5 a 1,28 e lo spostamento da 48 a 38 unità.
 
+### Colori per daltonici (`data-cvd`)
+Con l'interruttore "Colori per daltonici" (`HH.fx.cvd`) la partita nuova nasce con `{ cvd: true }`: **nessuna differenza di solo colore**.
+Il tipo `color` sparisce e ai livelli 1–2 entra subito `size` (fattore 1,5); fra i `detail` restano quelli di forma, presenza o
+posizione (icone, frutti, facce, puntini, cartelli, quale luce del semaforo) e si escludono quelli "acceso/spento" (`COLOR_DET`:
+finestre e lampioni, giallo chiaro contro azzurro chiaro, quasi uguali in luminosità e confusi nel tritan).
+Scelta motivata: sostituire invece di cercare coppie "sicure" non dipende dalla tavolozza (tema chiaro/scuro, futuri colori) né da
+una simulazione di protan/deutan/tritan, e lascia comunque 5–8 tipi di differenza. La scelta resta nella partita (`cvd: 1`), così una
+scena ripresa è identica anche se nel frattempo l'interruttore è cambiato. Senza cvd la generazione è identica a prima (stesso seme, stessa scena).
+
 ## Fragoline e tempi
 - `rate`: 3 − lenti usate − (dal livello 4) ⌊tocchi a vuoto / 3⌋, minimo 1.
 - `parTime`: 20 s + 12 s a differenza, meno 4 s per tocco a vuoto dal livello 4.
 - `progress`: differenze trovate / N (guida la musica `spot`: marimba e carillon, passo di passeggiata, percussioni "lullaby").
 
 ## Salvataggio
-`snapshot()` = `{ v: 1, level, seed, n, found, hints, hinted, misses, moves }`: la scena si rigenera identica da `level` + `seed`
+`snapshot()` = `{ v: 1, level, seed, n, found, hints, hinted, misses, moves, cvd? }`: la scena si rigenera identica da `level` + `seed`
 (`HH.rng`), quindi il salvataggio è piccolo. `restore` scarta indici fuori scala.
 
 ## Test (`tests/spot.test.mjs`)
@@ -97,5 +106,6 @@ a ~29 (livello 20). Il fattore di dimensione scende da 1,5 a 1,28 e lo spostamen
 - Visibilità: area ≥ soglia del livello (≥ 1100 ai livelli 1–2); colori riletti **dal CSS** (tema chiaro e scuro) con ΔE ≥ 40 nei
   livelli 1–3 e ≥ 22 dopo; oggetti interi coperti al massimo al 30% (calcolo dell'oracolo); oggetti aggiunti in spazio libero; Hari sempre uguale.
 - Tocchi: 8 punti a 0,9 r dentro ogni zona contano, una griglia di punti fuori da tutte no; una differenza conta una volta sola.
+- Colori per daltonici: con `{ cvd: true }` (livelli 1–20 × 12 semi) l'oracolo non trova differenze di colore né dettagli che cambiano solo `w`/`lit`; N differenze, zone separate, ripresa con `cvd`.
 - Determinismo, varietà fra semi, alternanza città/bosco, ripresa da JSON, monotonia della curva (40 livelli), fragoline/lente, tempo medio < 10 ms (×3 in CI).
 - Tempo medio di `generate` in Node: 1–5 ms.

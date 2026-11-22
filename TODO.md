@@ -6,14 +6,7 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
-## In revisione (prossima versione)
-- [x] Test di comportamento al posto delle regex sul sorgente: `tests/sw.test.mjs` (gestori veri di install/activate/fetch/message
-  con cache e rete finte, `tests/_sw.mjs`), coda di `HH.transition.run` (`transition.test.mjs`), scelta della partita da
-  riprendere estratta in `HH.rules.slotOf/resumeSlot/resumable` (`resume.test.mjs`), finestra vera dell'avviso legale
-  (`legal.test.mjs`), statistiche con `fetch` finto (`usage.test.mjs`); skill `puzzle-generator`: tabella della curva di difficoltà
-
 ## Prossimo
-- [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
 - [ ] Guida della home, alto contrasto e colori per daltonici su telefono vero (Android e iPhone, anche in arabo)
 - [ ] Font inclusi su telefono vero: primo avvio offline, giapponese scaricato al primo uso
@@ -40,6 +33,15 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.31.1)
+- [x] Test di comportamento al posto delle regex sul sorgente: `tests/sw.test.mjs` (gestori veri di install/activate/fetch/message
+  con cache e rete finte, `tests/_sw.mjs`), coda di `HH.transition.run` (`transition.test.mjs`), scelta della partita da
+  riprendere estratta in `HH.rules.slotOf/resumeSlot/resumable` (`resume.test.mjs`), finestra vera dell'avviso legale
+  (`legal.test.mjs`), statistiche con `fetch` finto (`usage.test.mjs`); skill `puzzle-generator`: tabella della curva di difficoltà
+- [x] Hari Spot con "Colori per daltonici": nessuna differenza di solo colore (al posto del colore: presenza, taglia, forma, posizione; esclusi anche finestre e lampioni accesi/spenti), test con oracolo
+- [x] Titolo dei giochi non più tagliato in basso (g, y, p: "Hedgedoku", "Hari Spot", "Yarn Link"): `line-height` del titolo a schermo intero e delle schede di Hari Home
+- [x] aria-label descrittivi e tradotti (43 lingue): «Uno in meno»/«Uno in più» in Hari Airlines e nel mercato di Hari Home, «Posto {n}» sui sedili di Hari Airlines
 
 ## Fatto (v0.31.0)
 - [x] Avviso legale v2 (R14): terza casella obbligatoria `lg_chk_safety` (avvertenze di sicurezza, uso sotto la propria

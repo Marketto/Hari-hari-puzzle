@@ -24,6 +24,7 @@
     fl_takeoff: 'Takeoff', fl_ready: 'Ready?',
     fl_i_water: 'Water', fl_i_juice: 'Juice', fl_i_tea: 'Tea', fl_i_cookie: 'Cookie', fl_i_meal: 'Hot meal', fl_i_blanket: 'Blanket', fl_i_pillow: 'Pillow',
     fl_s_paper: 'Paper', fl_s_plastic: 'Plastic', fl_s_food: 'Food waste',
+    a_less: 'One less', a_more: 'One more', fl_seat: 'Seat {n}',
   };
   const L = (k) => label(k, EN[k] || k);
   const A = () => HH.flightArt;
@@ -227,7 +228,7 @@
       const p = paxAt(seat), id = F.phase(s), ph = s.ph;
       let h = '<span class="fl-chair" aria-hidden="true"></span>';
       b.className = 'fl-seat';
-      if (!p) { b.innerHTML = h + '<span class="fl-bagslot"></span>'; b.classList.add('empty'); b.setAttribute('aria-label', `${seat + 1}`); b.tabIndex = -1; return; }
+      if (!p) { b.innerHTML = h + '<span class="fl-bagslot"></span>'; b.classList.add('empty'); b.setAttribute('aria-label', L('fl_seat').replace('{n}', seat + 1)); b.tabIndex = -1; return; }
       b.tabIndex = 0;
       const mood = moodOf(p);
       h += `<span class="fl-pax">${A().head(p.sp, mood)}</span><span class="fl-body t${p.tone}" aria-hidden="true"></span>`;
@@ -253,7 +254,7 @@
       }
       h += '<span class="fl-bagslot"></span>';
       b.innerHTML = h;
-      b.setAttribute('aria-label', `${seat + 1}`);
+      b.setAttribute('aria-label', L('fl_seat').replace('{n}', seat + 1));
     }
 
     /* ---------- imbarco ---------- */
@@ -269,9 +270,9 @@
         ${P.ask === 'missing' ? `<div class="fl-list"><small>${L('fl_list')}</small><b>${P.booked}</b>${A().captain()}</div>` : ''}
       </div>`;
       panel.innerHTML = `<div class="fl-clicker">
-          <button type="button" class="tool fl-minus" aria-label="−1">−</button>
+          <button type="button" class="tool fl-minus" aria-label="${L('a_less')}">−</button>
           <output class="fl-count">${ph.clicks}</output>
-          <button type="button" class="candy fl-plus" aria-label="+1">+1</button>
+          <button type="button" class="candy fl-plus" aria-label="${L('a_more')}">+1</button>
         </div>
         <div class="fl-ask" ${ph.asking ? '' : 'hidden'}>
           <p>${P.ask === 'missing' ? L('fl_q_missing') : L('fl_q_count')}</p>
