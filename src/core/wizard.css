@@ -1,8 +1,5 @@
 /* Guida della home (src/core/wizard.js): velatura con buchi luminosi, nuvoletta di Hari, pulsante «?».
- * Colori: token del nucleo (styles.css) più i due della velatura qui sotto, nei due temi. */
-:root { --wz-veil: rgba(40, 20, 40, .58); --wz-glow: color-mix(in srgb, var(--accent) 55%, transparent); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wz-veil: rgba(8, 4, 20, .66); } }
-:root[data-theme="dark"] { --wz-veil: rgba(8, 4, 20, .66); }
+ * Colori: solo token di src/styles.css (anche --wz-veil e --wz-glow, nei blocchi dei due temi). */
 
 /* pulsante «?»: discreto, solo nella home */
 .wz-help { min-width: 38px; width: 38px; height: 38px; padding: 0; color: var(--accent-2); }

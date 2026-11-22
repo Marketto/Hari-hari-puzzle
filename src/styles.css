@@ -40,6 +40,8 @@
   --tr-spine: #8a5838; --tr-spine-2: #b97c55; --tr-lime: #a6d96a; --tr-orange: #ffa24c; --tr-pulp: rgba(255, 250, 228, .9);
   --tr-cloud: #ffffff; --tr-cloud-2: #ffe9f1; --tr-cloud-rim: rgba(225, 150, 185, .6); --tr-cloud-face: #4b2e28; --tr-blush: rgba(255, 140, 170, .6);
   --link: var(--accent-2); --warn-bg: color-mix(in srgb, var(--sun) 24%, var(--card-solid)); --warn-ink: var(--sun-2);
+  /* guida della home (src/core/wizard.js): velatura con i buchi luminosi */
+  --wz-veil: rgba(40, 20, 40, .58); --wz-glow: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 /* Tema scuro: UNA definizione. Segue il sistema (prefers-color-scheme); data-theme="light" sull'html lo forza chiaro
  * (oggi l'app non lo imposta: fx.js lo osserva). Prima il tema scuro era scritto due volte (anche per data-theme=dark). */
@@ -64,6 +66,7 @@
     --tr-spine: #7a4a30; --tr-spine-2: #a8704c; --tr-lime: #8fc45a; --tr-orange: #f0913e; --tr-pulp: rgba(255, 240, 215, .78);
     --tr-tint-a: .16; --tr-cloud: #4a3d72; --tr-cloud-2: #5d4b8e; --tr-cloud-rim: rgba(205, 185, 255, .4); --tr-cloud-face: #fbeee8; --tr-blush: rgba(255, 120, 170, .45);
     --link: var(--accent); --warn-bg: color-mix(in srgb, var(--sun) 14%, var(--card-solid)); --warn-ink: var(--sun);
+    --wz-veil: rgba(8, 4, 20, .66);
     color-scheme: dark;
   }
 }
@@ -231,7 +234,7 @@ button.candy:active, .card:active .candy, .resume:active .candy { transform: tra
 }
 /* titolo a sinistra (va a capo da solo), condividi + versione sempre a fianco */
 .logo-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .18em; min-width: 0; }
-.lw { display: inline-flex; }
+.lw { display: inline-flex; direction: ltr; unicode-bidi: isolate; }   /* "Hari" resta Hari anche in arabo (RTL) */
 .lw > span {
   display: inline-block; color: var(--c); -webkit-text-stroke: .075em var(--ink); paint-order: stroke fill;
   text-shadow: 0 .07em 0 var(--ink), 0 .14em 0 var(--sun), 0 .22em 16px var(--text-shadow-c);
@@ -981,6 +984,7 @@ body:has(.legal-dlg) #langDlg { z-index: 58; }
 .lg-safety { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 18px; background: var(--warn-bg); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--warn-ink) 45%, transparent); }
 .lg-safety svg { flex: none; width: 26px; height: 26px; color: var(--warn-ink); margin-top: 2px; }
 .lg-safety p { margin: 0; font-size: 13.5px; font-weight: 700; line-height: 1.45; }
+.lg-safety-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .lg-chk { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); }
 .lg-chk label { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; font-size: 14px; line-height: 1.35; cursor: pointer; }
 .lg-chk input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }

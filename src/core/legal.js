@@ -154,7 +154,7 @@
             <p class="lg-intro" id="lgIntro">${inline(t('lg_intro'))}</p>
           </div>
           <div class="lg-right">
-            <div class="lg-safety">${ICON.warn}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div class="lg-safety">${ICON.warn}<div class="lg-safety-body">
               <p id="lgSafetyText">${inline(t('lg_safety'))}</p>
               <div class="lg-chk"><label><input type="checkbox" id="lgChk-safety" data-chk="safety" aria-describedby="lgSafetyText"${st.safety ? ' checked' : ''}><span>${esc(t('lg_chk_safety'))}</span></label></div>
             </div></div>
