@@ -18,7 +18,7 @@ Fragoline (1–3, al posto delle stelle) da `rate(snapshot)`: Hedgedoku 3 senza 
 
 ## Ordine di caricamento
 ```
-locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audio.js → fx.js → transition.js → <gioco>-logic.js → <gioco>-ui.js … → app.js (boot)
+locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audio.js → fx.js → transition.js → usage.js → legal.js → wizard.js → <gioco>-logic.js → <gioco>-ui.js … → app.js (boot)
 ```
 
 ## Flusso
@@ -43,6 +43,15 @@ solo la musica). La voce del catalogo può avere `rulesEn` come testo di riserva
 e `hog-kit.js`, il riccio animato di Hedgedoku). `build-inline.mjs` li include una volta sola e `gen-cards.mjs` copia i token
 di un CSS condiviso solo per il primo gioco che lo usa. **`coach: true`**: il gioco ha un suo Hari che parla sulla griglia
 (vedi `docs/audio.md`).
+
+## Guida della home (`src/core/wizard.js`)
+Regola R13: al primo avvio (dopo l'avviso legale, prima della domanda sulle statistiche) Hari fa fare il giro della home:
+velatura SVG con buchi luminosi attorno agli elementi e nuvoletta con una frase. Passi in `TOUR` (un passo senza
+elemento visibile si salta); dopo un aggiornamento solo le novità delle versioni saltate (`NEWS = { 'x.y.z': [{ key, sel }] }`,
+1–3 per versione, più i giochi del catalogo con `since` nuovo); vista una volta sola (`HH.store` `wizard: { v }`);
+il «?» nella barra in alto la rilancia. Aggancio in `app.js`: `homeIntro()` in `renderHome` e dopo l'avviso legale,
+`HH.wizard.close()` in `openGame`, controlli `isOpen()` in `askConsent` e `offerInstall`. Logica pura in
+`tests/wizard.test.mjs`; gli e2e preimpostano `harihari:wizard = {"v":"999"}` come fanno con l'avviso legale.
 
 ## Transizione fra home e giochi (`src/core/transition.js`)
 - **Quando**: entrando in un gioco dalla home (`openGame`) e tornando alla home (`goHome`: pulsante, tasto indietro /

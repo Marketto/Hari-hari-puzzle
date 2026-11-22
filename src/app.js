@@ -252,7 +252,13 @@
       <footer class="home-foot"><button class="lg-foot-link" id="legalLink" type="button">${t('lg_link')}</button></footer>`;
     markRemote();
     if (homeView() === 'carousel') coverFlow();
-    askConsent();
+    homeIntro();
+  }
+
+  // guida della home (src/core/wizard.js) al primo avvio o con novità, poi l'eventuale domanda sulle statistiche
+  function homeIntro(delay) {
+    const busy = () => !!(S.game || S.loading || (HH.transition && HH.transition.busy()));
+    if (!(HH.wizard && HH.wizard.auto({ busy, done: () => askConsent(1500) }))) askConsent(delay);
   }
 
   /* ---------- consenso alle statistiche anonime (solo se configurate; si chiede una volta, in home) ---------- */
@@ -263,7 +269,7 @@
     consentAsked = true;
     setTimeout(() => {
       // (anche durante l'apertura di un gioco: S.game arriva solo a schermo coperto dalla transizione)
-      if (S.game || S.loading || (HH.transition && HH.transition.busy()) || HH.usage.consent() !== null || HH.legal.isOpen()) { consentAsked = false; return; }
+      if (S.game || S.loading || (HH.transition && HH.transition.busy()) || HH.usage.consent() !== null || HH.legal.isOpen() || (HH.wizard && HH.wizard.isOpen())) { consentAsked = false; return; }
       const d = document.createElement('div');
       d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'anTitle');
       d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
@@ -648,6 +654,7 @@
   function openGame(id, push = true) {
     if (!HH.gameMeta(id)) return;
     if (legalGate(() => openGame(id, push))) return;     // avviso legale non ancora accettato: prima quello
+    if (HH.wizard) HH.wizard.close();                     // la guida riguarda solo la home (resta segnata come vista)
     autoFull();                       // i giochi si giocano solo a schermo intero: si entra dentro il tocco che li apre
     if (isNew(id)) HH.store.set('newGames', HH.store.get('newGames', []).filter((x) => x !== id));
     // dalla home: transizione kawaii (src/core/transition.js). Il gioco si scarica e si disegna a schermo coperto.
@@ -1089,7 +1096,7 @@
   }
   // propone l'installazione solo nella home, mai durante una partita, e non più di una volta ogni 3 giorni
   function offerInstall() {
-    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden || HH.legal.needs()) return;
+    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden || HH.legal.needs() || (HH.wizard && HH.wizard.isOpen())) return;
     if (Date.now() < HH.store.get('install:snooze', 0)) return;
     if (installEvt) installSheet(false);
     else if (isAndroid()) installSheet(true);   // browser senza prompt automatico: istruzioni dal menu
@@ -1326,7 +1333,7 @@
     if (!HH.legal.needs()) return false;
     HH.legal.gate({
       openLang: () => { renderLangSheet(); $('#langDlg').hidden = false; const cur = $('.lang.cur'); if (cur) cur.focus(); },
-      done: () => { if (then) then(); if (!S.game) askConsent(1500); },
+      done: () => { if (then) then(); if (!S.game) homeIntro(1500); },
     });
     return true;
   }

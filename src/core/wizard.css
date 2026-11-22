@@ -1,0 +1,64 @@
+/* Guida della home (src/core/wizard.js): velatura con buchi luminosi, nuvoletta di Hari, pulsante «?».
+ * Colori: token del nucleo (styles.css) più i due della velatura qui sotto, nei due temi. */
+:root { --wz-veil: rgba(40, 20, 40, .58); --wz-glow: color-mix(in srgb, var(--accent) 55%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wz-veil: rgba(8, 4, 20, .66); } }
+:root[data-theme="dark"] { --wz-veil: rgba(8, 4, 20, .66); }
+
+/* pulsante «?»: discreto, solo nella home */
+.wz-help { min-width: 38px; width: 38px; height: 38px; padding: 0; color: var(--accent-2); }
+.wz-help b { font: 400 18px/1 var(--font-display); }
+.app:has(#home[hidden]) .wz-help, .fs-on .wz-help { display: none; }
+/* durante la guida l'altro fumetto di Hari (es. «aggiornata!») aspetta: torna se il suo tempo non è finito */
+body:has(#wzRoot) #hariSay { display: none; }
+
+.wz { position: fixed; inset: 0; z-index: 70; touch-action: none; }
+.wz-veil { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.wz-shade { fill: var(--wz-veil); }
+.wz-ring { fill: none; stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 8px var(--wz-glow)); animation: wz-glow 1.8s ease-in-out infinite; }
+
+.wz-bubble {
+  position: absolute; left: 0; top: 0; width: min(360px, calc(100vw - 20px)); display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px 12px 10px; border-radius: 22px; background: var(--card-solid); color: var(--ink);
+  border: 2px solid var(--accent); box-shadow: var(--shadow); touch-action: auto;
+}
+[dir="rtl"] .wz-bubble { padding: 12px 10px 12px 14px; }
+/* codina della nuvoletta verso il riquadro */
+.wz-bubble::before {
+  content: ""; position: absolute; width: 14px; height: 14px; background: var(--card-solid);
+  border: 2px solid var(--accent); border-right: 0; border-bottom: 0;
+}
+.wz-bubble[data-side="below"]::before { top: -9px; left: calc(var(--tail) - 7px); transform: rotate(45deg); }
+.wz-bubble[data-side="above"]::before { bottom: -9px; left: calc(var(--tail) - 7px); transform: rotate(225deg); }
+.wz-bubble[data-side="right"]::before { left: -9px; top: calc(var(--tail) - 7px); transform: rotate(-45deg); }
+.wz-bubble[data-side="left"]::before { right: -9px; top: calc(var(--tail) - 7px); transform: rotate(135deg); }
+.wz-bubble[data-side="none"]::before { display: none; }
+.wz-bubble.wz-pop { animation: wz-pop .32s cubic-bezier(.3, 1.6, .5, 1); }
+
+.wz-hari { flex: none; width: 54px; height: 54px; margin-top: 2px; }
+.wz-hari .mini-hari { width: 100%; height: 100%; animation: bob 3s ease-in-out infinite; }
+.wz-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.wz-title { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font: 400 15px/1.2 var(--font-display); color: var(--accent-2); }
+.wz-count { font: 800 11px/1 var(--font-body); color: var(--ink-2); letter-spacing: .04em; white-space: nowrap; }
+.wz-text { margin: 0; font-weight: 800; font-size: 15px; line-height: 1.38; overflow-wrap: anywhere; }
+.wz-foot { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.wz-dots { display: flex; gap: 4px; margin-inline-end: auto; }
+.wz-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); }
+.wz-dots i.on { background: var(--accent); width: 16px; border-radius: 4px; }
+.wz-link { border: 0; background: none; padding: 6px 4px; font-weight: 800; font-size: 13px; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.wz-btn.tool { width: 40px; height: 40px; padding: 0; justify-content: center; box-shadow: 0 3px 0 var(--line-2); }
+.wz-btn.tool svg { width: 18px; height: 18px; color: var(--ink); }
+[dir="rtl"] .wz-prev svg { transform: scaleX(-1); }
+.wz-btn.candy { height: 40px; padding: 0 16px; font-size: 14px; }
+.wz-foot button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+@media (max-width: 380px) {
+  .wz-hari { width: 42px; height: 42px; }
+  .wz-text { font-size: 14px; }
+  .wz-btn.candy { padding: 0 12px; }
+}
+
+@keyframes wz-pop { from { transform: scale(.92); opacity: .4; } }
+@keyframes wz-glow { 50% { stroke-opacity: .55; } }
+@media (prefers-reduced-motion: reduce) {
+  .wz-bubble.wz-pop, .wz-ring, .wz-hari .mini-hari { animation: none; }
+}

@@ -6,6 +6,9 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [ ] Guida della home (regola R13, `src/core/wizard.js` + `wizard.css`): al primo avvio, dopo l'avviso legale e prima della domanda sulle statistiche, 6 passi con riquadro di focus e nuvoletta di Hari (card/Riprendi, vista, lingua+suono, ghiande/progressi, Condividi+Installa, «?»); dopo un aggiornamento solo le novità (`NEWS` nel modulo + giochi con `since`); una volta sola (`wizard: { v }`); pulsante «?» nella barra in alto. Da fare al rilascio: allineare la chiave `NEWS['0.31.0']` alla versione vera; traduzioni `wz_*` (ora inglese in 41 lingue)
+
 ## Prossimo
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)

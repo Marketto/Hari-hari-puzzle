@@ -26,6 +26,7 @@ const check = (ok, msg) => { console.log((ok ? 'OK  ' : 'FAIL') + ' ' + msg); if
 
 const INIT = () => {
   localStorage.setItem('harihari:legal', JSON.stringify({ v: 999, at: 1 }));
+  localStorage.setItem('harihari:wizard', JSON.stringify({ v: '999' }));   // guida della home già vista
   // pagina nascosta emulata
   window.__hid = false;
   Object.defineProperty(document, 'hidden', { configurable: true, get: () => window.__hid });
