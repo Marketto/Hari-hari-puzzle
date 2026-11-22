@@ -38,12 +38,28 @@ Fragoline (1–3, al posto delle stelle) da `rate(snapshot)`: Hedgedoku 3 senza 
 
 ## Ordine di caricamento
 ```
-locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audio.js → fx.js → transition.js → usage.js → legal.js → wizard.js → <gioco>-logic.js → <gioco>-ui.js … → app.js (boot)
+locales.js → rng.js → core.js (store, progress, i18n) → mascot.js → audio.js → fx.js → transition.js → usage.js → legal.js → wizard.js → ui.js → fullscreen.js → updates.js → home.js → catalog.js → cards.js → app.js (boot)
+                                     (i giochi: <gioco>-logic.js → <gioco>-ui.js … scaricati quando li si apre)
 ```
+
+## Shell dell'app (nucleo)
+`app.js` era un file solo (oltre 1300 righe): ora è diviso per responsabilità, sempre script classici caricati prima
+di `app.js` (in `index.html`, in `SHELL` di `sw.js` e nel file unico di `build-inline.mjs`):
+
+| File | `HH.` | Cosa fa |
+|---|---|---|
+| `src/core/ui.js` | `ui` | pezzi condivisi senza stato: `ICON`, fragoline (`STAR`, `stars`), `fmt`/`fmtLong`/`nf`, `lab` (testo con riserva), `cardArt` |
+| `src/core/fullscreen.js` | `fullscreen` | schermo intero, uscita del browser (indietro o cambio app), velo, barra e menu del logo, adattamento `fitFs` |
+| `src/core/updates.js` | `updates` | installazione su Android, service worker (`updateReady`, `applyUpdate`, `controllerchange`), `heal`, giochi nuovi |
+| `src/core/home.js` | `home` | home (card, «Riprendi», viste e carosello), guida e domanda sulle statistiche, Progressi, lingue, Condividi |
+| `src/app.js` | `app` | stato `S`, apertura e chiusura del gioco, hud, Hari che parla, tutorial, vittoria e sconfitta, audio, avvio |
+
+Lo stato condiviso è `HH.app` (`S`, `persist`, `endInst`, `say`, `react`, `goHome`, `openGame`, `audioState`,
+`audioLabel`): i moduli lo leggono solo al momento dell'uso, così l'ordine di caricamento resta semplice.
 
 ## Flusso
 1. `app.js` → `boot()`: lingua da storage o da `navigator.languages`, `dir` per RTL, sfondo canvas, suono, service worker.
-2. Home: card da `HH.games` + card "in arrivo" (`SOON`).
+2. Home (`src/core/home.js`): card da `HH.catalog` + card "in arrivo" (`SOON`).
 3. Tocco card → `openGame(id)`: schermo intero (`autoFull()`, sincrono dentro il tocco), poi transizione
    (`HH.transition.run`); a schermo coperto scarica il gioco se serve (`HH.loadGame`) e `showGame` crea `ctx`, chiama
    `game.create(boardEl, ctx)`, `history.pushState` per il tasto indietro di Android.
@@ -54,7 +70,7 @@ Vedi `.claude/skills/add-game/SKILL.md`. Logica pura in `*-logic.js` (testata da
 
 **Giochi senza fine** (`endless: true` nella voce del catalogo e in `HH.games`, es. Hari Home): niente livello,
 fragoline, cuori, tempo e mosse. L'app chiede al gioco `meta(state)` → `[{ i: icona, v: testo }]` (icone di `ICON` in
-`app.js`: `cake`, `sun`, `acorn`…), lo salva insieme alla partita (`save.meta`) e lo mostra nei chip dell'header, nella
+`src/core/ui.js`: `cake`, `sun`, `acorn`…), lo salva insieme alla partita (`save.meta`) e lo mostra nei chip dell'header, nella
 card in home, in "Riprendi" e nei Progressi (la home non ha il codice del gioco, quindi legge `save.meta`). Nell'header
 restano solo "Ricomincia" (il gioco chiede conferma) e "?"; niente messaggi "a metà!/quasi fatto!" (`progress` guida
 solo la musica). La voce del catalogo può avere `rulesEn` come testo di riserva finché la chiave regole non è tradotta.
@@ -69,7 +85,7 @@ Regola R13: al primo avvio (dopo l'avviso legale, prima della domanda sulle stat
 velatura SVG con buchi luminosi attorno agli elementi e nuvoletta con una frase. Passi in `TOUR` (un passo senza
 elemento visibile si salta); dopo un aggiornamento solo le novità delle versioni saltate (`NEWS = { 'x.y.z': [{ key, sel }] }`,
 1–3 per versione, più i giochi del catalogo con `since` nuovo); vista una volta sola (`HH.store` `wizard: { v }`);
-il «?» nella barra in alto la rilancia. Aggancio in `app.js`: `homeIntro()` in `renderHome` e dopo l'avviso legale,
+il «?» nella barra in alto la rilancia. Aggancio in `src/core/home.js`: `homeIntro()` in `renderHome` e dopo l'avviso legale (`legalGate` in `app.js`),
 `HH.wizard.close()` in `openGame`, controlli `isOpen()` in `askConsent` e `offerInstall`. Logica pura in
 `tests/wizard.test.mjs`; gli e2e preimpostano `harihari:wizard = {"v":"999"}` come fanno con l'avviso legale.
 
@@ -140,7 +156,7 @@ il «?» nella barra in alto la rilancia. Aggancio in `app.js`: `homeIntro()` in
     ferma da solo con la pagina nascosta (voce compresa) e riparte dal tocco sulla sua copertina, che sblocca la voce.
 - e2e: `tools/fullscreen-e2e.mjs` (Chromium: apertura, indietro una volta sola, cambio d'app nei due ordini, ripresa
   all'avvio, blocco dell'orientamento, richiesta rifiutata, RTL; `document.hidden` e `visibilitychange` emulati).
-- **Adattamento** (`fitFs` in `app.js`, rilanciato a ogni apertura, nuovo livello, ricomincia e `resize`):
+- **Adattamento** (`fitFs` in `src/core/fullscreen.js`, rilanciato a ogni apertura, nuovo livello, ricomincia e `resize`):
   - **fill** (contratto opzionale, `fill: true` nella voce di `HH.games`): il contenitore del gioco (primo figlio di
     `#board`) riempie tutto lo spazio sotto la barra (`.plate.fs-fill`), e il CSS del gioco dice quale pezzo cresce
     (`flex: 1; aspect-ratio: auto`). La scena si adatta alla misura reale con un `ResizeObserver` sul palco (o

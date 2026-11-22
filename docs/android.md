@@ -7,7 +7,7 @@
 4. Dopo la prima apertura funziona in modalità aereo.
 
 ## Proposta d'installazione e aggiornamenti automatici (v0.6.2)
-**Installazione** (`setupInstall` in `src/app.js`)
+**Installazione** (`setupInstall` in `src/core/updates.js`)
 - Chrome Android: l'evento `beforeinstallprompt` viene trattenuto; dopo 2,5 s nella home compare la finestra di Hari
   "Installa Hari Hari" → *Installa app* apre il prompt nativo. Mai durante una partita.
 - Altri browser Android (senza prompt): dopo 7 s compaiono le istruzioni "menu ⋮ → Installa app / Aggiungi a schermata Home".
@@ -32,7 +32,7 @@
   se ne tiene copia in `save-bak:<id>` e si riparte dal livello raggiunto. `navigator.storage.persist()` evita la pulizia automatica.
 - Il service worker nuovo aspetta il via SOLO se la pagina risponde `{type:'can-update', proto: 2}` (dalla 0.25.2); pagine
   più vecchie, che su iPhone a volte non mandavano mai il via, lo fanno attivare subito.
-- **Autoriparazione** (`heal` in `app.js`, a ogni controllo): legge `sw.js` dalla rete senza cache; se la versione pubblicata
+- **Autoriparazione** (`heal` in `src/core/updates.js`, a ogni controllo): legge `sw.js` dalla rete senza cache; se la versione pubblicata
   è più nuova e dopo 20 s non è partita, dà il via a quella in attesa oppure (nessuna in arrivo) cancella registrazione e
   cache `hh-v*` dell'app e ricarica. I salvataggi non si toccano; un solo tentativo forte per versione (`healTried`).
 - `tests/pwa.test.mjs` controlla: `VERSION` = `package.json`, shell offline completa, SW che non tocca i dati, migrazioni, e

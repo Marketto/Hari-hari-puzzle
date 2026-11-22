@@ -12,6 +12,7 @@ const VERSION = 'hh-v0.30.2';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'src/styles.css', 'src/app.js', 'src/i18n/locales.js', 'src/core/rng.js', 'src/core/rules.js', 'src/core/core.js', 'src/core/mascot.js', 'src/core/audio.js', 'src/core/fx.js', 'src/core/transition.js', 'src/core/usage.js', 'src/core/legal.js', 'src/core/wizard.js', 'src/core/wizard.css',
+  'src/core/ui.js', 'src/core/fullscreen.js', 'src/core/updates.js', 'src/core/home.js',
   'src/i18n/legal/en.js', 'src/i18n/legal/licenses.js',
   'src/games/tokens.css', 'src/games/catalog.js', 'src/games/cards.js',
   'assets/fonts/fonts.css',

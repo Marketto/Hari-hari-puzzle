@@ -37,7 +37,11 @@ Il file di dettaglio di ogni skill è in `.claude/skills/<nome>/SKILL.md`; gli a
 index.html                 shell + ordine degli script
 sw.js                      service worker (cache offline)
 manifest.webmanifest       PWA (installazione Android)
-src/app.js                 schermate: home, gioco, vittoria, lingue
+src/app.js                 stato, apertura/chiusura del gioco, hud, vittoria e sconfitta, tutorial, avvio
+src/core/ui.js             icone, fragoline, formati (HH.ui), condivisi dalla shell
+src/core/home.js           home: card, Riprendi, viste, Progressi, lingue, Condividi, domanda statistiche
+src/core/fullscreen.js     schermo intero dei giochi, velo, menu del logo, adattamento alla misura
+src/core/updates.js        installazione PWA, aggiornamenti del service worker, autoriparazione (heal)
 src/core/core.js           HH.store (localStorage) · HH.i18n
 src/core/fx.js             sfondo animato · coriandoli · suoni WebAudio
 src/core/usage.js          tempo di gioco locale + statistiche anonime facoltative (GoatCounter, con consenso)
@@ -45,6 +49,7 @@ src/core/mascot.js         SVG di Hari (grande e mini)
 src/core/audio.js          musica generativa ed effetti (HH.music, sfx)
 src/core/legal.js          avviso legale al primo avvio, privacy e licenze (testi in src/i18n/legal/)
 src/core/transition.js     transizioni animate entrando e uscendo dai giochi
+src/core/wizard.js · .css  guida della home al primo avvio e novità dopo un aggiornamento
 src/net/                   multigiocatore in rete locale (abbinamento col suono/QR, WebRTC), lazy load
 src/games/*-logic.js       logica pura dei giochi
 src/games/*-ui.js          interfaccia dei giochi, si registra in HH.games

@@ -39,7 +39,7 @@ Nel catalogo (`src/games/catalog.js`): `{ id, name, since: 'X.Y.Z', rules, rules
 3. Aggiungi la voce in `src/games/catalog.js` (`id`, `name`, `rules`, `files` in ordine: CSS, logic, eventuali file di supporto, ui per ultima). NON metterli in `index.html` né in `SHELL`: il gioco si scarica in lazy load quando lo si apre e il service worker lo mette in cache da solo. Poi `npm run cards` (rigenera `cards.js` e `tokens.css`; `art` deve essere una funzione pura che restituisce SVG).
 4. CSS in `src/games/<id>.css` con prefisso a 2 lettere (`px-`), token in `:root` + tema scuro, tinta card `--tint-<id>` in **entrambi** i temi (finisce in `tokens.css`, caricato all'avvio).
 5. Chiave regole `rN` in tutte le lingue (skill `i18n`).
-6. Unit test in `tests/<id>.test.mjs` (oracolo indipendente); docs in `docs/games/<id>.md`; togli il gioco da `SOON` in `src/app.js` se presente.
+6. Unit test in `tests/<id>.test.mjs` (oracolo indipendente); docs in `docs/games/<id>.md`; togli il gioco da `SOON` in `src/core/home.js` se presente.
 7. `npm test && npm run build`, poi spunta in `TODO.md`.
 
 ## Curva di difficoltà

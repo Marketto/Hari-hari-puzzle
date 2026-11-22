@@ -1,66 +1,22 @@
-/* Hari Hari Puzzle — shell dell'app.
- * Schermate: home (riprendi partita, card giochi), gioco (HUD con tempo/mosse/stelle), vittoria, progressi, lingue.
+/* Hari Hari Puzzle — shell dell'app: stato, apertura e chiusura dei giochi, indicatori, Hari che parla, tutorial,
+ * vittoria e sconfitta, audio, avvio e avviso legale.
  * Salvataggio: ogni mossa e ogni 5 s di gioco la partita viene salvata (HH.progress.saveGame);
  * riaprendo l'app si torna dritti alla partita in sospeso.
- */
+ * Moduli del nucleo caricati prima: src/core/ui.js (icone e formati), fullscreen.js (schermo intero e velo),
+ * updates.js (installazione e aggiornamenti), home.js (home, Progressi, lingue). Lo stato condiviso con loro è HH.app. */
 (function (G) {
   const HH = G.HH;
-  const t = (k) => HH.i18n.t(k);
-  const $ = (s, r = document) => r.querySelector(s);
+  const A = (HH.app = HH.app || {});
+  const { t, $, lab, ICON, metaHTML, STAR, stars, fmt, nf, cardArt } = HH.ui;
+  const { autoFull, exitFull, fsClass, veilOn, dropVeil, fsEnsure, placeHud, fsMenu, refitSoon } = HH.fullscreen;
+  const { setupInstall, offerInstall, closeInstall, setupUpdates, applyUpdate, pending, isNew } = HH.updates;
+  const { renderHome, homeIntro, lastSave, openStats, renderLangSheet, share } = HH.home;
   const sfx = HH.fx.sfx;
   const P = HH.progress;
 
-  const ICON = {
-    chev: '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    vList: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="5" rx="1.5" fill="currentColor"/><rect x="3" y="15" width="5" height="5" rx="1.5" fill="currentColor"/><path d="M11 6.5h10M11 17.5h10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
-    vGrid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2.4" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2.4" fill="currentColor"/></svg>',
-    vCarousel: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4" width="10" height="16" rx="2.4" fill="currentColor"/><path d="M4.5 7v10M19.5 7v10M1.8 9v6M22.2 9v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
-    // audio unificato: altoparlante + nota (musica e suoni) · solo altoparlante (solo suoni) · altoparlante sbarrato (muto)
-    audio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h3.5L11 5v14l-4.5-4H3z" fill="currentColor"/><path class="wave" d="M14 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><g class="note"><path d="M18 14.5V5.5l4-1v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16.6" cy="14.6" rx="1.9" ry="1.6" fill="currentColor"/><ellipse cx="20.6" cy="12.6" rx="1.9" ry="1.6" fill="currentColor"/></g><path class="mute" d="M14.5 9l6 6M20.5 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
-    share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
-    full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    restart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    sparkle: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7zM19 15c.3 2 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1 3-3z" fill="currentColor"/></svg>',
-    globe: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-    sound: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="mute" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
-    install: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0l-4.5-4.5M12 14l4.5-4.5M5 17v2.5h14V17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 9.5v4l2.6 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-    paw: '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5.2" ry="4.3" fill="currentColor"/><circle cx="5.8" cy="10.5" r="2.3" fill="currentColor"/><circle cx="9.5" cy="6.3" r="2.3" fill="currentColor"/><circle cx="14.5" cy="6.3" r="2.3" fill="currentColor"/><circle cx="18.2" cy="10.5" r="2.3" fill="currentColor"/></svg>',
-    trophy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8 20h8l-1-3H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>',
-    acorn: '<svg viewBox="0 0 24 24" aria-hidden="true" class="acorn"><path d="M6.5 11h11c0 5.5-2.8 9.3-5.5 10.3C9.3 20.3 6.5 16.5 6.5 11z" fill="var(--acorn)"/><path d="M4.5 11.2C4.5 7 7.8 4.5 12 4.5s7.5 2.5 7.5 6.7z" fill="var(--acorn-cap)"/><path d="M12 4.6V2.4" stroke="var(--acorn-cap)" stroke-width="2.2" stroke-linecap="round"/><path d="M7 8.5h10M8 6.4h8" stroke="#fff" stroke-opacity=".25" stroke-width="1.3"/><path d="M9.3 13.5c.2 2.6 1 4.3 2 5.4" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
-    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.8l-10-6.5A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>',
-    home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5l8-7 8 7V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
-    pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg>',
-    heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5 15.5 2 12 2 8.2 2 5.3 4.3 3 7.2 3c1.9 0 3.6 1 4.8 2.6C13.2 4 14.9 3 16.8 3 19.7 3 22 5.3 22 8.2 22 12 19 15.5 12 21z"/></svg>',
-    music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="6.5" cy="17.5" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="17.5" cy="15" rx="3" ry="2.5" fill="currentColor"/><path class="mute" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-    // giochi senza fine (endless): età e giorno al posto di livello, tempo e mosse
-    cake: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.4 12.8h15.2v7.4H4.4zM4.4 16.4c1.5 1 2.6 1 3.8 0s2.5-1 3.8 0 2.6 1 3.8 0 2.3-1 3.8 0M12 12.8V9.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4.2c1.1 1.3 1.1 2.7 0 3.3-1.1-.6-1.1-2 0-3.3z" fill="currentColor"/></svg>',
-    sun: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>',
-  };
-  // meta dei giochi endless ([{ i: icona, v: testo }], da game.meta o dal salvataggio): chip dell'header e righe della home
-  const metaHTML = (m, chip) => (m || []).map((x) => (chip ? `<span class="chip">${ICON[x.i] || ''}<b>${x.v}</b></span>` : `<span>${ICON[x.i] || ''}${x.v}</span>`)).join('');
-  // valutazione a fragoline: lo spuntino preferito di Hari (accesa = guadagnata)
-  const STAR = (on) => `<svg class="st${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true">
-    <path class="b" d="M12 22c-4.8-2-7.6-6.2-7-10.3.3-2.1 2-3.5 3.8-3.5 1 0 2 .3 3.2.3s2.2-.3 3.2-.3c1.8 0 3.5 1.4 3.8 3.5.6 4.1-2.2 8.3-7 10.3z"/>
-    <path class="hl" d="M7.6 11.6c-.3 1.8.2 3.6 1.2 5"/>
-    <g class="sd"><ellipse cx="9.4" cy="12.6" rx=".55" ry=".85"/><ellipse cx="14.6" cy="12.6" rx=".55" ry=".85"/><ellipse cx="12" cy="15.4" rx=".55" ry=".85"/><ellipse cx="9.8" cy="17.4" rx=".5" ry=".8"/><ellipse cx="14.2" cy="17.4" rx=".5" ry=".8"/><ellipse cx="12" cy="11" rx=".5" ry=".8"/></g>
-    <path class="l" d="M12 9.2C10.4 9.3 8 8.7 7 7.2c1.7-.5 3.4-.1 4.6.8-.2-1.8.5-3.5 1.8-4.6.6 1.6.3 3.3-.6 4.6 1.3-.8 3.1-1.1 4.7-.5-1 1.5-3.4 1.9-5.5 1.7z"/>
-  </svg>`;
-  const stars = (n) => [0, 1, 2].map((i) => STAR(i < n)).join('');
-  // tempo lungo: "2 h 05 min", "12 min", "40 s"
-  const fmtLong = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return h ? `${h} h ${String(m).padStart(2, '0')} min` : m ? `${m} min` : `${sec} s`; };
-  const fmt = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; };
-  const nf = (n) => { try { return new Intl.NumberFormat(HH.i18n.code).format(n || 0); } catch (e) { return String(n || 0); } };
-  const word = (w, cls) => `<span class="lw ${cls}">${[...w].map((ch, i) => `<span style="--k:${i}">${ch}</span>`).join('')}</span>`;
-
-  // Giochi proposti (in arrivo): solo card
-  // giochi «in arrivo» mostrati in fondo alla home ({ id, name, art }); spariscono da soli quando quello vero è nel catalogo
-  const SOON = [];
-
   /* ---------- stato ---------- */
   const S = { gen: 0, game: null, inst: null, elapsed: 0, won: false, pushed: false, best: 0, ms: {}, lastMove: 0, idleSaid: false };
+  A.S = S;
 
   /* ---------- Hari parla ---------- */
   const SAY = {
@@ -198,467 +154,6 @@
       s.style.transform = `translate(${(dx * 9).toFixed(1)}px, ${(dy * 7).toFixed(1)}px)`;
     });
   }, { passive: true });
-
-  // partita in sospeso di un gioco nel posto che si riaprirà (es. Hari Taxi: la mappa corrente drive@ostia …)
-  const lastSave = (g) => P.loadGame(HH.store.get('slot:' + g.id) || g.id);
-
-  /* ---------- Home ---------- */
-  function renderHome() {
-    HH.music.play('menu', 0.45);
-    HH.music.duck(false);
-    const saves = HH.catalog.map((g) => ({ g, s: lastSave(g) })).filter((x) => x.s).sort((a, b) => b.s.ts - a.s.ts);
-    const r = saves[0];
-    const resume = r ? `
-      <button class="resume" data-game="${r.g.id}">
-        <span class="resume-art" style="--tint:var(--tint-${r.g.id})">${cardArt(r.g.id)}</span>
-        <span class="resume-text">
-          <small><i class="dot"></i>${t('paused')}</small>
-          <b>${r.g.name}</b>
-          <span class="resume-meta">${r.g.endless ? metaHTML(r.s.meta) : `<span>${t('level')} ${r.s.level}</span><span>${ICON.clock}${fmt(r.s.elapsed)}</span><span>${ICON.paw}${nf(r.s.state.moves)}</span>`}</span>
-        </span>
-        <span class="candy">${ICON.play}<span>${t('resume')}</span></span>
-      </button>` : '';
-    const cards = HH.catalog.map((g, idx) => {
-      const p = P.get(g.id), s = lastSave(g);
-      return `<button class="card" data-game="${g.id}" style="--tint:var(--tint-${g.id});--i:${idx}">
-        <span class="card-art">
-          ${g.endless ? '' : `<span class="ribbon-tag">${t('level')} ${p.level}</span>`}
-          ${s ? `<span class="pause-tag">${ICON.pause}${fmt(s.elapsed)}</span>` : ''}
-          ${isNew(g.id) ? `<span class="new-tag">${ICON.sparkle}${lab('newTag', 'New!')}</span>` : ''}
-          ${cardArt(g.id)}
-        </span>
-        <span class="card-body">
-          <span class="card-title">${g.name}</span>
-          <span class="card-rule">${lab(g.rules, g.rulesEn || g.rules)}</span>
-          ${g.endless ? `<span class="card-stats resume-meta">${s ? metaHTML(s.meta) : ''}</span>` : `<span class="card-stats"><span class="stars" aria-hidden="true">${stars(p.last)}</span><span class="best" title="${t('best')}">${ICON.trophy}<b>${nf(p.best)}</b></span></span>`}
-          <span class="card-foot">${g.endless ? '<span></span>' : `<span class="wins">${t('wins')} <b>${nf(p.wins)}</b></span>`}<span class="candy">${ICON.play}<span>${t(s ? 'resume' : 'play')}</span></span></span>
-        </span>
-      </button>`;
-    }).join('');
-    // i giochi "in arrivo" spariscono da soli quando quello vero è registrato
-    const soon = SOON.filter((x) => !HH.catalog.some((g) => g.name === x.name)).map((g) => `
-      <div class="card soon" aria-disabled="true">
-        <span class="card-art">${g.art}</span>
-        <span class="card-body"><span class="card-title">${g.name}</span><span class="chip ghost">${t('soon')}</span></span>
-      </div>`).join('');
-    $('#home').innerHTML = `
-      <section class="hero">
-        <div class="hero-stage">
-          <span class="cloud-seat" aria-hidden="true"></span>
-          <button class="hero-mascot" id="heroMascot" aria-label="Hari">${HH.mascot.svg({ cls: 'hari' })}</button>
-        </div>
-        <div class="hero-copy">
-          <p class="bubble">${t('tagline')}</p>
-          <h1 class="logo" aria-label="Hari Hari Puzzle"><span class="logo-main">${word('Hari', 'a')}${word('Hari', 'b')}<span class="br"></span><span class="logo-ribbon">Puzzle</span></span><span class="logo-side"><button class="share-btn" id="shareBtn" type="button" aria-label="${lab('share', 'Share')}" title="${lab('share', 'Share')}">${ICON.share}<span>${lab('share', 'Share')}</span></button><span class="logo-ver" aria-hidden="true">✿ v${HH.VERSION}</span></span></h1>
-          <p class="sub"><span>はりはり</span><span>${ICON.globe} ${HH.LANGS.length}</span><span>offline</span></p>
-        </div>
-      </section>
-      ${resume}
-      <div class="view-bar" role="radiogroup" aria-label="${lab('viewLabel', 'View')}">${VIEWS.map((v) => `<button class="view-btn${v.id === homeView() ? ' on' : ''}" role="radio" aria-checked="${v.id === homeView()}" data-view="${v.id}" aria-label="${lab(v.key, v.en)}" title="${lab(v.key, v.en)}">${ICON[v.icon]}</button>`).join('')}</div>
-      <section class="grid-cards view-${homeView()}" id="gameCards" aria-label="${lab('goHome', 'All games')}">${cards}</section>
-      ${homeView() === 'carousel' ? `<div class="cf-dots" aria-hidden="true">${HH.catalog.map((g, i) => `<i data-i="${i}"></i>`).join('')}</div>` : ''}
-      ${soon ? `<h2 class="soon-title">${ICON.sparkle}<span>${t('soon')}</span>${ICON.sparkle}</h2>
-      <section class="grid-cards small">${soon}</section>` : ''}
-      <footer class="home-foot"><button class="lg-foot-link" id="legalLink" type="button">${t('lg_link')}</button></footer>`;
-    markRemote();
-    if (homeView() === 'carousel') coverFlow();
-    homeIntro();
-  }
-
-  // guida della home (src/core/wizard.js) al primo avvio o con novità, poi l'eventuale domanda sulle statistiche
-  function homeIntro(delay) {
-    const busy = () => !!(S.game || S.loading || (HH.transition && HH.transition.busy()));
-    if (!(HH.wizard && HH.wizard.auto({ busy, done: () => askConsent(1500) }))) askConsent(delay);
-  }
-
-  /* ---------- consenso alle statistiche anonime (solo se configurate; si chiede una volta, in home) ---------- */
-  let consentAsked = false;
-  // (solo dopo l'avviso legale: finché non è accettato non si chiede nulla)
-  function askConsent(delay = 4000) {
-    if (consentAsked || !HH.usage.canAsk() || HH.usage.consent() !== null || HH.legal.needs()) return;
-    consentAsked = true;
-    setTimeout(() => {
-      // (anche durante l'apertura di un gioco: S.game arriva solo a schermo coperto dalla transizione)
-      if (S.game || S.loading || (HH.transition && HH.transition.busy()) || HH.usage.consent() !== null || HH.legal.isOpen() || (HH.wizard && HH.wizard.isOpen())) { consentAsked = false; return; }
-      const d = document.createElement('div');
-      d.className = 'overlay'; d.id = 'anDlg'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'anTitle');
-      d.innerHTML = `<div class="sheet an-sheet"><div class="an-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
-        <h2 id="anTitle" tabindex="-1">${lab('an_title', 'Help Hari get better!')}</h2><p>${lab('an_text', 'Can we send anonymous statistics? Only which games are played and for how many minutes: no names, no personal data. You can change your mind in Progress.')}</p>
-        <div class="win-actions"><button class="tool" data-an="0">${lab('an_no', 'No thanks')}</button><button class="candy" data-an="1">${ICON.sparkle}<span>${lab('an_yes', 'Yes, gladly')}</span></button></div></div>`;
-      document.body.appendChild(d);
-      d.onclick = (e) => { const b = e.target.closest('[data-an]'); if (!b) return; HH.usage.setConsent(b.dataset.an === '1'); sfx.tap(); d.remove(); };
-      d.querySelector('#anTitle').focus({ preventScroll: true });   // focus sul titolo, non su un pulsante: il consenso dev'essere una scelta attiva
-    }, delay);
-  }
-
-  /* ---------- modalità di visualizzazione dei giochi: lista · icone 2 per riga · carosello (Cover Flow) ---------- */
-  const VIEWS = [
-    { id: 'list', icon: 'vList', key: 'viewList', en: 'List' },
-    { id: 'grid', icon: 'vGrid', key: 'viewGrid', en: 'Icons' },
-    { id: 'carousel', icon: 'vCarousel', key: 'viewCarousel', en: 'Carousel' },
-  ];
-  const homeView = () => { const v = HH.store.get('homeView', 'grid'); return VIEWS.some((x) => x.id === v) ? v : 'grid'; };
-  // carosello: la card al centro è grande e dritta, le altre ruotano in prospettiva come il Cover Flow del Mac
-  function coverFlow() {
-    const row = $('#gameCards');
-    if (!row) return;
-    const cards = [...row.querySelectorAll('.card')];
-    const dots = [...document.querySelectorAll('.cf-dots i')];
-    let raf = 0;
-    const paint = () => {
-      raf = 0;
-      const mid = row.scrollLeft + row.clientWidth / 2;
-      let best = 0, bd = Infinity;
-      cards.forEach((c, i) => {
-        const cx = c.offsetLeft + c.offsetWidth / 2;
-        const d = Math.max(-1.6, Math.min(1.6, (cx - mid) / c.offsetWidth));
-        const a = Math.abs(d);
-        if (a < bd) { bd = a; best = i; }
-        c.style.transform = `perspective(900px) translateZ(${(-a * 140).toFixed(0)}px) rotateY(${(-d * 42).toFixed(1)}deg) scale(${(1 - Math.min(a, 1) * 0.12).toFixed(3)})`;
-        c.style.zIndex = String(100 - Math.round(a * 10));
-        c.style.opacity = (1 - Math.min(a, 1.6) * 0.28).toFixed(2);
-        c.classList.toggle('cf-on', a < 0.5);
-      });
-      dots.forEach((dot, i) => dot.classList.toggle('on', i === best));
-    };
-    row.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(paint); }, { passive: true });
-    G.addEventListener('resize', () => { if (!raf) raf = requestAnimationFrame(paint); });
-    // tocco su una card laterale: prima la porta al centro, poi si gioca
-    row.addEventListener('click', (e) => {
-      const c = e.target.closest('.card');
-      if (c && !c.classList.contains('cf-on')) { e.stopPropagation(); e.preventDefault(); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
-    }, true);
-    // riparte dall'ultimo gioco aperto
-    const last = cards.findIndex((c) => c.dataset.game === HH.store.get('cfLast'));
-    if (last > 0) row.scrollLeft = cards[last].offsetLeft + cards[last].offsetWidth / 2 - row.clientWidth / 2;
-    paint();
-  }
-
-  // illustrazione della card dal catalogo statico (il codice del gioco si scarica solo quando lo si apre)
-  const cardArt = (id) => (HH.cardArt && HH.cardArt[id]) || '';
-  // card dei giochi non ancora scaricati: nuvoletta (servono internet la prima volta)
-  function markRemote() {
-    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-    HH.catalog.forEach((c) => HH.gameOffline(c.id).then((ok) => {
-      const el = document.querySelector(`.card[data-game="${c.id}"]`);
-      if (el) el.classList.toggle('remote', !ok);
-    }));
-  }
-
-  /* ---------- schermo intero: l'unica modalità dei giochi ----------
-   * Si gioca SEMPRE a schermo intero; la home invece è in vista normale (uscendo da un gioco si esce anche dallo schermo
-   * intero). A schermo intero va tutto il documento (<html>), non il solo riquadro: le finestre di vittoria, sconfitta,
-   * tutorial e i dialoghi, che stanno nel <body>, restano visibili sopra al gioco. La disposizione "a tutto schermo"
-   * (classe html.fs-on, regole .fs-on .plate) è legata al gioco aperto, non allo stato del browser: dove l'API non c'è
-   * (iPhone) o il browser la rifiuta (iframe, permessi) la stessa disposizione fa da pseudo-schermo intero.
-   * Uscita dallo schermo intero fatta dal browser mentre si gioca (vedi docs/architecture.md, "Schermo intero"):
-   *  - pagina visibile = tasto indietro / gesto indietro / Esc → si torna subito alla home (una volta sola);
-   *  - pagina nascosta subito prima o subito dopo (cambio app, blocco schermo, notifica a tutto schermo) → il gioco resta,
-   *    in pausa sotto un velo con Hari: il primo tocco rientra a schermo intero e riprende la partita. */
-  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
-  const canFull = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
-  const isFull = () => !!fsEl();
-  const inFs = () => document.documentElement.classList.contains('fs-on');   // gioco aperto (vero o pseudo-schermo intero)
-  const now = () => Date.now();
-  const FS_WAIT = 350;                   // finestra dopo l'uscita: se la pagina si nasconde entro questo tempo è un cambio d'app
-  const FS_BACK_GRACE = 1000;            // uscita notificata entro 1 s dal ritorno in primo piano: era il cambio d'app
-  let fsDenied = false;                  // rifiutato anche con un tocco (iframe, permessi): pseudo-schermo intero per la sessione
-  let fsAsk = null;                      // richiesta in corso (Promise<boolean>)
-  let fsOnAt = 0, hidAt = 0, visAt = 0, lostT = 0;
-  document.addEventListener('visibilitychange', () => { if (document.hidden) hidAt = now(); else visAt = now(); });
-  // entra a schermo intero: va chiamata dentro un gesto (tocco su una card, sul velo, su "Accetto"). sure = il chiamante
-  // sa di essere dentro un tocco: se il browser rifiuta lo stesso, si gioca in pseudo-schermo intero.
-  function enterFull(sure) {
-    if (!canFull() || fsDenied) return Promise.resolve(false);
-    if (isFull()) return Promise.resolve(true);
-    if (fsAsk) return fsAsk;
-    const ua = G.navigator.userActivation;
-    if (ua && !ua.isActive) return Promise.resolve(false);   // senza un tocco il browser rifiuterebbe: niente errori in console
-    const d = document.documentElement;
-    let r;
-    try { r = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, { navigationUI: 'hide' }); } catch (e) { r = Promise.reject(e); }
-    // il vecchio webkitRequestFullscreen non restituisce una Promise: si guarda lo stato poco dopo
-    if (!r || typeof r.then !== 'function') r = new Promise((ok, ko) => setTimeout(() => (isFull() ? ok() : ko()), 400));
-    const p = r.then(() => true, () => { if (sure || ua) fsDenied = true; return false; });
-    fsAsk = p;
-    p.then(() => { if (fsAsk === p) fsAsk = null; });
-    return p;
-  }
-  // uscita voluta dall'app (ritorno alla home): non deve contare come "indietro"
-  function exitFull() {
-    clearTimeout(lostT);
-    if (!isFull()) return;
-    try { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } catch (e) { /* non supportato */ }
-  }
-  // apertura di un gioco: si entra a schermo intero subito, dentro il tocco sulla card (prima dello scaricamento
-  // asincrono e della transizione, che farebbero scadere il gesto)
-  function autoFull() { if (!isFull()) enterFull(false); }
-  function fsClass(on) { document.documentElement.classList.toggle('fs-on', !!on); }
-
-  /* velo "torna a schermo intero": Hari e un grande pulsante. Compare quando il browser ha tolto lo schermo intero con
-   * l'app in background, alla ripresa della partita all'avvio e col link diretto (nessun gesto, il browser non lo
-   * permette). La partita resta com'era (nessuna ricarica): il gioco va in pausa solo se non è in rete (i giochi in
-   * rete gestiscono da soli la pagina nascosta, e la connessione non deve cadere). */
-  let veilPaused = false;
-  const veilOn = () => { const v = $('#fsVeil'); return !!(v && !v.hidden); };
-  const netLive = () => !!(S.inst && typeof S.inst.online === 'function' && S.inst.online());
-  // tutorial, vittoria o sconfitta aperti: il gioco è già fermo e lo resta (il velo non lo tocca)
-  const dlgOpen = () => !$('#tutDlg').hidden || !$('#winDlg').hidden || !$('#loseDlg').hidden;
-  function showVeil() {
-    if (!S.game || isFull() || !canFull() || fsDenied) return;
-    let v = $('#fsVeil');
-    if (!v) {
-      v = document.createElement('div');
-      v.id = 'fsVeil'; v.className = 'overlay fs-veil';
-      v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true');
-      document.body.appendChild(v);
-      v.addEventListener('click', onVeilTap);
-      v.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onVeilTap(); } });
-    }
-    v.innerHTML = `<div class="fs-veil-hari">${HH.mascot.svg({ cls: 'hari' })}</div>
-      <button class="fs-veil-go" type="button" aria-label="${lab('full', 'Full screen')}">${ICON.full}</button>
-      <p class="fs-veil-tap" aria-hidden="true">${lab('pa_tap', 'Tap to continue')}</p>`;
-    v.hidden = false;
-    fsMenu(false);
-    if (S.inst && S.inst.pause && !netLive() && !veilPaused && !dlgOpen()) { veilPaused = true; try { S.inst.pause(); } catch (e) { /* gioco già chiuso */ } }
-    HH.music.duck(true);
-    const b = v.querySelector('.fs-veil-go');
-    if (b && !document.hidden) b.focus({ preventScroll: true });
-  }
-  function hideVeil() {
-    const v = $('#fsVeil');
-    if (!v || v.hidden) return;
-    v.hidden = true; v.innerHTML = '';
-    if (!dlgOpen()) HH.music.duck(false);
-    if (veilPaused) { veilPaused = false; if (S.inst && S.inst.resume) { try { S.inst.resume(); } catch (e) { /* gioco già chiuso */ } } }
-    refitSoon();
-  }
-  // primo tocco sul velo: rientra (dentro il tocco) e riprende subito; se il browser rifiuta, si gioca lo stesso
-  function onVeilTap() {
-    sfx.tap();
-    HH.audio.unlock();
-    enterFull(true);
-    hideVeil();
-  }
-  // senza schermo intero mentre si gioca e senza un tocco per entrarci: velo (appena finisce la richiesta in corso)
-  function fsEnsure() {
-    if (!S.game || isFull() || !canFull() || fsDenied) return;
-    if (fsAsk) { fsAsk.then(() => fsEnsure()); return; }
-    showVeil();
-  }
-  // lo schermo intero è finito da solo mentre si giocava: cambio d'app o indietro?
-  function fsLost() {
-    const t0 = now();
-    const bg = () => document.hidden || hidAt >= t0 || (hidAt > fsOnAt && visAt >= hidAt && t0 - visAt < FS_BACK_GRACE);
-    clearTimeout(lostT);
-    if (bg()) { showVeil(); return; }
-    lostT = setTimeout(() => {
-      if (!S.game || S.leaving || isFull()) return;
-      if (bg()) { showVeil(); return; }
-      fsBack();
-    }, FS_WAIT);
-  }
-  // indietro: alla home con la transizione. La voce della history del gioco si toglie qui (S.pushed = false prima,
-  // così il popstate che segue non rifà nulla: goHome è già in corso, S.leaving)
-  function fsBack() {
-    if (!S.game || S.leaving) return;
-    const pushed = S.pushed;
-    S.pushed = false;
-    goHome();
-    if (pushed) { try { history.back(); } catch (e) { /* niente history */ } }
-  }
-  // a schermo intero la barra degli indicatori sta nel riquadro (compatta)
-  function placeHud() {
-    const hud = document.querySelector('#game .hud'), slot = $('#gFsHud'), plate = $('#gPlate');
-    if (!hud || !slot || !plate) return;
-    if (inFs()) { if (hud.parentElement !== slot) slot.appendChild(hud); }
-    else if (hud.parentElement === slot) plate.before(hud);
-    fsMenu(false);
-  }
-  // menu del logo: le azioni della barra e degli strumenti del gioco
-  function fsMenu(open) {
-    const box = $('#gFsMenuBox'), btn = $('#gFsMenu');
-    if (!box || !btn) return;
-    if (open === undefined) open = box.hidden;
-    if (open) {
-      const items = [
-        ['home', ICON.home, lab('goHome', 'All games'), '#gBack'],
-        ['undo', ICON.undo, t('undo'), '#gUndo'],
-        ['restart', ICON.restart, t('restart'), '#gRestart'],
-        ['new', ICON.sparkle, t('newg'), '#gNew'],
-        ['help', '<b class="q">?</b>', lab('help', 'How to play'), '#gHelp'],
-        ['audio', ICON.audio, audioLabel(), '#audioBtn'],
-      ].filter(([, , , sel]) => !sel || $(sel));
-      box.innerHTML = items.map(([id, ic, label]) => `<button role="menuitem" data-fs="${id}">${ic}<span>${label}</span></button>`).join('');
-      box.querySelectorAll('[data-fs="audio"]').forEach((b) => { b.dataset.state = audioState(); });
-    }
-    box.hidden = !open;
-    btn.setAttribute('aria-expanded', String(open));
-  }
-  /* schermo intero: il gioco si adatta allo spazio (larghezza E altezza). Si cerca la --game-w più grande per cui il
-   * contenuto entra nel riquadro: niente scorrimento in orizzontale (telefono girato) e giochi grandi sui tablet.
-   * Tre modi (vedi docs/architecture.md, "Schermo intero"):
-   *  - fill: il gioco dichiara fill: true, il suo contenitore riempie tutto e la scena si adatta alla misura reale;
-   *  - side: riquadro largo (orizzontale) e gioco "a pila" (barra, griglia, piede): il pezzo più grande va al centro e
-   *          gli altri ai lati (quelli prima a sinistra, quelli dopo a destra), così la griglia usa tutta l'altezza;
-   *  - stack: la pila normale, centrata, alla larghezza più grande che entra. */
-  const SIDE = ['fs-side-c', 'fs-spread', 'fs-main', 'fs-a', 'fs-b'];
-  let sideOn = '';                       // '' · 'side' · 'spread'
-  function sideParts(bd) {
-    const flow = (e) => { const cs = getComputedStyle(e); return cs.display !== 'none' && cs.position !== 'absolute' && cs.position !== 'fixed'; };
-    let host = bd, kids = [...bd.children].filter(flow);
-    if (kids.length === 1) {
-      host = kids[0];
-      const cs = getComputedStyle(host);
-      // solo le pile verticali: chi ha già un suo layout (griglia, riga) se lo tiene
-      if (!(cs.display === 'flex' && cs.flexDirection === 'column') && !host.classList.contains('fs-side-c') && !host.classList.contains('fs-spread')) return null;
-      kids = [...host.children].filter(flow);
-    }
-    if (kids.length < 2) return null;
-    let main = kids[0], best = -1;
-    for (const k of kids) { const r = k.getBoundingClientRect(), a = r.width * r.height; if (a > best) { best = a; main = k; } }
-    return { host, kids, main };
-  }
-  function clearSide(bd) {
-    sideOn = '';
-    if (sideMO) sideMO.disconnect();
-    bd.querySelectorAll('.fs-side-c, .fs-spread, .fs-main, .fs-a, .fs-b').forEach((e) => { e.classList.remove(...SIDE); e.style.removeProperty('grid-row'); e.style.removeProperty('--fs-rows'); });
-    bd.classList.remove('fs-side-c', 'fs-spread'); bd.style.removeProperty('--fs-rows');
-  }
-  // side: colonne ai lati · spread: pila alta quanto il riquadro, i pezzi prima in alto (attaccati alla barra), quelli
-  // dopo in basso, il principale centrato nello spazio in mezzo
-  function tagSide(parts, mode = 'side') {
-    const { host, kids, main } = parts, m = kids.indexOf(main);
-    host.classList.remove('fs-side-c', 'fs-spread');
-    host.classList.add(mode === 'side' ? 'fs-side-c' : 'fs-spread');
-    host.style.setProperty('--fs-rows', Math.max(m, kids.length - 1 - m, 1));
-    kids.forEach((k, i) => {
-      k.classList.remove(...SIDE);
-      k.style.removeProperty('grid-row');
-      if (k === main) { k.classList.add('fs-main'); return; }
-      k.classList.add(i < m ? 'fs-a' : 'fs-b');
-      if (mode === 'side') k.style.gridRow = String(2 + (i < m ? i : i - m - 1));
-    });
-    sideOn = mode;
-    if (sideMO) { sideMO.disconnect(); sideMO.observe($('#board'), { childList: true }); if (host.id !== 'board') sideMO.observe(host, { childList: true }); }
-  }
-  // area "disegnata" di un pezzo: la somma dei suoi figli (pulsanti, icone), o il pezzo stesso se non ne ha
-  function inkArea(k) {
-    const kids = [...k.children];
-    if (!kids.length) { const r = k.getBoundingClientRect(); return r.width * r.height; }
-    return kids.reduce((a, c) => { const r = c.getBoundingClientRect(); return a + r.width * r.height; }, 0);
-  }
-  function fitFs() {
-    const pl = $('#gPlate'), bd = $('#board');
-    if (!pl || !bd) return;
-    clearSide(bd);
-    if (!inFs()) { pl.classList.remove('fs-fit', 'fs-scroll', 'fs-fill'); pl.style.removeProperty('--game-w'); pl.style.removeProperty('--fs-h'); return; }
-    if (bd.querySelector(':scope > .dr-wrap')) return;               // Hari Taxi riempie già lo schermo da solo
-    pl.classList.add('fs-fit');
-    pl.classList.remove('fs-scroll');
-    const box = bd.getBoundingClientRect();
-    pl.style.setProperty('--fs-h', `${Math.floor(box.height)}px`);
-    // contratto "fill": il contenitore del gioco riempie TUTTO il riquadro e la scena si adatta (ResizeObserver o resize)
-    if (S.game && S.game.fill) {
-      pl.classList.add('fs-fill');
-      pl.style.setProperty('--game-w', `${Math.floor(box.width)}px`);
-      return done();
-    }
-    pl.classList.remove('fs-fill');
-    const setW = (w) => pl.style.setProperty('--game-w', `${Math.floor(w)}px`);
-    const inBox = (r) => r.top >= box.top - 1 && r.bottom <= box.bottom + 1 && r.left >= box.left - 1 && r.right <= box.right + 1;
-    const fits = (w) => {
-      setW(w);
-      let top = Infinity, bottom = -Infinity, right = -Infinity, left = Infinity;
-      // figli e nipoti: un contenitore può essere più piccolo di quello che contiene
-      for (const c of bd.children) {
-        for (const e of [c, ...c.children]) {
-          if (e !== c) { const cs = getComputedStyle(e); if (cs.position === 'absolute' || cs.position === 'fixed') continue; }
-          const r = e.getBoundingClientRect(); if (!r.height) continue;
-          top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); left = Math.min(left, r.left); right = Math.max(right, r.right);
-        }
-      }
-      return bottom - top <= box.height + 1 && right - left <= box.width + 1;
-    };
-    // a lato: tutto dentro il riquadro, i pezzi laterali non invadono la colonna centrale
-    const fitsSide = (w, parts) => {
-      setW(w);
-      const mr = parts.main.getBoundingClientRect();
-      if (!inBox(mr)) return false;
-      return parts.kids.every((k) => {
-        if (k === parts.main) return true;
-        const r = k.getBoundingClientRect();
-        if (!r.height) return true;
-        if (!inBox(r)) return false;
-        // un pezzo laterale non si rimpicciolisce (un nastro, una scena che scala con la larghezza): se in colonna il suo
-        // contenuto occupa molta meno area che in pila è stato schiacciato, meglio la pila (testo e pulsanti si ridispongono)
-        if (inkArea(k) < (parts.a0.get(k) || 0) * 0.4) return false;
-        const left = k.classList.contains('fs-a');
-        // anche i figli (un pulsante che sborda dal suo contenitore conta)
-        return [r, ...[...k.children].map((c) => c.getBoundingClientRect()).filter((q) => q.width && q.height)]
-          .every((q) => inBox(q) && (left ? q.right <= mr.left + 1 : q.left >= mr.right - 1));
-      });
-    };
-    const search = (ok, lo, hi) => { for (let i = 0; i < 11; i++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; } return lo; };
-    // tetto: tutta la larghezza (l'altezza la limita fits); minimo basso (180) perché col telefono girato i giochi a
-    // griglia entrino interi invece di scorrere
-    const MIN = 180, hi0 = Math.max(MIN, box.width);
-    let wStack = 0;
-    if (fits(hi0)) wStack = hi0;
-    else if (fits(MIN)) wStack = search(fits, MIN, hi0);
-    // riquadro largo: si prova anche la disposizione a lato e si tiene quella col pezzo principale più grande
-    const parts = box.width > box.height * 1.25 ? sideParts(bd) : null;
-    if (parts) {
-      const area = () => { const r = parts.main.getBoundingClientRect(); return r.width * r.height; };
-      let aStack = 0;
-      fits(wStack || MIN);
-      if (wStack) aStack = area();
-      parts.a0 = new Map(parts.kids.map((k) => [k, inkArea(k)]));
-      tagSide(parts);
-      const hiS = box.width;
-      let wSide = 0;
-      if (fitsSide(hiS, parts)) wSide = hiS;
-      else if (fitsSide(MIN, parts)) wSide = search((w) => fitsSide(w, parts), MIN, hiS);
-      if (wSide) { fitsSide(wSide, parts); if (area() > aStack * 1.08) return done(); }
-      clearSide(bd);
-    }
-    if (wStack) {
-      fits(wStack);
-      const sp = sideParts(bd);
-      if (sp) tagSide(sp, 'spread');
-      return done();
-    }
-    // anche al minimo non entra (telefono girato con un gioco "alto"): larghezza comoda e si scorre in verticale
-    pl.classList.add('fs-scroll');
-    setW(Math.min(box.width, 340));
-    return done();
-    function done() {
-    selfResize = true;
-    G.dispatchEvent(new Event('resize'));                              // i giochi su canvas ridisegnano alla nuova misura
-    }
-  }
-  // i giochi che ridisegnano il proprio contenitore a ogni mossa perderebbero la disposizione a lato: la si rimette
-  // subito (il callback del MutationObserver gira prima del disegno, quindi niente salti)
-  // (si osservano solo i figli diretti della tavola e del contenitore, non tutto il sotto-albero: costa niente)
-  const sideMO = G.MutationObserver ? new G.MutationObserver(() => {
-    if (!sideOn) return;
-    const bd = $('#board');
-    if (!bd) return;
-    const host = bd.matches('.fs-side-c, .fs-spread') ? bd : bd.querySelector(':scope > .fs-side-c, :scope > .fs-spread');
-    if (host && [...host.children].every((k) => k.classList.contains('fs-main') || k.classList.contains('fs-a') || k.classList.contains('fs-b') || getComputedStyle(k).position === 'absolute' || getComputedStyle(k).display === 'none')) return;
-    const parts = sideParts(bd);
-    if (parts) tagSide(parts, sideOn); else refitSoon();
-  }) : null;
-  let fitT = 0, selfResize = false;
-  G.addEventListener('resize', () => { if (selfResize) { selfResize = false; return; } if (!inFs()) return; clearTimeout(fitT); fitT = setTimeout(fitFs, 120); });
-  ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
-    if (isFull()) { fsOnAt = now(); clearTimeout(lostT); hideVeil(); }
-    else if (S.game && !S.leaving) fsLost();       // tolto dal browser mentre si gioca (indietro, Esc, cambio app)
-    setTimeout(fitFs, 60);
-  }));
-  // ogni nuovo livello (vittoria → avanti, ricomincia, nuovo) può cambiare misura: si riadatta il riquadro
-  let refitT = 0;
-  const refitSoon = () => { if (!inFs()) return; clearTimeout(refitT); refitT = setTimeout(fitFs, 80); };
 
   /* ---------- Gioco ---------- */
   function openGame(id, push = true) {
@@ -844,7 +339,6 @@
 
   /* ---------- tutorial (prima partita di ogni gioco, poi dal pulsante "?") ----------
    * Ogni gioco può dichiarare tutorial: [{ key, en, art }] (art = SVG 120×90 animato con CSS). */
-  const lab = (k, en) => { const v = t(k); return v && v !== k ? v : en; };
   function tutorial(g, done) {
     const steps = g.tutorial;
     let i = 0;
@@ -905,7 +399,7 @@
   }
   function afterHome() {
     if (S.game) return;
-    if (waitingSW) applyUpdate();
+    if (pending()) applyUpdate();
     else setTimeout(offerInstall, 1200);
   }
   function leaveGame() {
@@ -915,7 +409,7 @@
     hideSay();
     $('#loseDlg').hidden = true;
     S.game = null;
-    veilPaused = false; hideVeil();
+    dropVeil();
     fsClass(false);
     exitFull();                       // la home è in vista normale (S.game è già null: non conta come "indietro")
     keepAwake(false);
@@ -1016,53 +510,6 @@
     $('#loseHome').onclick = () => { $('#loseDlg').hidden = true; S.inst.restart(); if (S.pushed) history.back(); else goHome(); };
   }
 
-  /* ---------- Progressi ---------- */
-  function openStats() {
-    const playT = (id) => `<span class="stat-play" title="${lab('st_play', 'Playing time')}">${ICON.clock}${fmtLong(HH.usage.get(id).sec)}</span>`;
-    const rows = HH.catalog.map((g) => {
-      const p = P.get(g.id);
-      if (g.endless) {
-        const sv = P.loadGame(g.id);
-        return `<div class="stat-row" style="--tint:var(--tint-${g.id})"><span class="stat-art">${cardArt(g.id)}</span>
-          <div class="stat-main"><div class="stat-name"><b>${g.name}</b>${playT(g.id)}</div><span class="resume-meta">${sv ? metaHTML(sv.meta) : '—'}</span></div></div>`;
-      }
-      return `<div class="stat-row" style="--tint:var(--tint-${g.id})">
-        <span class="stat-art">${cardArt(g.id)}</span>
-        <div class="stat-main">
-          <div class="stat-name"><b>${g.name}</b>${playT(g.id)}<span class="stars">${stars(p.last)}</span></div>
-          <dl class="stat-grid">
-            <div><dt>${t('level')}</dt><dd>${p.level}</dd></div>
-            <div><dt>${t('wins')}</dt><dd>${nf(p.wins)}</dd></div>
-            <div><dt>${t('best')}</dt><dd>${nf(p.best)}</dd></div>
-            <div><dt>${t('time')}</dt><dd>${p.bestTime ? fmt(p.bestTime) : '—'}</dd></div>
-            <div><dt>${STAR(true)}</dt><dd>${nf(p.stars)}</dd></div>
-          </dl>
-        </div>
-      </div>`;
-    }).join('');
-    $('#statsTitle').textContent = t('stats');
-    $('#statsBody').innerHTML = `
-      <div class="stat-total">${ICON.acorn}<div><small>${t('score')}</small><b>${nf(P.totalScore())}</b></div><div class="stat-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div></div>
-      <div class="stat-time">${ICON.clock}<span>${lab('st_play', 'Playing time')}</span><b>${fmtLong(HH.usage.total(HH.catalog.map((g) => g.id)))}</b></div>
-      ${rows}
-      <label class="stat-consent"><input type="checkbox" id="cvdToggle"${HH.fx.cvd.on() ? ' checked' : ''}><span>${lab('cvd_toggle', 'Colour-blind friendly colours')}</span></label>
-      ${HH.usage.canAsk() ? `<label class="stat-consent"><input type="checkbox" id="anToggle"${HH.usage.enabled() ? ' checked' : ''}><span>${lab('an_toggle', 'Send anonymous statistics')}</span></label>` : ''}
-      <div class="stat-legal"><button class="lg-foot-link" id="statsLegal" type="button">${t('lg_link')}</button></div>`;
-    const tg = $('#anToggle');
-    if (tg) tg.onchange = () => HH.usage.setConsent(tg.checked);
-    $('#cvdToggle').onchange = (e) => HH.fx.cvd.set(e.target.checked);
-    $('#statsLegal').onclick = () => { sfx.tap(); HH.legal.openPage('privacy'); };
-    $('#statsDlg').hidden = false;
-    $('#statsClose').focus();
-  }
-
-  /* ---------- Lingue ---------- */
-  function renderLangSheet() {
-    $('#langList').innerHTML = HH.LANGS.map((l) =>
-      `<button class="lang${l.code === HH.i18n.code ? ' cur' : ''}" data-lang="${l.code}" lang="${l.code}" dir="${l.dir}"><b>${l.name}</b><small>${l.code}</small></button>`).join('');
-    $('#langTitle').textContent = t('lang');
-  }
-
   const audioState = () => (sfx.isMuted() ? 'off' : HH.music.isOn() ? 'all' : 'sfx');
   const audioLabel = () => { const st = audioState(); return st === 'all' ? lab('audioAll', 'Music and sounds on') : st === 'sfx' ? lab('audioSfx', 'Sounds only') : lab('audioOff', 'Audio off'); };
   function audioUI() {
@@ -1071,17 +518,6 @@
     root.classList.toggle('nomusic', st !== 'all');
     const b = $('#audioBtn');
     if (b) { b.setAttribute('aria-label', audioLabel()); b.title = audioLabel(); b.dataset.state = st; }
-  }
-
-  // condividi l'app: menu di condivisione del telefono, altrimenti copia il link
-  const SITE = 'https://marketto.github.io/Hari-hari-puzzle/';
-  function share() {
-    sfx.tap();
-    const data = { title: 'Hari Hari Puzzle', text: lab('shareText', 'Cozy logic puzzles with Hari the hedgehog: free, and they work offline too!'), url: SITE };
-    if (navigator.share) { navigator.share(data).catch(() => {}); return; }
-    const done = () => { say('good', true, lab('shareCopied', 'Link copied! Send it to a friend 💌')); react('happy'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(`${data.text} ${SITE}`).then(done, () => say('good', true, SITE));
-    else say('good', true, SITE);
   }
 
   function applyTexts() {
@@ -1093,172 +529,6 @@
     $('#langCode').textContent = HH.i18n.code.toUpperCase();
     updateScore();
     if (S.game) { persist(); openGame(S.game.id, false); } else renderHome();
-  }
-
-  /* ---------- PWA: proposta d'installazione (Android) ---------- */
-  const standalone = () => (G.matchMedia && G.matchMedia('(display-mode: standalone)').matches) || G.navigator.standalone === true;
-  const isAndroid = () => /Android/i.test(G.navigator.userAgent || '');
-  let installEvt = null;
-  function installSheet(manual) {
-    $('#installBox').innerHTML = `<div class="inst-hari">${HH.mascot.svg({ cls: 'hari happy' })}</div>
-      <h2 id="installTitle">${t('installTitle')}</h2>
-      <p>${t(manual ? 'installHow' : 'installText')}</p>
-      <div class="inst-row">${manual ? '' : `<button class="candy big" id="instGo">${ICON.install}<span>${t('install')}</span></button>`}
-        <button class="tool" id="instLater"><span>${t('installLater')}</span></button></div>`;
-    $('#installDlg').hidden = false;
-    sfx.open();
-  }
-  function closeInstall(snoozeDays) {
-    $('#installDlg').hidden = true;
-    if (snoozeDays) HH.store.set('install:snooze', Date.now() + snoozeDays * 864e5);
-  }
-  // propone l'installazione solo nella home, mai durante una partita, e non più di una volta ogni 3 giorni
-  function offerInstall() {
-    if (standalone() || HH.INLINE || S.game || !$('#installDlg').hidden || HH.legal.needs() || (HH.wizard && HH.wizard.isOpen())) return;
-    if (Date.now() < HH.store.get('install:snooze', 0)) return;
-    if (installEvt) installSheet(false);
-    else if (isAndroid()) installSheet(true);   // browser senza prompt automatico: istruzioni dal menu
-  }
-  async function doInstall() {
-    if (!installEvt) { installSheet(true); return; }
-    const ev = installEvt;
-    installEvt = null;
-    closeInstall(0);
-    ev.prompt();
-    let outcome = 'dismissed';
-    try { outcome = (await ev.userChoice).outcome; } catch (e) { /* annullato */ }
-    if (outcome !== 'accepted') HH.store.set('install:snooze', Date.now() + 3 * 864e5);
-    $('#installBtn').hidden = !isAndroid() || standalone();
-  }
-  function setupInstall() {
-    $('#installBtn').hidden = !(isAndroid() && !standalone());
-    G.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      installEvt = e;
-      $('#installBtn').hidden = false;
-      setTimeout(offerInstall, 2500);
-    });
-    G.addEventListener('appinstalled', () => { installEvt = null; closeInstall(0); $('#installBtn').hidden = true; HH.store.set('installed', 1); });
-    $('#installBtn').onclick = doInstall;
-    $('#installDlg').addEventListener('click', (e) => {
-      if (e.target.closest('#instGo')) doInstall();
-      else if (e.target.closest('#instLater') || e.target === $('#installDlg')) closeInstall(3);
-    });
-    // Android senza evento (es. Firefox, Samsung Internet o prompt già usato): istruzioni dopo qualche secondo
-    setTimeout(() => { if (!installEvt) offerInstall(); }, 7000);
-  }
-
-  /* ---------- PWA: aggiornamenti automatici ----------
-   * Il service worker nuovo si scarica da solo (controllo all'avvio, al ritorno in primo piano e ogni 30 min) e resta
-   * "in attesa". Lo attiviamo in un momento sicuro: subito se si è nella home, altrimenti quando l'app va in background
-   * o quando si tocca "Aggiorna". Prima di ricaricare la partita viene salvata; i salvataggi stanno in localStorage,
-   * che il service worker non tocca, e all'avvio la partita in sospeso riparte da dove era.
-   */
-  let waitingSW = null;
-  function applyUpdate() {
-    if (!waitingSW) return;
-    persist();
-    HH.store.set('justUpdated', 1);
-    waitingSW.postMessage({ type: 'skip' });
-  }
-  function updateReady(w) {
-    waitingSW = w;
-    if (HH.transition && HH.transition.busy()) { HH.transition.idle().then(() => updateReady(w)); return; }
-    if (!S.game) { applyUpdate(); return; }
-    const bar = $('#updBar');
-    bar.innerHTML = `<span>${t('updReady')}</span><button class="candy" id="updGo">${ICON.sparkle}<span>${t('updNow')}</span></button>`;
-    bar.hidden = false;
-    $('#updGo').onclick = applyUpdate;
-  }
-  /* ---------- aggiornamento bloccato: autoriparazione ----------
-   * Su iPhone (Chrome e Safari usano WebKit) la versione nuova può restare "in attesa" per sempre: le schede non si
-   * chiudono mai davvero e il via non arriva. Si confronta la versione pubblicata (sw.js letto dalla rete, senza
-   * cache) con quella in uso: se online ce n'è una PIÙ NUOVA si prova l'aggiornamento normale; se dopo 20 s non è
-   * partito, si dà il via a quella in attesa o, se non c'è, si cancellano registrazione e cache dell'app e si
-   * ricarica. I salvataggi (localStorage) non si toccano. Un solo tentativo forte per versione, così niente cicli. */
-  let healing = false;
-  let reloadingNow = () => false;
-  function heal(reg) {
-    if (healing || typeof fetch !== 'function') return;
-    healing = true;
-    const done = () => { healing = false; };
-    fetch('sw.js?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).then((txt) => {
-      const m = /const VERSION = 'hh-v([0-9.]+)'/.exec(txt || '');
-      if (!m || vnum(m[1]) <= vnum(HH.VERSION)) return done();
-      const remote = m[1];
-      setTimeout(() => {
-        if (reloadingNow()) return done();
-        const w = reg.waiting;
-        if (w) { if (!S.game && !(HH.transition && HH.transition.busy())) { persist(); HH.store.set('justUpdated', 1); w.postMessage({ type: 'skip' }); } return done(); }
-        if (reg.installing) return done();                       // sta ancora scaricando: si riprova al prossimo controllo
-        if (HH.store.get('healTried') === remote || S.game || (HH.transition && HH.transition.busy())) return done();
-        HH.store.set('healTried', remote);
-        persist();
-        HH.store.set('justUpdated', 1);
-        const regs = G.navigator.serviceWorker.getRegistrations ? G.navigator.serviceWorker.getRegistrations() : Promise.resolve([reg]);
-        regs.then((list) => Promise.all(list.map((x) => x.unregister())))
-          .then(() => (G.caches ? G.caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('hh-v')).map((k) => G.caches.delete(k)))) : null))
-          .catch(() => {})
-          .then(() => location.reload());
-      }, 20000);
-    }).catch(done);
-  }
-  /* ---------- giochi nuovi dopo un aggiornamento (anche se l'app era chiusa) ---------- */
-  const vnum = (v) => String(v || '0').split('.').reduce((a, x) => a * 1000 + (+x || 0), 0);
-  function newGamesCheck() {
-    const cur = HH.VERSION;
-    let seen = HH.store.get('seenVersion', null);
-    if (seen === null) {
-      // prima volta con questa funzione: chi aveva già giocato "veniva" dalla 0.14.1, una installazione nuova no
-      const played = HH.catalog.some((g) => { const p = P.get(g.id); return p.wins > 0 || p.level > 1 || P.loadGame(g.id) || HH.store.get('tut:' + g.id); });
-      seen = played ? '0.14.1' : cur;
-    }
-    const fresh = vnum(seen) < vnum(cur) ? HH.catalog.filter((g) => g.since && vnum(g.since) > vnum(seen) && vnum(g.since) <= vnum(cur)) : [];
-    const updated = vnum(seen) < vnum(cur);
-    HH.store.set('seenVersion', cur);
-    if (fresh.length) HH.store.set('newGames', [...new Set([...HH.store.get('newGames', []), ...fresh.map((g) => g.id)])]);
-    return { fresh, updated };
-  }
-  const isNew = (id) => (HH.store.get('newGames', []) || []).includes(id);
-  function setupUpdates() {
-    const ng = newGamesCheck();
-    const upd = HH.store.get('justUpdated') || ng.updated;
-    HH.store.del('justUpdated');
-    if (upd || ng.fresh.length) {
-      const list = ng.fresh.map((g) => g.name).join(', ');
-      const txt = `${upd ? t('updDone') : ''} ${ng.fresh.length ? lab('updNew', 'New games: {list}').replace('{list}', list) : ''}`.trim();
-      setTimeout(() => say('cheer', true, txt), 900);
-    }
-    if (!('serviceWorker' in G.navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost') || HH.INLINE) return;
-    const sw = G.navigator.serviceWorker;
-    let hadController = !!sw.controller;
-    let reloading = false;
-    reloadingNow = () => reloading;
-    sw.addEventListener('controllerchange', () => {
-      if (!hadController) { hadController = true; return; }   // prima installazione: niente ricarica
-      if (reloading) return;
-      reloading = true;
-      persist();
-      endInst();
-      location.reload();
-    });
-    // il service worker nuovo chiede se questa pagina sa aggiornarsi da sola: rispondiamo di sì (al mittente)
-    sw.addEventListener('message', (e) => { if (e.data && e.data.type === 'ask-update' && e.source) e.source.postMessage({ type: 'can-update', proto: 2 }); });
-    sw.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
-      const watch = (w) => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && sw.controller) updateReady(w); });
-      if (reg.waiting && sw.controller) updateReady(reg.waiting);
-      watch(reg.installing);
-      reg.addEventListener('updatefound', () => watch(reg.installing));
-      const check = () => { if (G.navigator.onLine !== false) { reg.update().catch(() => {}); heal(reg); } };
-      check();
-      setInterval(check, 30 * 60 * 1000);
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') check();
-        else if (waitingSW) applyUpdate();          // l'utente ha lasciato l'app: aggiorna senza disturbare
-      });
-    }).catch(() => {});
-    // chiede al browser di non cancellare i dati (salvataggi) anche con poco spazio
-    if (G.navigator.storage && G.navigator.storage.persist) G.navigator.storage.persist().catch(() => {});
   }
 
   /* ---------- Avvio ---------- */
@@ -1356,6 +626,9 @@
     });
     return true;
   }
+
+  // per i moduli del nucleo (fullscreen.js, updates.js, home.js): letti al momento dell'uso, non al caricamento
+  Object.assign(A, { persist, endInst, say, react, goHome, openGame, audioState, audioLabel });
 
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();
 })(typeof globalThis !== 'undefined' ? globalThis : window);

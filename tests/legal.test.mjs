@@ -137,7 +137,8 @@ test('offline e lazy load: inglese e licenze nella shell, le altre lingue no; il
 
 test('l\'avviso viene prima delle statistiche e blocca i giochi', () => {
   const app = fs.readFileSync(path.join(root, 'src/app.js'), 'utf8');
-  assert.match(app, /HH\.usage\.consent\(\) !== null \|\| HH\.legal\.needs\(\)\) return;/);
+  const home = fs.readFileSync(path.join(root, 'src/core/home.js'), 'utf8');   // domanda sulle statistiche (askConsent)
+  assert.match(home, /HH\.usage\.consent\(\) !== null \|\| HH\.legal\.needs\(\)\) return;/);
   assert.match(app, /if \(legalGate\(\(\) => openGame\(id, push\)\)\) return;/);
   assert.match(app, /if \(!legalGate\(resume\)\) resume\(\);/);
 });

@@ -16,7 +16,7 @@
   (Tab gira in tondo). I testi completi si aprono **dentro la finestra** (sotto-vista con "Indietro" e le tre schede):
   le caselle restano come erano. Il pulsante con il globo apre la scelta della lingua sopra l'avviso.
 - Blocca tutto: una partita ripresa all'avvio, o un gioco toccato, si apre solo **dopo** l'accettazione; la domanda sulle
-  statistiche anonime (`askConsent` in `src/app.js`) parte solo dopo (1,5 s dopo l'accettazione, se si è in home).
+  statistiche anonime (`askConsent` in `src/core/home.js`) parte solo dopo (1,5 s dopo l'accettazione, se si è in home).
 - Accettazione salvata in `HH.store` come `legal = { v, at }` (versione e data). Nessun dato esce dal telefono.
 - **Piè di pagina della home** e scheda **Progressi** (sotto il consenso alle statistiche): link "Privacy e condizioni"
   (`lg_link`) → pagina con le tre schede `lg_terms`, `lg_privacy`, `lg_licenses` e la riga `lg_accepted` con la data
