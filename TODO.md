@@ -6,8 +6,12 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
+## In revisione (prossima versione)
+- [x] Hari Spot con "Colori per daltonici": nessuna differenza di solo colore (al posto del colore: presenza, taglia, forma, posizione; esclusi anche finestre e lampioni accesi/spenti), test con oracolo
+- [x] Titolo dei giochi non più tagliato in basso (g, y, p: "Hedgedoku", "Hari Spot", "Yarn Link"): `line-height` del titolo a schermo intero e delle schede di Hari Home
+- [x] aria-label descrittivi e tradotti (43 lingue): «Uno in meno»/«Uno in più» in Hari Airlines e nel mercato di Hari Home, «Posto {n}» sui sedili di Hari Airlines
+
 ## Prossimo
-- [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
 - [ ] Guida della home, alto contrasto e colori per daltonici su telefono vero (Android e iPhone, anche in arabo)
 - [ ] Font inclusi su telefono vero: primo avvio offline, giapponese scaricato al primo uso

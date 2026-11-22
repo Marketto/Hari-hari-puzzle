@@ -70,7 +70,9 @@
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
     function fresh() {
-      s = S.newGame(ctx.level, (Math.random() * 4294967296) >>> 0);
+      // colori per daltonici: niente differenze di solo colore (vedi paramsFor)
+      const cvd = !!((HH.fx && HH.fx.cvd && HH.fx.cvd.on()) || document.documentElement.hasAttribute('data-cvd'));
+      s = S.newGame(ctx.level, (Math.random() * 4294967296) >>> 0, { cvd });
       pz = S.puzzleOf(s);
       build();
       ctx.changed({ reset: true });

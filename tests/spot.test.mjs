@@ -226,3 +226,35 @@ test('generazione veloce', () => {
     assert.ok(ms < 10 * SLOW, `L${L}: ${ms.toFixed(1)} ms`);
   }
 });
+
+/* Colori per daltonici (data-cvd): l'oracolo guarda le due scene e non deve trovare differenze di solo colore,
+ * né i dettagli "acceso/spento" (finestre w, lampioni lit) che cambiano solo tinta. Il resto delle regole vale uguale. */
+test('cvd: nessuna differenza di solo colore, scene complete e riprese uguali', () => {
+  const COLOR_ONLY_V = ['w', 'lit'];
+  for (const L of LEVELS) for (let k = 0; k < SEEDS; k++) {
+    const pz = S.generate(L, HH.rng(L * 7919 + k * 31 + 1), { cvd: true });
+    const P = S.paramsFor(L, { cvd: true });
+    const o = oracle(pz);
+    assert.equal(o.length, P.n, `L${L}: ${o.length} differenze`);
+    assert.equal(pz.diffs.length, P.n);
+    for (const d of o) {
+      assert.ok(!d.kind.includes('color'), `L${L}: differenza di colore su ${d.objs[0].t}`);
+      if (d.kind === 'detail') {
+        const [a, b] = d.objs;
+        const keys = Object.keys(Object.assign({}, a.v, b.v)).filter((key) => JSON.stringify(a.v[key]) !== JSON.stringify(b.v[key]));
+        assert.ok(keys.every((key) => !COLOR_ONLY_V.includes(key)), `L${L}: dettaglio solo di tinta (${keys}) su ${a.t}`);
+      }
+    }
+    for (const d of pz.diffs) assert.ok(d.area >= P.minArea && d.zone.r >= 30, `L${L}: differenza troppo piccola`);
+    pz.diffs.forEach((d, i) => pz.diffs.forEach((e, j) => { if (j > i) assert.ok(Math.hypot(d.zone.x - e.zone.x, d.zone.y - e.zone.y) >= d.zone.r + e.zone.r, `L${L}: zone ${i}/${j}`); }));
+  }
+  // la scelta resta nella partita salvata: ripresa identica anche a interruttore cambiato
+  const s = S.newGame(5, 777, { cvd: true });
+  const back = S.restore(JSON.parse(JSON.stringify(s)));
+  assert.equal(back.cvd, 1);
+  assert.deepEqual(S.puzzleOf(back), S.puzzleOf(s));
+  assert.ok(!('cvd' in S.newGame(5, 777)), 'senza cvd la partita non cambia formato');
+  assert.deepEqual(S.generate(7, HH.rng(3), { cvd: false }), S.generate(7, HH.rng(3)));
+  // ai primi livelli resta varietà: almeno 3 tipi (manca 'color', entra 'size')
+  assert.ok(S.paramsFor(1, { cvd: true }).kinds.length >= 3);
+});

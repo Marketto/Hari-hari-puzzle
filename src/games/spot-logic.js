@@ -8,7 +8,7 @@
  * Ogni differenza è visibile (area cambiata sopra soglia, colori lontani nello spazio Lab, oggetto poco coperto)
  * e le zone non si toccano. Tutto deterministico dato rnd.
  *
- * HH.spot.generate(level, rnd) → puzzle · newGame(level, seed) · puzzleOf(s) · tap(s, pz, x, y) · hint(s, pz)
+ * HH.spot.generate(level, rnd, { cvd }) → puzzle · newGame(level, seed, { cvd }) · puzzleOf(s) · tap(s, pz, x, y) · hint(s, pz)
  * rate · parTime · progress · restore(json) · paramsFor(level) · bbox · partBox · drawOrder · hitTest
  */
 (function (G) {
@@ -79,10 +79,17 @@
 
   /* ---------- curva di difficoltà ---------- */
   const NDIFF = [3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9];
-  function paramsFor(level) {
+  /* opts.cvd (colori per daltonici): niente differenze di solo colore. Il tipo 'color' sparisce e al suo posto,
+   * nei primi livelli, entra subito 'size' (cambio di forma molto evidente, sizeK 1.5); i 'detail' restano perché
+   * cambiano presenza, posizione o forma (frutti, facce, puntini, icone, cartelli, quale luce del semaforo), tranne
+   * quelli che sono solo "acceso/spento" (finestre e lampioni: giallo chiaro contro azzurro chiaro, quasi uguali in
+   * luminosità e confusi proprio nel tritan), esclusi anche loro (COLOR_DET). */
+  const COLOR_DET = ['win', 'lit'];
+  function paramsFor(level, opts) {
     const L = Math.max(1, level | 0);
-    const kinds = ['remove', 'add', 'color'];
-    if (L >= 3) kinds.push('size');
+    const cvd = !!(opts && opts.cvd);
+    const kinds = cvd ? ['remove', 'add'] : ['remove', 'add', 'color'];
+    if (L >= 3 || cvd) kinds.push('size');
     if (L >= 4) kinds.push('flip');
     if (L >= 5) kinds.push('detail');
     if (L >= 6) kinds.push('move');
@@ -97,6 +104,7 @@
       sizeK: L <= 4 ? 1.5 : L <= 9 ? 1.38 : 1.28,             // quanto cresce/rimpicciolisce
       moveD: L <= 8 ? 48 : 38,                                // spostamento
       subtle: L >= 8,                                         // preferisce i colori più vicini fra quelli ammessi
+      cvd,
       kinds,
     };
   }
@@ -418,7 +426,8 @@
       let d = null;
       if (kind === 'add') d = tryAdd(sc, A, B, P, rnd, zones, nextId, (t) => (perType[t] || 0) < typeCap);
       else {
-        const cand = A.filter((o) => !used.has(o.id) && T[o.t].ops.includes(kind) && (perType[o.t] || 0) < typeCap);
+        const cand = A.filter((o) => !used.has(o.id) && T[o.t].ops.includes(kind) && (perType[o.t] || 0) < typeCap
+          && !(P.cvd && kind === 'detail' && COLOR_DET.includes(T[o.t].det)));
         if (!cand.length) continue;
         d = tryDiff(kind, pick(rnd, cand), A, B, P, rnd, zones, sc.theme);
       }
@@ -434,8 +443,8 @@
     return diffs.length === P.n ? { A, B, diffs } : null;
   }
 
-  function generate(level, rnd) {
-    const P = paramsFor(level);
+  function generate(level, rnd, opts) {
+    const P = paramsFor(level, opts);
     for (let tries = 0; tries < 40; tries++) {
       P.season = P.level === 1 ? 'spring' : pick(rnd, ['spring', 'summer', 'autumn', 'winter']);
       P.time = P.level <= 2 ? 'day' : wpick(rnd, { day: 2, dusk: 1, night: 1 });
@@ -446,7 +455,9 @@
       // cielo: sole o luna e stelline (identici nelle due scene)
       const deco = { sun: { x: r1(rr(rnd, 40, 360)), y: r1(rr(rnd, 26, 40)) }, stars: [] };
       if (P.time === 'night') for (let k = 0; k < 14; k++) deco.stars.push([r1(rr(rnd, 6, 394)), r1(rr(rnd, 6, P.theme === 'city' ? 120 : 110)), Math.round(rr(rnd, 1, 2.4) * 10) / 10]);
-      return { level: P.level, theme: P.theme, season: P.season, time: P.time, n: P.n, a: res.A, b: res.B, diffs: res.diffs, deco };
+      const pz = { level: P.level, theme: P.theme, season: P.season, time: P.time, n: P.n, a: res.A, b: res.B, diffs: res.diffs, deco };
+      if (P.cvd) pz.cvd = 1;
+      return pz;
     }
     throw new Error('spot: generazione fallita');
   }
@@ -454,11 +465,15 @@
   /* ---------- partita ---------- */
   const hintsFor = (n) => (n <= 4 ? 1 : n <= 7 ? 2 : 3);
   const FREE_MISS_LEVEL = 3;              // fino al livello 3 i tocchi sbagliati non costano nulla
-  function newGame(level, seed) {
-    const pz = generate(level, HH.rng(seed));
-    return { v: 1, level: pz.level, seed: seed >>> 0, n: pz.n, found: [], hints: 0, hinted: [], misses: 0, moves: 0 };
+  // opts.cvd resta nella partita: una scena ripresa è la stessa anche se nel frattempo l'interruttore è cambiato
+  function newGame(level, seed, opts) {
+    const cvd = !!(opts && opts.cvd);
+    const pz = generate(level, HH.rng(seed), { cvd });
+    const s = { v: 1, level: pz.level, seed: seed >>> 0, n: pz.n, found: [], hints: 0, hinted: [], misses: 0, moves: 0 };
+    if (cvd) s.cvd = 1;
+    return s;
   }
-  const puzzleOf = (s) => generate(s.level, HH.rng(s.seed));
+  const puzzleOf = (s) => generate(s.level, HH.rng(s.seed), { cvd: !!s.cvd });
   // tocco in (x, y) nelle coordinate della scena (vale uguale su A e su B)
   function tap(s, pz, x, y) {
     s.moves++;
@@ -486,6 +501,7 @@
   function restore(j) {
     if (!j || j.v !== 1 || !(j.level >= 1) || typeof j.seed !== 'number') return null;
     const s = { v: 1, level: j.level | 0, seed: j.seed >>> 0, n: 0, found: [], hints: j.hints | 0, hinted: [], misses: j.misses | 0, moves: j.moves | 0 };
+    if (j.cvd) s.cvd = 1;
     const pz = puzzleOf(s);
     s.n = pz.n;
     const ok = (i) => Number.isInteger(i) && i >= 0 && i < pz.n;
@@ -496,6 +512,6 @@
 
   HH.spot = {
     W, H, RMIN, GAP, TYPES: T, LAB, FACES, ICONS, paramsFor, generate, partBox, bbox, area, inter, drawOrder, covered, hitTest,
-    hintsFor, newGame, puzzleOf, tap, hint, rate, parTime, progress, restore, FREE_MISS_LEVEL,
+    hintsFor, newGame, puzzleOf, tap, hint, rate, parTime, progress, restore, FREE_MISS_LEVEL, COLOR_DET,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

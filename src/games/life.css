@@ -292,7 +292,7 @@
 }
 .lh-sheet.full { top: 0; max-height: none; border-radius: 20px; }
 .lh-sh-head { display: flex; align-items: center; gap: 8px; min-height: 36px; }
-.lh-sh-head h3 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-weight: 400; font-size: 17px; line-height: 1.2; }
+.lh-sh-head h3 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-weight: 400; font-size: 17px; line-height: 1.4; }
 .lh-x { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--line-2); color: var(--ink); cursor: pointer; }
 .lh-sh-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 2px 4px; }
 .lh-tabs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; margin: 4px 0 8px; }

@@ -48,7 +48,7 @@
     lf_queued: 'Added to the list', lf_free: 'Free will',
     lf_restartQ: 'Start a whole new life? This one will be lost.', lf_cancel: 'Cancel', lf_rent: 'Rent / week', lf_board: 'Hari’s home: tap Hari, the furniture or the floor',
     // già tradotte
-    pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', restart: 'Restart',
+    pa_paused: 'Paused', pa_tap: 'Tap to continue', pa_pause: 'Pause', restart: 'Restart', a_less: 'One less', a_more: 'One more',
   };
   const T = (k) => label(k, EN[k] || k);
   const nf = (n) => { try { return new Intl.NumberFormat(HH.i18n && HH.i18n.code).format(n || 0); } catch (e) { return String(n || 0); } };
@@ -845,7 +845,7 @@
       const cap = L.fridgeCap(s), free = cap - L.stock(s);
       const qty = [0, 0, 0];
       const d = openSheet('market', `${ic('market')} ${T('lf_p_market')}`, `<div class="lh-list">${FOODS.map((f, q) => `<div class="lh-li">${ic(['food', 'eat', 'cake'][q])}<span class="lh-grow">${T('lf_f' + q)}<small>${ic('acorn')}${nf(f.p)} · ${ic('food')}+${Math.round(f.n * 100)}${f.j ? ` ${ic('fun')}+${Math.round(f.j * 100)}` : ''}</small></span>
-        <span class="lh-step"><button data-q="${q}" data-d="-1" aria-label="−">−</button><b data-n="${q}">0</b><button data-q="${q}" data-d="1" aria-label="+">+</button></span></div>`).join('')}</div>`,
+        <span class="lh-step"><button data-q="${q}" data-d="-1" aria-label="${T('a_less')}: ${T('lf_f' + q)}">−</button><b data-n="${q}">0</b><button data-q="${q}" data-d="1" aria-label="${T('a_more')}: ${T('lf_f' + q)}">+</button></span></div>`).join('')}</div>`,
       { foot: `<div class="lh-foot"><span class="lh-tot">${ic('fridge')} <b class="lh-free">${L.stock(s)}/${cap}</b> · ${ic('acorn')}<b class="lh-cost">0</b></span><button class="lh-btn" data-buyfood="1" disabled>${ic('go')}${T('lf_go')}</button></div>` });
       const upd = () => {
         const n = qty[0] + qty[1] + qty[2], cost = qty.reduce((a, k, q) => a + k * FOODS[q].p, 0);

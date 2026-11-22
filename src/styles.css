@@ -799,7 +799,9 @@ button.card:hover .card-art > svg { animation: wiggle .6s ease; }
   color: var(--ink); background: var(--card-solid); box-shadow: 0 0 0 2px var(--line), 0 3px 0 var(--line);
 }
 .fs-logo > svg:first-child { width: 36px; height: 36px; flex: none; }
-.fs-logo b { font-family: var(--font-display); font-weight: 400; font-size: 19px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* titolo del gioco: Mochiy Pop One scende sotto la linea di base (g, y, p, j) più di 1em; con overflow: hidden (serve
+ * all'ellissi) la riga deve contenere anche le discendenti, altrimenti "Hedgedoku" diventa "Hedaedoku" */
+.fs-logo b { font-family: var(--font-display); font-weight: 400; font-size: 19px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fs-logo .fs-lv { flex: none; padding: 3px 8px; border-radius: 999px; font-weight: 800; font-size: 12px; color: var(--accent-ink); background: var(--accent); }
 .fs-logo .chev { width: 18px; height: 18px; flex: none; color: var(--ink-2); transition: transform .2s; }
 .fs-logo[aria-expanded="true"] .chev { transform: rotate(180deg); }
