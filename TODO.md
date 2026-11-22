@@ -6,32 +6,11 @@
 - [ ] Prova di installazione su un telefono Android reale (trascinamento ✕ e animazione travaso al tatto)
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
-## In revisione (prossima versione)
-- [x] Avviso legale v2 (R14): terza casella obbligatoria `lg_chk_safety` (avvertenze di sicurezza, uso sotto la propria
-  responsabilità, autori sollevati) dentro il riquadro di sicurezza; "Accetto e gioco" solo con tre caselle;
-  `HH.legal.VERSION = 2` (chi aveva accettato la v1 riaccetta una volta); privacy senza la sezione Font/Google Fonts
-  (font inclusi nell'app) in 43 lingue; `legal-import.mjs --export` per il giro export → modifica → import
-- [x] Font dentro l'app (`assets/fonts/`, da @fontsource, `tools/fonts-import.mjs`): niente più Google Fonts. Shell con latino,
-  latino esteso, cirillico, greco (M PLUS), latino di Mochiy, arabo + latino di Baloo (+372 KB); fette giapponesi solo in
-  giapponese (`fonts-ja.css`) e in cache al primo uso; file unico con i font della shell incorporati (+488 KB)
-- [x] Alto contrasto con `prefers-contrast: more` (chiaro e scuro): testo e bordi netti, pannelli pieni, focus marcato
-- [x] Colori per daltonici (Okabe-Ito) a scelta in Progressi (`data-cvd`, chiave `cvd_toggle`); Hari Colors parte con i simboli
-- [x] Tema scuro scritto una volta sola in `styles.css`
-- [ ] Traduzioni di `cvd_toggle` (ora in inglese nelle lingue diverse da it)
-- [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
-- [x] Partita risolta salvata senza vittoria (uscita durante il ritardo prima di `ctx.win`): alla riapertura l'app assegna la
-      vittoria una volta sola (`HH.rules.solvedOnResume`, `solved(s)` in ogni gioco a livelli); test `tests/resume.test.mjs`
-- [x] `destroy()` facoltativo nel contratto dei giochi, chiamato dal nucleo all'uscita/ricreazione/aggiornamento: RAF, voce,
-      sensori e rete si fermano subito (fish, colors, street, rally, drive, snack, parade, flight, escape, life, memory,
-      sudoku, hedgedoku, spot, sushi); e2e `tools/lifecycle-e2e.mjs`
-- [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
-- [ ] Guida della home (regola R13, `src/core/wizard.js` + `wizard.css`): al primo avvio, dopo l'avviso legale e prima della domanda sulle statistiche, 6 passi con riquadro di focus e nuvoletta di Hari (card/Riprendi, vista, lingua+suono, ghiande/progressi, Condividi+Installa, «?»); dopo un aggiornamento solo le novità (`NEWS` nel modulo + giochi con `since`); una volta sola (`wizard: { v }`); pulsante «?» nella barra in alto. Da fare al rilascio: allineare la chiave `NEWS['0.31.0']` alla versione vera; traduzioni `wz_*` (ora inglese in 41 lingue)
-- [x] File dei giochi divisi in moduli < ~800 righe (R19), refactoring puro senza cambi di comportamento:
-  Hari Rally (`rally-ui.js` → art, 3d, scenery, decor, karts, view, hud, duo), Hari Fishing (`fish-ui.js` → art,
-  3d, models, uw, view, hud), Hari Taxi (`drive-ui.js` → art, city, osm-paint, draw; `drive-logic.js` → osm,
-  traffic), Hari Escape (`escape-logic.js` → puzzles). Moduli nel catalogo (lazy load), test e benchmark aggiornati.
-
 ## Prossimo
+- [ ] Hari Spot: con `data-cvd` togliere o attenuare le differenze di solo colore
+- [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
+- [ ] Guida della home, alto contrasto e colori per daltonici su telefono vero (Android e iPhone, anche in arabo)
+- [ ] Font inclusi su telefono vero: primo avvio offline, giapponese scaricato al primo uso
 - [ ] Schermo intero unico su telefono vero (indietro, cambio app, blocco schermo)
 - [ ] Transizioni su telefono vero (fluidità)
 - [ ] Colori su telefono vero (voci di sistema per lingua)
@@ -55,6 +34,37 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.31.0)
+- [x] Avviso legale v2 (R14): terza casella obbligatoria `lg_chk_safety` (avvertenze di sicurezza, uso sotto la propria
+  responsabilità, autori sollevati) dentro il riquadro di sicurezza; "Accetto e gioco" solo con tre caselle;
+  `HH.legal.VERSION = 2` (chi aveva accettato la v1 riaccetta una volta); privacy senza la sezione Font/Google Fonts
+  (font inclusi nell'app) in 43 lingue; `legal-import.mjs --export` per il giro export → modifica → import
+- [x] Font dentro l'app (`assets/fonts/`, da @fontsource, `tools/fonts-import.mjs`): niente più Google Fonts. Shell con latino,
+  latino esteso, cirillico, greco (M PLUS), latino di Mochiy, arabo + latino di Baloo (+372 KB); fette giapponesi solo in
+  giapponese (`fonts-ja.css`) e in cache al primo uso; file unico con i font della shell incorporati (+488 KB)
+- [x] Alto contrasto con `prefers-contrast: more` (chiaro e scuro): testo e bordi netti, pannelli pieni, focus marcato
+- [x] Colori per daltonici (Okabe-Ito) a scelta in Progressi (`data-cvd`, chiave `cvd_toggle`); Hari Colors parte con i simboli
+- [x] Tema scuro scritto una volta sola in `styles.css`
+- [x] Partita risolta salvata senza vittoria (uscita durante il ritardo prima di `ctx.win`): alla riapertura l'app assegna la
+      vittoria una volta sola (`HH.rules.solvedOnResume`, `solved(s)` in ogni gioco a livelli); test `tests/resume.test.mjs`
+- [x] `destroy()` facoltativo nel contratto dei giochi, chiamato dal nucleo all'uscita/ricreazione/aggiornamento: RAF, voce,
+      sensori e rete si fermano subito (fish, colors, street, rally, drive, snack, parade, flight, escape, life, memory,
+      sudoku, hedgedoku, spot, sushi); e2e `tools/lifecycle-e2e.mjs`
+- [x] Guida della home (regola R13, `src/core/wizard.js` + `wizard.css`): al primo avvio, dopo l'avviso legale e prima della
+  domanda sulle statistiche, 6 passi con riquadro di focus e nuvoletta di Hari (card/Riprendi, vista, lingua+suono,
+  ghiande/progressi, Condividi+Installa, «?»); dopo un aggiornamento solo le novità (`NEWS['0.31.0']` nel modulo + giochi
+  con `since`); una volta sola (`wizard: { v }`); pulsante «?» nella barra in alto; token `--wz-veil`/`--wz-glow` in `styles.css`
+- [x] File dei giochi divisi in moduli < ~800 righe (R19), refactoring puro senza cambi di comportamento:
+  Hari Rally (`rally-ui.js` → art, 3d, scenery, decor, karts, view, hud, duo), Hari Fishing (`fish-ui.js` → art,
+  3d, models, uw, view, hud), Hari Taxi (`drive-ui.js` → art, city, osm-paint, draw; `drive-logic.js` → osm,
+  traffic), Hari Escape (`escape-logic.js` → puzzles). Moduli nel catalogo (lazy load), test e benchmark aggiornati.
+- [x] Traduzioni delle 16 chiavi `wz_*` e di `cvd_toggle` in 43 lingue
+- [x] Logo in arabo: le lettere di «Hari» restano in ordine (`.lw` con `direction: ltr`); layout della casella di sicurezza
+  in una classe (`.lg-safety-body`)
+- [x] Shell divisa per responsabilità (R19, refactoring puro): `app.js` 1361 → 634 righe, più `src/core/ui.js`,
+  `fullscreen.js`, `updates.js`, `home.js` (stato condiviso in `HH.app`, vedi docs/architecture.md)
+- [x] Deploy senza `design/`, `tools/privacy-check.mjs` in `npm test`, regola 9 (eccezione R16) in CLAUDE.md
 
 ## Fatto (v0.30.2) — revisione in 2 giri
 - [x] Bug: salvataggio illeggibile copiato/cancellato nello slot giusto (Hari Taxi); ripresa e card «Riprendi» sul posto
