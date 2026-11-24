@@ -15,8 +15,9 @@
       ...['bunny', 'cat', 'panda', 'bear', 'duck', 'fox'].flatMap((a) => ['house-' + a, 'roof-' + a]), 'ear', 'door', 'window',
       'barn', 'barn-2', 'silo', 'dairy', 'cheese', 'field', 'field-2', 'bakery', 'bread', 'conifer', 'log', 'saw', 'toy-1', 'toy-2', 'toy-3', 'metal',
       'bus', 'mail', 'truck', 'loco', 'loco-2', 'wagon', 'base', 'face', 'eye', 'blush', 'glass', 'steam',
-      'c-pax', 'c-mail', 'c-milk', 'c-cheese', 'c-grain', 'c-bread', 'c-wood', 'c-toys', 'go', 'stopl', 'ok', 'bad', 'sel', 'lamp'];
-    const NUMS = ['amb', 'sun', 'night'];
+      'c-pax', 'c-mail', 'c-milk', 'c-cheese', 'c-grain', 'c-bread', 'c-wood', 'c-toys', 'go', 'stopl', 'ok', 'bad', 'sel', 'lamp',
+      'water-3', 'sky-dusk', 'sky-dawn', 'sky-night', 'sun-gold', 'moon', 'amb-night', 'window-lit'];
+    const NUMS = ['amb', 'sun'];
 
     function readTheme() {
       const cs = G.getComputedStyle(X.wrap);
@@ -221,21 +222,52 @@
       wg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); wg.computeVertexNormals();
       group.add(new T.Mesh(wg, toon(X.C.bed.clone().lerp(X.C.trunk, 0.35))));
     }
-    /* ---------- acqua: una mesh per le caselle d'acqua, onde e luce che scorre nello shader ---------- */
+    /* ---------- acqua: una mesh per le caselle d'acqua; nello shader fasce "toon" (bassa vicino a riva, alta al largo),
+     * schiuma bianca lungo le rive (lati e spigoli di terra di ogni casella, attributi aE e aC), linee d'onda lente;
+     * di giorno qualche riflesso allungato sulle creste, di notte le creste prendono la luce della luna. Niente puntini. */
     function buildWater(group) {
-      const w = W(), pts = [];
+      const w = W(), P = [], UV = [], EG = [], CR = [];
+      const land = (x, z) => x >= 0 && z >= 0 && x < w.w && z < w.h && !w.water[z * w.w + x] ? 1 : 0;
       for (let i = 0; i < w.n; i++) {
         if (!w.water[i]) continue;
         const x = i % w.w, z = (i / w.w) | 0, e = 0.02;
-        pts.push(x - e, WATER_Y, z - e, x - e, WATER_Y, z + 1 + e, x + 1 + e, WATER_Y, z - e, x + 1 + e, WATER_Y, z - e, x - e, WATER_Y, z + 1 + e, x + 1 + e, WATER_Y, z + 1 + e);
+        const eg = [land(x, z - 1), land(x + 1, z), land(x, z + 1), land(x - 1, z)];
+        const cr = [land(x - 1, z - 1), land(x + 1, z - 1), land(x + 1, z + 1), land(x - 1, z + 1)];
+        for (const [u, v] of [[-e, -e], [-e, 1 + e], [1 + e, -e], [1 + e, -e], [-e, 1 + e], [1 + e, 1 + e]]) {
+          P.push(x + u, WATER_Y, z + v); UV.push(u, v); EG.push(...eg); CR.push(...cr);
+        }
       }
-      if (!pts.length) return;
+      if (!P.length) return;
       const g = keep(new T.BufferGeometry());
-      g.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
+      g.setAttribute('position', new T.Float32BufferAttribute(P, 3));
+      g.setAttribute('aUV', new T.Float32BufferAttribute(UV, 2));
+      g.setAttribute('aE', new T.Float32BufferAttribute(EG, 4));
+      g.setAttribute('aC', new T.Float32BufferAttribute(CR, 4));
       const m = keep(new T.ShaderMaterial({
-        uniforms: { uT: { value: 0 }, uA: { value: X.C.water.clone() }, uB: { value: X.C['water-2'].clone() }, uF: { value: X.C.foam.clone() } },
-        vertexShader: 'varying vec2 vP; uniform float uT; void main(){ vP = position.xz; vec3 p = position; p.y += sin(p.x * 1.7 + uT * 1.3) * 0.012 + cos(p.z * 1.3 - uT) * 0.012; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }',
-        fragmentShader: 'varying vec2 vP; uniform float uT; uniform vec3 uA; uniform vec3 uB; uniform vec3 uF; void main(){ float b = sin(vP.x * 2.1 + vP.y * 0.7 + uT * 0.9) + sin(vP.y * 2.6 - vP.x * 0.4 - uT * 0.7); vec3 c = mix(uA, uB, step(1.15, b) * 0.6); float s = step(0.985, sin(vP.x * 9.0 + uT * 2.0) * sin(vP.y * 8.0 - uT * 1.6)); c = mix(c, uF, s * 0.7); gl_FragColor = vec4(c, 1.0);\n#include <colorspace_fragment>\n}',
+        uniforms: { uT: { value: 0 }, uA: { value: X.C.water.clone() }, uB: { value: X.C['water-2'].clone() }, uD: { value: X.C['water-3'].clone() }, uF: { value: X.C.foam.clone() },
+          uM: { value: X.C.moon.clone() }, uL: { value: new T.Color(1, 1, 1) }, uDay: { value: 1 } },
+        vertexShader: 'attribute vec2 aUV; attribute vec4 aE; attribute vec4 aC; varying vec2 vP; varying vec2 vU; varying vec4 vE; varying vec4 vC; uniform float uT;\n' +
+          'void main(){ vP = position.xz; vU = aUV; vE = aE; vC = aC; vec3 p = position; p.y += sin(p.x * 1.7 + uT * 1.3) * 0.01 + cos(p.z * 1.3 - uT) * 0.01; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }',
+        fragmentShader: 'varying vec2 vP; varying vec2 vU; varying vec4 vE; varying vec4 vC; uniform float uT; uniform vec3 uA; uniform vec3 uB; uniform vec3 uD; uniform vec3 uF; uniform vec3 uM; uniform vec3 uL; uniform float uDay;\n' +
+          'void main(){\n' +
+          ' float d = 1.0;\n' +
+          ' if (vE.x > 0.5) d = min(d, vU.y); if (vE.y > 0.5) d = min(d, 1.0 - vU.x); if (vE.z > 0.5) d = min(d, 1.0 - vU.y); if (vE.w > 0.5) d = min(d, vU.x);\n' +
+          ' if (vC.x > 0.5) d = min(d, length(vU)); if (vC.y > 0.5) d = min(d, length(vU - vec2(1.0, 0.0))); if (vC.z > 0.5) d = min(d, length(vU - vec2(1.0))); if (vC.w > 0.5) d = min(d, length(vU - vec2(0.0, 1.0)));\n' +
+          ' float wob = 0.03 * sin(vP.x * 5.0 + vP.y * 3.0 + uT * 1.4) + 0.02 * sin(vP.y * 7.0 - uT * 1.1);\n' +
+          ' float dd = d + wob;\n' +
+          ' vec3 c = mix(uD, uA, step(dd, 0.62));\n' +
+          ' c = mix(c, mix(uA, uB, 0.6), step(dd, 0.3));\n' +
+          ' float w = sin(vP.x * 3.4 + vP.y * 2.1 + uT * 0.9 + 0.8 * sin(vP.y * 2.3 - uT * 0.5));\n' +
+          ' float seg = 0.5 + 0.5 * sin(vP.x * 1.7 - vP.y * 2.4 + uT * 0.35);\n' +
+          ' float crest = smoothstep(0.95, 0.985, w) * smoothstep(0.3, 0.65, seg) * step(0.2, dd);\n' +
+          ' vec3 hi = mix(uM, mix(uB, uF, 0.35), uDay);\n' +
+          ' c = mix(c, hi, crest * mix(0.8, 0.7, uDay));\n' +
+          ' c = mix(c, uF, crest * smoothstep(0.82, 0.97, seg) * 0.6 * uDay);\n' +
+          ' float foam = 1.0 - smoothstep(0.07, 0.12, dd);\n' +
+          ' float ring = 1.0 - smoothstep(0.0, 0.018, abs(d - (0.19 + 0.035 * sin(uT * 1.2 + vP.x * 2.0 + vP.y * 1.7))));\n' +
+          ' c = mix(c, uF, max(foam, ring * 0.55));\n' +
+          ' gl_FragColor = vec4(c * uL, 1.0);\n' +
+          '#include <colorspace_fragment>\n}',
       }));
       X.R3.water = m;
       group.add(new T.Mesh(g, m));
@@ -297,7 +329,7 @@
       const s = X.s, w = W();
       let n = 0;
       for (const t of s.towns) n += t.houses.length;
-      const body = inst(GEO.box, icToon(), n), roof = inst(GEO.cone4, icToon(), n), door = inst(GEO.boxC, toon(X.C.door), n), win = inst(GEO.boxC, basic(X.C.window), n * 2);
+      const body = inst(GEO.box, icToon(), n), roof = inst(GEO.cone4, icToon(), n), door = inst(GEO.boxC, toon(X.C.door), n), win = inst(GEO.boxC, X.R3.winMat || (X.R3.winMat = basic(X.C.window)), n * 2);
       const pe = inst(GEO.cone, icToon(), n * 2), re = inst(GEO.sphLo, icToon(), n * 2);
       const m = M4(), q = new T.Quaternion(), p = new T.Vector3(), sc = new T.Vector3(), e = new T.Euler(), off = new T.Vector3();
       for (const t of s.towns) for (const i of t.houses) {
@@ -390,9 +422,11 @@
       const scene = new T.Scene();
       X.R3.scene = scene;
       scene.background = X.C.sky.clone();
-      scene.add(new T.HemisphereLight(X.C.sky.clone().lerp(new T.Color(1, 1, 1), 0.5), X.C.grass, X.N.amb || 1.4));
+      const hemi = new T.HemisphereLight(X.C.sky.clone().lerp(new T.Color(1, 1, 1), 0.5), X.C.grass.clone(), X.N.amb || 1.4);
+      scene.add(hemi);
       const sun = new T.DirectionalLight(0xffffff, X.N.sun || 1.4);
       sun.position.set(-20, 40, 12); scene.add(sun); scene.add(sun.target);
+      X.R3.hemi = hemi; X.R3.sunL = sun; X.R3.winMat = null; X.R3.lampMat = null; X.R3.skyKey = '';
       const terr = new T.Group(); scene.add(terr);
       buildTerrain(terr); buildWater(terr); buildIndustries(terr);
       X.R3.terr = terr;
@@ -413,9 +447,40 @@
       const g = X.R3.dyn;
       for (const c of g.children.slice()) { g.remove(c); if (c.isInstancedMesh && c.userData.own !== false) c.dispose(); }
       buildTrees(g); buildHouses(g);
+      X.R3.skyKey = '';
       return true;
     }
-    return { COLS, NUMS, HU, WATER_Y, readTheme, initGL, keep, toon, vcToon, icToon, basic, outline, bake, mesh, GEO, geos, hV, hAt, tileH, inst, withOutline, hash,
+    /* ---------- luce del giorno e della notte (curva pura in express-sky.js, colori dai token) ---------- */
+    const SK = {};
+    function applySky(L) {
+      const R = X.R3;
+      if (!R || !R.scene) return;
+      const key = L.t.toFixed(4) + (L.day === 1 && !L.gold && !L.rose ? 'd' : '');
+      if (key === R.skyKey) return;
+      R.skyKey = key;
+      if (!SK.w) { SK.w = new T.Color(1, 1, 1); SK.a = new T.Color(); SK.b = new T.Color(); SK.tint = new T.Color(); }
+      const C = X.C, n = L.night;
+      // cielo (sfondo)
+      R.scene.background.copy(C.sky).lerp(C['sky-dawn'], L.rose).lerp(C['sky-dusk'], L.gold).lerp(C['sky-night'], n);
+      // luce d'ambiente: di giorno il cielo schiarito, di notte azzurro-viola soffice
+      SK.a.copy(C.sky).lerp(SK.w, 0.5).lerp(C['sun-gold'], 0.55 * L.gold).lerp(C['amb-night'], n);
+      R.hemi.color.copy(SK.a);
+      R.hemi.groundColor.copy(C.grass).lerp(C['amb-night'], 0.7 * n);
+      R.hemi.intensity = (X.N.amb || 1.4) * L.amb;
+      // sole (o luna)
+      R.sunL.color.copy(SK.w).lerp(C['sun-gold'], L.gold).lerp(C['sky-dawn'], 0.5 * L.rose).lerp(C.moon, n);
+      R.sunL.intensity = (X.N.sun || 1.4) * L.sun;
+      R.sunL.position.set(L.dir[0] * 40, L.dir[1] * 40, L.dir[2] * 40);
+      // tinta per i materiali senza luce (acqua, faccine, fumo)
+      SK.tint.copy(SK.w).lerp(C['sun-gold'], 0.4 * L.gold).lerp(SK.b.copy(C['amb-night']).lerp(SK.w, 0.25), 0.85 * n);
+      if (R.water) { R.water.uniforms.uL.value.copy(SK.tint); R.water.uniforms.uDay.value = L.day; }
+      // finestre accese al calare della sera, lampioni e fari di notte
+      const lit = Math.max(0, Math.min(1, (n - 0.2) / 0.5));
+      if (R.winMat) R.winMat.color.copy(C.window).multiply(SK.tint).lerp(C['window-lit'], lit);
+      X.sky = { night: n, lit, tint: SK.tint, day: L.day };
+      if (X.onSky) X.onSky(X.sky);
+    }
+    return { COLS, NUMS, HU, WATER_Y, applySky, readTheme, initGL, keep, toon, vcToon, icToon, basic, outline, bake, mesh, GEO, geos, hV, hAt, tileH, inst, withOutline, hash,
       buildScene, disposeScene, rebuildDyn };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

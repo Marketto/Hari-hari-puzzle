@@ -1268,8 +1268,7 @@
 :root[data-theme="dark"] .fi-wrap[data-stage="sea"] { --fsh-water: #2a5a8a; --fsh-water-2: #5a8ac0; --fsh-water-3: #1c3f6e; --fsh-hill: #2f4a6a; --fsh-hill-2: #6a5a6a;
   --fsh-uw-1: #245a8a; --fsh-uw-2: #0f1f48; --fsh-uw-top: #5a8ac8; --fsh-bed: #5a5470; --fsh-bed-2: #4a4462; --fsh-weed: #2a7a7a; --fsh-weed-2: #3a8a7a; }
 /* express */
-:root {
-  --tint-express: #d8f2d0;
+:root, .ex-wrap {
   
   --exp-ink: #4b2e28; --exp-grass: #a8e08a; --exp-grass-2: #9bd77e; --exp-hill: #8fcf78; --exp-hill-2: #c9d98a; --exp-sand: #f4dfa8;
   --exp-bed: #d9c48e; --exp-water: #7fd0f0; --exp-water-2: #b4e8fa; --exp-foam: #ffffff; --exp-sky: #ffe6ef; --exp-fog: #fff1ea;
@@ -1296,7 +1295,12 @@
   
   --exp-go: #4fd18a; --exp-stopl: #ff5f7a; --exp-ok: #4fc7ab; --exp-bad: #ff4f6d; --exp-sel: #ffffff; --exp-lamp: #fff3b0;
   
-  --exp-amb: 1.45; --exp-sun: 1.55; --exp-night: 0;
+  --exp-amb: 1.45; --exp-sun: 1.55;
+  --exp-sky-dusk: #ffb894; --exp-sky-dawn: #ffd3e2; --exp-sky-night: #2e2a5a; --exp-sun-gold: #ffaa5e; --exp-moon: #c4ccff; --exp-amb-night: #8f8ad8;
+  --exp-water-3: #4fb2dc; --exp-window-lit: #ffd96a;
+}
+:root {
+  --tint-express: #d8f2d0;
   
   --exp-ui: rgba(255, 250, 246, .95); --exp-ui-2: #f6e9e3; --exp-ui-hi: #ffe2ec; --exp-ui-hi-ink: #b3305f; --exp-track: #f3e3dc; --exp-lock: rgba(75, 46, 40, .45);
   --exp-label: rgba(255, 250, 246, .9); --exp-label-ink: #4b2e28; --exp-pay: #2b9e85;
@@ -1316,7 +1320,6 @@
     --exp-barn: #b85a6a; --exp-barn-2: #d8c8c0; --exp-silo: #a8a0b8; --exp-dairy: #a8b8c8; --exp-cheese: #c8a848;
     --exp-field: #a8984a; --exp-field-2: #8a7a3a; --exp-bakery: #c8b8a0; --exp-bread: #a8784a; --exp-conifer: #2f6a4a;
     --exp-log: #8a6048; --exp-saw: #a8b0c0; --exp-metal: #8a90a8;
-    --exp-amb: .95; --exp-sun: .7; --exp-night: 1;
     --exp-ui: rgba(40, 32, 66, .95); --exp-ui-2: #352a55; --exp-ui-hi: #5a3a6a; --exp-ui-hi-ink: #ffc2d6; --exp-track: #4a3e6a; --exp-lock: rgba(255, 245, 234, .5);
     --exp-label: rgba(40, 32, 66, .88); --exp-label-ink: #fff5ea; --exp-pay: #7fe0c4;
   }
@@ -1335,18 +1338,17 @@
   --exp-barn: #b85a6a; --exp-barn-2: #d8c8c0; --exp-silo: #a8a0b8; --exp-dairy: #a8b8c8; --exp-cheese: #c8a848;
   --exp-field: #a8984a; --exp-field-2: #8a7a3a; --exp-bakery: #c8b8a0; --exp-bread: #a8784a; --exp-conifer: #2f6a4a;
   --exp-log: #8a6048; --exp-saw: #a8b0c0; --exp-metal: #8a90a8;
-  --exp-amb: .95; --exp-sun: .7; --exp-night: 1;
   --exp-ui: rgba(40, 32, 66, .95); --exp-ui-2: #352a55; --exp-ui-hi: #5a3a6a; --exp-ui-hi-ink: #ffc2d6; --exp-track: #4a3e6a; --exp-lock: rgba(255, 245, 234, .5);
   --exp-label: rgba(40, 32, 66, .88); --exp-label-ink: #fff5ea; --exp-pay: #7fe0c4;
 }
 @media (prefers-contrast: more) {
-  :root { --exp-ink: #1e0d09; --exp-ui: #ffffff; --exp-ui-hi: #ffd0e0; --exp-ui-hi-ink: #7d1d42; --exp-label: #ffffff; --exp-label-ink: #1e0d09;
+  :root, .ex-wrap { --exp-ink: #1e0d09; --exp-ui: #ffffff; --exp-ui-hi: #ffd0e0; --exp-ui-hi-ink: #7d1d42; --exp-label: #ffffff; --exp-label-ink: #1e0d09;
     --exp-ok: #007a59; --exp-bad: #c8102e; --exp-go: #007a59; --exp-stopl: #c8102e; --exp-pay: #005a41; --exp-lock: rgba(30, 13, 9, .75); }
 }
 @media (prefers-contrast: more) and (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --exp-ink: #000000; --exp-ui: #1a1430; --exp-label: #1a1430; --exp-label-ink: #ffffff; --exp-ok: #7fffd4; --exp-bad: #ff8a9a; --exp-pay: #7fffd4; }
 }
-:root[data-cvd] {
+:root[data-cvd], :root[data-cvd] .ex-wrap {
   --exp-go: #009e73; --exp-stopl: #d55e00; --exp-ok: #009e73; --exp-bad: #d55e00;
   --exp-c-pax: #cc79a7; --exp-c-mail: #f0e442; --exp-c-cheese: #e69f00; --exp-c-grain: #f0e442; --exp-c-bread: #d55e00; --exp-c-wood: #8a5a2a; --exp-c-toys: #0072b2;
 }

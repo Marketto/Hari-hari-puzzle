@@ -51,6 +51,7 @@
     ex_c_money: 'Out of acorns! Wait for the next deliveries.',
     ex_e_sold: 'Out of acorns: Hari sold {v}.', ex_e_grow: '{town} is growing!', ex_e_first: 'First delivery! +{n}', ex_e_late: 'Time is up!', ex_e_goal: 'Goal reached!',
     ex_paused: 'Paused: tap the speed to go on',
+    ex_always_day: 'Always day', ex_sky_day: 'Day', ex_sky_sunset: 'Sunset', ex_sky_night: 'Night', ex_sky_dawn: 'Dawn',
     // già tradotte (comuni e altri giochi)
     ry_nogl: 'This game needs 3D graphics (WebGL).', soon: 'Coming soon', play: 'Play', er_close: 'Close', lf_cancel: 'Cancel', level: 'Level', pa_pause: 'Pause', resume: 'Continue',
   };
@@ -74,6 +75,11 @@
     chart: svg(ln('M5 20 V12 M10 20 V6 M15 20 V14 M20 20 V9', 2.2)),
     plus: svg(ln('M12 5 V19 M5 12 H19', 2.4)), minus: svg(ln('M5 12 H19', 2.4)),
     signal: svg(`<rect x="8" y="2" width="8" height="13" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="6" r="1.8" fill="currentColor"/><circle cx="12" cy="11" r="1.8" fill="currentColor"/>` + ln('M12 15 V22 M8 22 H16')),
+    // ora del giorno della scena (indicatore accanto alla data)
+    sky_day: svg('<circle cx="12" cy="12" r="4.6" fill="var(--sun)" stroke="currentColor" stroke-width="1.8"/>' + ln('M12 2.5 V4.5 M12 19.5 V21.5 M2.5 12 H4.5 M19.5 12 H21.5 M5.3 5.3 L6.7 6.7 M17.3 17.3 L18.7 18.7 M5.3 18.7 L6.7 17.3 M17.3 6.7 L18.7 5.3', 1.8)),
+    sky_sunset: svg('<path d="M6.5 16 A5.5 5.5 0 0 1 17.5 16 Z" fill="var(--sun)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' + ln('M3 16 H21 M6 20 H18 M12 4 V8 M9.5 6 L12 8.5 L14.5 6', 1.8)),
+    sky_dawn: svg('<path d="M6.5 16 A5.5 5.5 0 0 1 17.5 16 Z" fill="var(--sun)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' + ln('M3 16 H21 M6 20 H18 M12 8.5 V4.5 M9.5 7 L12 4.5 L14.5 7', 1.8)),
+    sky_night: svg('<path d="M15.5 3.5 A8.5 8.5 0 1 0 20.5 15 A7 7 0 0 1 15.5 3.5 Z" fill="var(--exp-moon)" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' + ln('M18 5 V7 M17 6 H19', 1.4)),
     oneway: svg(ln('M3 12 H19 M14 6 L20 12 L14 18', 2.4)),
     station: svg(ln('M3 20 H21 M5 20 V11 M19 20 V11 M3 11 L12 4 L21 11 Z M9 20 V15 H15 V20')),
     check: svg(ln('M5 12 L10 17 L19 7', 2.6)), close: svg(ln('M6 6 L18 18 M18 6 L6 18', 2.4)),

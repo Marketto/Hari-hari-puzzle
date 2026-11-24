@@ -67,7 +67,7 @@
     // Due posti di salvataggio: express (Campagna) ed express@free (Libera)
     { id: 'express', name: 'Hari Express', since: '0.32.0', rules: 'r_express',
       rulesEn: 'Build roads and railways between the villages of the animals and the farms, fields and forests. Buy buses, trucks and trains, choose their stops and carry passengers, milk, cheese, grain, bread, wood and toys: every delivery pays in acorns, more for long and quick trips. Serve the towns well and they grow. Reach the goal of each level, or build freely on your own map.',
-      files: [...f('express.css'), 'src/vendor/three.min.js', ...f('express-map.js', 'express-net.js', 'express-sim.js', 'express-logic.js',
+      files: [...f('express.css'), 'src/vendor/three.min.js', ...f('express-map.js', 'express-net.js', 'express-sim.js', 'express-logic.js', 'express-sky.js',
         'express-art.js', 'express-3d.js', 'express-tracks.js', 'express-vehicles.js', 'express-hud.js', 'express-input.js', 'express-ui.js')],
       slots: ['express@free'] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',

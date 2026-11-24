@@ -56,7 +56,21 @@
       const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace;
       return X.keep(t);
     }
-    let pools = null, key = '', maxV = 80, list = [];
+    let pools = null, key = '', maxV = 80, list = [], tinted = [], skyN = -1;
+    // davanti di ogni testa (x del muso, altezza dei fari, mezza distanza fra i fari)
+    const LIGHTS = { bus: [0.245, 0.11, 0.08], mail: [0.225, 0.1, 0.075], truck: [0.235, 0.1, 0.075], castagna: [0.215, 0.12, 0.07], fragola: [0.245, 0.1, 0.08] };
+    const LAMP_S = new T.Vector3(0.028, 0.028, 0.028);
+    // colori dei materiali senza luce e fari, quando cambia la luce del giorno
+    function sky() {
+      const k = X.sky;
+      if (!k || !pools) return;
+      const q = Math.round(k.night * 200);
+      if (q === skyN) return;
+      skyN = q;
+      for (const [m, c] of tinted) m.color.copy(c).multiply(k.tint);
+      pools.lamp.visible = k.lit > 0.05;
+      pools.lamp.material.color.copy(X.C.lamp).multiplyScalar(0.55 + 0.45 * k.lit);
+    }
     const SLOTS = { box: 3, boxC: 3, cap: 2, cylLo: 3, sph: 1, sphLo: 1, wedge: 2, face: 2 };
     function build() {
       maxV = X.maxVehicles();
@@ -65,6 +79,7 @@
       const GEO = X.GEO, cars = maxV * 4;
       if (!GEO.face) GEO.face = X.keep(new T.PlaneGeometry(1, 1).rotateY(0).translate(0, 0, 0));
       const faceMat = X.keep(new T.MeshBasicMaterial({ map: faceTexture(), alphaTest: 0.5, transparent: false }));
+      tinted = [[faceMat, new T.Color(1, 1, 1)]];
       pools = {};
       for (const k of GEOS) {
         const geo = k === 'face' ? GEO.face : GEO[k];
@@ -75,7 +90,12 @@
       // fumo della locomotiva: palline che salgono e svaniscono (un insieme fisso)
       const puff = X.inst(GEO.sphLo, X.basic(X.C.steam, { transparent: true, opacity: 0.85, depthWrite: false }), maxV * 3);
       g.add(puff); pools.puff = puff;
-      key = '';
+      tinted.push([puff.material, X.C.steam.clone()]);
+      // fari: due palline luminose davanti alla testa di ogni mezzo, solo di sera e di notte (un'unica draw call)
+      const lamp = X.inst(GEO.sphLo, X.basic(X.C.lamp), maxV * 2);
+      lamp.visible = false;
+      g.add(lamp); pools.lamp = lamp;
+      key = ''; skyN = -1;
     }
     const M = new T.Matrix4(), CM = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SC = new T.Vector3(1, 1, 1), E = new T.Euler(0, 0, 0, 'YXZ'), TP = {}, TP2 = {};
     // elenco delle carrozze: [{ v, k (0 = testa), kind, cargo }]
@@ -120,7 +140,9 @@
       const cnt = {};
       for (const g of GEOS) cnt[g] = 0;
       let puffs = 0;
-      const night = X.N.night >= 0.5;
+      sky();
+      const night = !!X.sky && X.sky.night >= 0.5, lights = pools.lamp.visible;
+      let lamps = 0;
       for (const it of list) {
         const v = it.v, train = S.isTrain(v);
         const lead = v.mode === 'go' && v.pt.length ? (S.VT[v.type].spd / S.TPD) * frac : 0;
@@ -140,6 +162,10 @@
         const parts = PARTS[it.kind];
         for (const pt of parts) { const pool = pools[pt.g]; if (cnt[pt.g] < pool.instanceMatrix.count) { M.multiplyMatrices(CM, partMatrix(pt)); pool.setMatrixAt(cnt[pt.g], M); } cnt[pt.g]++; }
         if (it.full) for (const pt of CARGO[it.cargo]) { const pool = pools[pt.g]; if (cnt[pt.g] < pool.instanceMatrix.count) { M.multiplyMatrices(CM, partMatrix(pt)); pool.setMatrixAt(cnt[pt.g], M); } cnt[pt.g]++; }
+        if (lights && it.k === 0 && LIGHTS[it.kind] && lamps + 2 <= pools.lamp.instanceMatrix.count) {
+          const [lx, ly, lz] = LIGHTS[it.kind];
+          for (const sz of [-lz, lz]) { V.set(lx, ly, sz).applyMatrix4(CM); M.compose(V, Q, LAMP_S); pools.lamp.setMatrixAt(lamps++, M); }
+        }
         // fumo della vaporiera in marcia
         if (it.k === 0 && v.type === 'castagna' && v.mode === 'go' && puffs + 3 <= pools.puff.instanceMatrix.count) {
           for (let j = 0; j < 3; j++) {
@@ -152,6 +178,7 @@
       }
       for (const g of GEOS) pools[g].instanceMatrix.needsUpdate = true;
       pools.puff.count = puffs; pools.puff.instanceMatrix.needsUpdate = true;
+      pools.lamp.count = lamps; if (lamps) pools.lamp.instanceMatrix.needsUpdate = true;
     }
     // il mezzo più vicino a un punto (per toccarlo)
     function pick(x, z) {

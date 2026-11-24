@@ -195,6 +195,35 @@
       X.R3.sigHead = head; sigKey = '';
       group.add(pole, head, X.withOutline(head, 0.012));
     }
+    /* ---------- lampioni delle stazioni e delle fermate: palo (toon) + lanterna che si accende di sera ---------- */
+    let lampOn = -1;
+    function buildLamps(group) {
+      const w = W(), sts = X.s.stations.filter(Boolean);
+      lampOn = -1; X.R3.lampHead = null;
+      if (!sts.length) return;
+      const pole = X.inst(X.GEO.cylLo, X.toon(X.C.metal), sts.length), head = X.inst(X.GEO.sph, X.R3.lampMat || (X.R3.lampMat = X.basic(X.C.lamp)), sts.length);
+      const m = new T.Matrix4(), q = new T.Quaternion(), p = new T.Vector3(), sc = new T.Vector3();
+      for (const st of sts) {
+        const t = st.tiles[0], ax = w.sax[t], tx = t % w.w, tz = (t / w.w) | 0;
+        // sul lato del cartello, verso l'inizio della banchina
+        const along = st.kind === 'rail' ? -0.36 : -0.3, side = st.kind === 'rail' ? 0.4 : 0.4;
+        const x = tx + 0.5 + (ax === 1 ? along : side), z = tz + 0.5 + (ax === 1 ? side : along), y = hR(x, z);
+        p.set(x, y, z); sc.set(0.022, 0.5, 0.022); m.compose(p, q, sc); pole.setMatrixAt(pole.count++, m);
+        p.set(x, y + 0.53, z); sc.set(0.055, 0.055, 0.055); m.compose(p, q, sc); head.setMatrixAt(head.count++, m);
+      }
+      pole.instanceMatrix.needsUpdate = true; head.instanceMatrix.needsUpdate = true;
+      X.R3.lampHead = head;
+      group.add(pole, head, X.withOutline(head, 0.01));
+    }
+    // lanterna spenta (lampada smorzata dalla luce del giorno) → accesa di notte
+    function paintLamps() {
+      const k = X.sky, m = X.R3.lampMat;
+      if (!k || !m) return;
+      const q = Math.round(k.lit * 100) + ':' + Math.round(k.night * 100);
+      if (q === lampOn) return;
+      lampOn = q;
+      m.color.copy(X.C.metal).multiply(k.tint).lerp(X.C.lamp, k.lit);
+    }
     // rosso se il tratto dopo il semaforo è prenotato da un treno, verde se libero
     function paintSignals() {
       const h = X.R3.sigHead;
@@ -216,6 +245,7 @@
       X.R3.sigHead = null;
       g.add(buildNet());
       buildSignals(g);
+      buildLamps(g);
       return true;
     }
 
@@ -250,6 +280,6 @@
       }
       return out;
     }
-    return { hR, buildNet, rebuildNet, paintSignals, overlay, resetFx, catchment, piece };
+    return { hR, buildNet, rebuildNet, paintSignals, paintLamps, overlay, resetFx, catchment, piece };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

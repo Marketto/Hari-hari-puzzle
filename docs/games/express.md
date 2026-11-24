@@ -19,6 +19,7 @@ modalità **Libera** su una mappa generata (seme, grandezza, acqua).
 | `express-net.js` | logica | maschere di strade e binari, costi, percorso proposto (A* della costruzione), ponti, A* dei mezzi |
 | `express-sim.js` | logica | passo fisso: movimento, prenotazioni e semafori, carico/scarico, pagamento, produzione, valutazioni, città, calendario |
 | `express-logic.js` | logica | stato, livelli e obiettivi, azioni (UI e bot), salvataggio, consigli di Hari, stelle, progresso |
+| `express-sky.js` | logica | ciclo del giorno e della notte della scena: fasi, curva della luce `light(t)`, durata del giorno |
 | `express-art.js` | UI | testi di riserva, icone (merci con forma propria), card, tutorial |
 | `express-3d.js` | UI | renderer, materiali toon + contorni, `bake()`, terreno, acqua, alberi e case a istanze, industrie |
 | `express-tracks.js` | UI | geometria di strade, binari, ponti, stazioni, frecce; semafori a istanze; anteprima e area di raccolta |
@@ -27,7 +28,7 @@ modalità **Libera** su una mappa generata (seme, grandezza, acqua).
 | `express-input.js` | UI | camera ortografica isometrica / vista libera, gesti, mouse, tastiera |
 | `express-ui.js` | UI | `create()`, ciclo, strumenti, eventi, suoni, registrazione |
 
-Test: `tests/express.test.mjs` + bot `tests/_express-bot.mjs`; benchmark in `tools/selftest.mjs`.
+Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_express-bot.mjs`; benchmark in `tools/selftest.mjs`.
 
 ## Regole
 1. **Mappa** a caselle con altezze 0–2 (colline: dislivello massimo 1 tra caselle vicine), acqua (mare attorno
@@ -138,7 +139,8 @@ c'è**: si rigenera dal seme (`scenario(level, seed)` o `generate(opts, rng(seed
 cambiate `{ indice: [binari, strade, semaforo, senso unico] }`, `cut` gli alberi tolti, i villaggi le loro case (anche
 quelle nuove). Le tabelle dense (`W`: altezze, acqua, maschere, stazioni, prenotazioni) sono in una proprietà non
 enumerabile ricostruita da `world(s)`; `nv` (versione della rete) fa ripartire i percorsi nello stesso modo dopo una
-ripresa. Un livello a metà pesa 10–40 KB.
+ripresa. Un livello a metà pesa 10–40 KB. In più `tod` (ora del giorno della scena, 3 decimali): solo grafica, la
+simulazione non la legge mai (testato: stessa partita con `tod` diversi = stesso stato).
 
 ## Comandi
 - **Telefono** (verticale o girato): barra degli strumenti in basso (girato: colonna a destra) — Binari (scelte:
@@ -168,9 +170,16 @@ che hai già fatto (`coach(s)` nella logica, chiavi `ex_c_*`, testato).
 - Camera **ortografica** all'angolo isometrico classico (35,26°, 45° + k·90°), rotazione a scatti animata (rispetta
   `prefers-reduced-motion`), zoom; vista libera in prospettiva con orbita e inclinazione.
 - `MeshToonMaterial` con rampa a 4 bande e contorni a guscio rovesciato (come Fishing e Rally), colori solo dai token
-  `--exp-*` letti con `getComputedStyle` (cambio di tema = scena ricostruita); tema scuro = sera con le finestre accese.
+  `--exp-*` letti con `getComputedStyle`. **La scena non segue il tema dell'app**: la sua tavolozza è dichiarata anche su
+  `.ex-wrap` e lì vince sui ritocchi del tema scuro (che restano per card e tutorial); l'interfaccia sopra la scena
+  invece segue il tema. Alto contrasto e colori per daltonici valgono anche dentro la scena.
 - Terreno a blocchi da 32×32 caselle con altezze morbide (griglia a mezza casella) e colori a scacchi leggeri, sabbia
-  sulle rive, bordo "a torta"; acqua in ShaderMaterial (bande e scintille che scorrono, onde leggere).
+  sulle rive, bordo "a torta".
+- **Acqua** (ShaderMaterial, una mesh): fasce toon turchese/azzurro (bassa vicino a riva, `--exp-water-2`; media
+  `--exp-water`; al largo `--exp-water-3`), **schiuma bianca** lungo le rive (ogni casella sa quali lati e spigoli
+  toccano terra: attributi `aE`/`aC`) con un secondo filo di schiuma che va e viene, **linee d'onda** lente a tratti.
+  Di giorno le creste hanno qualche riflesso chiaro allungato; di notte prendono la luce della luna (`--exp-moon`).
+  Mai puntini (sembravano stelle: l'acqua pareva cielo). Con `prefers-reduced-motion` l'acqua è ferma.
 - **Alberi sferici** (icosaedri) e **cespugli tondi** più piccoli, a istanze per blocchi da 16×16 con sfera di ingombro
   (fuori vista non si disegnano; da lontano niente contorni); **case** con **tetti a punta**, porta, finestre e
   orecchie dell'animale (coniglio lunghe, gatto e volpe a punta, panda e orso tonde) a istanze; industrie fuse con
@@ -182,6 +191,22 @@ che hai già fatto (`coach(s)` nella logica, chiavi `ex_c_*`, testato).
 - **Mezzi** a istanze (capsule tonde): faccine kawaii **sul lato della cabina** (texture disegnata una volta coi
   token), merce sopra il cassone con la sua forma (bidoni, spicchi, sacco, pagnotte, tronchi, giocattoli), fumo della
   vaporiera, beccheggio sulle salite, bus e camion tengono la destra.
+- **Giorno e notte** (`express-sky.js`, puro e testato). Ora del giorno `t ∈ [0,1)`: giorno 0–0,58 (il più lungo),
+  tramonto dorato 0,58–0,70, notte 0,70–0,90 (breve, luce azzurro-viola soffice), alba rosa 0,90–1. Un giorno dura
+  **180 s reali a ×1**, 90 s a ×2 e **mai meno di 60 s** (a ×4 al massimo un giro al minuto, niente sfarfallio); in pausa
+  o a partita finita il cielo si ferma. Una partita nuova parte di mattina (`START` = 0,06); il salvataggio porta `tod`.
+  `light(t)` dà pesi e moltiplicatori (`day`, `night`, `gold`, `rose`, `amb`, `sun`, `dir`): curva continua (nessun
+  salto fra un fotogramma e l'altro), luce d'ambiente mai sotto il 62% del giorno e sole sempre alto sull'orizzonte,
+  quindi di notte si legge tutto. I colori vengono dai token (`--exp-sky-dusk`, `--exp-sky-dawn`, `--exp-sky-night`,
+  `--exp-sun-gold`, `--exp-moon`, `--exp-amb-night`, `--exp-window-lit`); ogni fotogramma si cambiano solo uniform e
+  colori di luci e materiali (sfondo, luce emisferica, sole/luna, tinta dei materiali senza luce, finestre). Di sera si
+  accendono le **finestre** delle case, i **lampioni** delle stazioni e delle fermate (palo + lanterna a istanze) e i
+  **fari** dei mezzi (un'istanza per faro, disegnati solo quando sono accesi).
+- **Indicatore** accanto alla data (sole, tramonto, luna, alba): toccandolo si passa a **"sempre giorno"** (luce di
+  mezzogiorno fissa; scelta ricordata in `express:alwaysDay`). Chiavi `ex_always_day`, `ex_sky_day|sunset|night|dawn`.
+- Sopra la barra degli strumenti una **pila** sola (`.ex-dock`, in colonna dal basso): fumetto di Hari, suggerimento
+  dello strumento, scelte secondarie. Con testi lunghi (de, fi, ru) o scelte su due righe gli elementi si spingono in
+  su, mai uno sopra l'altro; col telefono girato la pila sta in basso a sinistra, accanto alla colonna degli strumenti.
 - Merci nell'interfaccia: icona con forma propria (persona, busta, bidone, spicchio, spiga, pagnotta, tronchi,
   giocattoli) + nome, quindi leggibili anche coi colori per daltonici (token Okabe-Ito in `[data-cvd]`) e in alto
   contrasto.
@@ -195,6 +220,7 @@ SwiftShader, cioè GPU software, 402×874; `el._express.info()`):
 |---|---|---|---|
 | Livello 1, 1 bus | 23 | 24 k | 2,8 / — ms |
 | Livello 4, 1 treno | 21–30 | 50–68 k | 2,7–3,0 ms |
+| Livello 4 dopo 45 giorni del bot, tutta la mappa: giorno / notte (con lampioni e fari) | 40 / 41 (prima 37) | 52 k | 2,4 ms |
 | Libera 64×64, 80 mezzi a ×4, zoom normale | 61 | 307 k | 6,8 / 13,5 ms |
 | Libera 64×64, 80 mezzi a ×4, tutta la mappa | 69 | 262 k | 8,2 / 22,6 ms |
 

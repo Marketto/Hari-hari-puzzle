@@ -1,10 +1,11 @@
 /* Hari Express — stile.
  * La scena 3D (three.js) legge i token --exp-* con getComputedStyle e li converte in colori dei materiali "toon":
- * nessun colore nel JavaScript. Tema scuro = sera sulla campagna (lampioni e finestre accese). I numeri (--exp-amb …)
- * sono intensità delle luci. Interfaccia: prefisso ex-, colori dai token del nucleo (--ink, --accent, --mint …).
+ * nessun colore nel JavaScript. La scena NON segue il tema dell'app: ha il suo ciclo del giorno e della notte
+ * (express-sky.js), quindi la tavolozza della scena è dichiarata anche su .ex-wrap e lì vince sui ritocchi del tema
+ * scuro (che restano per le illustrazioni della card e del tutorial, fuori dal gioco). I numeri (--exp-amb, --exp-sun)
+ * sono le intensità delle luci di giorno. Interfaccia: prefisso ex-, colori dai token del nucleo (--ink, --accent, --mint …).
  */
-:root {
-  --tint-express: #d8f2d0;
+:root, .ex-wrap {
   /* terreno e acqua */
   --exp-ink: #4b2e28; --exp-grass: #a8e08a; --exp-grass-2: #9bd77e; --exp-hill: #8fcf78; --exp-hill-2: #c9d98a; --exp-sand: #f4dfa8;
   --exp-bed: #d9c48e; --exp-water: #7fd0f0; --exp-water-2: #b4e8fa; --exp-foam: #ffffff; --exp-sky: #ffe6ef; --exp-fog: #fff1ea;
@@ -30,8 +31,13 @@
   --exp-c-bread: #d99a5a; --exp-c-wood: #b9835a; --exp-c-toys: #b98cff;
   /* segnali, anteprima, selezione */
   --exp-go: #4fd18a; --exp-stopl: #ff5f7a; --exp-ok: #4fc7ab; --exp-bad: #ff4f6d; --exp-sel: #ffffff; --exp-lamp: #fff3b0;
-  /* luci della scena */
-  --exp-amb: 1.45; --exp-sun: 1.55; --exp-night: 0;
+  /* luci della scena di giorno; cielo e luci del tramonto, della notte e dell'alba; acqua al largo; finestre accese */
+  --exp-amb: 1.45; --exp-sun: 1.55;
+  --exp-sky-dusk: #ffb894; --exp-sky-dawn: #ffd3e2; --exp-sky-night: #2e2a5a; --exp-sun-gold: #ffaa5e; --exp-moon: #c4ccff; --exp-amb-night: #8f8ad8;
+  --exp-water-3: #4fb2dc; --exp-window-lit: #ffd96a;
+}
+:root {
+  --tint-express: #d8f2d0;
   /* interfaccia sopra la scena */
   --exp-ui: rgba(255, 250, 246, .95); --exp-ui-2: #f6e9e3; --exp-ui-hi: #ffe2ec; --exp-ui-hi-ink: #b3305f; --exp-track: #f3e3dc; --exp-lock: rgba(75, 46, 40, .45);
   --exp-label: rgba(255, 250, 246, .9); --exp-label-ink: #4b2e28; --exp-pay: #2b9e85;
@@ -51,7 +57,6 @@
     --exp-barn: #b85a6a; --exp-barn-2: #d8c8c0; --exp-silo: #a8a0b8; --exp-dairy: #a8b8c8; --exp-cheese: #c8a848;
     --exp-field: #a8984a; --exp-field-2: #8a7a3a; --exp-bakery: #c8b8a0; --exp-bread: #a8784a; --exp-conifer: #2f6a4a;
     --exp-log: #8a6048; --exp-saw: #a8b0c0; --exp-metal: #8a90a8;
-    --exp-amb: .95; --exp-sun: .7; --exp-night: 1;
     --exp-ui: rgba(40, 32, 66, .95); --exp-ui-2: #352a55; --exp-ui-hi: #5a3a6a; --exp-ui-hi-ink: #ffc2d6; --exp-track: #4a3e6a; --exp-lock: rgba(255, 245, 234, .5);
     --exp-label: rgba(40, 32, 66, .88); --exp-label-ink: #fff5ea; --exp-pay: #7fe0c4;
   }
@@ -70,20 +75,19 @@
   --exp-barn: #b85a6a; --exp-barn-2: #d8c8c0; --exp-silo: #a8a0b8; --exp-dairy: #a8b8c8; --exp-cheese: #c8a848;
   --exp-field: #a8984a; --exp-field-2: #8a7a3a; --exp-bakery: #c8b8a0; --exp-bread: #a8784a; --exp-conifer: #2f6a4a;
   --exp-log: #8a6048; --exp-saw: #a8b0c0; --exp-metal: #8a90a8;
-  --exp-amb: .95; --exp-sun: .7; --exp-night: 1;
   --exp-ui: rgba(40, 32, 66, .95); --exp-ui-2: #352a55; --exp-ui-hi: #5a3a6a; --exp-ui-hi-ink: #ffc2d6; --exp-track: #4a3e6a; --exp-lock: rgba(255, 245, 234, .5);
   --exp-label: rgba(40, 32, 66, .88); --exp-label-ink: #fff5ea; --exp-pay: #7fe0c4;
 }
 /* alto contrasto: contorni più scuri, interfaccia piena, anteprima e segnali più netti */
 @media (prefers-contrast: more) {
-  :root { --exp-ink: #1e0d09; --exp-ui: #ffffff; --exp-ui-hi: #ffd0e0; --exp-ui-hi-ink: #7d1d42; --exp-label: #ffffff; --exp-label-ink: #1e0d09;
+  :root, .ex-wrap { --exp-ink: #1e0d09; --exp-ui: #ffffff; --exp-ui-hi: #ffd0e0; --exp-ui-hi-ink: #7d1d42; --exp-label: #ffffff; --exp-label-ink: #1e0d09;
     --exp-ok: #007a59; --exp-bad: #c8102e; --exp-go: #007a59; --exp-stopl: #c8102e; --exp-pay: #005a41; --exp-lock: rgba(30, 13, 9, .75); }
 }
 @media (prefers-contrast: more) and (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --exp-ink: #000000; --exp-ui: #1a1430; --exp-label: #1a1430; --exp-label-ink: #ffffff; --exp-ok: #7fffd4; --exp-bad: #ff8a9a; --exp-pay: #7fffd4; }
 }
 /* colori per daltonici (Okabe-Ito): segnali, anteprima e merci con tinte distinguibili (le merci hanno anche la forma) */
-:root[data-cvd] {
+:root[data-cvd], :root[data-cvd] .ex-wrap {
   --exp-go: #009e73; --exp-stopl: #d55e00; --exp-ok: #009e73; --exp-bad: #d55e00;
   --exp-c-pax: #cc79a7; --exp-c-mail: #f0e442; --exp-c-cheese: #e69f00; --exp-c-grain: #f0e442; --exp-c-bread: #d55e00; --exp-c-wood: #8a5a2a; --exp-c-toys: #0072b2;
 }
@@ -113,6 +117,9 @@
 .ex-money b svg { width: 18px; height: 20px; }
 .ex-money b.neg { color: var(--bad); }
 .ex-money span { font-size: 13px; font-weight: 700; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-sky { width: 44px; padding: 0; flex: none; }
+.ex-sky svg { width: 22px; height: 22px; }
+.ex-sky[aria-pressed="true"] { background: var(--exp-ui-hi); color: var(--exp-ui-hi-ink); }
 .ex-speed { min-width: 58px; background: var(--mint); color: var(--on-mint); }
 .ex-speed[data-v="0"] { background: var(--sun); color: var(--ink); }
 
@@ -140,10 +147,13 @@
 .ex-side .ex-btn { padding: 0; width: 44px; }
 .ex-side .ex-btn[aria-pressed="true"] { background: var(--exp-ui-hi); color: var(--exp-ui-hi-ink); }
 
-/* fumetto di Hari */
-.ex-hari { position: absolute; left: 10px; bottom: 96px; display: flex; align-items: flex-end; gap: 6px; max-width: min(320px, calc(100% - 80px)); pointer-events: auto; z-index: 2;
-  transition: opacity .3s, transform .3s; }
-.ex-hari[hidden] { display: flex; opacity: 0; transform: translateY(8px); pointer-events: none; }
+/* sopra la barra degli strumenti, in colonna dal basso: fumetto di Hari, suggerimento, scelte secondarie.
+ * Una pila sola: col testo lungo (de, fi, ru) o le scelte su due righe gli elementi si spingono in su, mai uno sopra l'altro */
+.ex-dock { position: absolute; left: 8px; right: 8px; bottom: 82px; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 3; pointer-events: none; }
+.ex-hari { align-self: flex-start; display: flex; align-items: flex-end; gap: 6px; max-width: min(320px, calc(100% - 64px)); margin-left: 2px; pointer-events: auto;
+  animation: ex-up .3s ease-out; }
+.ex-hari[hidden], .ex-hint[hidden] { display: none; }
+@keyframes ex-up { from { opacity: 0; transform: translateY(8px); } }
 .ex-hari > svg { width: 50px; height: 50px; flex: none; }
 .ex-hari p { margin: 0; padding: 8px 12px; border-radius: 16px 16px 16px 4px; background: var(--exp-ui); box-shadow: var(--shadow-s); font-size: 13px; font-weight: 700; line-height: 1.35; }
 
@@ -159,13 +169,14 @@
 .ex-tool[aria-pressed="true"] { background: var(--exp-ui-hi); color: var(--exp-ui-hi-ink); font-weight: 800; }
 .ex-tool[aria-disabled="true"] { color: var(--exp-lock); cursor: default; }
 .ex-tool .lock { position: absolute; top: 3px; right: calc(50% - 20px); width: 14px; height: 14px; }
-.ex-sub { position: absolute; left: 8px; right: 8px; bottom: 82px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; z-index: 3; pointer-events: none; }
+.ex-sub { align-self: stretch; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; pointer-events: none; }
+.ex-sub:empty { display: none; }
 .ex-chip { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 12px; border: 0; border-radius: 18px; cursor: pointer; pointer-events: auto;
   background: var(--exp-ui); color: var(--ink); box-shadow: var(--shadow-s); font: 700 13px/1 var(--font-body); }
 .ex-chip svg { width: 18px; height: 18px; }
 .ex-chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-.ex-hint { position: absolute; left: 50%; bottom: 126px; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 14px; z-index: 3;
-  background: var(--exp-ui); box-shadow: var(--shadow-s); font-size: 12.5px; font-weight: 700; text-align: center; pointer-events: none; }
+.ex-hint { max-width: min(420px, calc(100% - 16px)); padding: 6px 12px; border-radius: 14px;
+  background: var(--exp-ui); box-shadow: var(--shadow-s); font-size: 12.5px; font-weight: 700; line-height: 1.3; text-align: center; overflow-wrap: anywhere; hyphens: auto; pointer-events: none; }
 
 /* anteprima della costruzione */
 .ex-confirm { position: absolute; left: 8px; right: 8px; bottom: 82px; z-index: 4; padding: 12px 14px; border-radius: 22px; background: var(--exp-ui); box-shadow: var(--shadow);
@@ -282,14 +293,14 @@
 .ex-wrap.land .ex-tool { min-height: 0; padding: 2px 0; }
 .ex-wrap.land .ex-tool span { display: none; }
 .ex-wrap.land .ex-tool .lock { right: 6px; }
-.ex-wrap.land .ex-sub { left: 8px; right: 82px; bottom: 8px; justify-content: flex-start; }
-.ex-wrap.land .ex-hari { bottom: 52px; }
+.ex-wrap.land .ex-dock { left: 8px; right: 82px; bottom: 8px; align-items: flex-start; }
+.ex-wrap.land .ex-sub { justify-content: flex-start; }
+.ex-wrap.land .ex-hint { max-width: min(420px, 100%); text-align: start; }
 .ex-wrap.land .ex-confirm { right: 82px; bottom: 8px; }
-.ex-wrap.land .ex-hint { bottom: 52px; left: calc(50% - 37px); }
 .ex-wrap.land .ex-sheet { left: auto; right: 0; top: 0; bottom: 0; width: min(420px, 60%); max-height: none; border-radius: 28px 0 0 28px; }
 .ex-wrap.land .ex-paused { top: 62px; }
-@media (prefers-reduced-motion: reduce) { .ex-sheet, .ex-pop { animation: none; } .ex-bar i { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ex-sheet, .ex-pop, .ex-hari { animation: none; } .ex-bar i { transition: none; } }
 /* mentre c'è l'anteprima del costo: niente fumetto né scelte secondarie sotto la scheda */
-.ex-wrap:has(.ex-confirm:not([hidden])) .ex-hari, .ex-wrap:has(.ex-confirm:not([hidden])) .ex-sub, .ex-wrap:has(.ex-confirm:not([hidden])) .ex-hint { visibility: hidden; }
+.ex-wrap:has(.ex-confirm:not([hidden])) .ex-dock { visibility: hidden; }
 .ex-wrap.land .ex-confirm { left: auto; width: min(400px, calc(100% - 100px)); }
-.ex-wrap.land .ex-hint { bottom: auto; top: 62px; left: 50%; transform: translateX(-50%); max-width: 46%; }
+

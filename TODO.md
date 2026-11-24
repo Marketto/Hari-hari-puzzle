@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
+- [ ] Hari Express: ciclo giorno/notte della scena indipendente dal tema (3 min a ×1, mai più di un giro al minuto; tramonto, notte breve con finestre, lampioni e fari, alba; "sempre giorno" dall'indicatore accanto alla data), acqua riconoscibile (fasce toon, schiuma sulle rive, onde; niente puntini a stella), fumetto/suggerimento/scelte secondarie in una pila senza sovrapposizioni
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)

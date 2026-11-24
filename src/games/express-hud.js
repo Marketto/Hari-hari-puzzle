@@ -34,6 +34,7 @@
         <canvas class="ex-cv" tabindex="0" aria-label="${esc(L('ex_board'))}"></canvas>
         <div class="ex-layer ex-labels" aria-hidden="true"></div>
         <div class="ex-top"><button class="ex-money" type="button" aria-label="${esc(L('ex_accounts'))}"><b>${acorn}<i class="mv">0</i></b><span class="dt"></span></button>
+          <button class="ex-btn ex-sky" type="button" aria-pressed="false" aria-label="${esc(L('ex_always_day'))}">${IC.sky_day}</button>
           <button class="ex-btn ex-speed" type="button" aria-label="${esc(L('ex_speed'))}">×1</button></div>
         <button class="ex-goal" type="button" aria-label="${esc(L('ex_goals'))}"></button>
         <div class="ex-side">
@@ -45,9 +46,11 @@
           <button class="ex-btn" type="button" data-a="zout" aria-label="${esc(L('ex_zoomout'))}">${IC.minus}</button>
         </div>
         <div class="ex-paused" hidden>${esc(L('ex_paused'))}</div>
-        <div class="ex-hari" hidden role="status" aria-live="polite">${HH.mascot && HH.mascot.mini ? HH.mascot.mini() : ''}<p></p></div>
-        <div class="ex-hint" hidden></div>
-        <div class="ex-sub"></div>
+        <div class="ex-dock">
+          <div class="ex-hari" hidden role="status" aria-live="polite">${HH.mascot && HH.mascot.mini ? HH.mascot.mini() : ''}<p></p></div>
+          <div class="ex-hint" hidden></div>
+          <div class="ex-sub"></div>
+        </div>
         <div class="ex-confirm" hidden></div>
         <nav class="ex-tools" aria-label="${esc(L('ex_t_info'))}">${TOOLS.map(([id, k, lock], i) => `<button class="ex-tool" type="button" data-t="${id}" aria-pressed="false"${lock ? ' aria-disabled="true"' : ''} title="${esc(L(k))}${lock ? '' : ` (${[1, 2, 3, 0, 0, 4, 5][i]})`}">${IC[id]}${lock ? `<span class="lock">${IC.lock}</span>` : ''}<span>${esc(L(k))}</span></button>`).join('')}</nav>
         <section class="ex-sheet" hidden role="dialog" aria-modal="false"></section>
@@ -55,7 +58,7 @@
       </div>`;
       const q = (s) => el.querySelector(s);
       Object.assign(X.ui, { wrap: q('.ex-wrap'), cv: q('.ex-cv'), labels: q('.ex-labels'), money: q('.ex-money .mv'), moneyB: q('.ex-money b'), date: q('.ex-money .dt'),
-        speed: q('.ex-speed'), goal: q('.ex-goal'), side: q('.ex-side'), paused: q('.ex-paused'), hari: q('.ex-hari'), hariP: q('.ex-hari p'), hint: q('.ex-hint'),
+        speed: q('.ex-speed'), sky: q('.ex-sky'), goal: q('.ex-goal'), side: q('.ex-side'), paused: q('.ex-paused'), hari: q('.ex-hari'), hariP: q('.ex-hari p'), hint: q('.ex-hint'),
         sub: q('.ex-sub'), confirm: q('.ex-confirm'), tools: q('.ex-tools'), sheet: q('.ex-sheet'), home: q('.ex-home'), view: q('[data-a="view"]') });
       X.wrap = X.ui.wrap; X.cv = X.ui.cv;
       const U = X.ui;
@@ -67,6 +70,7 @@
         ({ rotate: () => X.cam.rotate(1), view: () => X.cam.toggleFree(), acc: () => accounts(), zin: () => X.cam.zoomBy(0.8), zout: () => X.cam.zoomBy(1.25), modes: () => home(true) })[b.dataset.a]();
       };
       U.speed.onclick = () => { X.sfx('tap'); X.cycleSpeed(); };
+      U.sky.onclick = () => X.toggleDay();
       el.querySelector('.ex-money').onclick = () => { X.sfx('tap'); accounts(); };
       U.goal.onclick = () => { X.sfx('tap'); accounts(); };
       U.hari.onclick = () => { U.hari.hidden = true; };
@@ -113,6 +117,18 @@
       if (!t) { h.hidden = true; return; }
       h.textContent = t; h.hidden = false;
       if (ms) hintT = setTimeout(() => { if (!X.picking) h.hidden = true; }, ms);
+    }
+
+    /* ---------- ora del giorno: icona (sole, tramonto, luna, alba) e "sempre giorno" ---------- */
+    let skyKey = '';
+    function sky(Lt) {
+      const on = X.alwaysDay(), ph = on ? 'day' : Lt.phase, k = ph + on;
+      if (k === skyKey) return;
+      skyKey = k;
+      const U = X.ui;
+      U.sky.innerHTML = IC['sky_' + ph];
+      U.sky.setAttribute('aria-pressed', String(on));
+      U.sky.title = `${L('ex_sky_' + ph)} · ${L('ex_always_day')}`;
     }
 
     /* ---------- barra in alto, obiettivo ---------- */
@@ -458,7 +474,7 @@
       X.ui.labels.appendChild(e); pops++;
       setTimeout(() => { e.remove(); pops--; }, 1400);
     }
-    return { build, fitTools, hud, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
+    return { build, fitTools, hud, sky, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
       draftOpen, drawDraft, home, labels, pop, paintTools, fmtDate, nf, stName, vName, levelTitle, get sheetKind() { return sheetKind; }, get sheetArg() { return sheetArg; } };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
