@@ -7,16 +7,12 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
-- [ ] Hari Express, fase 1 (ramo `wip/express`): logica pura e testata (mappe col seme, strade e binari con scambi,
-  ponti, stazioni con area di raccolta, bus, camion e treni con vagoni, percorsi A*, semafori a blocco e senso unico,
-  4 catene di merci, economia, città che crescono, calendario), livelli 1–5 vinti dal bot con più semi, Libera
-  (sbloccata al livello 5), interfaccia 3D isometrica con vista libera, schede, 43 lingue (inglese provvisorio in 41)
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)
 - [ ] Hari Express fase 2: navi e porti, dirigibili, invecchiamento e guasti, primi avversari, livelli 7–12
 - [ ] Hari Express fase 3: modulo condiviso `src/maps/` (Hari Taxi spostato su di esso), mappe reali Ostia, Desenzano, Ortigia, avversari con tutti i mezzi, livelli 13–18
-- [ ] Hari Express: traduzioni delle 179 chiavi `ex_*`, `tu_express_*`, `r_express` (ora in inglese in 41 lingue)
+- [ ] Hari Express: treno con «aspetta il pieno» può restare fermo se la merce smette di arrivare (bilanciamento)
 - [ ] Provare su telefono vero: uscita da Rally/Street in rete (l'altro telefono passa all'IA subito)
 - [ ] Guida della home, alto contrasto e colori per daltonici su telefono vero (Android e iPhone, anche in arabo)
 - [ ] Font inclusi su telefono vero: primo avvio offline, giapponese scaricato al primo uso
@@ -43,6 +39,14 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.32.0)
+- [x] Hari Express, fase 1: logica pura e testata (mappe col seme, strade e binari con scambi,
+  ponti, stazioni con area di raccolta, bus, camion e treni con vagoni, percorsi A*, semafori a blocco e senso unico,
+  4 catene di merci, economia, città che crescono, calendario), livelli 1–5 vinti dal bot con più semi, Libera
+  (sbloccata al livello 5), interfaccia 3D isometrica con vista libera, schede, 43 lingue
+- [x] Hari Express: testi in 43 lingue, avviso «treno bloccato» solo per blocchi veri, etichette della barra adattive,
+  anteprima e obiettivi leggibili su telefono stretto, tocco su stazione apre la stazione
 
 ## Fatto (v0.31.1)
 - [x] Test di comportamento al posto delle regex sul sorgente: `tests/sw.test.mjs` (gestori veri di install/activate/fetch/message

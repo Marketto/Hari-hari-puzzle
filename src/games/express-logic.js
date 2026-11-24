@@ -347,7 +347,7 @@
     if (base === 1) return !myRoad ? 'ex_c_road' : ro.length < 2 ? 'ex_c_stop' : !road.length ? 'ex_c_bus' : 'ex_c_run';
     if (base === 2) return ro.length < 2 ? 'ex_c_stop2' : !myRoad ? 'ex_c_road' : !road.length ? 'ex_c_truck' : 'ex_c_full';
     if (base === 3) return ro.length < 2 ? 'ex_c_stop2' : !road.length ? 'ex_c_truck' : road.length < 2 ? 'ex_c_chain' : 'ex_c_run';
-    if (base === 4) return rs.length < 2 ? (myRail ? 'ex_c_rail2' : 'ex_c_rail') : !trains.length ? 'ex_c_train' : !road.length ? 'ex_c_chain' : 'ex_c_run';
+    if (base === 4) return rs.length < 2 ? (myRail ? 'ex_c_rail2' : 'ex_c_rail') : !trains.length ? 'ex_c_train' : !road.length ? 'ex_c_bread' : 'ex_c_run';
     const sig = Object.values(s.net).filter((e) => e[2]).length, ow = Object.values(s.net).filter((e) => e[3]).length;
     if (rs.length < 2) return 'ex_c_loop';
     if (!ow) return 'ex_c_oneway';

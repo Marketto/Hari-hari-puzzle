@@ -42,6 +42,7 @@
     ex_c_bus: 'Tap a stop and buy a bus, then tap the other stop.', ex_c_run: 'On its way! Speed up time with ×2 or ×4.',
     ex_c_stop2: 'A stop next to the farm and one next to the dairy, then a road between them.', ex_c_truck: 'Tap the farm’s stop and buy a milk truck.',
     ex_c_full: 'Tip: “Wait until full” makes trucks leave fully loaded.', ex_c_chain: 'The dairy turns milk into cheese: bring it to town with another truck!',
+    ex_c_bread: 'The bakery turns grain into bread: bring it to town with a truck!',
     ex_c_rail: 'Tap Tracks and drag from the field to the bakery.', ex_c_rail2: 'A station at each end: Stops, then Train station on the track.',
     ex_c_train: 'Tap a station and buy a train with grain wagons.', ex_c_loop: 'Build a loop: one track to the sawmill and another one back.',
     ex_c_oneway: 'Add one-way arrows so that every train goes round the same way.', ex_c_signal: 'Put signals along the loop: each stretch holds one train.',

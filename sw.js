@@ -7,7 +7,7 @@
  *   il service worker non li tocca mai, cancella solo le sue cache vecchie.
  * Incrementa VERSION a ogni release (un test controlla che coincida con package.json).
  */
-const VERSION = 'hh-v0.31.1';
+const VERSION = 'hh-v0.32.0';
 // testi legali: en.js e licenses.js sempre offline (SHELL); le altre lingue (src/i18n/legal/<lang>.js) in cache alla prima apertura
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
