@@ -101,7 +101,7 @@ test('ogni gioco a livelli dichiara solved(s) (la vittoria alla riapertura non d
   }
 });
 test('i giochi con RAF continui, sensori, voce o rete espongono destroy()', () => {
-  const need = ['fish', 'colors', 'street', 'rally', 'drive', 'snack', 'parade', 'flight', 'escape', 'life'];
+  const need = ['fish', 'express', 'colors', 'street', 'rally', 'drive', 'snack', 'parade', 'flight', 'escape', 'life'];
   for (const id of need) {
     const src = fs.readFileSync(path.join(root, 'src/games', `${id}-ui.js`), 'utf8');
     assert.match(src, /\n\s*destroy(: |\(\) \{)/, `${id}: manca destroy()`);

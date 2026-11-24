@@ -62,6 +62,14 @@
       rulesEn: 'Go fishing with Hari from the jetty, at the lake or by the sea! Cast by swinging your phone like a rod (or drag with the mouse), wait for a bite, then tip the phone up to reel in and down to let out, keeping the line in the green: too tight and it snaps, too loose and the fish slips away. Every fish goes into the album and back into the water with a little heart.',
       // la grafica è divisa in moduli (art, 3d, models, uw, view, hud) montati da fish-ui.js, che va per ultimo
       files: [...f('fish.css'), 'src/vendor/three.min.js', ...f('fish-logic.js', 'fish-art.js', 'fish-3d.js', 'fish-models.js', 'fish-uw.js', 'fish-view.js', 'fish-hud.js', 'fish-ui.js')] },
+    // gestionale di trasporti in 3D (three.js condiviso con Hari Rally e Hari Fishing): logica in express-map, -net, -sim,
+    // -logic; grafica in moduli (art, 3d, tracks, vehicles, hud, input) montati da express-ui.js, che va per ultimo.
+    // Due posti di salvataggio: express (Campagna) ed express@free (Libera)
+    { id: 'express', name: 'Hari Express', since: '0.32.0', rules: 'r_express',
+      rulesEn: 'Build roads and railways between the villages of the animals and the farms, fields and forests. Buy buses, trucks and trains, choose their stops and carry passengers, milk, cheese, grain, bread, wood and toys: every delivery pays in acorns, more for long and quick trips. Serve the towns well and they grow. Reach the goal of each level, or build freely on your own map.',
+      files: [...f('express.css'), 'src/vendor/three.min.js', ...f('express-map.js', 'express-net.js', 'express-sim.js', 'express-logic.js',
+        'express-art.js', 'express-3d.js', 'express-tracks.js', 'express-vehicles.js', 'express-hud.js', 'express-input.js', 'express-ui.js')],
+      slots: ['express@free'] },
     { id: 'memory', name: 'Hari Memory', since: '0.15.0', rules: 'r15',
       rulesEn: 'Turn over two cards at a time and find the pairs: forest animals, nuts, berries, trees and leaves. Remember where each picture hides: fewer moves, more strawberries!',
       files: f('memory.css', 'memory-logic.js', 'memory-art.js', 'memory-ui.js') },

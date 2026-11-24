@@ -7,7 +7,7 @@ const HH = load('src/core/audio.js');
 const { TRACKS, deg } = HH.music;
 
 test('brani: menu + uno per gioco', () => {
-  assert.deepEqual(Object.keys(TRACKS).sort(), ['binary', 'boba', 'colors', 'drive', 'escape', 'fish', 'fixit', 'flight', 'hedgedoku', 'lantern', 'life', 'memory', 'menu', 'parade', 'pixel', 'rally', 'ropes', 'snack', 'spot', 'street', 'sudoku', 'sushi', 'yarn']);
+  assert.deepEqual(Object.keys(TRACKS).sort(), ['binary', 'boba', 'colors', 'drive', 'escape', 'express', 'fish', 'fixit', 'flight', 'hedgedoku', 'lantern', 'life', 'memory', 'menu', 'parade', 'pixel', 'rally', 'ropes', 'snack', 'spot', 'street', 'sudoku', 'sushi', 'yarn']);
 });
 
 for (const [name, tr] of Object.entries(TRACKS)) {
@@ -45,6 +45,13 @@ test('effetti di Hari Fishing (senza audio non fanno niente e non si rompono)', 
   }
 });
 
+test('effetti di Hari Express: fischio, cassa, clacson (senza audio non fanno niente e non si rompono)', () => {
+  const { sfx } = HH.audio;
+  for (const k of ['whistle', 'cash', 'horn']) {
+    assert.equal(typeof sfx[k], 'function', k);
+    assert.doesNotThrow(() => sfx[k]());
+  }
+});
 test('gradi della scala maggiore', () => {
   const tr = { root: 60 };
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8].map((d) => deg(tr, d)), [60, 62, 64, 65, 67, 69, 71, 72]);

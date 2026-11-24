@@ -238,6 +238,13 @@
       mel: ['3 . 5 6 5 . 3 .', '4 . 6 8 6 - 4 .', '5 . 3 1 3 . 5 .', '2 . 4 5 7 - - .',
         '6 . 8 9 8 . 6 .', '4 . 6 4 3 . 1 .', '2 3 4 5 6 5 4 2', '1 . 3 . 1 - - .'],
     },
+    // Hari Express: trenino in campagna, ritmo "ciuf-ciuf" in Sol con lo shuffle (marimba + carillon), basso a ottave
+    express: {
+      bpm: 112, root: 67, lead: 'marimba', arp: 'musicbox', swing: 0.14, perc: 'pop',
+      chords: [1, 4, 5, 1, 6, 4, 2, 1], bass: 'R . O . F . O .',
+      mel: ['5 . 5 6 5 . 3 .', '4 . 6 . 8 6 4 .', '5 6 7 . 5 . 2 .', '1 3 5 . 8 - - .',
+        '6 . 6 8 6 . 5 .', '4 . 6 4 1 . 4 .', '2 . 4 6 5 . 4 2', '1 . 5 . 1 - - .'],
+    },
     // Hari Rally: corsa nel bosco, galoppo energico in Re con le sincopi (pluck + marimba), basso che spinge sulle ottave
     rally: {
       bpm: 138, root: 62, lead: 'pluck', arp: 'marimba', swing: 0.06, perc: 'pop',
@@ -470,6 +477,20 @@
       osc(lowpass(env(sfxBus, s0, 0.005, 0.05, s0 + 0.11), 1800), 'square', f, s0, s0 + 0.11);
       osc(env(sfxBus, s0, 0.005, 0.04, s0 + 0.11), 'triangle', f * 1.5, s0, s0 + 0.11);
     })),
+    // Hari Express: fischio del treno (due canne, "tuu-tuu"), cassa che incassa le ghiande, clacson del camion
+    whistle: S((t) => [0, 0.34].forEach((dt, i) => {
+      const s0 = t + dt, d = i ? 0.42 : 0.26;
+      [554, 659, 831].forEach((f) => osc(lowpass(env(sfxBus, s0, 0.03, 0.035, s0 + d), 2600), 'triangle', f, s0, s0 + d, 0, f * 0.985, d));
+      noiseHit(sfxBus, s0, d, 0.012, 'bandpass', 2400, 1.2);
+    })),
+    cash: S((t) => {
+      noiseHit(sfxBus, t, 0.05, 0.05, 'highpass', 3000);
+      V.bell(sfxBus, sc(8), t + 0.04, 0.2, 0.09); V.bell(sfxBus, sc(12), t + 0.12, 0.35, 0.08);
+    }),
+    horn: S((t) => {
+      osc(lowpass(env(sfxBus, t, 0.01, 0.05, t + 0.22), 1400), 'sawtooth', 311, t, t + 0.22);
+      osc(lowpass(env(sfxBus, t, 0.01, 0.04, t + 0.22), 1400), 'sawtooth', 392, t, t + 0.22);
+    }),
     // "bonk" morbido: rimbalzo di gomma
     boing: S((t) => {
       osc(env(sfxBus, t, 0.004, 0.13, t + 0.28), 'sine', 380, t, t + 0.28, 0, 120, 0.25);
