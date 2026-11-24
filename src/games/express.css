@@ -117,16 +117,23 @@
 .ex-speed[data-v="0"] { background: var(--sun); color: var(--ink); }
 
 /* scheda obiettivo */
-.ex-goal { position: absolute; left: 8px; top: 60px; width: min(232px, calc(100% - 76px)); padding: 8px 12px; border-radius: 16px; display: flex; flex-direction: column; gap: 4px;
+.ex-goal { position: absolute; left: 8px; top: 60px; width: min(250px, calc(100% - 76px)); max-height: calc(100% - 200px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 7px 10px; border-radius: 16px; display: flex; flex-direction: column; gap: 3px;
   background: var(--exp-ui); box-shadow: var(--shadow-s); pointer-events: auto; border: 0; text-align: start; font: inherit; color: inherit; cursor: pointer; z-index: 2; }
 .ex-goal small { font-size: 11.5px; font-weight: 800; color: var(--exp-ui-hi-ink); letter-spacing: .04em; text-transform: uppercase; }
-.ex-goal .gl { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; line-height: 1.25; }
-.ex-goal .gl svg { width: 18px; height: 18px; flex: none; }
+.ex-goal .gl { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; line-height: 1.2; flex: none; }
+.ex-goal .gl svg { width: 16px; height: 16px; flex: none; }
+/* testo dell'obiettivo al massimo su due righe; il conteggio sempre intero a destra */
+.ex-goal .gl .gt { flex: 1; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.ex-goal .gl b { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ex-goal .gl.done { color: var(--mint-2); }
 .ex-bar { height: 8px; border-radius: 4px; background: var(--exp-track); overflow: hidden; }
 .ex-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .4s; }
-.ex-goal .left { font-size: 12px; color: var(--ink-2); }
-.ex-goal.mini .gl:not(:first-of-type), .ex-goal.mini .left { display: none; }
+.ex-goal .ex-bar { flex: none; height: 6px; }
+.ex-goal .left { font-size: 11.5px; color: var(--ink-2); flex: none; }
+/* compatta (telefono girato, o una scheda aperta che la coprirebbe): solo l'obiettivo in corso e la barra */
+.ex-goal.mini .gl:not(.cur), .ex-goal.mini .left,
+.ex-wrap:has(.ex-sheet:not([hidden])) .ex-goal .gl:not(.cur), .ex-wrap:has(.ex-sheet:not([hidden])) .ex-goal .left { display: none; }
 
 /* colonna di destra: ruota, vista, conti, zoom */
 .ex-side { position: absolute; right: 8px; top: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 2; pointer-events: none; }
@@ -141,12 +148,14 @@
 .ex-hari p { margin: 0; padding: 8px 12px; border-radius: 16px 16px 16px 4px; background: var(--exp-ui); box-shadow: var(--shadow-s); font-size: 13px; font-weight: 700; line-height: 1.35; }
 
 /* barra degli strumenti */
-.ex-tools { position: absolute; left: 8px; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 6px; border-radius: 26px;
+.ex-tools { position: absolute; left: 8px; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; padding: 6px 4px; border-radius: 26px;
   background: var(--exp-ui); box-shadow: var(--shadow); z-index: 3; }
-.ex-tool { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding: 6px 0 4px; border: 0; border-radius: 18px; cursor: pointer;
+.ex-tool { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 52px; padding: 6px 0 4px; border: 0; border-radius: 18px; cursor: pointer;
   background: transparent; color: var(--ink); font: 700 10.5px/1.1 var(--font-body); }
 .ex-tool svg { width: 24px; height: 24px; flex: none; }
-.ex-tool span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+/* etichetta: rimpicciolita da fitTools() finché ci sta; le parole lunghe vanno a capo (al massimo due righe) */
+.ex-tool > span:last-child { max-width: 100%; padding: 0 1px; text-align: center; font-size: var(--fs, 10.5px); line-height: 1.15; hyphens: auto; -webkit-hyphens: auto;
+  overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .ex-tool[aria-pressed="true"] { background: var(--exp-ui-hi); color: var(--exp-ui-hi-ink); font-weight: 800; }
 .ex-tool[aria-disabled="true"] { color: var(--exp-lock); cursor: default; }
 .ex-tool .lock { position: absolute; top: 3px; right: calc(50% - 20px); width: 14px; height: 14px; }
@@ -160,13 +169,16 @@
 
 /* anteprima della costruzione */
 .ex-confirm { position: absolute; left: 8px; right: 8px; bottom: 82px; z-index: 4; padding: 12px 14px; border-radius: 22px; background: var(--exp-ui); box-shadow: var(--shadow);
-  display: grid; grid-template-columns: 1fr auto auto; gap: 6px 8px; align-items: center; max-width: 420px; margin: 0 auto; }
-.ex-confirm small { grid-column: 1 / -1; font-size: 11.5px; font-weight: 800; color: var(--exp-ui-hi-ink); text-transform: uppercase; letter-spacing: .04em; }
-.ex-confirm .cost { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
-.ex-confirm .cost b { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; font-weight: 800; }
+  display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; max-width: 420px; margin: 0 auto; }
+.ex-confirm small { flex: 1 0 100%; font-size: 11.5px; font-weight: 800; color: var(--exp-ui-hi-ink); text-transform: uppercase; letter-spacing: .04em; }
+/* conteggio e costo su una riga; se lo spazio non basta i pulsanti scendono su una riga loro, a tutta larghezza */
+.ex-confirm .cost { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.ex-confirm .cost b { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; font-weight: 800; white-space: nowrap; }
+.ex-confirm .acts { flex: 1 0 auto; display: flex; gap: 8px; justify-content: flex-end; }
+.ex-confirm .acts .ex-btn { flex: 1 0 auto; }
 .ex-confirm .cost b svg { width: 16px; height: 18px; }
 .ex-confirm .cost .bad { color: var(--bad); font-weight: 800; }
-.ex-confirm .cost span { color: var(--ink-2); }
+.ex-confirm .cost span { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* schede a foglio dal basso */
 .ex-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 78%; z-index: 6; display: flex; flex-direction: column; gap: 10px; padding: 10px 16px 16px;

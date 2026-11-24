@@ -96,6 +96,8 @@ contiene anche il generatore casuale (`rs`) usato per le case nuove.
   Le caselle si liberano quando l'ultimo vagone le lascia. Il semaforo è rosso se il tratto dopo è prenotato.
 - **Senza semafori** una linea è un tratto unico: un solo treno per volta (due treni su un anello senza semafori si
   aspettano a vicenda: fermi, mai scontrati; Hari lo dice). Coi semafori più treni si seguono.
+- Hari dice "un treno è bloccato" solo se un treno in viaggio è fermo da più di 8 giorni davanti a un tratto prenotato
+  da **un altro treno** (contatore `v.bk`, `S.blocked(v)`); l'attesa del pieno e l'inversione al capolinea non contano.
 - Rete di salvataggio: un treno fermo al rosso da 20 giorni prova a girarsi se dietro c'è una strada per la meta.
 - I treni si girano solo alle stazioni di testa (binario cieco dopo la banchina) o con la rete di salvataggio; bus e
   camion fanno inversione ai fondi ciechi e alle fermate, e non si scontrano (mondo gentile).

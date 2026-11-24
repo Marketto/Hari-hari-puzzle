@@ -72,9 +72,26 @@
       U.hari.onclick = () => { U.hari.hidden = true; };
       U.sheet.addEventListener('click', onSheet);
       U.home.addEventListener('click', onHome);
+      fitTools();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (X.ui.tools && X.ui.tools.isConnected) fitTools(); });
     }
 
     /* ---------- strumenti ---------- */
+    // etichette della barra: una dimensione per tutte, la più grande (10.5px → 9px) con cui ogni parola sta nella sua colonna
+    // e ogni etichetta in due righe; sotto i 9px non si scende: le parole ancora troppo lunghe vanno a capo sillabate (schermi da 360px, lingue lunghe come tedesco e finlandese)
+    function fitTools() {
+      const U = X.ui;
+      if (!U.tools || X.land) return;
+      const spans = [...U.tools.querySelectorAll('.ex-tool > span:last-child')];
+      if (!spans.length || !spans[0].clientWidth) return;
+      const fits = () => spans.every((e) => e.scrollWidth <= e.clientWidth + 0.5 && e.scrollHeight <= parseFloat(getComputedStyle(e).fontSize) * 2.4 + 1);
+      // in prova: parole intere (niente sillabazione né spezzature), così si rimpicciolisce prima di andare a capo a metà parola
+      for (const e of spans) { e.style.overflowWrap = 'normal'; e.style.hyphens = 'manual'; e.style.webkitHyphens = 'manual'; }
+      let fs = 10.5;
+      U.tools.style.setProperty('--fs', fs + 'px');
+      while (fs > 9 && !fits()) { fs -= 0.5; U.tools.style.setProperty('--fs', fs + 'px'); }
+      for (const e of spans) { e.style.overflowWrap = ''; e.style.hyphens = ''; e.style.webkitHyphens = ''; }
+    }
     function paintTools() {
       const U = X.ui;
       U.tools.querySelectorAll('.ex-tool').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === X.tool)));
@@ -136,7 +153,8 @@
       const k = gs.map((g) => g.cur).join() + '|' + left + '|' + X.land;
       if (k === goalKey) return; goalKey = k;
       const p = gs.reduce((a, g) => a + Math.min(1, g.cur / g.n), 0) / (gs.length || 1);
-      U.goal.innerHTML = `<small>${esc(L('ex_goal'))}</small>` + gs.map((g) => { const l = goalLine(g); return `<span class="gl${g.done ? ' done' : ''}">${l.ic.replace('<svg', '<svg width="18" height="18"')}<span>${esc(l.t)} · ${nf(Math.min(g.cur, g.n))}/${nf(g.n)}</span></span>`; }).join('')
+      const cur = Math.max(0, gs.findIndex((g) => !g.done));
+      U.goal.innerHTML = `<small>${esc(L('ex_goal'))}</small>` + gs.map((g, i) => { const l = goalLine(g); return `<span class="gl${g.done ? ' done' : ''}${i === cur ? ' cur' : ''}">${l.ic.replace('<svg', '<svg width="18" height="18"')}<span class="gt">${esc(l.t)}</span><b>${nf(Math.min(g.cur, g.n))}/${nf(g.n)}</b></span>`; }).join('')
         + `<span class="ex-bar"><i style="width:${Math.round(p * 100)}%"></i></span><span class="left">${esc(L('ex_left', { d: nf(left) }))}</span>`;
       U.goal.classList.toggle('mini', X.land);
     }
@@ -163,8 +181,8 @@
       const poor = p.cost > s.money;
       U.confirm.innerHTML = `<small>${esc(L('ex_preview'))}</small>
         <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep', { n: nf(upkeep) }))}</span>`}</div>
-        <button class="ex-btn soft" type="button" data-c="no">${IC.close}<span>${esc(L('lf_cancel'))}</span></button>
-        <button class="ex-btn main" type="button" data-c="ok"${poor ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_build'))}</span></button>`;
+        <div class="acts"><button class="ex-btn soft" type="button" data-c="no">${IC.close}<span>${esc(L('lf_cancel'))}</span></button>
+        <button class="ex-btn main" type="button" data-c="ok"${poor ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_build'))}</span></button></div>`;
       U.confirm.hidden = false;
       U.confirm.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'ok') X.commitBuild(); else X.cancelBuild(); };
       const ok = U.confirm.querySelector('[data-c="ok"]'); if (ok && !poor) ok.focus({ preventScroll: true });
@@ -208,7 +226,7 @@
       const rate = cs.length ? cs.reduce((a, c) => a + st.rate[c], 0) / cs.length : 0;
       const last = cs.length ? Math.min(...cs.map((c) => s.day - (st.last[c] || 0))) : -1;
       const wait = Object.keys(st.wait).filter((c) => st.wait[c] > 0);
-      const vs = s.veh.filter((v) => v.orders.some((o) => o.st === id));
+      const vs = s.veh.filter((v) => v.orders.some((o) => o.st === id) || X.W.st[v.t] === id + 1);
       const acc = Object.keys(cv.acc);
       const html = head(indIc(st.kind === 'rail' ? 'station' : 'stop'), stName(st), (st.kind === 'rail' ? L('ex_rail_station') : L('ex_road_stop')) + (pop ? ' · ' + L('ex_inhab', { n: nf(pop) }) : ''))
         + `<div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button></div>`
@@ -225,7 +243,7 @@
       const o = v.orders[v.oi], st = o && X.s.stations[o.st];
       if (v.mode === 'lost') return L('ex_st_lost');
       if (v.mode === 'load') return L('ex_st_load', { st: stName(st) });
-      if (S.isTrain(v) && v.mode === 'go' && v.wt > S.TPD) return L('ex_st_wait');
+      if (S.isTrain(v) && v.mode === 'go' && (v.bk || 0) > S.TPD) return L('ex_st_wait');
       return L('ex_st_go', { st: stName(st) });
     }
     function vehicle(id) {
@@ -440,7 +458,7 @@
       X.ui.labels.appendChild(e); pops++;
       setTimeout(() => { e.remove(); pops--; }, 1400);
     }
-    return { build, hud, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
+    return { build, fitTools, hud, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
       draftOpen, drawDraft, home, labels, pop, paintTools, fmtDate, nf, stName, vName, levelTitle, get sheetKind() { return sheetKind; }, get sheetArg() { return sheetArg; } };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

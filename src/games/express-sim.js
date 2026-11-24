@@ -135,6 +135,11 @@
     }
     return run;
   }
+  // chi tiene occupato il tratto davanti (id di un altro treno) o 0
+  function blocker(W, v) {
+    for (const t of runOf(W, v)) if (W.resv[t] && W.resv[t] !== v.id) return W.resv[t];
+    return 0;
+  }
   function tryReserve(W, v) {
     const run = runOf(W, v);
     if (!run.length) return false;
@@ -223,7 +228,7 @@
   }
   function arrive(s, W, v, ev) {
     const o = v.orders[v.oi], st = s.stations[o.st];
-    v.mode = 'load'; v.wt = 0; v.pt = []; v.pe = [];
+    v.mode = 'load'; v.wt = 0; v.bk = 0; v.pt = []; v.pe = [];
     if (!st) return;
     const cv = cov(s, W, st.id), my = caps(v);
     // scarico: le merci che la stazione accetta (non quelle caricate qui)
@@ -281,7 +286,7 @@
   }
   function depart(s, W, v, ev) {
     v.oi = (v.oi + 1) % v.orders.length;
-    v.mode = 'go'; v.wt = 0;
+    v.mode = 'go'; v.wt = 0; v.bk = 0;
     const r = plan(s, W, v, true);
     if (r) setPath(s, W, v, r); else { v.mode = 'lost'; v.pt = []; v.pe = []; }
     ev.push({ k: 'depart', v: v.id });
@@ -316,10 +321,13 @@
         if (s.tk === 0) { const r = plan(s, W, v, v.p > 0.99); if (r) setPath(s, W, v, r); else v.mode = v.p > 0.99 ? 'lost' : v.mode; }
         return;
       }
-      if (v.p + rem < 1) { v.p += rem; if (train) v.wt = 0; return; }
+      if (v.p + rem < 1) { v.p += rem; if (train) { v.wt = 0; v.bk = 0; } return; }
       const next = v.pt[0];
       if (train && W.resv[next] !== v.id && !tryReserve(W, v)) {
         v.p = Math.min(v.p + rem, 0.999); v.wt++;
+        // fermo al rosso per colpa di un altro treno che esiste davvero: è questo che Hari segnala (non il carico, non l'inversione)
+        const by = blocker(W, v);
+        v.bk = by && by !== v.id && s.veh.some((x) => x.id === by && isTrain(x)) ? (v.bk || 0) + 1 : 0;
         if (v.wt > STUCK * TPD) unstick(s, W, v, ev);
         return;
       }
@@ -328,7 +336,7 @@
       v.t = next; v.a = a; v.b = v.pe[0]; v.p = 0;
       v.pt.shift(); v.pe.shift();
       if (train) {
-        v.wt = 0;
+        v.wt = 0; v.bk = 0;
         v.trail.unshift([v.t, v.a, v.b]);
         const ix = v.ahead.indexOf(v.t); if (ix >= 0) v.ahead.splice(ix, 1);
         trimTrail(W, v);
@@ -458,6 +466,9 @@
     return back;
   }
 
+  // un treno davvero bloccato: in viaggio, fermo da più di `days` giorni davanti a un tratto prenotato da un altro treno
+  function blocked(v, days = 8) { return isTrain(v) && v.mode === 'go' && (v.bk || 0) > TPD * days; }
+
   /* ---------- un passo ---------- */
   function tick(s, W, ev) {
     for (const v of s.veh) move(s, W, v, ev);
@@ -478,5 +489,5 @@
   }
 
   HH.expressSim = { TPD, CARGO, CARGOS, GOODS, VT, WAGON, CATCH, MD, date, rand, caps, vlen, isTrain, loaded, tilePos, along,
-    tryReserve, releaseAhead, plan, setPath, coverage, cov, pay, tick, sell, trimTrail, growTown, daily, monthly };
+    tryReserve, releaseAhead, blocked, plan, setPath, coverage, cov, pay, tick, sell, trimTrail, growTown, daily, monthly };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -164,9 +164,10 @@
       }
       if (X.tool !== 'info') return;
       sfx('tap');
+      // su una casella di stazione vince la stazione (i mezzi fermi lì sono nella sua lista "mezzi che si fermano qui")
+      if (w.st[t]) { hud.station(w.st[t] - 1); return; }
       const v = VE.pick(p.x, p.z);
       if (v) { hud.vehicle(v.id); return; }
-      if (w.st[t]) { hud.station(w.st[t] - 1); return; }
       if (w.use[t] === 1) { hud.town(w.own[t]); return; }
       if (w.use[t] === 2) { hud.industry(w.own[t]); return; }
       // vicino al centro di un villaggio (le sue strade)
@@ -215,6 +216,7 @@
       Wd = Math.max(1, Math.round(r.width)); Hd = Math.max(1, Math.round(r.height));
       X.land = Wd > Hd * 1.2 && Hd < 560;
       X.ui.wrap.classList.toggle('land', X.land);
+      hud.fitTools();
       X.R3.renderer.setSize(Wd, Hd, false);
       IN.cam.size(Wd, Hd);
     }

@@ -337,7 +337,7 @@
   function coach(s) {
     const W = world(s);
     const trains = s.veh.filter(S.isTrain), road = s.veh.filter((v) => !S.isTrain(v));
-    if (trains.some((v) => v.mode === 'go' && v.wt > TPD * 8)) return 'ex_c_stuck';
+    if (trains.some((v) => S.blocked(v))) return 'ex_c_stuck';
     if (s.money < 300 && !s.veh.length) return 'ex_c_money';
     if (s.mode === 'free') return 'ex_c_free';
     const sts = s.stations.filter(Boolean), rs = sts.filter((x) => x.kind === 'rail'), ro = sts.filter((x) => x.kind === 'road');

@@ -183,6 +183,33 @@ test('treni frontali su binario unico: si fermano senza scontrarsi', () => {
   assert.equal(noCrash(s, W, E.TPD * 120), null);
 });
 
+test('Hari dice "treno bloccato" solo se un altro treno tiene il tratto davanti a lungo', () => {
+  // un treno solo su una linea con capolinea: aspetta il pieno (a lungo, poco grano) e si gira in fondo → mai "bloccato"
+  const { s, W, at } = flat();
+  const A = E.act(s, { k: 'station', kind: 'rail', tiles: [at(6, 6), at(7, 6)], ax: 1 }).id;
+  const B = E.act(s, { k: 'station', kind: 'rail', tiles: [at(20, 6), at(21, 6)], ax: 1 }).id;
+  s.inds.push({ id: 0, type: 'field', x: 6, y: 3, stock: 0, acc: 0, made: 0, got: 0, lm: 0 });
+  s.inds.push({ id: 1, type: 'bakery', x: 20, y: 3, stock: 0, acc: 0, made: 0, got: 0, lm: 0 });
+  W.covDirty = true;
+  E.act(s, { k: 'build', kind: 'rail', tiles: line(at, 7, 6, 20, 6) });
+  E.act(s, { k: 'build', kind: 'rail', tiles: line(at, 21, 6, 24, 6) });
+  assert.ok(E.act(s, { k: 'buy', type: 'castagna', cars: ['grain', 'grain', 'grain', 'grain', 'grain', 'grain'], orders: [{ st: A, full: true }, { st: B }] }).ok);
+  let longLoad = 0, turns = 0;
+  for (let i = 0; i < E.TPD * 300; i++) {
+    for (const e of E.step(s, 1)) if (e.k === 'depart') turns++;
+    const v = s.veh[0];
+    if (v.mode === 'load' && v.wt > E.TPD * 8) longLoad++;
+    assert.notEqual(E.coach(s), 'ex_c_stuck', `giorno ${s.day}: ${v.mode} wt=${v.wt}`);
+  }
+  assert.ok(longLoad > 0, 'il treno ha aspettato il pieno a lungo');
+  assert.ok(turns > 4 && s.del.grain > 0, 'ha fatto avanti e indietro consegnando');
+  // due treni frontali su binario unico senza semafori: si aspettano e Hari lo dice
+  const b = loop(false, 2);
+  E.step(b.s, E.TPD * 30);
+  assert.equal(E.coach(b.s), 'ex_c_stuck');
+  assert.ok(b.s.veh.some((x) => S.blocked(x)));
+});
+
 test('economia: il pagamento cala coi giorni di viaggio, costi e manutenzione si pagano', () => {
   for (const c of S.CARGOS) {
     let prev = Infinity;
