@@ -115,6 +115,7 @@
       const h = X.ui.hint;
       clearTimeout(hintT);
       if (!t) { h.hidden = true; return; }
+      if (!X.ui.hari.hidden && X.ui.hariP.textContent === t) { h.hidden = true; return; } // già detto da Hari
       h.textContent = t; h.hidden = false;
       if (ms) hintT = setTimeout(() => { if (!X.picking) h.hidden = true; }, ms);
     }
@@ -180,6 +181,7 @@
     function say(text, ms = 7000) {
       const U = X.ui;
       U.hariP.textContent = text; U.hari.hidden = false;
+      if (U.hint.textContent === text) U.hint.hidden = true; // niente doppioni col suggerimento
       clearTimeout(sayT);
       sayT = setTimeout(() => { U.hari.hidden = true; }, ms);
     }
