@@ -277,3 +277,7 @@
 .ex-wrap.land .ex-sheet { left: auto; right: 0; top: 0; bottom: 0; width: min(420px, 60%); max-height: none; border-radius: 28px 0 0 28px; }
 .ex-wrap.land .ex-paused { top: 62px; }
 @media (prefers-reduced-motion: reduce) { .ex-sheet, .ex-pop { animation: none; } .ex-bar i { transition: none; } }
+/* mentre c'è l'anteprima del costo: niente fumetto né scelte secondarie sotto la scheda */
+.ex-wrap:has(.ex-confirm:not([hidden])) .ex-hari, .ex-wrap:has(.ex-confirm:not([hidden])) .ex-sub, .ex-wrap:has(.ex-confirm:not([hidden])) .ex-hint { visibility: hidden; }
+.ex-wrap.land .ex-confirm { left: auto; width: min(400px, calc(100% - 100px)); }
+.ex-wrap.land .ex-hint { bottom: auto; top: 62px; left: 50%; transform: translateX(-50%); max-width: 46%; }

@@ -248,6 +248,9 @@
       IN.cam.step(dt);
       if (X.R3 && X.R3.scene) {
         D3.rebuildDyn(); TR.rebuildNet();
+        // da lontano i contorni degli alberi sono più sottili di un pixel: si risparmiano
+        const farOl = IN.cam.zoom > 12;
+        if (farOl !== X.R3.farOl) { X.R3.farOl = farOl; for (const c of X.R3.dyn.children) if (c.userData.treeOl) c.visible = !farOl; }
         TR.paintSignals();
         if (X.R3.water) X.R3.water.uniforms.uT.value = reduce() ? 0 : now / 1000;
         VE.update(s.speed && !paused ? Math.min(1, acc) : 0, now / 1000);

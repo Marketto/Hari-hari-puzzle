@@ -21,6 +21,7 @@ Puzzle di logica kawaii con **Hari**, un riccio dagli occhioni dolci. Tutto **of
 | **Hari Snack Street** | avventura a scorrimento per le strade (mercato, città, porto, fiera, treno) con Hari e la scoiattolina Kiki: si "combatte" sfamando gli animali affamati da vicino, da lontano, con la presa e lo speciale; da soli, con Kiki CPU o in due (stesso dispositivo o Wi-Fi) |
 | **Hari Rally** | rally 3D in prima persona nel bosco: Hari accelera da solo, tu sterzi (inclinando il telefono a schermo intero, o col tocco) e freni seguendo le note del navigatore; arriva tra i primi 3 contro coniglietta, volpe e panda (senza violenza) |
 | **Hari Fishing** | pesca in 3D cel shading dal pontile, al lago o al mare: lanci muovendo il telefono come una canna (o trascinando col mouse), recuperi inclinandolo e tieni la lenza nel verde; ogni pesce va nell'album con la foto e torna in acqua con un cuoricino |
+| **Hari Express** | gestionale di trasporti in 3D cel shading con vista isometrica: strade e binari tra i villaggi degli animali, bus, camion e treni con semafori, catene di merci (latte → formaggio, grano → pane, legna → giocattoli), città che crescono; campagna a livelli e modalità Libera |
 | **Hari Colors** | Hari dice un colore e tocchi quello giusto più in fretta che puoi: da 3 a 11 colori, poi parole colorate e l'effetto Stroop ("ROSSO" scritto in blu); voci del telefono offline, fumetto di riserva, simboli per chi distingue male i colori |
 | **Hari Memory** | memory con gli animali e i tesori del bosco (semi, frutta secca, bacche, alberi, foglie, funghi): dai livelli alti soggetti simili, coppie a tema (animale ↔ il suo cibo) e carte che scivolano; niente sconfitta, fragoline in base alle mosse |
 | **Hari Spot** | trova le differenze fra due illustrazioni di città o di bosco generate da seme (stagioni, giorno/tramonto/notte): da 3 a 10 differenze sempre visibili e mai sovrapposte, lente per gli aiuti, zoom col pizzico |
@@ -48,7 +49,7 @@ Il progetto è pronto per lavorare con agenti: [CLAUDE.md](CLAUDE.md) contiene i
 Codice MIT. Nell'app: avviso da accettare al primo avvio e pagina "Privacy e condizioni" (condizioni d'uso, informativa
 privacy, licenze dei componenti) in 43 lingue, vedi [docs/legal.md](docs/legal.md).
 
-Componenti di terze parti: [three.js](https://threejs.org) (MIT, Hari Rally e Hari Fishing); font Mochiy Pop One, M PLUS Rounded 1c
+Componenti di terze parti: [three.js](https://threejs.org) (MIT, Hari Rally, Hari Fishing e Hari Express); font Mochiy Pop One, M PLUS Rounded 1c
 e Baloo Bhaijaan 2 inclusi nell'app in `assets/fonts/` (SIL Open Font License 1.1, testi in `docs/licenses/`). QR Code è un marchio registrato di DENSO WAVE INCORPORATED.
 
 Le mappe reali di Hari Taxi (Ostia, Desenzano del Garda, Ortigia) sono dati derivati da **OpenStreetMap**,

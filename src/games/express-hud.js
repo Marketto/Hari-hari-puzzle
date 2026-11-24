@@ -175,8 +175,12 @@
     let sheetKind = null, sheetArg = null, draft = null;
     function open(html, kind, arg) {
       const sh = X.ui.sheet;
+      const same = !sh.hidden && sheetKind === kind && sheetArg === arg;
       sheetKind = kind; sheetArg = arg;
-      sh.innerHTML = `<span class="grab" aria-hidden="true"></span>${html}`;
+      const full = `<span class="grab" aria-hidden="true"></span>${html}`;
+      // aggiornamento della stessa scheda: si riscrive solo se è cambiato qualcosa, e senza spostare il fuoco
+      if (same) { if (sh._html !== full) { sh.innerHTML = full; sh._html = full; } return; }
+      sh.innerHTML = full; sh._html = full;
       sh.hidden = false;
       const f = sh.querySelector('[data-k="close"]') || sh.querySelector('button');
       if (f) f.focus({ preventScroll: true });
@@ -207,12 +211,12 @@
       const vs = s.veh.filter((v) => v.orders.some((o) => o.st === id));
       const acc = Object.keys(cv.acc);
       const html = head(indIc(st.kind === 'rail' ? 'station' : 'stop'), stName(st), (st.kind === 'rail' ? L('ex_rail_station') : L('ex_road_stop')) + (pop ? ' · ' + L('ex_inhab', { n: nf(pop) }) : ''))
+        + `<div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button></div>`
         + `<div class="ex-card"><div class="ex-meter"><span>${esc(L('ex_rating'))}</span><span class="ex-bar"><i style="width:${pct(rate)}"></i></span><b>${pct(rate)}</b></div>
           <p>${esc(last < 0 ? L('ex_novisit') : L('ex_lastv', { d: nf(last) }))}</p></div>
         <div class="ex-card"><h4>${esc(L('ex_waiting'))}</h4>${wait.length ? wait.map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span><b>${nf(st.wait[c])}</b></div>`).join('') : `<p>${esc(L('ex_nothing'))}</p>`}</div>
         <div class="ex-card"><h4>${esc(L('ex_accepts'))}</h4><div class="ex-cars">${acc.length ? acc.map((c) => `<span class="ex-row" title="${esc(cargoName(c))}">${cargoIc(c)}<span>${esc(cargoName(c))}</span></span>`).join('') : '—'}</div></div>
-        <div class="ex-card"><h4>${esc(L('ex_passing'))}</h4>${vs.length ? vs.map((v) => `<button class="ex-opt" type="button" data-v="${v.id}">${vehIc(v.type)}<div><b>${esc(vName(v))}</b><small>${esc(status(v))} · ${v.profit >= 0 ? '+' : ''}${nf(v.profit)}</small></div></button>`).join('') : '—'}</div>
-        <div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button></div>`;
+        <div class="ex-card"><h4>${esc(L('ex_passing'))}</h4>${vs.length ? vs.map((v) => `<button class="ex-opt" type="button" data-v="${v.id}">${vehIc(v.type)}<div><b>${esc(vName(v))}</b><small>${esc(status(v))} · ${v.profit >= 0 ? '+' : ''}${nf(v.profit)}</small></div></button>`).join('') : '—'}</div>`;
       open(html, 'station', id);
       if (keepFocus) return;
       X.showArea(st);
@@ -221,7 +225,7 @@
       const o = v.orders[v.oi], st = o && X.s.stations[o.st];
       if (v.mode === 'lost') return L('ex_st_lost');
       if (v.mode === 'load') return L('ex_st_load', { st: stName(st) });
-      if (S.isTrain(v) && v.wt > S.TPD) return L('ex_st_wait');
+      if (S.isTrain(v) && v.mode === 'go' && v.wt > S.TPD) return L('ex_st_wait');
       return L('ex_st_go', { st: stName(st) });
     }
     function vehicle(id) {

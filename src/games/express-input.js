@@ -106,7 +106,7 @@
       X.cv.setPointerCapture && X.cv.setPointerCapture(e.pointerId);
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() });
       if (pts.size === 2) {
-        if (g && g.kind === 'op') X.opCancel();
+        if (g && g.kind === 'op' && !g.pending) X.opCancel();
         const [a, b] = [...pts.values()];
         g = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), z0: cam.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) };
         return;
@@ -115,8 +115,8 @@
       const mouseAlt = e.pointerType === 'mouse' && e.button !== 0;
       if (!mouseAlt && buildTool() && !X.picking) {
         const p = pickTile(e.clientX, e.clientY);
-        g = { kind: 'op', start: p, moved: false };
-        if (p) X.opStart(p.t);
+        // il gesto parte solo quando il dito si muove (o si alza): se arriva un secondo dito è uno spostamento
+        g = { kind: 'op', start: p, moved: false, pending: true };
         return;
       }
       g = { kind: cam.free && !mouseAlt ? 'orbit' : 'pan', tap: !mouseAlt };
@@ -138,7 +138,12 @@
         return;
       }
       const far = Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 8;
-      if (g.kind === 'op') { if (far) g.moved = true; const q = pickTile(e.clientX, e.clientY); if (q) X.opMove(q.t); return; }
+      if (g.kind === 'op') {
+        if (!far && g.pending) return;
+        if (g.pending) { g.pending = false; if (g.start) X.opStart(g.start.t); }
+        if (far) g.moved = true;
+        const q = pickTile(e.clientX, e.clientY); if (q) X.opMove(q.t); return;
+      }
       if (!far && g.tap) return;
       g.tap = false;
       if (g.kind === 'pan') cam.pan(dx, dy);
@@ -149,7 +154,10 @@
       pts.delete(e.pointerId);
       if (!p || !g) return;
       if (g.kind === 'pinch') { if (pts.size === 0) g = null; return; }
-      if (g.kind === 'op') { const q = pickTile(e.clientX, e.clientY); X.opEnd(q ? q.t : null, g.moved); g = null; return; }
+      if (g.kind === 'op') {
+        if (g.pending) { if (g.start) X.opStart(g.start.t); }
+        const q = pickTile(e.clientX, e.clientY); X.opEnd(q ? q.t : null, g.moved); g = null; return;
+      }
       if (g.tap && performance.now() - p.t0 < 600) { const q = pickTile(e.clientX, e.clientY); if (q) X.tap(q); }
       g = null;
     }

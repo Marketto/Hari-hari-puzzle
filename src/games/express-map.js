@@ -183,8 +183,8 @@
   function reach(m, a, b) {
     const w = m.w, seen = new Uint8Array(w * m.h), q = [a];
     seen[a] = 1;
-    while (q.length) {
-      const i = q.shift();
+    for (let qi = 0; qi < q.length; qi++) {
+      const i = q[qi];
       if (i === b) return true;
       const x = i % w, y = (i / w) | 0;
       for (let d = 0; d < 4; d++) {
@@ -258,9 +258,9 @@
           const probe = town ? { x, y } : { type: site.k, x, y };
           if (site.near) { const d = dist(m, probe, placed[site.near[0]]); if (d < site.near[1] || d > site.near[2]) continue; }
           if (placed.some((p) => dist(m, probe, p) < 5)) continue;
-          if (placed.length && !reach(m, anchor(m, probe), anchor(m, placed[0]))) continue;
           // linee ferroviarie: tra i due siti (e 3 caselle attorno) niente acqua, c'è posto per un anello
           if (site.open != null && !dry(m, probe, placed[site.open], 3)) continue;
+          if (placed.length && !reach(m, anchor(m, probe), anchor(m, placed[0]))) continue;
           done = town ? addTown(m, x, y, site.pop, rnd, names, used) : (addInd(m, site.k, x, y, used), m.inds[m.inds.length - 1]);
         }
         if (!done) { ok = false; break; }

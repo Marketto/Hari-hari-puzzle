@@ -77,7 +77,7 @@ test('licenze: elenco unico generato, testi integrali presenti, componenti noti'
     assert.equal(c.license, 'SIL Open Font License 1.1', f);
     assert.match(c.notice, /Included in the app/);
   }
-  // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing) lo caricano
+  // three.js: solo i giochi elencati in COMPONENTS (Hari Rally, Hari Fishing, Hari Express) lo caricano
   const cat = load('src/games/catalog.js').catalog;
   assert.deepEqual(cat.filter((g) => g.files.includes('src/vendor/three.min.js')).map((g) => g.id), COMPONENTS.find((c) => c.id === 'three').used);
 });

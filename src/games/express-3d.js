@@ -133,6 +133,7 @@
       const g = (k, x) => { GEO[k] = keep(x); };
       g('sph', new T.SphereGeometry(1, 16, 12));
       g('sphLo', new T.SphereGeometry(1, 10, 7));
+      g('crown', new T.IcosahedronGeometry(1, 1));
       g('cone4', new T.ConeGeometry(1, 1, 4).rotateY(Math.PI / 4).translate(0, 0.5, 0));
       g('cone', new T.ConeGeometry(1, 1, 10).translate(0, 0.5, 0));
       g('cyl', new T.CylinderGeometry(1, 1, 1, 14).translate(0, 0.5, 0));
@@ -245,16 +246,19 @@
     const M4 = () => BK.t || (BK.t = new T.Matrix4());
     function inst(geo, mat, n) { const m = new T.InstancedMesh(geo, mat, Math.max(1, n)); m.count = 0; m.frustumCulled = false; return m; }
     function withOutline(m, th) { const o = new T.InstancedMesh(m.geometry, outline(th), m.instanceMatrix.count); o.instanceMatrix = m.instanceMatrix; o.count = m.count; o.frustumCulled = false; m.userData.ol = o; return o; }
+    // a blocchi di 16×16 caselle, ognuno con la sua sfera di ingombro: con lo zoom vicino i blocchi fuori vista non si disegnano
+    const CHUNK = 16;
     function buildTrees(group) {
-      const w = W();
-      let nC = 0;
-      for (let i = 0; i < w.n; i++) if (w.tree[i]) nC += w.tree[i] === 1 ? 2 : 1;
-      const crowns = inst(GEO.sphLo, icToon(), nC), trunks = inst(GEO.cylLo, toon(X.C.trunk), nC);
+      const w = W(), nb = Math.ceil(w.w / CHUNK) * Math.ceil(w.h / CHUNK), cnt = new Array(nb).fill(0);
+      const bOf = (x, z) => Math.floor(z / CHUNK) * Math.ceil(w.w / CHUNK) + Math.floor(x / CHUNK);
+      for (let i = 0; i < w.n; i++) if (w.tree[i]) cnt[bOf(i % w.w, (i / w.w) | 0)] += w.tree[i] === 1 ? 2 : 1;
+      const C = [], Tr = [];
+      for (let k = 0; k < nb; k++) { C.push(cnt[k] ? inst(GEO.crown, icToon(), cnt[k]) : null); Tr.push(cnt[k] ? inst(GEO.cylLo, toon(X.C.trunk), cnt[k]) : null); }
       const m = M4(), q = new T.Quaternion(), p = new T.Vector3(), sc = new T.Vector3(), col = new T.Color();
       for (let i = 0; i < w.n; i++) {
         const t = w.tree[i];
         if (!t || w.use[i] || w.rail[i] || w.road[i] || w.st[i]) continue;
-        const x = i % w.w, z = (i / w.w) | 0;
+        const x = i % w.w, z = (i / w.w) | 0, bk = bOf(x, z), crowns = C[bk], trunks = Tr[bk];
         const many = t === 1 ? (hash(i, 1) < 0.55 ? 2 : 1) : 1;
         for (let k = 0; k < many; k++) {
           const ox = many > 1 ? (k ? 0.68 : 0.32) : 0.5 + (hash(i, 2) - 0.5) * 0.3, oz = many > 1 ? (k ? 0.62 : 0.36) : 0.5 + (hash(i, 3) - 0.5) * 0.3;
@@ -275,9 +279,17 @@
           }
         }
       }
-      if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
-      crowns.instanceMatrix.needsUpdate = true; trunks.instanceMatrix.needsUpdate = true;
-      group.add(crowns, trunks, withOutline(crowns, 0.022));
+      for (let k = 0; k < nb; k++) {
+        const crowns = C[k], trunks = Tr[k];
+        if (!crowns || !crowns.count) continue;
+        if (crowns.instanceColor) crowns.instanceColor.needsUpdate = true;
+        crowns.instanceMatrix.needsUpdate = true; trunks.instanceMatrix.needsUpdate = true;
+        const ol = withOutline(crowns, 0.022);
+        ol.userData.treeOl = true;
+        for (const x of [crowns, trunks, ol]) { if (x.count) { x.computeBoundingSphere(); x.frustumCulled = true; } }
+        group.add(crowns, ol);
+        if (trunks.count) group.add(trunks);
+      }
     }
     /* ---------- case degli animali (istanze): muri, tetto a punta, orecchie, porta, finestre ---------- */
     const EARS = { bunny: 'tall', cat: 'pointy', fox: 'pointy', panda: 'round', bear: 'round', duck: null };
