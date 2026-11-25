@@ -192,6 +192,7 @@
 .ex-confirm .cost .span { color: var(--exp-ui-hi-ink); font-weight: 800; white-space: normal; }
 .ex-confirm .cost .bad { white-space: normal; }
 .ex-confirm .alt { flex: 1 0 100%; justify-content: center; min-height: 44px; box-shadow: none; background: var(--exp-ui-2); }
+.ex-confirm .alt[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .ex-confirm .cost span { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* schede a foglio dal basso */
@@ -222,6 +223,7 @@
 .ex-row .neg { color: var(--bad); font-weight: 800; }
 .ex-acts { display: flex; gap: 8px; flex-wrap: wrap; }
 .ex-acts .ex-btn { flex: 1; box-shadow: none; }
+.ex-size { margin: 8px 4px 0; font-size: 13px; opacity: 0.8; }
 .ex-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
 .ex-opt { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 2px solid transparent; border-radius: 16px; background: var(--exp-ui-2); cursor: pointer;
   font: inherit; color: inherit; text-align: start; }

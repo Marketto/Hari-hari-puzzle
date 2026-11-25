@@ -10,7 +10,7 @@
  *   COST                               costi di costruzione (ghiande)
  *   plan(W, kind, a, b)                → { ok, tiles, tn, cost, err } percorso proposto da a a b (A* sui costi;
  *                                      tn = caselle dentro una galleria)
- *   propose(W, kind, a, b)             la proposta del trascinamento: A* o la linea dritta col ponte o la galleria,
+ *   propose(W, kind, a, b, stroke)     la proposta del trascinamento: A* o la linea dritta col ponte o la galleria,
  *                                      con l'altra in .alt, i tratti in .spans e il perché di un salto impossibile in .why
  *   hop(W, kind, i, d)                 il ponte o la galleria che parte da i verso d (regole e lunghezze massime)
  *   cost(W, kind, tiles, tn)           costo vero di quel percorso (solo i pezzi nuovi)
@@ -121,8 +121,13 @@
   // costo vero di un salto (per l'A*: già fatto = quasi gratis)
   const hopCost = (kind, h) => (h.built ? 0.1 * h.mid.length : (h.k === 'b' ? COST.bridge[kind] * bridgeFac(h.mid.length) : COST.tunnel[kind]) * h.mid.length + COST[kind]);
 
-  // A* della costruzione: stati (casella, direzione di arrivo 0..3, 4 = partenza); i salti (ponti e gallerie) sono archi
-  function plan(W, kind, a, b) {
+  // A* della costruzione: stati (casella, direzione di arrivo 0..3, 4 = partenza); i salti (ponti e gallerie) sono archi.
+  // guide = le caselle sotto il dito (traccia del trascinamento, in ordine): se c'è, il percorso segue il dito. Fuori
+  // dalla traccia una casella libera costa mezzo pezzo in più e una casella con un pezzo GIÀ FATTO 1,2 pezzi in più: così una
+  // linea parallela a una esistente resta parallela (prima l'A* scivolava sulla linea accanto, gratis) e la vecchia linea
+  // si riusa solo dove il dito ci passa sopra. Il costo restituito resta quello vero (cost()).
+  const OFF_NEW = 0.5, OFF_OLD = 1.2;
+  function plan(W, kind, a, b, guide) {
     if (a === b) return { ok: false, tiles: [a], tn: [], cost: 0, err: 'short' };
     const n = W.n, w = W.w;
     for (const e of [a, b]) {
@@ -135,7 +140,8 @@
     const hq = heap();
     const S = a * 5 + 4;
     g[S] = 0; hq.push(0, S);
-    const base = COST[kind];
+    const base = COST[kind], G = guide && guide.length ? new Set(guide) : null;
+    const off = (j) => (!G || G.has(j) ? 0 : base * (W[kind][j] ? OFF_OLD : OFF_NEW));   // fuori traccia; su un pezzo già fatto di più
     let goal = -1;
     const relax = (s, gi, j, d, add, v) => {
       const ns = j * 5 + d, ng = gi + add;
@@ -159,12 +165,12 @@
         if (nx < 0 || ny < 0 || nx >= w || ny >= W.h) continue;
         const j = ny * w + nx, turn = din < 4 && d !== din ? base * 0.25 : 0;      // meglio dritto: meno curve
         const h = hop(W, kind, i, d);
-        if (h && !h.err && landOk(W, h.end) && axOk(W, kind, h.end, d)) relax(s, gi, h.end, d, hopCost(kind, h) + turn, h.k === 'b' ? 1 : 2);
+        if (h && !h.err && landOk(W, h.end) && axOk(W, kind, h.end, d)) relax(s, gi, h.end, d, hopCost(kind, h) + turn + off(h.end), h.k === 'b' ? 1 : 2);
         if (W.water[j] || !landOk(W, j) || !axOk(W, kind, j, d) || Math.abs(W.ht[j] - W.ht[i]) > 1) continue;
         let add = turn;
-        if (W[kind][i] & (1 << d)) add += 0.1;
+        if (W[kind][i] & (1 << d)) add += 0.1 + off(j);
         else {
-          add += base;
+          add += base + off(j);
           if (W.ht[j] !== W.ht[i]) add += COST.slope[kind];
           if (W.tree[j] === 1) add += COST.tree;
           if (W.ht[j] > 0) add += COST.hill;
@@ -235,9 +241,12 @@
   const sameTiles = (p, q) => p.length === q.length && p.every((t, i) => t === q[i]);
   // la proposta del trascinamento: A* oppure la linea dritta col ponte o la galleria, più l'altra come alternativa (alt);
   // why = perché il ponte o la galleria dritti non si possono fare (troppo lungo, riva più alta, uscita sbagliata)
-  function propose(W, kind, a, b) {
+  // stroke = caselle sotto il dito (traccia): l'A* la segue; se il giro "libero" (senza traccia) è diverso e costa meno
+  // diventa l'alternativa (per esempio riusare la linea accanto).
+  function propose(W, kind, a, b, stroke) {
     const sp = straightPlan(W, kind, a, b);
-    const as = plan(W, kind, a, b);
+    const guided = stroke && stroke.length > 1;
+    const as = plan(W, kind, a, b, guided ? stroke : null);
     const fin = (p) => {
       const sp = spans(W, p.tiles, p.tn);
       // costo di ogni tratto: dalla riva (o dall'imbocco) all'altra, compreso l'arrivo
@@ -254,7 +263,27 @@
     }
     fin(as);
     if (sp && !sp.ok) as.why = sp.err;
+    if (guided && as.ok) {
+      const free = plan(W, kind, a, b);
+      if (free.ok && !sameTiles(free.tiles, as.tiles) && free.cost < as.cost) as.alt = fin(free);
+    }
     return as;
+  }
+  // traccia del dito: le caselle toccate in ordine, coi buchi riempiti a passi di una casella (4 vicini, prima l'asse
+  // più lungo, come Bresenham); tornando indietro sul già tracciato la traccia si accorcia.
+  function strokeAdd(w, path, t) {
+    if (!path.length) { path.push(t); return path; }
+    const k = path.indexOf(t);
+    if (k >= 0) { path.length = k + 1; return path; }
+    let c = path[path.length - 1];
+    const tx = t % w, ty = (t / w) | 0;
+    for (let g = 0; g < 4 * w && c !== t; g++) {
+      const cx = c % w, cy = (c / w) | 0, dx = tx - cx, dy = ty - cy;
+      c = Math.abs(dx) >= Math.abs(dy) ? c + Math.sign(dx) : c + Math.sign(dy) * w;
+      const j = path.indexOf(c);
+      if (j >= 0) path.length = j + 1; else path.push(c);
+    }
+    return path;
   }
   // tratti di ponte e di galleria in un percorso: [{ k: 'b' | 't', tiles }]
   function spans(W, tiles, tn) {
@@ -405,7 +434,10 @@
         const j = ny * w + nx;
         if (!(W[kind][j] & (1 << opp(d)))) continue;
         const ns = j * 4 + opp(d);
-        const add = 1 + (d !== opp(a) ? 0.2 : 0) + (d === a ? 2 : 0) + (opt && opt.resv[j] && opt.resv[j] !== opt.id ? 6 : 0);
+        let add = 1 + (d !== opp(a) ? 0.2 : 0) + (d === a ? 2 : 0) + (opt && opt.resv[j] && opt.resv[j] !== opt.id ? 6 : 0);
+        // arrivo su una banchina della meta: conta anche il resto della banchina (dove il treno si fermerà), così con
+        // più binari si sceglie quello libero e non quello dove un altro treno sta già caricando
+        if (opt && W.st[j] === target + 1) for (const x of stopEnd(W, kind, j, opp(d), target).tiles) if (x !== j && opt.resv[x] && opt.resv[x] !== opt.id) add += 6;
         if (gi + add < g[ns]) {
           g[ns] = gi + add; from[ns] = s; lab[ns] = lab[s];
           hq.push(gi + add + Math.abs(nx - gx) + Math.abs(ny - gy), ns);
@@ -426,5 +458,5 @@
     return { k: lab[chain[0]], tiles, exits, len: g[goal] + end.tiles.length - 1 };
   }
 
-  HH.expressNet = { COST, MAX_BRIDGE, MAX_TUNNEL, DX, DY, AXIS, opp, straight, bits, plan, straightPlan, propose, spans, spanAt, hop, cost, valid, apply, route, exitsOf, dirTo, fixedAxis, heap };
+  HH.expressNet = { COST, MAX_BRIDGE, MAX_TUNNEL, DX, DY, AXIS, opp, straight, bits, plan, straightPlan, propose, strokeAdd, spans, spanAt, hop, cost, valid, apply, route, exitsOf, dirTo, fixedAxis, heap };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

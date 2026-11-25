@@ -119,9 +119,9 @@
     function paintTools() {
       const U = X.ui;
       U.tools.querySelectorAll('.ex-tool').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === X.tool)));
-      if (X.picking) {
+      if (X.picking || X.expand != null) {
         U.sub.innerHTML = `<button class="ex-chip" type="button" data-done="1" aria-pressed="true">${IC.check}${esc(L('ex_done'))}</button>`;
-        hint(L('ex_h_pick'), 0);
+        if (X.expand != null) X.showExpand(); else hint(L('ex_h_pick'), 0);
         return;
       }
       const subs = SUBS[X.tool] || [];
@@ -222,14 +222,15 @@
     function confirm(p, kind, note) {
       const U = X.ui, s = X.s, n = p.tiles.length;
       const upkeep = n * (kind === 'rail' ? S.MNT.rail : S.MNT.road);
-      const poor = p.cost > s.money, st = spanText(p);
+      const total = p.cost + (p.platOn && p.plat ? p.plat.cost : 0), poor = total > s.money, st = spanText(p);
       U.confirm.innerHTML = `<small>${esc(L('ex_preview'))}</small>
-        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${st ? `<span class="span">${esc(st)}</span>` : ''}${note ? `<span class="bad">${esc(note)}</span>` : ''}${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep_d', { n: nf1(upkeep) }))}</span>`}</div>
+        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(total)}</b>${st ? `<span class="span">${esc(st)}</span>` : ''}${note ? `<span class="bad">${esc(note)}</span>` : ''}${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep_d', { n: nf1(upkeep) }))}</span>`}</div>
         ${p.alt ? `<button class="ex-chip alt" type="button" data-c="alt">${IC.swap}<span>${esc(altLabel(p.alt))}</span></button>` : ''}
+        ${p.plat ? `<button class="ex-chip alt" type="button" data-c="plat" aria-pressed="${!!p.platOn}">${p.platOn ? IC.check : IC.plus}<span>${esc(L('ex_plat', { n: nf(p.plat.cost) }))} · ${esc(stName(X.s.stations[p.plat.st]))}</span></button>` : ''}
         <div class="acts"><button class="ex-btn soft" type="button" data-c="no">${IC.close}<span>${esc(L('lf_cancel'))}</span></button>
         <button class="ex-btn main" type="button" data-c="ok"${poor ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_build'))}</span></button></div>`;
       U.confirm.hidden = false;
-      U.confirm.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'ok') X.commitBuild(); else if (b.dataset.c === 'alt') X.swapPlan(); else X.cancelBuild(); };
+      U.confirm.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'ok') X.commitBuild(); else if (b.dataset.c === 'alt') X.swapPlan(); else if (b.dataset.c === 'plat') X.togglePlat(); else X.cancelBuild(); };
       const ok = U.confirm.querySelector('[data-c="ok"]'); if (ok && !poor) ok.focus({ preventScroll: true });
     }
     const hideConfirm = () => { X.ui.confirm.hidden = true; X.ui.confirm.innerHTML = ''; };
@@ -274,7 +275,9 @@
       const vs = s.veh.filter((v) => v.orders.some((o) => o.st === id) || X.W.st[v.t] === id + 1);
       const acc = Object.keys(cv.acc);
       const html = head(indIc(st.kind === 'rail' ? 'station' : 'stop'), stName(st), (st.kind === 'rail' ? L('ex_rail_station') : L('ex_road_stop')) + (pop ? ' · ' + L('ex_inhab', { n: nf(pop) }) : ''))
-        + `<div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button></div>`
+        + `<div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button>
+          <button class="ex-btn soft" type="button" data-k="expand">${IC.plus}<span>${esc(L('ex_expand'))}</span></button></div>`
+        + (st.kind === 'rail' ? `<p class="ex-size">${esc(L('ex_st_size', ((pl) => ({ p: pl.length, n: Math.max(...pl.map((x) => x.length)) }))(E.platforms(s, st))))}</p>` : '')
         + `<div class="ex-card"><div class="ex-meter"><span>${esc(L('ex_rating'))}</span><span class="ex-bar"><i style="width:${pct(rate)}"></i></span><b>${pct(rate)}</b></div>
           <p>${esc(last < 0 ? L('ex_novisit') : L('ex_lastv_t', { t: dur(last) }))}</p></div>
         <div class="ex-card"><h4>${esc(L('ex_waiting'))}</h4>${wait.length ? wait.map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span><b>${nf(st.wait[c])}</b></div>`).join('') : `<p>${esc(L('ex_nothing'))}</p>`}</div>
@@ -453,6 +456,7 @@
       const k = b.dataset.k;
       if (k === 'close') { close(); return; }
       if (k === 'newv') { draft = null; newVehicle(sheetArg); return; }
+      if (k === 'expand') { X.startExpand(sheetArg); return; }
       if (k === 'sell') { X.act({ k: 'sell', id: sheetArg }); close(); return; }
       if (k === 'edit') { editRoute(sheetArg); return; }
       if (b.dataset.v) { vehicle(+b.dataset.v); return; }

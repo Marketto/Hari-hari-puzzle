@@ -59,6 +59,9 @@
     ex_bridge: 'Bridge', ex_tunnel: 'Tunnel', ex_go_around: 'Other way', ex_err_long_b: 'Bridge too long: at most {n} tiles of water',
     ex_err_long_t: 'Tunnel too long: at most {n} tiles', ex_err_bank: 'The two banks aren’t at the same height', ex_err_portal: 'A tunnel must come out at the same height it goes in',
     ex_err_tunnel: 'No signals inside a tunnel', ex_c_tunnel: 'A hill in the way? Drag straight across it: Hari suggests a tunnel. Across water, a bridge!',
+    ex_expand: 'Expand station', ex_st_grow: 'Expand {st} · {n}', ex_h_expand: 'Tap the green tiles: new platform or longer station · {n} per tile',
+    ex_plat: 'Station platform · {n}', ex_err_stmax: 'At most {a} platforms and {b} tiles long', ex_err_far: 'This tile doesn’t touch the station',
+    ex_expand_none: 'No room: clear the tiles next to the station', ex_st_size: '{p} platforms × {n} tiles',
     // già tradotte (comuni e altri giochi)
     ry_nogl: 'This game needs 3D graphics (WebGL).', soon: 'Coming soon', play: 'Play', er_close: 'Close', lf_cancel: 'Cancel', level: 'Level', pa_pause: 'Pause', resume: 'Continue',
   };

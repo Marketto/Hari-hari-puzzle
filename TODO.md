@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
+- [ ] Hari Express: l'anteprima di binari e strade segue il dito (un binario parallelo a una linea non scivola più sulla linea accanto; riusarla è l'«Altra via»); stazioni che si allargano (caselle accanto unite, fino a 4 binari × 6 caselle, «Allarga stazione» nella scheda, «Binario di stazione» costruendo accanto), i treni scelgono il binario libero (branch `wip/rails`)
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)

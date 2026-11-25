@@ -336,6 +336,8 @@
         // fermo al rosso per colpa di un altro treno che esiste davvero: è questo che Hari segnala (non il carico, non l'inversione)
         const by = blocker(W, v);
         v.bk = by && by !== v.id && s.veh.some((x) => x.id === by && isTrain(x)) ? (v.bk || 0) + 1 : 0;
+        // davanti alla meta un'altra banchina libera? (stazioni con più binari: il treno sceglie quella libera)
+        if (v.wt % 6 === 3 && toPlatform(s, W, v)) return;
         if (v.wt > STUCK * TPH) unstick(s, W, v, ev);
         return;
       }
@@ -350,6 +352,17 @@
         trimTrail(W, v);
       }
     }
+  }
+  // fermo al rosso con la meta nel tratto davanti: se un altro percorso da qui porta a una banchina libera della stessa
+  // stazione (tratto tutto prenotabile), lo prende. Solo verso la meta: sulle linee normali niente giri nuovi.
+  function toPlatform(s, W, v) {
+    const o = v.orders[v.oi];
+    if (!o || !runOf(W, v).some((t) => W.st[t] === o.st + 1)) return false;
+    const r = plan(s, W, v, false);
+    if (!r || (r.tiles.length === v.pt.length && r.tiles.every((t, k) => t === v.pt[k]))) return false;
+    for (let k = 0; k < r.tiles.length; k++) { const t = r.tiles[k]; if (k > 0 && W.sig[t]) break; if (W.resv[t] && W.resv[t] !== v.id) return false; }
+    setPath(s, W, v, r);
+    return true;
   }
   // rete di salvataggio: fermo al rosso da troppo tempo → si gira se dietro c'è una strada per la meta
   function unstick(s, W, v, ev) {

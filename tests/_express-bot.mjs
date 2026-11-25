@@ -78,6 +78,8 @@ export function expressBot(HH, opt = {}) {
     return out.sort((a, b) => a.k - b.k);
   }
   const shares = (a, b) => { const set = new Set(a); return b.some((t) => set.has(t)); };
+  // due stazioni che si toccano per un lato diventano una sola (si uniscono): il bot le tiene staccate
+  const touches = (s, a, b) => { const w = W(s).w, set = new Set(a); return b.some((t) => set.has(t - 1) || set.has(t + 1) || set.has(t - w) || set.has(t + w)); };
   const dir = (s, p, q) => HH.expressNet.dirTo(W(s), p, q);
   // le due estremità di una stazione: [quella verso `to`, l'altra]
   const ends = (s, st, to) => (md(xy(s, st.tiles[0]), to) < md(xy(s, st.tiles[1]), to) ? [st.tiles[0], st.tiles[1]] : [st.tiles[1], st.tiles[0]]);
@@ -113,7 +115,7 @@ export function expressBot(HH, opt = {}) {
     const ca = center(A), cb = center(B);
     const sa = railSpots(s, A, ax, cb).slice(0, 6), sb = railSpots(s, B, ax, ca).slice(0, 6);
     for (const pa of sa) for (const pb of sb) {
-      if (shares(pa.tiles, pb.tiles)) continue;
+      if (shares(pa.tiles, pb.tiles) || touches(s, pa.tiles, pb.tiles)) continue;
       const [a1, a2] = ends(s, pa, cb), [b1, b2] = ends(s, pb, ca);
       const p = via(s, a1, a2, b1, b2);
       if (!p || shares(p.tiles.slice(1, -1), [a1, a2, b1, b2])) continue;
@@ -137,7 +139,7 @@ export function expressBot(HH, opt = {}) {
     const sa = railSpots(s, A, ax, cb).slice(0, 8), sb = railSpots(s, B, ax, ca).slice(0, 8);
     const mx = (ca[0] + cb[0]) / 2, my = (ca[1] + cb[1]) / 2;
     for (const pa of sa) for (const pb of sb) {
-      if (shares(pa.tiles, pb.tiles)) continue;
+      if (shares(pa.tiles, pb.tiles) || touches(s, pa.tiles, pb.tiles)) continue;
       const [a1, a2] = ends(s, pa, cb), [b1, b2] = ends(s, pb, ca);
       const go = via(s, a1, a2, b1, b2);
       if (!go || shares(go.tiles.slice(1, -1), [a1, a2, b1, b2])) continue;

@@ -168,10 +168,12 @@
   /* ---------- azioni ---------- */
   const fail = (err) => ({ ok: false, cost: 0, err });
   function spend(s, c) { s.money -= c; s.fin.bld += c; s.moves++; }
-  function preview(s, kind, a, b) {
+  // stroke = caselle sotto il dito (facoltativo): il percorso segue il dito; plat = banchina da aggiungere a una
+  // stazione accanto (platformOffer), se c'è
+  function preview(s, kind, a, b, stroke) {
     const W = world(s);
-    const r = NET.propose(W, kind, a, b);
-    if (r.alt) r.alt.afford = r.alt.cost <= s.money;
+    const r = NET.propose(W, kind, a, b, stroke);
+    for (const p of [r, r.alt]) if (p) { p.afford = p.cost <= s.money; if (p.ok) p.plat = platformOffer(s, kind, p.tiles); }
     return Object.assign(r, { afford: r.cost <= s.money });
   }
   function build(s, a) {
@@ -187,38 +189,79 @@
     return { ok: true, cost: c };
   }
   const nearTown = (s, x, y) => { let b = null, bd = 1e9; for (const t of s.towns) { const d = Math.abs(t.x - x) + Math.abs(t.y - y); if (d < bd) { bd = d; b = t; } } return { t: b, d: bd }; };
-  function station(s, a) {
+  /* ---------- stazioni: unione, binari paralleli, allargamento ----------
+   * Una stazione è un insieme di caselle dello stesso tipo e dello stesso asse: in fila (più lunga) o una accanto
+   * all'altra (più binari / più corsie). Una casella nuova che tocca per un lato una stazione dello stesso tipo e asse
+   * si unisce a lei (stesso nome, stesse merci e valutazioni), pagando il costo normale. Limiti: ST_LEN caselle in
+   * lunghezza, ST_PL binari affiancati. platforms(st) = le banchine (file di caselle consecutive lungo l'asse). */
+  const ST_LEN = 6, ST_PL = 4;
+  const along = (t, ax, w) => (ax === 1 ? t % w : (t / w) | 0), across = (t, ax, w) => (ax === 1 ? (t / w) | 0 : t % w);
+  function extent(tiles, ax, w) {
+    let a0 = 1e9, a1 = -1, c0 = 1e9, c1 = -1;
+    for (const t of tiles) { const a = along(t, ax, w), c = across(t, ax, w); a0 = Math.min(a0, a); a1 = Math.max(a1, a); c0 = Math.min(c0, c); c1 = Math.max(c1, c); }
+    return { len: a1 - a0 + 1, pl: c1 - c0 + 1 };
+  }
+  function platforms(s, st) {
+    const w = world(s).w, rows = new Map();
+    for (const t of st.tiles) { const c = across(t, st.ax, w); if (!rows.has(c)) rows.set(c, []); rows.get(c).push(t); }
+    const out = [];
+    for (const c of [...rows.keys()].sort((p, q) => p - q)) {
+      const r = rows.get(c).sort((p, q) => p - q);
+      let cur = [r[0]];
+      for (let k = 1; k < r.length; k++) { if (along(r[k], st.ax, w) === along(r[k - 1], st.ax, w) + 1) cur.push(r[k]); else { out.push(cur); cur = [r[k]]; } }
+      out.push(cur);
+    }
+    return out;
+  }
+  // controllo (senza costruire): → { ok, err, tiles, ax, join (stazione a cui si unisce o null), cost }
+  function stationCheck(s, a) {
     const W = world(s), kind = a.kind, w = W.w;
     if (kind !== 'rail' && kind !== 'road') return fail('kind');
     const tiles = (a.tiles || [a.tile]).filter((t) => t != null);
-    if (!tiles.length || tiles.length > (kind === 'rail' ? 5 : 1)) return fail('size');
+    if (!tiles.length || tiles.length > (kind === 'rail' ? ST_LEN : 1)) return fail('size');
+    for (const t of tiles) if (!(t >= 0 && t < W.n)) return fail('blocked');
     tiles.sort((p, q) => p - q);
     let ax = a.ax;
     if (tiles.length > 1) {
       ax = tiles[1] - tiles[0] === 1 ? 1 : tiles[1] - tiles[0] === w ? 0 : -1;
       for (let k = 1; k < tiles.length; k++) if (tiles[k] - tiles[k - 1] !== (ax === 1 ? 1 : w)) return fail('line');
     }
+    // stazioni dello stesso tipo che toccano le caselle nuove per un lato
+    const near = [];
+    for (const t of tiles) for (let d = 0; d < 4; d++) {
+      const x = (t % w) + NET.DX[d], y = ((t / w) | 0) + NET.DY[d];
+      if (x < 0 || y < 0 || x >= w || y >= W.h) continue;
+      const o = s.stations[W.st[y * w + x] - 1];
+      if (o && o.kind === kind && !near.includes(o)) near.push(o);
+    }
+    const want = a.join != null ? s.stations[a.join] : null;
+    if (a.join != null && (!want || !near.includes(want))) return fail('far');
     if (ax == null) {
       const m = W[kind][tiles[0]];
-      ax = m & 5 ? 0 : m & 10 ? 1 : 1;
+      ax = m & 5 ? 0 : m & 10 ? 1 : want ? want.ax : near.length ? near[0].ax : 1;
     }
     const h0 = W.ht[tiles[0]], other = kind === 'rail' ? 'road' : 'rail';
     for (const t of tiles) {
-      if (!(t >= 0 && t < W.n) || W.water[t] || W.use[t] || W.st[t] || W.tun[t]) return fail('blocked');
+      if (W.water[t] || W.use[t] || W.st[t] || W.tun[t]) return fail('blocked');
       if (W.ht[t] !== h0) return fail('slope');
       if (W[kind][t] & ~AXIS[ax]) return fail('axis');
       if (W[other][t] || W.sig[t] || W.ow[t]) return fail('blocked');
     }
-    // unione con una stazione dello stesso tipo in fila sullo stesso asse
-    const step1 = ax === 1 ? 1 : w;
-    let join = null;
-    for (const e of [tiles[0] - step1, tiles[tiles.length - 1] + step1]) {
-      if (e < 0 || e >= W.n || (ax === 1 && ((e % w) === w - 1 && e === tiles[0] - 1 && false))) continue;
-      if (ax === 1 && Math.floor(e / w) !== Math.floor(tiles[0] / w)) continue;
-      const id = W.st[e] - 1;
-      if (id >= 0 && s.stations[id] && s.stations[id].kind === kind && s.stations[id].ax === ax && s.stations[id].tiles.length + tiles.length <= 6) join = s.stations[id];
+    const join = want ? (want.ax === ax ? want : null) : near.find((o) => o.ax === ax) || null;
+    if (want && !join) return fail('axis');
+    if (join) {
+      if (W.ht[join.tiles[0]] !== h0) return fail('slope');
+      const e = extent(join.tiles.concat(tiles), ax, w);
+      if (e.len > ST_LEN || e.pl > ST_PL) return fail('stmax');
     }
     const c = (kind === 'rail' ? NET.COST.station : NET.COST.stop) * tiles.length + tiles.reduce((x, t) => x + (W.tree[t] === 1 ? NET.COST.tree : 0), 0);
+    return { ok: true, err: null, cost: c, tiles, ax, join };
+  }
+  function station(s, a) {
+    const W = world(s), w = W.w;
+    const ck = stationCheck(s, a);
+    if (!ck.ok) return ck;
+    const { tiles, ax, join, cost: c } = ck, kind = a.kind;
     if (c > s.money) return fail('money');
     let st = join;
     if (!st) {
@@ -234,16 +277,69 @@
     const all = st.tiles.concat(tiles).sort((p, q) => p - q);
     st.tiles = all;
     for (const t of tiles) { W.st[t] = st.id + 1; W.sax[t] = ax; W.sk[t] = kind === 'rail' ? 1 : 2; W.tree[t] = 0; }
-    // banchina continua: collegamenti lungo l'asse tra le caselle della stazione
-    if (kind === 'rail' || all.length > 1) for (let k = 1; k < all.length; k++) NET.apply(W, kind, [all[k - 1], all[k]]);
+    // banchina continua: collegamenti lungo l'asse tra caselle vicine della stazione (non tra binari affiancati)
+    const step1 = ax === 1 ? 1 : w, inSt = new Set(all);
+    if (kind === 'rail' || all.length > 1) for (const t of all) if (inSt.has(t + step1) && along(t + step1, ax, w) === along(t, ax, w) + 1) NET.apply(W, kind, [t, t + step1]);
     for (const t of all) saveTile(s, W, t);
     spend(s, c); bump(s, W);
-    return { ok: true, cost: c, id: st.id };
+    return { ok: true, cost: c, id: st.id, join: !!join };
+  }
+  // anteprima della stazione (strumento Fermate o "Allarga stazione"): stesso controllo dell'azione
+  function stationPlan(s, a) {
+    const r = stationCheck(s, a);
+    return Object.assign(r, { afford: r.ok && r.cost <= s.money, join: r.join ? r.join.id : null });
+  }
+  // caselle dove si può allargare la stazione id (una alla volta): [{ t, cost }]
+  function expandSpots(s, id) {
+    const st = s.stations[id], W = world(s), w = W.w, out = [], seen = new Set();
+    if (!st) return out;
+    for (const t of st.tiles) for (let d = 0; d < 4; d++) {
+      const x = (t % w) + NET.DX[d], y = ((t / w) | 0) + NET.DY[d], j = y * w + x;
+      if (x < 0 || y < 0 || x >= w || y >= W.h || seen.has(j)) continue;
+      seen.add(j);
+      const r = stationCheck(s, { kind: st.kind, tiles: [j], ax: st.ax, join: id });
+      if (r.ok) out.push({ t: j, cost: r.cost });
+    }
+    return out.sort((p, q) => p.t - q.t);
+  }
+  // un binario (o una strada) nuovo che passa dritto accanto a una stazione: le caselle dove aggiungere una banchina
+  // (binario di stazione) unita a quella stazione → { st, tiles, cost } o null
+  function platformOffer(s, kind, tiles) {
+    const W = world(s), w = W.w;
+    if (!tiles || tiles.length < 2) return null;
+    let best = null;
+    for (let k = 0; k < tiles.length; k++) {
+      const t = tiles[k];
+      if (W.st[t]) continue;
+      const dp = k > 0 ? NET.dirTo(W, tiles[k - 1], t) : -1, dn = k < tiles.length - 1 ? NET.dirTo(W, t, tiles[k + 1]) : -1;
+      const ds = [dp, dn].filter((d) => d >= 0);
+      if (!ds.length || ds.some((d) => (d & 1) !== (ds[0] & 1))) continue;
+      const ax = ds[0] & 1;
+      for (let d = 0; d < 4; d++) {
+        const x = (t % w) + NET.DX[d], y = ((t / w) | 0) + NET.DY[d];
+        if (x < 0 || y < 0 || x >= w || y >= W.h) continue;
+        const o = s.stations[W.st[y * w + x] - 1];
+        if (!o || o.kind !== kind || o.ax !== ax) continue;
+        if (best && best.st !== o.id) continue;
+        if (W.water[t] || W.use[t] || W.tun[t] || W[kind === 'rail' ? 'road' : 'rail'][t] || W.sig[t] || W.ow[t] || (W[kind][t] & ~AXIS[ax]) || W.ht[t] !== W.ht[o.tiles[0]]) continue;
+        if (!best) best = { st: o.id, ax, tiles: [] };
+        if (!best.tiles.includes(t)) best.tiles.push(t);
+      }
+    }
+    if (!best) return null;
+    // dentro i limiti: si tengono le caselle in ordine finché la stazione non supera lunghezza e binari
+    const st = s.stations[best.st], keep = [];
+    for (const t of best.tiles) { const e = extent(st.tiles.concat(keep, [t]), best.ax, w); if (e.len <= ST_LEN && e.pl <= ST_PL) keep.push(t); }
+    if (!keep.length) return null;
+    const per = kind === 'rail' ? NET.COST.station : NET.COST.stop;
+    return { st: best.st, ax: best.ax, tiles: keep, cost: keep.reduce((c, t) => c + per + (W.tree[t] === 1 ? NET.COST.tree : 0), 0) };
   }
   function demolish(s, a) {
     const W = world(s), t = a.tile;
     if (!(t >= 0 && t < W.n)) return fail('blocked');
-    const busy = (x) => W.resv[x] || s.veh.some((v) => { const o = v.orders[v.oi], st = o && s.stations[o.st]; return v.t === x || (v.mode === 'load' && st && st.tiles.includes(x)); });
+    // occupata: prenotata, o con un mezzo sopra; l'ULTIMA casella di una stazione anche con un mezzo fermo lì a caricare
+    // (le altre caselle di una stazione grande si tolgono mentre su un altro binario si carica)
+    const busy = (x) => W.resv[x] || s.veh.some((v) => { const o = v.orders[v.oi], st = o && s.stations[o.st]; return v.t === x || (v.trail && v.trail.some((e) => e[0] === x)) || (v.mode === 'load' && st && st.tiles.length === 1 && st.tiles.includes(x)); });
     const opp = NET.opp, w = W.w;
     // ponti e gallerie si tolgono interi: toccandoli, o togliendo la casella di riva o d'imbocco a cui sono attaccati
     const spans = [], here = NET.spanAt(W, t);
@@ -389,11 +485,13 @@
     const v = { id: s.nid, type: a.type, n: 1 + s.veh.filter((x) => x.type === a.type).length, orders: a.orders.map(normOrder), oi: 0,
       t: 0, a: 0, b: 0, p: 0.5, pt: [], pe: [], pv: W.ver, trail: [], ahead: [], mode: 'load', wt: 0, ld: {}, profit: 0, last: 0, value: c, born: s.h };
     if (T.net === 'road') v.cargo = a.cargo || T.cargo[0]; else v.cars = a.cars.slice();
-    const tiles = st.tiles.slice().sort((p, q) => p - q);
+    // treni: sulla prima banchina libera (con più binari ogni treno ha la sua)
+    const pls = platforms(s, st), free = T.net === 'rail' ? pls.find((pl) => !pl.some((t) => W.resv[t])) : pls[0];
+    const tiles = (free || pls[0]).slice();
     const b = st.ax === 1 ? 1 : 2;
     v.b = b; v.a = NET.opp(b);
     if (T.net === 'rail') {
-      if (tiles.some((t) => W.resv[t])) return fail('busy');
+      if (!free) return fail('busy');
       v.t = tiles[tiles.length - 1]; v.p = 0.85;
       v.trail = tiles.slice().reverse().map((t) => [t, v.a, b]);
       for (const t of tiles) W.resv[t] = v.id;
@@ -472,7 +570,7 @@
     return (t ? t.name : '?') + (st.name.ind ? ' ' + (indLabel ? indLabel(st.name.ind) : st.name.ind) : '') + (st.name.n > 1 ? ' ' + st.name.n : '');
   };
 
-  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, SNAP_V, H0, step, act, preview, goalState, isOver,
+  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, SNAP_V, H0, step, act, preview, stationPlan, expandSpots, platformOffer, platforms, ST_LEN, ST_PL, goalState, isOver,
     coach, rate, parTime, progress, stationName, vehCost, legs, orderMode, normOrder, MODES, TPH, HPD, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
     isWon: (s) => !!(s && s.won) };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -28,19 +28,19 @@ modalità **Libera** su una mappa generata (seme, grandezza, acqua).
 | `express-input.js` | UI | camera ortografica isometrica / vista libera, gesti, mouse, tastiera |
 | `express-ui.js` | UI | `create()`, ciclo, strumenti, eventi, suoni, registrazione |
 
-Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_express-bot.mjs`; benchmark in `tools/selftest.mjs`.
+Test: `tests/express.test.mjs`, `tests/express-route.test.mjs`, `tests/express-station.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_express-bot.mjs`; benchmark in `tools/selftest.mjs`.
 
 ## Regole
 1. **Mappa** a caselle con altezze 0–2 (colline: dislivello massimo 1 tra caselle vicine), acqua (mare attorno
    all'isola, laghi, fiumi), alberi e cespugli, villaggi con le loro strade a croce, industrie 2×2.
-2. **Costruire**: si trascina da una casella all'altra; Hari propone il percorso più economico (A* sui costi: casella
-   libera, albero da togliere, collina, salita, curva) e mostra caselle e costo prima di confermare. Pezzi già fatti
-   costano 0. **Ponti e gallerie**: vedi la sezione sotto. **Passaggi a livello**:
+2. **Costruire**: si trascina da una casella all'altra; Hari propone un percorso che **segue il dito** (vedi "Anteprima
+   che segue il dito") e mostra caselle e costo prima di confermare. Pezzi già fatti costano 0. **Ponti e gallerie**: vedi la sezione sotto. **Passaggi a livello**:
    strada e binario si incrociano solo dritti e perpendicolari. Dove due linee si toccano nasce uno **scambio
    automatico** (il mezzo sceglie l'uscita col suo percorso).
-3. **Stazioni e fermate**: stazione dei treni dritta da 1 a 5 caselle (in piano), fermata di bus e camion su una strada
-   dritta o una casella libera. Caselle vicine sullo stesso asse si uniscono alla stessa stazione. **Area di
-   raccolta**: 3 caselle attorno per i treni, 2 per bus e camion (si vede toccando la stazione).
+3. **Stazioni e fermate**: stazione dei treni dritta da 1 a 5 caselle per trascinamento (in piano), allungabile fino a 6, fermata di bus e camion su una strada
+   dritta o una casella libera. Una casella nuova che **tocca per un lato** una stazione dello stesso tipo e dello
+   stesso asse si unisce a lei (vedi "Stazioni che si allargano"). **Area di raccolta**: 3 caselle attorno per i treni,
+   2 per bus e camion (si vede toccando la stazione), attorno a tutte le caselle della stazione.
 4. **Mezzi**: bus (30 passeggeri), furgone della posta (20), camion (20 di una merce), locomotiva a vapore "Castagna"
    con fino a 6 vagoni (passeggeri 40, posta 30, latte 30, formaggio 25, grano 35, pane 25, legna 30, giocattoli 25);
    l'elettrica "Fragola" dal 1° marzo dell'anno 1 (in Libera, ~28 minuti veri a ×1). Al massimo 80 mezzi su telefono,
@@ -59,6 +59,51 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
    min(3, merci/8) + min(1, posta e passeggeri/32). Le case nuove (una ogni 30 abitanti) nascono vicino alle strade e
    alle altre case.
 9. **Ghiande finite**: a fine giornata, se il saldo è sotto zero, Hari vende il mezzo che rende meno.
+
+## Anteprima che segue il dito
+- Prima (0.32.x) l'anteprima conosceva solo la casella di partenza e quella sotto il dito: l'A* sceglieva il percorso più
+  economico e, siccome i pezzi già fatti costano 0, un binario (o una strada) parallelo a una linea esistente oltre le
+  due caselle scivolava sulla linea accanto (salire, percorrerla gratis, scendere) invece di seguire il dito.
+- Adesso la UI tiene la **traccia del dito** (`strokeAdd()` in express-net.js: le caselle toccate in ordine, i buchi
+  riempiti a passi di una casella come Bresenham, tornando indietro la traccia si accorcia) e la passa a
+  `preview(s, kind, a, b, stroke)` → `propose(..., stroke)` → `plan(..., guide)`. L'A* resta lo stesso (ponti, gallerie,
+  pendenze, curve), con due ritocchi **solo per la ricerca**: fuori dalla traccia una casella libera costa mezzo pezzo in
+  più (`OFF_NEW = 0,5`) e una casella con un pezzo già fatto 1,2 pezzi in più (`OFF_OLD`). Così si segue il dito dove si
+  può, l'A* riempie solo i buchi e gli ostacoli (una casa sotto il dito: ci gira attorno e torna sulla traccia), e una
+  linea esistente si riusa (gratis) solo dove il dito ci passa sopra. Il costo mostrato resta quello vero (`cost()`).
+- Se il percorso "libero" (senza traccia, quello di prima) è diverso e costa meno, è l'**alternativa** ("Altra via ·
+  costo", ⇄): per esempio riusare la linea accanto. Ponte e galleria dritti funzionano come prima.
+- Il bot e i test che chiamano `preview` senza traccia hanno il comportamento di prima.
+
+## Stazioni che si allargano
+- **Unione**: una casella (o una fila) di stazione che tocca per un lato una stazione dello stesso tipo e asse si unisce
+  a lei: stesso nome, stesse merci in attesa e valutazioni, stessi mezzi; costo normale (360 a casella per i treni, 220
+  per le fermate). Vale in lunghezza (in fila) e di lato (**binari paralleli**, o corsie per bus e camion). Prima si
+  univano solo le caselle in fila. Limiti: **6 caselle di lunghezza** (un trascinamento ne mette al più 5) e **4 binari**
+  (`E.ST_LEN`, `E.ST_PL`; oltre: "Al massimo 4 binari e 6 caselle di lunghezza", `ex_err_stmax`). Stessa altezza della
+  stazione. Le banchine (`E.platforms(s, st)`) sono le file di caselle consecutive lungo l'asse: dentro la stazione i
+  collegamenti vanno solo lungo l'asse, mai di traverso tra due binari.
+- **Anteprima** con lo strumento Fermate: costo, e "Allarga Fune 2 · 720" se si unisce (`E.stationPlan`).
+- **Costruendo accanto** a una stazione (binario o strada dritti lungo il suo asse, sulle caselle di fianco o in fila):
+  il pannello dell'anteprima ha il pulsante **"＋ Binario di stazione · 1.080 · Fune 2"** (`platformOffer()`, spento di
+  partenza: un binario di sorpasso accanto alla stazione non costa di più se non lo si vuole); acceso, il totale lo
+  comprende e "Costruisci" mette binario e banchine unite alla stazione.
+- **"Allarga stazione"** nella scheda della stazione (accanto a "Nuovo treno"): lo strumento Fermate in un modo apposta,
+  con le caselle valide in verde (`E.expandSpots(s, id)`: accanto, libere o con un binario lungo l'asse, nei limiti; in
+  rosso se mancano le ghiande) e il suggerimento "Tocca le caselle verdi: binario nuovo o stazione più lunga · 360 a
+  casella"; tocco o trascinamento aggiungono caselle, "Fatto" (o Esc, o un altro strumento) chiude. La scheda mostra
+  "2 binari × 3 caselle". Una banchina su terra libera si può mettere prima del binario (poi lo si posa attraverso).
+- **Treni e binari**: arrivando, l'A* dei treni conta anche le caselle della banchina dove si fermerebbe (+6 per casella
+  prenotata da un altro treno), e un treno fermo al rosso con la stazione nel tratto davanti riprova ogni 6 passi un
+  percorso verso un'**altra banchina libera** della stessa stazione (`toPlatform()` in express-sim.js: solo verso la meta,
+  solo se il tratto nuovo è tutto prenotabile). Coi semafori prima dello scambio due treni caricano insieme su due
+  binari (test). Un treno comprato parte dalla prima banchina libera.
+- **Demolire** una casella accorcia la stazione (8 ghiande, niente rimborso, come ogni demolizione); l'ultima casella la
+  toglie e con lei le fermate dei percorsi. Gli ordini restano validi finché resta una casella. Non si può togliere la
+  casella sotto un mezzo; una stazione grande si accorcia anche mentre su un altro binario si carica.
+- **Salvataggio**: formato invariato (una stazione è sempre `{ id, kind, ax, name, tiles, … }`, ora con caselle anche
+  affiancate); i salvataggi di prima si aprono e si allargano (test).
+- Il bot tiene staccate le stazioni di una linea (due stazioni che si toccherebbero diventerebbero una sola).
 
 ## Ponti e gallerie
 - **Ponte**: dalla riva, dritto sopra 1–**6** caselle d'acqua, fino alla riva opposta **alla stessa altezza** (se no:
@@ -118,7 +163,7 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
 | giocattoli | 0,62 | 20 | 80 |
 
 - **Costi** di costruzione: strada 25, binario 60, salita +20/+40, albero +10, collina +5, ponte 160 (strada) / 260
-  (binario) per casella d'acqua (× 1 + 0,25 oltre la terza), galleria 140 / 220 per casella, fermata 220, stazione 360 per casella, semaforo 80, senso unico 30, demolizione 8.
+  (binario) per casella d'acqua (× 1 + 0,25 oltre la terza), galleria 140 / 220 per casella, fermata 220, stazione 360 per casella (anche per allargarla), semaforo 80, senso unico 30, demolizione 8.
 - **Mezzi**: bus e posta 900 (esercizio 10 al giorno), camion 1.100 (12), Castagna 3.500 (46), Fragola 7.000 (72),
   vagone 400 (4). Vendita: metà del prezzo.
 - **Manutenzione** giornaliera: 0,8 per casella di binario, 0,4 per casella di strada costruita, 2,4 per casella di
@@ -214,6 +259,12 @@ inventata rifiutata); treno e bus che passano in galleria e sul ponte e arrivano
 vietata con un treno dentro; salvataggio con gallerie e salvataggi di prima; percorso (aggiungi, riordina, modi, togli,
 minimo 2, doppioni, rete sbagliata, irraggiungibile col tratto giusto), cambio a metà viaggio col carico consegnato
 alla fermata nuova, solo carica / solo scarica, fermata tolta mentre carica, determinismo.
+`tests/express-station.test.mjs`: trascinamento parallelo a 2, 3, 6, 10 caselle da una linea (binari e strade) che
+resta parallelo con la linea accanto come alternativa, traccia del dito (buchi, ritorno, dito sulla linea = la si
+riusa, casa sotto il dito), unione di lato e in fila (nome e merci), limiti 4 × 6, caselle d'allargamento, binario di
+stazione proposto costruendo accanto, area di raccolta che cresce, fermate unite e due bus che caricano insieme, due
+treni che caricano insieme su due binari (con un binario solo il secondo aspetta; nessuno scontro), demolizione di una
+casella e dell'ultima, salvataggio (ripresa identica, salvataggio di prima che si allarga).
 
 ## Salvataggio
 `snapshot()` = lo stato `s` (JSON, `v: 2`): `{ mv, mode, level, seed, opts, h, h0, tk, money, m0, net, cut, towns, inds,

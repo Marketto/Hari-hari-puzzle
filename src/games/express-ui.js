@@ -52,18 +52,19 @@
     /* ---------- strumenti ---------- */
     X.setTool = (t) => {
       if (X.picking) endPick(true);
+      X.expand = null;
       X.tool = t; sfx('tap');
       cancelBuild();
       hud.paintTools();
       if (hud.isOpen() && hud.sheetKind !== 'new' && hud.sheetKind !== 'route') hud.close();
     };
-    X.setSub = (k) => { subs[X.tool] = k; sfx('tap'); cancelBuild(); hud.paintTools(); };
+    X.setSub = (k) => { subs[X.tool] = k; X.expand = null; sfx('tap'); cancelBuild(); hud.paintTools(); };
     X.blocked = () => !X.ui.home.hidden;
     X.togglePause = () => togglePause();
     X.alwaysDay = () => alwaysDay;
     X.toggleDay = () => { alwaysDay = !alwaysDay; sset('express:alwaysDay', alwaysDay); sfx('tap'); hud.sky(skyNow()); };
     X.cycleSpeed = () => { const order = [1, 2, 4, 0]; const i = order.indexOf(s.speed); E.act(s, { k: 'speed', v: order[(i + 1) % order.length] }); hud.hud(); ctx.changed(); };
-    X.escape = () => { if (X.picking) { endPick(); return; } if (!X.ui.confirm.hidden) { cancelBuild(); return; } if (hud.isOpen()) { hud.close(); return; } if (!X.ui.home.hidden && s) { hud.home(false); } };
+    X.escape = () => { if (X.picking) { endPick(); return; } if (X.expand != null) { X.endExpand(); return; } if (!X.ui.confirm.hidden) { cancelBuild(); return; } if (hud.isOpen()) { hud.close(); return; } if (!X.ui.home.hidden && s) { hud.home(false); } };
     X.campLevel = () => { try { return HH.progress && HH.progress.get ? HH.progress.get('express').level : ctx.level; } catch (e) { return ctx.level; } };
     X.freeOpts = () => sget('express:free', {});
     X.goMode = (mode, opts) => {
@@ -79,20 +80,45 @@
     X.onSheet = (kind) => { if (!kind) TR.overlay([], ''); };
     X.showArea = (st) => TR.overlay(TR.catchment(st), 'area' + st.id + ':' + st.tiles.length);
     X.startPick = () => { X.picking = true; X.ui.sheet.hidden = true; hud.paintTools(); };
-    X.endPick = () => endPick();
+    X.endPick = () => { if (X.expand != null) X.endExpand(); else endPick(); };
+    /* ---------- "Allarga stazione": caselle valide in verde col costo, tocco o trascinamento per aggiungerle ---------- */
+    X.expand = null;
+    X.startExpand = (id) => {
+      const st = s && s.stations[id];
+      if (!st) return;
+      X.tool = 'stop'; subs.stop = st.kind === 'rail' ? 'station' : 'busstop';
+      X.expand = id; hud.close(); cancelBuild();
+      hud.paintTools(); showExpand();
+    };
+    X.endExpand = () => { X.expand = null; TR.overlay([], ''); hud.hint(''); hud.paintTools(); };
+    function showExpand() {
+      const st = s && s.stations[X.expand];
+      if (!st) { X.endExpand(); return; }
+      const sp = E.expandSpots(s, X.expand);
+      TR.overlay(st.tiles.map((t) => ({ t, c: 'sel', a: 0.5 })).concat(sp.map((o) => ({ t: o.t, c: o.cost <= s.money ? 'ok' : 'bad' }))), 'x' + X.expand + ':' + st.tiles.join() + ':' + sp.length + ':' + (s.money >= (sp[0] ? sp[0].cost : 0)));
+      hud.hint(sp.length ? L('ex_h_expand', { n: hud.nf(sp[0].cost) }) + ' · ' + hud.stName(st) : L('ex_expand_none'), 0);
+    }
+    X.showExpand = showExpand;
+    function expandAt(t) {
+      const st = s && s.stations[X.expand];
+      if (!st || !E.expandSpots(s, X.expand).some((o) => o.t === t)) return;
+      act({ k: 'station', kind: st.kind, tiles: [t], ax: st.ax, join: st.id });
+      showExpand();
+    }
     function endPick(silent) { X.picking = false; hud.hint(''); hud.paintTools(); if (!silent && hud.draftOpen()) hud.drawDraft(); }
 
     /* ---------- azioni ---------- */
-    const ERR = { money: 'ex_err_money', blocked: 'ex_err_blocked', busy: 'ex_err_busy', axis: 'ex_err_axis', slope: 'ex_err_slope', town: 'ex_err_town',
+    const ERR = { stmax: 'ex_err_stmax', far: 'ex_err_far', money: 'ex_err_money', blocked: 'ex_err_blocked', busy: 'ex_err_busy', axis: 'ex_err_axis', slope: 'ex_err_slope', town: 'ex_err_town',
       orders: 'ex_err_orders', line: 'ex_err_line', empty: 'ex_err_empty', size: 'ex_err_size', noroute: 'ex_err_noroute', locked: 'ex_err_blocked', max: 'ex_err_busy',
       unreach: 'ex_err_orders', tunnel: 'ex_err_tunnel', long_b: 'ex_err_long_b', long_t: 'ex_err_long_t', bank: 'ex_err_bank', portal: 'ex_err_portal' };
     // perché un ponte o una galleria dritti non si possono fare (con la lunghezza massima)
     const why = (k) => L(ERR[k] || 'ex_err_noroute', { n: k === 'long_t' ? HH.expressNet.MAX_TUNNEL : HH.expressNet.MAX_BRIDGE });
+    const errText = (k) => L(ERR[k] || 'ex_err_blocked', { a: E.ST_PL, b: E.ST_LEN });
     function act(a) {
       if (!s) return { ok: false };
       if (a.k === 'buy' && s.veh.length >= X.maxVehicles()) { hud.hint(L('ex_err_busy'), 2500); sfx('bad'); return { ok: false, err: 'max' }; }
       const r = E.act(s, a);
-      if (!r.ok) { if (r.err !== 'over' && r.err !== 'unreach') { hud.hint(L(ERR[r.err] || 'ex_err_blocked'), 2600); sfx('bad'); } else if (r.err === 'unreach') sfx('bad'); return r; }
+      if (!r.ok) { if (r.err !== 'over' && r.err !== 'unreach') { hud.hint(errText(r.err), 2600); sfx('bad'); } else if (r.err === 'unreach') sfx('bad'); return r; }
       if (a.k === 'build' || a.k === 'station') sfx('place');
       else if (a.k === 'demolish') sfx('boing');
       else if (a.k === 'signal' || a.k === 'oneway') sfx('mark');
@@ -109,7 +135,8 @@
     X.opStart = (t) => {
       if (!s || E.isOver(s)) return;
       cancelBuild();
-      op = { a: t, b: t, seen: new Set() };
+      op = { a: t, b: t, seen: new Set(), stroke: [t] };
+      if (X.expand != null) { op.seen.add(t); expandAt(t); return; }
       if (X.tool === 'demolish') { op.seen.add(t); act({ k: 'demolish', tile: t }); }
       else X.opMove(t);
     };
@@ -123,21 +150,30 @@
     }
     X.opMove = (t) => {
       if (!op) return;
+      if (X.expand != null) { if (!op.seen.has(t)) { op.seen.add(t); expandAt(t); } return; }
       if (X.tool === 'demolish') { if (!op.seen.has(t)) { op.seen.add(t); act({ k: 'demolish', tile: t }); } return; }
+      // la traccia del dito (le caselle toccate, in ordine): l'anteprima la segue
+      HH.expressNet.strokeAdd(X.W.w, op.stroke, t);
       if (t === op.b && prev) return;
       op.b = t;
       if ((X.tool === 'rail' && X.sub === 'track') || X.tool === 'road') {
         if (t === op.a) { prev = null; TR.overlay([{ t, c: 'sel' }], 's' + t); return; }
-        prev = E.preview(s, kindOf(), op.a, t);
-        showPlan('p' + op.a + ':' + t);
-      } else if (X.tool === 'stop' && X.sub === 'station') {
-        op.line = line(op.a, t);
-        TR.overlay(op.line.map((x) => ({ t: x, c: 'ok' })), 'l' + op.line.join());
+        prev = E.preview(s, kindOf(), op.a, t, op.stroke);
+        showPlan('p' + op.a + ':' + t + ':' + op.stroke.length);
+      } else if (X.tool === 'stop') {
+        // stazione o fermata: anteprima col costo, e "Allarga Fune 2 · costo" se si unisce a una stazione accanto
+        const rail = X.sub === 'station';
+        op.line = rail ? line(op.a, t) : [t];
+        const r = E.stationPlan(s, { kind: rail ? 'rail' : 'road', tiles: op.line });
+        const good = r.ok && r.afford;
+        TR.overlay(op.line.map((x) => ({ t: x, c: good ? 'ok' : 'bad' })), 'l' + op.line.join() + good);
+        hud.hint(r.ok ? (r.join != null ? L('ex_st_grow', { st: hud.stName(s.stations[r.join]), n: hud.nf(r.cost) }) : `${L('ex_tiles', { n: op.line.length })} · ${hud.nf(r.cost)}`) + (r.afford ? '' : ' · ' + L('ex_err_money')) : errText(r.err), 0);
       } else TR.overlay([{ t, c: 'sel' }], 's' + t);
     };
     X.opEnd = (t, moved) => {
       if (!op) return;
       const o = op; op = null;
+      if (X.expand != null) return;
       if (X.tool === 'demolish') { TR.overlay([], ''); return; }
       if ((X.tool === 'rail' && X.sub === 'track') || X.tool === 'road') {
         if (prev && prev.ok) { hud.hint(''); hud.confirm(prev, kindOf(), prev.why ? why(prev.why) : ''); return; }
@@ -148,8 +184,8 @@
       if (t == null) return;
       if (X.tool === 'rail' && X.sub === 'signal') act({ k: 'signal', tile: t });
       else if (X.tool === 'rail' && X.sub === 'oneway') act({ k: 'oneway', tile: t });
-      else if (X.tool === 'stop' && X.sub === 'station') act({ k: 'station', kind: 'rail', tiles: o.line || [t] });
-      else if (X.tool === 'stop') act({ k: 'station', kind: 'road', tile: t });
+      else if (X.tool === 'stop' && X.sub === 'station') { hud.hint(''); act({ k: 'station', kind: 'rail', tiles: o.line || [t] }); }
+      else if (X.tool === 'stop') { hud.hint(''); act({ k: 'station', kind: 'road', tile: t }); }
     };
     X.opCancel = () => { op = null; cancelBuild(); };
     // anteprima: caselle (verdi; ponte e galleria in giallo), costo, tratti speciali e perché manca un salto dritto
@@ -163,13 +199,26 @@
     // la proposta alternativa (galleria ↔ sopra la collina, ponte ↔ giro lungo)
     X.swapPlan = () => {
       if (!prev || !prev.alt) return;
-      const a = prev.alt; prev.alt = null; a.alt = prev; a.why = prev.why; prev = a;
+      const a = prev.alt; prev.alt = null; a.alt = prev; a.why = prev.why; a.platOn = prev.platOn; prev = a;
       sfx('tap');
       showPlan('w' + prev.tiles.join());
       hud.hint('');
       hud.confirm(prev, kindOf(), prev.why ? why(prev.why) : '');
     };
-    X.commitBuild = () => { if (prev && prev.ok) act({ k: 'build', kind: kindOf(), tiles: prev.tiles, tn: prev.tn }); cancelBuild(); };
+    // costruisci; col binario di stazione acceso anche le banchine accanto alla stazione (unite a lei)
+    X.commitBuild = () => {
+      if (prev && prev.ok) {
+        const p = prev, kind = kindOf(), r = act({ k: 'build', kind, tiles: p.tiles, tn: p.tn });
+        if (r.ok && p.platOn && p.plat) for (const t of p.plat.tiles) act({ k: 'station', kind, tiles: [t], ax: p.plat.ax, join: p.plat.st });
+      }
+      cancelBuild();
+    };
+    // binario di stazione sì / no (nel pannello dell'anteprima)
+    X.togglePlat = () => {
+      if (!prev || !prev.plat) return;
+      prev.platOn = !prev.platOn; sfx('tap');
+      hud.confirm(prev, kindOf(), prev.why ? why(prev.why) : '');
+    };
     function cancelBuild() { prev = null; hud.hideConfirm(); TR.overlay([], ''); }
     X.cancelBuild = cancelBuild;
     X.hover = (p) => {
