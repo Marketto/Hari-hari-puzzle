@@ -7,7 +7,6 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
-- [ ] Hari Express: percorso dei mezzi modificabile dalla scheda (aggiungi, togli, su/giù, carica e scarica / aspetta il pieno / solo scarica / solo carica, fermate irraggiungibili rifiutate, cambio a metà viaggio); ponti fino a 6 caselle e gallerie fino a 8 proposti trascinando dritto (anteprima col tratto in giallo e il costo, «Altra via», perché non si può), demoliti interi; titolo della scheda sempre visibile; strade est-ovest non più scure
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)
@@ -40,6 +39,9 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.32.3)
+- [x] Hari Express: percorso dei mezzi modificabile dalla scheda (aggiungi, togli, su/giù, carica e scarica / aspetta il pieno / solo scarica / solo carica, fermate irraggiungibili rifiutate, cambio a metà viaggio); ponti fino a 6 caselle e gallerie fino a 8 proposti trascinando dritto (anteprima col tratto in giallo e il costo, «Altra via», perché non si può), demoliti interi; titolo della scheda sempre visibile; strade est-ovest non più scure
 
 ## Fatto (v0.32.2)
 - [x] Hari Express: tempo realistico — orologio con l'ora ("6 gen · 14:00"), 1 giorno = 28,8 s a ×1 = un giro del cielo (notte 21–4:30, meno profonda a ×2/×4), mezzi in caselle all'ora (bus tra villaggi in poche ore, soste di mezz'ora), scadenze di 15–30 giorni con tempi in giorni/ore, salvataggi 0.32 migrati (v2); fiumi senza spigoli staccati nelle mappe nuove (mv 2). 9 chiavi nuove (`ex_left_t`, `ex_stars3_t`, `ex_lastv_t`, `ex_trip_t`, `ex_v_speed_h`, `ex_v_from_d`, `ex_growing_d`, `ex_perday`, `ex_upkeep_d`): da rivedere con `i18n-translator`
