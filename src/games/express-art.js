@@ -51,6 +51,8 @@
     ex_c_money: 'Out of acorns! Wait for the next deliveries.',
     ex_e_sold: 'Out of acorns: Hari sold {v}.', ex_e_grow: '{town} is growing!', ex_e_first: 'First delivery! +{n}', ex_e_late: 'Time is up!', ex_e_goal: 'Goal reached!',
     ex_paused: 'Paused: tap the speed to go on',
+    ex_left_t: '{t} left', ex_stars3_t: '3 strawberries if you finish within {t}', ex_lastv_t: 'Last vehicle {t} ago', ex_trip_t: 'Round trip: about {t}.',
+    ex_v_speed_h: '{n} tiles an hour', ex_v_from_d: 'From {date}', ex_growing_d: 'Growing: +{n} yesterday', ex_perday: '{n} a day', ex_upkeep_d: 'Upkeep {n} a day',
     ex_always_day: 'Always day', ex_sky_day: 'Day', ex_sky_sunset: 'Sunset', ex_sky_night: 'Night', ex_sky_dawn: 'Dawn',
     // già tradotte (comuni e altri giochi)
     ry_nogl: 'This game needs 3D graphics (WebGL).', soon: 'Coming soon', play: 'Play', er_close: 'Close', lf_cancel: 'Cancel', level: 'Level', pa_pause: 'Pause', resume: 'Continue',

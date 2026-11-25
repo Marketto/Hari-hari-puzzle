@@ -455,7 +455,7 @@
     function applySky(L) {
       const R = X.R3;
       if (!R || !R.scene) return;
-      const key = L.t.toFixed(4) + (L.day === 1 && !L.gold && !L.rose ? 'd' : '');
+      const key = L.t.toFixed(4) + ':' + L.day.toFixed(3) + (L.day === 1 && !L.gold && !L.rose ? 'd' : '');
       if (key === R.skyKey) return;
       R.skyKey = key;
       if (!SK.w) { SK.w = new T.Color(1, 1, 1); SK.a = new T.Color(); SK.b = new T.Color(); SK.tint = new T.Color(); }
@@ -474,8 +474,9 @@
       // tinta per i materiali senza luce (acqua, faccine, fumo)
       SK.tint.copy(SK.w).lerp(C['sun-gold'], 0.4 * L.gold).lerp(SK.b.copy(C['amb-night']).lerp(SK.w, 0.25), 0.85 * n);
       if (R.water) { R.water.uniforms.uL.value.copy(SK.tint); R.water.uniforms.uDay.value = L.day; }
-      // finestre accese al calare della sera, lampioni e fari di notte
-      const lit = Math.max(0, Math.min(1, (n - 0.2) / 0.5));
+      // finestre accese al calare della sera, lampioni e fari di notte (con la notte vera dell'orologio, anche quando
+      // alle velocità alte i colori della notte sono smorzati)
+      const lit = Math.max(0, Math.min(1, ((L.dark == null ? n : L.dark) - 0.2) / 0.5));
       if (R.winMat) R.winMat.color.copy(C.window).multiply(SK.tint).lerp(C['window-lit'], lit);
       X.sky = { night: n, lit, tint: SK.tint, day: L.day };
       if (X.onSky) X.onSky(X.sky);

@@ -31,7 +31,7 @@ test('ogni livello 1–5 (e le prime sfide 6–8) vinto dal bot con più semi', 
       assert.ok(!E.isOver(s) && !E.goalState(s).every((g) => g.done), 'mai già risolto');
       bot.play(s);
       assert.ok(s.won, `livello ${level} seme ${k}: ${JSON.stringify(E.goalState(s))}`);
-      assert.ok(s.wonDay <= E.config(level).days);
+      assert.ok(s.wonH - s.h0 <= E.config(level).hours);
       assert.ok(E.rate(s) >= 1 && E.rate(s) <= 3);
       assert.equal(E.progress(s), 1);
     }
@@ -41,7 +41,7 @@ test('ogni livello 1–5 (e le prime sfide 6–8) vinto dal bot con più semi', 
 test('senza fare niente il livello si perde alla scadenza (nessun obiettivo gratis)', () => {
   for (let level = 1; level <= 5; level++) {
     const s = E.levelFromSeed(level, 99 + level);
-    E.step(s, E.TPD * (E.config(level).days + 2));
+    E.step(s, E.TPH * (E.config(level).hours + 2));
     assert.ok(s.lost && !s.won, `livello ${level}`);
     assert.ok(E.progress(s) < 1);
   }
@@ -58,7 +58,7 @@ test('stesso seme + stesse azioni = stessa partita; ripresa da JSON identica', (
   const snap = JSON.stringify(c);
   assert.ok(snap.length < 60000, `salvataggio compatto: ${snap.length} byte`);
   const d = E.restore(snap);
-  E.step(c, E.TPD * 90); E.step(d, E.TPD * 90);
+  E.step(c, E.TPH * 90); E.step(d, E.TPH * 90);
   assert.deepEqual(json(c), json(d));
   // la mappa non è nel salvataggio (si rigenera dal seme)
   assert.ok(!('ht' in json(c)) && !('_w' in json(c)));
@@ -129,7 +129,7 @@ function loop(signals, trains) {
   const ids = [];
   for (let k = 0; k < trains; k++) {
     let r;
-    for (let d = 0; d < 80; d++) { r = E.act(s, { k: 'buy', type: 'castagna', cars: ['wood', 'wood'], orders: [{ st: A }, { st: B }] }); if (r.ok) break; E.step(s, E.TPD); }
+    for (let d = 0; d < 80; d++) { r = E.act(s, { k: 'buy', type: 'castagna', cars: ['wood', 'wood'], orders: [{ st: A }, { st: B }] }); if (r.ok) break; E.step(s, E.TPH); }
     assert.ok(r.ok, 'treno comprato');
     ids.push(r.id);
   }
@@ -154,20 +154,20 @@ function noCrash(s, W, ticks) {
 test('treni e semafori: due e tre treni sull\'anello girano senza scontri né blocchi', () => {
   for (const [sig, n] of [[true, 2], [true, 3]]) {
     const { s, W } = loop(sig, n);
-    assert.equal(noCrash(s, W, E.TPD * 200), null);
+    assert.equal(noCrash(s, W, E.TPH * 200), null);
     const laps = {};
     for (const v of s.veh) laps[v.id] = 0;
     // ogni treno continua ad arrivare alle stazioni (niente blocchi)
-    for (const e of E.step(s, E.TPD * 200)) if (e.k === 'arrive') laps[e.v]++;
+    for (const e of E.step(s, E.TPH * 200)) if (e.k === 'arrive') laps[e.v]++;
     for (const id in laps) assert.ok(laps[id] > 10, `segnali ${sig}, ${n} treni: il treno ${id} è arrivato solo ${laps[id]} volte`);
   }
   // senza semafori l'anello è un tratto solo: i due treni si aspettano a vicenda (fermi, mai scontrati) e Hari lo dice
   const b = loop(false, 2);
-  assert.equal(noCrash(b.s, b.W, E.TPD * 120), null);
+  assert.equal(noCrash(b.s, b.W, E.TPH * 120), null);
   assert.equal(E.coach(b.s), 'ex_c_stuck');
   // aggiungendo i semafori ripartono
   for (const t of [9, 15, 18].map((x) => 6 * b.W.w + x).concat([9 * b.W.w + 23, 12 * b.W.w + 18, 12 * b.W.w + 8, 9 * b.W.w + 4])) E.act(b.s, { k: 'signal', tile: t });
-  const arr = E.step(b.s, E.TPD * 120).filter((e) => e.k === 'arrive').length;
+  const arr = E.step(b.s, E.TPH * 120).filter((e) => e.k === 'arrive').length;
   assert.ok(arr > 6, `ripartiti: ${arr} arrivi`);
 });
 
@@ -180,7 +180,7 @@ test('treni frontali su binario unico: si fermano senza scontrarsi', () => {
   assert.ok(E.act(s, { k: 'buy', type: 'castagna', cars: ['pax'], orders: [{ st: B }, { st: A }] }).ok);
   // stazione occupata: un terzo treno lì non si può comprare
   assert.equal(E.act(s, { k: 'buy', type: 'castagna', cars: ['pax'], orders: [{ st: A }, { st: B }] }).err, 'busy');
-  assert.equal(noCrash(s, W, E.TPD * 120), null);
+  assert.equal(noCrash(s, W, E.TPH * 120), null);
 });
 
 test('Hari dice "treno bloccato" solo se un altro treno tiene il tratto davanti a lungo', () => {
@@ -195,17 +195,17 @@ test('Hari dice "treno bloccato" solo se un altro treno tiene il tratto davanti 
   E.act(s, { k: 'build', kind: 'rail', tiles: line(at, 21, 6, 24, 6) });
   assert.ok(E.act(s, { k: 'buy', type: 'castagna', cars: ['grain', 'grain', 'grain', 'grain', 'grain', 'grain'], orders: [{ st: A, full: true }, { st: B }] }).ok);
   let longLoad = 0, turns = 0;
-  for (let i = 0; i < E.TPD * 300; i++) {
+  for (let i = 0; i < E.TPH * 300; i++) {
     for (const e of E.step(s, 1)) if (e.k === 'depart') turns++;
     const v = s.veh[0];
-    if (v.mode === 'load' && v.wt > E.TPD * 8) longLoad++;
-    assert.notEqual(E.coach(s), 'ex_c_stuck', `giorno ${s.day}: ${v.mode} wt=${v.wt}`);
+    if (v.mode === 'load' && v.wt > E.TPH * 8) longLoad++;
+    assert.notEqual(E.coach(s), 'ex_c_stuck', `ora ${s.h}: ${v.mode} wt=${v.wt}`);
   }
   assert.ok(longLoad > 0, 'il treno ha aspettato il pieno a lungo');
   assert.ok(turns > 4 && s.del.grain > 0, 'ha fatto avanti e indietro consegnando');
   // due treni frontali su binario unico senza semafori: si aspettano e Hari lo dice
   const b = loop(false, 2);
-  E.step(b.s, E.TPD * 30);
+  E.step(b.s, E.TPH * 30);
   assert.equal(E.coach(b.s), 'ex_c_stuck');
   assert.ok(b.s.veh.some((x) => S.blocked(x)));
 });
@@ -233,7 +233,7 @@ test('stazioni: valutazione che sale passando spesso e scende se la merce aspett
   // si vendono i camion: nessuno passa più, la valutazione scende e la merce se ne va
   for (const v of s.veh.slice()) E.act(s, { k: 'sell', id: v.id });
   const r0 = st.rate.milk;
-  E.step(s, E.TPD * 80);
+  E.step(s, E.TPH * 80);
   assert.ok(st.rate.milk < r0 - 0.2, `${r0} → ${st.rate.milk}`);
 });
 
@@ -242,7 +242,7 @@ test('le città crescono se servite bene, non se dimenticate', () => {
   const gp = E.goalState(a).find((g) => g.k === 'pop');
   const p0 = a.towns[gp.town].pop, h0 = a.towns[gp.town].houses.length;
   bot.play(a, 200);
-  E.step(b, E.TPD * 200);
+  E.step(b, E.TPH * 200);
   assert.ok(a.towns[gp.town].pop > p0 + 60 && a.towns[gp.town].houses.length > h0, 'servita: cresce con nuove case');
   assert.equal(b.towns[gp.town].pop, p0, 'non servita: resta com\'è');
   // le case nuove non vanno su strade, binari o acqua
@@ -273,7 +273,7 @@ test('Libera: taglie e acqua scelte, senza obiettivi; mappe reali solo dalla fas
     const wet = W.water.reduce((a, x) => a + x, 0) / W.n;
     if (water === 0) assert.ok(wet < 0.25, `poca acqua: ${wet}`);
     assert.equal(s.goals.length, 0);
-    E.step(s, E.TPD * 40);
+    E.step(s, E.TPH * 40);
     assert.ok(!s.won && !s.lost);
     assert.ok(E.progress(s) < 1);
   }
@@ -299,4 +299,95 @@ test('posizioni dentro la casella: dritto, curva e inversione restano nella case
   }
   S.tilePos(10, 0, 3, 1, 0, o); assert.ok(Math.abs(o.x) < 1e-9 && Math.abs(o.y - 0.5) < 1e-9);
   S.tilePos(10, 0, 3, 0, 1, o); assert.ok(Math.abs(o.x - 0.5) < 1e-9 && Math.abs(o.y) < 1e-9);
+});
+
+/* ---------- tempo: orologio coerente coi viaggi ---------- */
+test('tempo: un giorno = 24 ore, si parte alle 7 del 1° gennaio, scadenze di qualche settimana', () => {
+  assert.equal(E.TPH, 24); assert.equal(E.TPD, 24 * 24);
+  const s = E.levelFromSeed(1, 5);
+  assert.deepEqual(E.date(s.h), { y: 1, m: 0, d: 1, hh: 7 });
+  assert.deepEqual(E.date(24 * 59), { y: 1, m: 2, d: 1, hh: 0 }, '1° marzo');
+  assert.deepEqual(E.date(24 * 365 + 13), { y: 2, m: 0, d: 1, hh: 13 });
+  E.step(s, E.TPD);
+  assert.deepEqual(E.date(s.h), { y: 1, m: 0, d: 2, hh: 7 }, 'un giorno dopo, stessa ora');
+  for (let level = 1; level <= 8; level++) {
+    const c = E.config(level);
+    assert.ok(c.days >= 14 && c.days <= 31, `livello ${level}: ${c.days} giorni`);
+    assert.ok(c.par >= 3 * 24 && c.par < c.hours, `livello ${level}: par ${c.par} ore`);
+  }
+  // la Fragola arriva il 1° marzo dell'anno 1 (in Libera, dopo ~28 minuti veri a ×1)
+  assert.equal(E.VT.fragola.fromH, 24 * 59);
+});
+
+test('tempo: bus e camion tra villaggi vicini in poche ore, treni entro un giorno, carico in meno di un\'ora', () => {
+  const trips = { road: [], rail: [] }, stops = [];
+  for (const level of [1, 2, 4]) {
+    const s = E.levelFromSeed(level, 4000 + level);
+    const go = {}, at = {};
+    const orig = E.step;
+    // conta i passi tra partenza e arrivo, e tra arrivo e ripartenza (solo i mezzi che non aspettano il pieno)
+    let tk = 0;
+    const spy = (st, n) => { const ev = []; for (let i = 0; i < n && !E.isOver(st); i++) { const e = orig(st, 1); tk++; for (const x of e) {
+      const v = st.veh.find((y) => y.id === x.v);
+      if (x.k === 'depart') { go[x.v] = tk; if (at[x.v] != null && v && !v.orders.some((o) => o.full)) stops.push(tk - at[x.v]); }
+      if (x.k === 'arrive' && go[x.v] != null && v) { trips[S.isTrain(v) ? 'rail' : 'road'].push(tk - go[x.v]); at[x.v] = tk; }
+    } ev.push(...e); } return ev; };
+    E.step = spy;
+    try { bot.play(s); } finally { E.step = orig; }
+    assert.ok(s.won);
+  }
+  const hours = (a) => a.map((t) => t / E.TPH), med = (a) => a.slice().sort((x, y) => x - y)[a.length >> 1];
+  const road = hours(trips.road), rail = hours(trips.rail);
+  assert.ok(road.length > 20 && rail.length >= 4, `${road.length} ${rail.length} ${stops.length}`);
+  assert.ok(med(road) >= 1 && med(road) <= 8, `strada: ${med(road)} ore`);
+  assert.ok(Math.max(...road) <= 14, `strada al più ~mezza giornata: ${Math.max(...road)} ore`);
+  assert.ok(Math.max(...rail) <= 24, `treno al più un giorno: ${Math.max(...rail)} ore`);
+  assert.ok(stops.length > 5 && Math.max(...stops) / E.TPH <= 1, `fermata: ${Math.max(...stops) / E.TPH} ore`);
+});
+
+test('salvataggi v1 (0.32.x): si aprono, con la stessa mappa di allora, e la partita continua', async () => {
+  const fs = await import('node:fs');
+  const raw = fs.readFileSync(new URL('./fixtures/express-v1.json', import.meta.url), 'utf8');
+  const old = JSON.parse(raw);
+  assert.equal(old.v, 1); assert.ok('day' in old && 'tod' in old);
+  const s = E.restore(raw);
+  assert.ok(s, 'si apre');
+  assert.equal(s.v, E.SNAP_V); assert.equal(s.mv, 1); assert.equal(s.h0, 0);
+  assert.equal(s.h, old.day); assert.equal(s.tk, old.tk);
+  assert.ok(!('day' in s) && !('tod' in s) && !('wonDay' in s));
+  assert.equal(s.deadline, old.deadline); assert.equal(s.par, old.par);
+  // la mappa è quella del salvataggio (acqua uguale a quella generata dalla 0.32: firma calcolata allora)
+  const W = E.world(s);
+  let sig = 0, wet = 0;
+  for (let i = 0; i < W.n; i++) if (W.water[i]) { sig = (sig * 31 + i) >>> 0; wet++; }
+  assert.equal(wet, 41); assert.equal(sig, 3633147419);
+  for (const k in s.net) assert.ok(!W.water[+k] || W.road[+k] || W.rail[+k]);
+  // e si gioca: il camion consegna ancora latte, il salvataggio nuovo si riapre uguale
+  const before = s.gd['milk@i1'] || 0;
+  E.step(s, E.TPH * 30);
+  assert.ok((s.gd['milk@i1'] || 0) > before + 40, `latte: ${before} → ${s.gd['milk@i1']}`);
+  const again = E.restore(JSON.stringify(s));
+  assert.deepEqual(json(again), json(s));
+  assert.equal(E.restore(JSON.stringify(Object.assign({}, old, { v: 99 }))), null, 'versioni sconosciute: partita nuova');
+});
+
+test('acqua collegata per i lati nelle mappe nuove (niente fiume a pezzi); le mappe vecchie restano uguali', () => {
+  const M = HH.expressMap;
+  for (let level = 1; level <= 5; level++) for (let k = 0; k < 6; k++) {
+    const m = M.scenario(level, 31 * k + level, M.MV);
+    assert.equal(M.diagonalOnly(m), 0, `livello ${level} seme ${k}`);
+  }
+  for (const size of [32, 48, 64]) for (const water of [1, 2]) for (let k = 0; k < 3; k++) {
+    const s = E.newFree({ size, water, seed: 50 + k });
+    assert.equal(s.mv, M.MV);
+    assert.equal(M.diagonalOnly(E.world(s).base), 0, `Libera ${size} acqua ${water} seme ${k}`);
+  }
+  // mv 1 (salvataggi vecchi): il generatore di allora, con i suoi fiumi a spigolo
+  let old = 0;
+  for (let k = 0; k < 10; k++) old += M.diagonalOnly(M.scenario(3, 100 + k, 1));
+  assert.ok(old > 0);
+  // ciò che è disegnato come acqua è acqua anche per chi costruisce: una casella d'angolo aggiunta non si costruisce
+  const s = E.levelFromSeed(3, 4321), W = E.world(s);
+  const i = Array.from(W.water).findIndex((x, j) => x && !W.base.roads[j]);
+  assert.equal(E.act(s, { k: 'station', kind: 'road', tile: i }).ok, false);
 });

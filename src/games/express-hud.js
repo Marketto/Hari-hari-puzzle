@@ -13,12 +13,31 @@
     const code = () => (HH.i18n && HH.i18n.code) || 'en';
     const nf = (n) => { try { return new Intl.NumberFormat(code()).format(Math.round(n)); } catch (e) { return String(Math.round(n)); } };
     const pct = (r) => Math.round((r || 0) * 100) + '%';
-    function fmtDate(day) {
-      const d = E.date(day);
+    // giorno e mese ("6 gen"), dall'anno 2 anche l'anno (Libera)
+    function fmtDay(h) {
+      const d = E.date(h);
       let md;
       try { md = new Intl.DateTimeFormat(code(), { day: 'numeric', month: 'short' }).format(new Date(2001, d.m, d.d)); } catch (e) { md = d.d + '/' + (d.m + 1); }
-      return md + ' · ' + L('ex_year', { n: d.y });
+      return d.y > 1 ? md + ' ' + L('ex_year', { n: d.y }) : md;
     }
+    // l'orologio della barra: "6 gen · 14:00" (ore intere, nel formato della lingua)
+    function fmtDate(h) {
+      const d = E.date(h);
+      let hm;
+      try { hm = new Intl.DateTimeFormat(code(), { hour: 'numeric', minute: '2-digit' }).format(new Date(2001, d.m, d.d, d.hh, 0)); } catch (e) { hm = d.hh + ':00'; }
+      return fmtDay(h) + ' · ' + hm;
+    }
+    // una durata in ore con le unità della lingua: "5 h", "2 giorni 5 h" (sotto i 3 giorni), poi "14 giorni"
+    function dur(hours) {
+      const h = Math.max(0, Math.round(hours)), c = code();
+      const u = (unit, n, disp) => { try { return new Intl.NumberFormat(c, { style: 'unit', unit, unitDisplay: disp }).format(n); } catch (e) { return n + (unit === 'day' ? 'd' : 'h'); } };
+      if (h < 24) return u('hour', h, 'short');
+      const d = Math.floor(h / 24), r = h - d * 24;
+      if (d >= 3 || !r) return u('day', d, 'long');
+      const parts = [u('day', d, 'short'), u('hour', r, 'short')];
+      try { return new Intl.ListFormat(c, { type: 'unit', style: 'narrow' }).format(parts); } catch (e) { return parts.join(' '); }
+    }
+    const nf1 = (n) => { try { return new Intl.NumberFormat(code(), { maximumFractionDigits: 1 }).format(n); } catch (e) { return String(Math.round(n * 10) / 10); } };
     const cargoName = (c) => L('ex_k_' + c);
     const indName = (t) => L('ex_i_' + t);
     const stName = (st) => (st ? E.stationName(X.s, st, indName) : '?');
@@ -136,12 +155,12 @@
     let hudKey = '', goalKey = '';
     function hud() {
       const s = X.s, U = X.ui;
-      const k = s.money + '|' + s.day + '|' + s.speed + '|' + X.paused;
+      const k = s.money + '|' + s.h + '|' + s.speed + '|' + X.paused;
       if (k !== hudKey) {
         hudKey = k;
         U.money.textContent = nf(s.money);
         U.moneyB.classList.toggle('neg', s.money < 0);
-        U.date.textContent = fmtDate(s.day);
+        U.date.textContent = fmtDate(s.h);
         U.speed.textContent = s.speed ? '×' + s.speed : '';
         if (!s.speed) U.speed.innerHTML = IC.play;
         U.speed.dataset.v = String(s.speed);
@@ -166,13 +185,13 @@
         U.goal.innerHTML = `<small>${esc(L('ex_freeplay'))}</small><span class="gl">${IC.house}${esc(L('ex_inhab', { n: nf(pop) }))}</span><span class="gl">${vehIc('bus')}${s.veh.length}</span>`;
         return;
       }
-      const gs = E.goalState(s), left = Math.max(0, s.deadline - s.day);
+      const gs = E.goalState(s), left = dur(Math.max(0, s.deadline - s.h));
       const k = gs.map((g) => g.cur).join() + '|' + left + '|' + X.land;
       if (k === goalKey) return; goalKey = k;
       const p = gs.reduce((a, g) => a + Math.min(1, g.cur / g.n), 0) / (gs.length || 1);
       const cur = Math.max(0, gs.findIndex((g) => !g.done));
       U.goal.innerHTML = `<small>${esc(L('ex_goal'))}</small>` + gs.map((g, i) => { const l = goalLine(g); return `<span class="gl${g.done ? ' done' : ''}${i === cur ? ' cur' : ''}">${l.ic.replace('<svg', '<svg width="18" height="18"')}<span class="gt">${esc(l.t)}</span><b>${nf(Math.min(g.cur, g.n))}/${nf(g.n)}</b></span>`; }).join('')
-        + `<span class="ex-bar"><i style="width:${Math.round(p * 100)}%"></i></span><span class="left">${esc(L('ex_left', { d: nf(left) }))}</span>`;
+        + `<span class="ex-bar"><i style="width:${Math.round(p * 100)}%"></i></span><span class="left">${esc(L('ex_left_t', { t: left }))}</span>`;
       U.goal.classList.toggle('mini', X.land);
     }
 
@@ -195,10 +214,10 @@
     /* ---------- anteprima del costo ---------- */
     function confirm(p, kind) {
       const U = X.ui, s = X.s, n = p.tiles.length;
-      const upkeep = Math.round(n * (kind === 'rail' ? 12 : 6));
+      const upkeep = n * (kind === 'rail' ? S.MNT.rail : S.MNT.road);
       const poor = p.cost > s.money;
       U.confirm.innerHTML = `<small>${esc(L('ex_preview'))}</small>
-        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep', { n: nf(upkeep) }))}</span>`}</div>
+        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep_d', { n: nf1(upkeep) }))}</span>`}</div>
         <div class="acts"><button class="ex-btn soft" type="button" data-c="no">${IC.close}<span>${esc(L('lf_cancel'))}</span></button>
         <button class="ex-btn main" type="button" data-c="ok"${poor ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_build'))}</span></button></div>`;
       U.confirm.hidden = false;
@@ -242,14 +261,14 @@
       const pop = towns.reduce((a, t) => a + t.pop, 0);
       const cs = Object.keys(st.pick);
       const rate = cs.length ? cs.reduce((a, c) => a + st.rate[c], 0) / cs.length : 0;
-      const last = cs.length ? Math.min(...cs.map((c) => s.day - (st.last[c] || 0))) : -1;
+      const last = cs.length ? Math.min(...cs.map((c) => s.h - (st.last[c] || 0))) : -1;
       const wait = Object.keys(st.wait).filter((c) => st.wait[c] > 0);
       const vs = s.veh.filter((v) => v.orders.some((o) => o.st === id) || X.W.st[v.t] === id + 1);
       const acc = Object.keys(cv.acc);
       const html = head(indIc(st.kind === 'rail' ? 'station' : 'stop'), stName(st), (st.kind === 'rail' ? L('ex_rail_station') : L('ex_road_stop')) + (pop ? ' · ' + L('ex_inhab', { n: nf(pop) }) : ''))
         + `<div class="ex-acts"><button class="ex-btn main" type="button" data-k="newv">${IC.plus}<span>${esc(st.kind === 'rail' ? L('ex_newtrain') : L('ex_newroad'))}</span></button></div>`
         + `<div class="ex-card"><div class="ex-meter"><span>${esc(L('ex_rating'))}</span><span class="ex-bar"><i style="width:${pct(rate)}"></i></span><b>${pct(rate)}</b></div>
-          <p>${esc(last < 0 ? L('ex_novisit') : L('ex_lastv', { d: nf(last) }))}</p></div>
+          <p>${esc(last < 0 ? L('ex_novisit') : L('ex_lastv_t', { t: dur(last) }))}</p></div>
         <div class="ex-card"><h4>${esc(L('ex_waiting'))}</h4>${wait.length ? wait.map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span><b>${nf(st.wait[c])}</b></div>`).join('') : `<p>${esc(L('ex_nothing'))}</p>`}</div>
         <div class="ex-card"><h4>${esc(L('ex_accepts'))}</h4><div class="ex-cars">${acc.length ? acc.map((c) => `<span class="ex-row" title="${esc(cargoName(c))}">${cargoIc(c)}<span>${esc(cargoName(c))}</span></span>`).join('') : '—'}</div></div>
         <div class="ex-card"><h4>${esc(L('ex_passing'))}</h4>${vs.length ? vs.map((v) => `<button class="ex-opt" type="button" data-v="${v.id}">${vehIc(v.type)}<div><b>${esc(vName(v))}</b><small>${esc(status(v))} · ${v.profit >= 0 ? '+' : ''}${nf(v.profit)}</small></div></button>`).join('') : '—'}</div>`;
@@ -261,32 +280,37 @@
       const o = v.orders[v.oi], st = o && X.s.stations[o.st];
       if (v.mode === 'lost') return L('ex_st_lost');
       if (v.mode === 'load') return L('ex_st_load', { st: stName(st) });
-      if (S.isTrain(v) && v.mode === 'go' && (v.bk || 0) > S.TPD) return L('ex_st_wait');
+      if (S.isTrain(v) && v.mode === 'go' && (v.bk || 0) > S.TPH) return L('ex_st_wait');
       return L('ex_st_go', { st: stName(st) });
     }
+    const tripMemo = new WeakMap();
     function vehicle(id) {
       const s = X.s, v = s.veh.find((x) => x.id === id);
       if (!v) { close(); return; }
       const caps = S.caps(v);
+      // il giro si ricalcola solo quando cambia la rete o il percorso (la scheda si aggiorna spesso)
+      const tk = X.W.ver + '|' + v.orders.map((o) => o.st).join(), c = tripMemo.get(v);
+      const trip = c && c.k === tk ? c.h : tripHours(v.orders, v.type);
+      tripMemo.set(v, { k: tk, h: trip });
       const html = head(vehIc(v.type), vName(v), status(v))
         + `<div class="ex-card"><div class="ex-row"><span>${esc(L('ex_profit'))}</span><b class="${v.profit >= 0 ? 'pos' : 'neg'}">${v.profit >= 0 ? '+' : ''}${nf(v.profit)}</b></div>
           <div class="ex-row"><span>${esc(L('ex_lastyear'))}</span><b>${nf(v.last)}</b></div></div>
         <div class="ex-card"><h4>${esc(L('ex_load'))}</h4>${Object.keys(caps).map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span><b>${nf(v.ld[c] ? v.ld[c][0] : 0)} / ${nf(caps[c])}</b></div>`).join('')}</div>
-        <div class="ex-card"><h4>${esc(L('ex_route'))}</h4>${v.orders.map((o, i) => `<div class="ex-order"><span class="n">${i + 1}</span><div><b>${esc(stName(s.stations[o.st]))}</b>${o.full ? `<small>${esc(L('ex_full'))}</small>` : ''}</div></div>`).join('')}</div>
+        <div class="ex-card"><h4>${esc(L('ex_route'))}</h4>${v.orders.map((o, i) => `<div class="ex-order"><span class="n">${i + 1}</span><div><b>${esc(stName(s.stations[o.st]))}</b>${o.full ? `<small>${esc(L('ex_full'))}</small>` : ''}</div></div>`).join('')}${trip > 0 ? `<p>${esc(L('ex_trip_t', { t: dur(trip) }))}</p>` : ''}</div>
         <div class="ex-acts"><button class="ex-btn soft" type="button" data-k="sell">${esc(L('ex_sell'))} · +${nf(v.value * 0.5)}</button></div>`;
       open(html, 'veh', id);
     }
     function town(id) {
       const t = X.s.towns[id];
       const html = head(indIc('town'), t.name, L('ex_village') + ' · ' + L('ex_houses', { n: t.houses.length }))
-        + `<div class="ex-card"><div class="ex-row">${IC.house}<span>${esc(L('ex_inhab', { n: nf(t.pop) }))}</span></div><p>${esc(t.lg > 0 ? L('ex_growing', { n: nf(t.lg) }) : L('ex_notgrow'))}</p></div>
+        + `<div class="ex-card"><div class="ex-row">${IC.house}<span>${esc(L('ex_inhab', { n: nf(t.pop) }))}</span></div><p>${esc(t.lg > 0 ? L('ex_growing_d', { n: nf(t.lg) }) : L('ex_notgrow'))}</p></div>
         <div class="ex-card"><h4>${esc(L('ex_accepts'))}</h4><div class="ex-cars">${['pax', 'mail', 'cheese', 'bread', 'toys'].map((c) => `<span class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span></span>`).join('')}</div></div>`;
       open(html, 'town', id);
     }
     function industry(id) {
       const d = X.s.inds[id], T = HH.expressMap.IND[d.type];
       const html = head(indIc(d.type), indName(d.type), X.s.towns.length ? nearTown(d) : '')
-        + `<div class="ex-card"><h4>${esc(L('ex_makes'))}</h4><div class="ex-row">${cargoIc(T.make)}<span>${esc(cargoName(T.make))}</span><b>${esc(L('ex_month', { n: nf(d.lm) }))}</b></div></div>`
+        + `<div class="ex-card"><h4>${esc(L('ex_makes'))}</h4><div class="ex-row">${cargoIc(T.make)}<span>${esc(cargoName(T.make))}</span><b>${esc(L('ex_perday', { n: nf(d.lm) }))}</b></div></div>`
         + (T.take ? `<div class="ex-card"><h4>${esc(L('ex_needs'))}</h4>${T.take.map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span></div>`).join('')}</div>` : '');
       open(html, 'ind', id);
     }
@@ -300,7 +324,7 @@
       const lv = s.mode === 'level' ? L('level') + ' ' + s.level : L('ex_freeplay');
       const html = head(IC.chart, lv, s.mode === 'level' ? levelTitle(s.level) : '')
         + (gs.length ? `<div class="ex-card"><h4>${esc(L('ex_goals'))}</h4>${gs.map((g) => { const l = goalLine(g); return `<div class="ex-row">${l.ic}<span>${esc(l.t)}</span><b>${nf(Math.min(g.cur, g.n))}</b>${g.done ? IC.check : ''}</div>`; }).join('')}
-          <p>${esc(L('ex_left', { d: nf(Math.max(0, s.deadline - s.day)) }))} · ${esc(L('ex_stars3', { d: nf(s.par) }))}</p></div>` : '')
+          <p>${esc(L('ex_left_t', { t: dur(Math.max(0, s.deadline - s.h)) }))} · ${esc(L('ex_stars3_t', { t: dur(s.par) }))}</p></div>` : '')
         + `<div class="ex-card"><h4>${esc(L('ex_yearacc'))}<b class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : ''}${nf(net)}</b></h4>
           <div class="ex-chart" aria-hidden="true">${rows.map((r) => `<i class="${r[1] < 0 ? 'out' : ''}" style="height:${Math.max(4, Math.round(Math.abs(r[1]) / max * 100))}%"></i>`).join('')}</div>
           ${rows.map((r) => `<div class="ex-row"><span>${esc(L(r[0]))}</span><b class="${r[1] >= 0 ? 'pos' : 'neg'}">${r[1] >= 0 ? '+' : ''}${nf(r[1])}</b></div>`).join('')}</div>
@@ -329,8 +353,9 @@
       drawDraft();
     }
     function draftCost() { return E.vehCost({ type: draft.type, cars: draft.cars }); }
-    function tripDays() {
-      const s = X.s, w = X.W, os = draft.orders;
+    // giro completo in ore: strada alla velocità del mezzo + mezz'ora di carico e scarico a ogni fermata
+    function tripHours(os = draft.orders, type = draft.type) {
+      const s = X.s, w = X.W;
       if (os.length < 2) return 0;
       let len = 0;
       for (let i = 0; i < os.length; i++) {
@@ -342,27 +367,27 @@
         if (!r) return -1;
         len += r.len;
       }
-      return Math.round(len / S.VT[draft.type].spd + os.length);
+      return Math.max(1, Math.round(len / S.VT[type].spd + os.length * 0.5));
     }
     function drawDraft() {
-      const s = X.s, rail = draft.rail, yr = E.date(s.day).y;
+      const s = X.s, rail = draft.rail;
       const types = rail ? ['castagna', 'fragola'] : ['bus', 'mail', 'truck'];
       const opt = (t) => {
-        const T = S.VT[t], locked = T.from && yr < T.from + 1;
+        const T = S.VT[t], locked = !!T.fromH && s.h < T.fromH;
         const nm = t === 'castagna' ? 'Castagna' : t === 'fragola' ? 'Fragola' : L('ex_v_' + t);
-        const sub = rail ? (t === 'castagna' ? L('ex_v_steam') : L('ex_v_electric')) + ' · ' + L('ex_v_speed', { n: T.spd }) : L('ex_v_speed', { n: T.spd }) + ' · ' + L('ex_v_cap', { n: T.cap, cargo: cargoName(t === 'truck' ? draft.cargo : T.cargo[0]) });
-        return `<button class="ex-opt" type="button" data-type="${t}" aria-pressed="${draft.type === t}"${locked ? ' aria-disabled="true"' : ''}>${vehIc(t)}<div><b>${esc(nm)}</b><small>${esc(locked ? L('ex_v_from', { n: T.from + 1 }) : sub)}</small><small>${acorn.replace('<svg', '<svg class="ac"')} ${nf(T.cost)} · −${nf(T.run)}/${esc(L('ex_year', { n: '' }).trim())}</small></div></button>`;
+        const sub = rail ? (t === 'castagna' ? L('ex_v_steam') : L('ex_v_electric')) + ' · ' + L('ex_v_speed_h', { n: nf1(T.spd) }) : L('ex_v_speed_h', { n: nf1(T.spd) }) + ' · ' + L('ex_v_cap', { n: T.cap, cargo: cargoName(t === 'truck' ? draft.cargo : T.cargo[0]) });
+        return `<button class="ex-opt" type="button" data-type="${t}" aria-pressed="${draft.type === t}"${locked ? ' aria-disabled="true"' : ''}>${vehIc(t)}<div><b>${esc(nm)}</b><small>${esc(locked ? L('ex_v_from_d', { date: fmtDay(T.fromH) }) : sub)}</small><small>${acorn.replace('<svg', '<svg class="ac"')} ${nf(T.cost)} · ${esc(L('ex_perday', { n: '−' + nf(T.run) }))}</small></div></button>`;
       };
       const cargoPick = !rail && draft.type === 'truck' ? `<div class="ex-card"><h4>${esc(L('ex_cargo'))}</h4><div class="ex-cars">${S.VT.truck.cargo.map((c) => `<button class="ex-chip" type="button" data-cargo="${c}" aria-pressed="${draft.cargo === c}">${cargoIc(c)}${esc(cargoName(c))}</button>`).join('')}</div></div>` : '';
       const counts = {};
       for (const c of draft.cars) counts[c] = (counts[c] || 0) + 1;
       const wag = rail ? `<div class="ex-card"><h4>${esc(L('ex_wagons'))}<small>${draft.cars.length} / ${S.WAGON.max}</small></h4><div class="ex-cars">${S.CARGOS.map((c) => `<span class="ex-chip" style="box-shadow:none"><button class="ex-chip" type="button" data-wdel="${c}" aria-label="${esc(L('ex_remove'))} ${esc(cargoName(c))}" style="box-shadow:none;height:28px;padding:0 6px">${IC.minus}</button>${cargoIc(c)}<b>${counts[c] || 0}</b><button class="ex-chip" type="button" data-wadd="${c}" aria-label="+ ${esc(cargoName(c))}" style="box-shadow:none;height:28px;padding:0 6px">${IC.plus}</button></span>`).join('')}</div></div>` : '';
-      const days = tripDays();
+      const hrs = tripHours();
       const orders = `<div class="ex-card"><h4>${esc(L('ex_route'))}<small>${esc(L('ex_tapst'))}</small></h4>${draft.orders.map((o, i) => `<div class="ex-order"><span class="n">${i + 1}</span><div><b>${esc(stName(s.stations[o.st]))}</b></div>
           <button class="ex-chip" type="button" data-full="${i}" aria-pressed="${o.full}">${esc(L('ex_full'))}</button>${i ? `<button class="ex-chip" type="button" data-odel="${i}" aria-label="${esc(L('ex_remove'))}">${IC.close}</button>` : ''}</div>`).join('')}
         <button class="ex-btn soft" type="button" data-k="pick">${IC.plus}<span>${esc(L('ex_addstop'))}</span></button>
-        ${days > 0 ? `<p>${esc(L('ex_trip', { d: nf(days) }))}</p>` : days < 0 ? `<p class="bad">${esc(L('ex_err_noroute'))}</p>` : ''}</div>`;
-      const cost = draftCost(), ok = draft.orders.length >= 2 && cost <= s.money && (!rail || draft.cars.length) && days >= 0;
+        ${hrs > 0 ? `<p>${esc(L('ex_trip_t', { t: dur(hrs) }))}</p>` : hrs < 0 ? `<p class="bad">${esc(L('ex_err_noroute'))}</p>` : ''}</div>`;
+      const cost = draftCost(), ok = draft.orders.length >= 2 && cost <= s.money && (!rail || draft.cars.length) && hrs >= 0;
       const html = head(vehIc(rail ? 'castagna' : 'bus'), rail ? L('ex_newtrain') : L('ex_newroad'), stName(s.stations[draft.from]))
         + `<div class="ex-pick">${types.map(opt).join('')}</div>${cargoPick}${wag}${orders}
         <div class="ex-total"><span>${esc(L('ex_total'))} <b>${acorn}${nf(cost)}</b></span><button class="ex-btn main" type="button" data-k="buy"${ok ? '' : ' disabled'}>${IC.check}<span>${esc(L('ex_buy'))}</span></button></div>`;
@@ -477,6 +502,6 @@
       setTimeout(() => { e.remove(); pops--; }, 1400);
     }
     return { build, fitTools, hud, sky, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
-      draftOpen, drawDraft, home, labels, pop, paintTools, fmtDate, nf, stName, vName, levelTitle, get sheetKind() { return sheetKind; }, get sheetArg() { return sheetArg; } };
+      draftOpen, drawDraft, home, labels, pop, paintTools, fmtDate, fmtDay, dur, nf, stName, vName, levelTitle, get sheetKind() { return sheetKind; }, get sheetArg() { return sheetArg; } };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

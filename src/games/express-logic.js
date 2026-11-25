@@ -2,8 +2,13 @@
  * giocatore (le stesse per UI e bot), salvataggio compatto, stelle e progresso.
  * Moduli caricati prima (stesso HH): express-map.js (mappe), express-net.js (reti e A*), express-sim.js (simulazione).
  *
- * Stato `s` (JSON, è lo snapshot): { v, mode: 'level'|'free', level, seed, opts, day, tk, money, m0, net, cut, towns,
- *   inds, stations, veh, nid, del, gd, fin, finY, goals, deadline, par, won, lost, wonDay, moves, rs, speed }.
+ * Stato `s` (JSON, è lo snapshot): { v: 2, mv, mode: 'level'|'free', level, seed, opts, h, tk, money, m0, net, cut,
+ *   towns, inds, stations, veh, nid, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed }.
+ * Tempo: h = ore intere dal 1° gennaio a mezzanotte (si parte alle 7: h0), tk = passi nell'ora; deadline (assoluta) e
+ * par (dall'inizio) in ore.
+ * mv = versione della mappa generata dal seme (1 fino alla 0.32, 2 con l'acqua collegata per i lati).
+ * I salvataggi v1 (0.32.x: un "giorno" di 24 passi) si aprono con migrate(): quel giorno è la nostra ora, con gli
+ * stessi passi, quindi basta rinominare (day → h, wonDay → wonH) e tenere la mappa di allora (mv 1).
  * La mappa (terreno, acqua, alberi) NON è nello stato: si rigenera dal seme. `net` = solo le caselle cambiate
  * { idx: [binari, strade, semaforo, senso unico] }, `cut` = alberi tolti. Il mondo con le tabelle dense (W) è una
  * proprietà non enumerabile ricostruita al bisogno (world(s)), quindi JSON.stringify(s) resta piccolo.
@@ -14,18 +19,19 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
   const M = HH.expressMap, NET = HH.expressNet, S = HH.expressSim;
-  const { TPD, VT, WAGON, date } = S;
+  const { TPH, HPD, TPD, VT, WAGON, date } = S;
   const AXIS = NET.AXIS;
 
   /* ---------- livelli ---------- */
   // site(i) = i-esimo sito del modello di mappa (express-map LEVELS); goal: del (merce consegnata, a un'industria o a
   // un villaggio), train (treni in servizio), pop (abitanti di un villaggio)
+  // days = giorni di gioco a disposizione (scadenza), par = ore per le 3 fragoline
   const LV = [null,
-    { money: 3000, days: 365, par: 90, goals: (m) => [{ k: 'del', c: 'pax', n: 120 }] },
-    { money: 4000, days: 365, par: 150, goals: (m) => [{ k: 'del', c: 'milk', n: 200, ind: m.sites[2].ind }] },
-    { money: 8000, days: 540, par: 170, goals: (m) => [{ k: 'del', c: 'milk', n: 150, ind: m.sites[2].ind }, { k: 'del', c: 'cheese', n: 100, town: m.sites[3].town }] },
-    { money: 17000, days: 540, par: 260, goals: (m) => [{ k: 'del', c: 'grain', n: 400, ind: m.sites[2].ind }, { k: 'train', n: 1 }, { k: 'del', c: 'bread', n: 100, town: m.sites[3].town }] },
-    { money: 30000, days: 730, par: 380, goals: (m) => [{ k: 'del', c: 'wood', n: 500, ind: m.sites[2].ind }, { k: 'train', n: 2 }, { k: 'pop', town: m.sites[3].town, n: m.towns[m.sites[3].town].pop + 120 }] },
+    { money: 3000, days: 15, par: 96, goals: (m) => [{ k: 'del', c: 'pax', n: 120 }] },
+    { money: 4000, days: 15, par: 144, goals: (m) => [{ k: 'del', c: 'milk', n: 200, ind: m.sites[2].ind }] },
+    { money: 8000, days: 22, par: 168, goals: (m) => [{ k: 'del', c: 'milk', n: 150, ind: m.sites[2].ind }, { k: 'del', c: 'cheese', n: 100, town: m.sites[3].town }] },
+    { money: 17000, days: 22, par: 264, goals: (m) => [{ k: 'del', c: 'grain', n: 400, ind: m.sites[2].ind }, { k: 'train', n: 1 }, { k: 'del', c: 'bread', n: 100, town: m.sites[3].town }] },
+    { money: 30000, days: 30, par: 384, goals: (m) => [{ k: 'del', c: 'wood', n: 500, ind: m.sites[2].ind }, { k: 'train', n: 2 }, { k: 'pop', town: m.sites[3].town, n: m.towns[m.sites[3].town].pop + 120 }] },
   ];
   const LAST = LV.length - 1;          // fase 1: livelli 1–5; dal 6 sfide sui modelli 3–5 con obiettivi più grandi
   const FREE_AT = 5;                   // la Libera si sblocca al livello 5 (fase 1)
@@ -33,17 +39,18 @@
     const base = level <= LAST ? level : 3 + ((level - LAST - 1) % 3);
     const k = level <= LAST ? 1 : 1 + 0.2 * Math.ceil((level - LAST) / 3);
     const L = LV[base];
-    return { base, k, money: Math.round(L.money * (level <= LAST ? 1 : 1.15)), days: L.days, par: Math.round(L.par * k), map: M.LEVELS[base] };
+    return { base, k, money: Math.round(L.money * (level <= LAST ? 1 : 1.15)), days: L.days, hours: L.days * HPD, par: Math.round(L.par * k), map: M.LEVELS[base] };
   }
 
   /* ---------- mondo (tabelle dense, non salvate) ---------- */
   const cache = new Map();
   function baseMap(s) {
-    const key = s.mode === 'free' ? `f:${s.seed}:${s.opts.size}:${s.opts.water}` : `l:${config(s.level).base}:${s.seed}`;
+    const mv = s.mv || 1;
+    const key = (s.mode === 'free' ? `f:${s.seed}:${s.opts.size}:${s.opts.water}` : `l:${config(s.level).base}:${s.seed}`) + ':' + mv;
     let m = cache.get(key);
     if (!m) {
-      m = s.mode === 'free' ? M.generate({ w: s.opts.size, h: s.opts.size, water: s.opts.water, kind: s.opts.water === 0 ? 'land' : 'island' }, HH.rng(s.seed))
-        : M.scenario(config(s.level).base, s.seed);
+      m = s.mode === 'free' ? M.generate({ w: s.opts.size, h: s.opts.size, water: s.opts.water, kind: s.opts.water === 0 ? 'land' : 'island', mv }, HH.rng(s.seed))
+        : M.scenario(config(s.level).base, s.seed, mv);
       cache.set(key, m);
       if (cache.size > 6) cache.delete(cache.keys().next().value);
     }
@@ -78,8 +85,8 @@
 
   /* ---------- nuove partite ---------- */
   function blank(mode, seed) {
-    return { v: 1, mode, level: 1, seed, opts: null, day: 0, tk: 0, money: 0, m0: 0, net: {}, cut: [], towns: [], inds: [], stations: [], veh: [], nid: 1,
-      del: {}, gd: {}, fin: { inc: 0, run: 0, mnt: 0, bld: 0, veh: 0 }, finY: null, goals: [], deadline: 0, par: 0, won: false, lost: false, wonDay: -1, moves: 0, nv: 1, rs: (seed ^ 0x5bd1e995) >>> 0, speed: 1 };
+    return { v: SNAP_V, mv: M.MV, mode, level: 1, seed, opts: null, h: H0, h0: H0, tk: 0, money: 0, m0: 0, net: {}, cut: [], towns: [], inds: [], stations: [], veh: [], nid: 1,
+      del: {}, gd: {}, fin: { inc: 0, run: 0, mnt: 0, bld: 0, veh: 0 }, finY: null, goals: [], deadline: 0, par: 0, won: false, lost: false, wonH: -1, moves: 0, nv: 1, rs: (seed ^ 0x5bd1e995) >>> 0, speed: 1 };
   }
   function fill(s, m) {
     s.towns = m.towns.map((t) => ({ id: t.id, name: t.name, x: t.x, y: t.y, pop: t.pop, an: t.an, houses: t.houses.slice(), gm: 0, pm: 0, lg: 0 }));
@@ -94,7 +101,7 @@
     s.level = level;
     const m = baseMap(s);
     fill(s, m);
-    s.money = s.m0 = c.money; s.deadline = c.days; s.par = c.par;
+    s.money = s.m0 = c.money; s.deadline = s.h0 + c.hours; s.par = c.par;
     s.goals = LV[c.base].goals(m).map((g) => (g.n && g.k !== 'train' && g.k !== 'pop' ? Object.assign(g, { n: Math.round(g.n * c.k) }) : g));
     world(s);
     return s;
@@ -110,9 +117,23 @@
     world(s);
     return s;
   }
+  // salvataggio v1 (0.32.x) → v2: il "giorno" di allora (24 passi) è l'ora di adesso, quindi tempi, scadenze, par,
+  // carichi (ora di carico) e passaggi nelle stazioni restano numericamente uguali; la mappa resta quella di allora
+  const SNAP_V = 2;
+  const H0 = 7;                        // una partita nuova parte alle 7 del mattino del 1° gennaio
+  function migrate(s) {
+    if (s.v === 1) {
+      s.h = s.day | 0; delete s.day;
+      s.wonH = s.wonDay == null ? -1 : s.wonDay; delete s.wonDay;
+      delete s.tod;
+      s.mv = 1; s.h0 = 0;
+      s.v = 2;
+    }
+    return s.v === SNAP_V ? s : null;
+  }
   function restore(json) {
-    const s = typeof json === 'string' ? JSON.parse(json) : JSON.parse(JSON.stringify(json));
-    if (!s || s.v !== 1) return null;
+    let s = typeof json === 'string' ? JSON.parse(json) : JSON.parse(JSON.stringify(json));
+    if (!s || !(s = migrate(s))) return null;
     world(s);
     return s;
   }
@@ -127,8 +148,8 @@
   const goalState = (s) => s.goals.map((g) => { const cur = goalCur(s, g); return Object.assign({}, g, { cur, done: cur >= g.n }); });
   function checkEnd(s, ev) {
     if (s.mode !== 'level' || s.won || s.lost) return;
-    if (s.goals.length && goalState(s).every((g) => g.done)) { s.won = true; s.wonDay = s.day; ev.push({ k: 'win' }); }
-    else if (s.day >= s.deadline) { s.lost = true; ev.push({ k: 'lose' }); }
+    if (s.goals.length && goalState(s).every((g) => g.done)) { s.won = true; s.wonH = s.h; ev.push({ k: 'win' }); }
+    else if (s.h >= s.deadline) { s.lost = true; ev.push({ k: 'lose' }); }
   }
   const isOver = (s) => s.won || s.lost;
 
@@ -280,7 +301,7 @@
   function buy(s, a) {
     const W = world(s), T = VT[a.type];
     if (!T) return fail('type');
-    if (T.from && date(s.day).y < T.from + 1) return fail('locked');
+    if (T.fromH && s.h < T.fromH) return fail('locked');
     const e = checkOrders(s, T.net, a.orders);
     if (e) return fail(e);
     if (T.net === 'road' && !T.cargo.includes(a.cargo || T.cargo[0])) return fail('cargo');
@@ -289,7 +310,7 @@
     if (c > s.money) return fail('money');
     const st = s.stations[a.orders[0].st];
     const v = { id: s.nid, type: a.type, n: 1 + s.veh.filter((x) => x.type === a.type).length, orders: a.orders.map((o) => ({ st: o.st, full: !!o.full })), oi: 0,
-      t: 0, a: 0, b: 0, p: 0.5, pt: [], pe: [], pv: W.ver, trail: [], ahead: [], mode: 'load', wt: 0, ld: {}, profit: 0, last: 0, value: c, born: s.day };
+      t: 0, a: 0, b: 0, p: 0.5, pt: [], pe: [], pv: W.ver, trail: [], ahead: [], mode: 'load', wt: 0, ld: {}, profit: 0, last: 0, value: c, born: s.h };
     if (T.net === 'road') v.cargo = a.cargo || T.cargo[0]; else v.cars = a.cars.slice();
     const tiles = st.tiles.slice().sort((p, q) => p - q);
     const b = st.ax === 1 ? 1 : 2;
@@ -304,7 +325,7 @@
     s.nid++;
     s.veh.push(v);
     s.money -= c; s.fin.veh += c; s.moves++;
-    for (const k in S.caps(v)) { st.last[k] = s.day; if (!st.pick[k]) { st.pick[k] = 1; st.rate[k] = 0.55; } st.spd[k] = Math.max(st.spd[k] || 0, T.spd); }
+    for (const k in S.caps(v)) { st.last[k] = s.h; if (!st.pick[k]) { st.pick[k] = 1; st.rate[k] = 0.55; } st.spd[k] = Math.max(st.spd[k] || 0, T.spd); }
     return { ok: true, cost: c, id: v.id };
   }
   function act(s, a) {
@@ -359,7 +380,8 @@
   /* ---------- stelle, tempo di riferimento, progresso ---------- */
   function rate(s) {
     if (!s || !s.won) return 1;
-    let r = s.wonDay <= s.par ? 3 : s.wonDay <= s.par * 1.5 ? 2 : 1;
+    const t = s.wonH - (s.h0 || 0);
+    let r = t <= s.par ? 3 : t <= s.par * 1.5 ? 2 : 1;
     if (s.money < s.m0 * 0.25 && r > 1) r--;
     return r;
   }
@@ -378,7 +400,7 @@
     return (t ? t.name : '?') + (st.name.ind ? ' ' + (indLabel ? indLabel(st.name.ind) : st.name.ind) : '') + (st.name.n > 1 ? ' ' + st.name.n : '');
   };
 
-  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, step, act, preview, goalState, isOver,
-    coach, rate, parTime, progress, stationName, vehCost, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
+  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, SNAP_V, H0, step, act, preview, goalState, isOver,
+    coach, rate, parTime, progress, stationName, vehCost, TPH, HPD, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
     isWon: (s) => !!(s && s.won) };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

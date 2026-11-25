@@ -17,13 +17,13 @@
   const HH = (G.HH = G.HH || {});
   const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
 
-  // tipi di industria: produce (merce primaria o lavorata), accetta, produzione al mese delle primarie
+  // tipi di industria: produce (merce primaria o lavorata), accetta, produzione al giorno (24 ore) delle primarie
   const IND = {
-    farm: { make: 'milk', prod: 80 },
+    farm: { make: 'milk', prod: 64 },
     dairy: { take: ['milk'], make: 'cheese' },
-    field: { make: 'grain', prod: 90 },
+    field: { make: 'grain', prod: 72 },
     bakery: { take: ['grain'], make: 'bread' },
-    forest: { make: 'wood', prod: 80 },
+    forest: { make: 'wood', prod: 64 },
     sawmill: { take: ['wood'], make: 'toys' },
   };
   const ANIMALS = ['bunny', 'cat', 'panda', 'bear', 'duck', 'fox'];
@@ -84,6 +84,10 @@
         }
       }
     }
+    // mappe nuove (mv ≥ 2): l'acqua è collegata per i lati, mai solo per uno spigolo (il fiume che piega di lato
+    // non si spezza in rettangoli staccati). Nessun numero casuale in più: il resto della mappa non cambia.
+    // Le mappe dei salvataggi vecchi (mv 1) restano come erano.
+    if ((o.mv || 1) >= 2) joinDiagonals(w, h, ht, wat);
     // sponde morbide: niente colline a picco sull'acqua
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x;
@@ -104,6 +108,32 @@
       else if (rnd() < 0.025) tree[i] = 1;
     }
     return { w, h, ht, water: wat, tree, roads: {}, towns: [], inds: [] };
+  }
+
+  // per ogni quadrato 2×2 con l'acqua solo sulla diagonale, una delle altre due caselle diventa acqua (la più bassa,
+  // a parità quella in alto); si ripete finché non ce ne sono più (l'acqua cresce soltanto, quindi finisce)
+  function joinDiagonals(w, h, ht, wat) {
+    for (let changed = true; changed;) {
+      changed = false;
+      for (let y = 0; y < h - 1; y++) for (let x = 0; x < w - 1; x++) {
+        const a = y * w + x, b = a + 1, c = a + w, d = c + 1;
+        let p = -1, q = -1;
+        if (wat[a] && wat[d] && !wat[b] && !wat[c]) { p = b; q = c; }
+        else if (wat[b] && wat[c] && !wat[a] && !wat[d]) { p = a; q = d; }
+        if (p < 0) continue;
+        const k = ht[q] < ht[p] ? q : p;
+        wat[k] = 1; ht[k] = 0; changed = true;
+      }
+    }
+  }
+  // l'acqua è collegata per i lati? (test: nessun quadrato 2×2 con l'acqua solo sulla diagonale)
+  function diagonalOnly(m) {
+    let n = 0;
+    for (let y = 0; y < m.h - 1; y++) for (let x = 0; x < m.w - 1; x++) {
+      const a = y * m.w + x, b = a + 1, c = a + m.w, d = c + 1, W = m.water;
+      if ((W[a] && W[d] && !W[b] && !W[c]) || (W[b] && W[c] && !W[a] && !W[d])) n++;
+    }
+    return n;
   }
 
   /* ---------- siti ---------- */
@@ -242,11 +272,12 @@
   }
   // sito → coordinate di riferimento per le distanze e per reach (una casella di terra del sito)
   const anchor = (m, s) => s.y * m.w + s.x;
-  function scenario(level, seed) {
+  // mv = versione della mappa (1: salvataggi fino alla 0.32; 2: acqua collegata per i lati)
+  function scenario(level, seed, mv) {
     const L = LEVELS[Math.max(1, Math.min(LEVELS.length - 1, level))];
     for (let attempt = 0; attempt < 60; attempt++) {
       const rnd = HH.rng((seed >>> 0) + attempt * 7919);
-      const m = terrain({ w: L.size, h: L.size, water: L.water, kind: L.kind }, rnd);
+      const m = terrain({ w: L.size, h: L.size, water: L.water, kind: L.kind, mv }, rnd);
       const used = new Uint8Array(m.w * m.h), names = new Set(), placed = [];
       let ok = true;
       for (const site of L.sites) {
@@ -293,5 +324,5 @@
     throw new Error('express: real maps arrive in phase 3 (src/maps/' + (pack && pack.name ? pack.name : '?') + ')');
   }
 
-  HH.expressMap = { IND, ANIMALS, DX, DY, generate, scenario, fromShared, reach, houseSpots, growHouses, LEVELS, noise };
+  HH.expressMap = { IND, ANIMALS, DX, DY, generate, scenario, fromShared, reach, diagonalOnly, MV: 2, houseSpots, growHouses, LEVELS, noise };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -64,7 +64,7 @@
     function sky() {
       const k = X.sky;
       if (!k || !pools) return;
-      const q = Math.round(k.night * 200);
+      const q = Math.round(k.night * 200) * 1000 + Math.round(k.lit * 200);
       if (q === skyN) return;
       skyN = q;
       for (const [m, c] of tinted) m.color.copy(c).multiply(k.tint);
@@ -141,11 +141,11 @@
       for (const g of GEOS) cnt[g] = 0;
       let puffs = 0;
       sky();
-      const night = !!X.sky && X.sky.night >= 0.5, lights = pools.lamp.visible;
+      const night = !!X.sky && X.sky.lit >= 0.6, lights = pools.lamp.visible;
       let lamps = 0;
       for (const it of list) {
         const v = it.v, train = S.isTrain(v);
-        const lead = v.mode === 'go' && v.pt.length ? (S.VT[v.type].spd / S.TPD) * frac : 0;
+        const lead = v.mode === 'go' && v.pt.length ? (S.VT[v.type].spd / S.TPH) * frac : 0;
         const back = train ? 0.25 + 0.5 * it.k : 0.25;
         const p = place(v, back, lead);
         let x = p.x, z = p.y, h = p.h;

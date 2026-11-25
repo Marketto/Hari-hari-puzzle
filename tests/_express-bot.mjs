@@ -181,10 +181,10 @@ export function expressBot(HH, opt = {}) {
   }
 
   /* ---------- partita ---------- */
-  const run = (s, days) => { for (let d = 0; d < days && !E.isOver(s); d++) E.step(s, E.TPD); };
-  function waitFree(s, stId, maxDays = 60) {
+  const run = (s, hours) => { for (let d = 0; d < hours && !E.isOver(s); d++) E.step(s, E.TPH); };
+  function waitFree(s, stId, maxH = 60) {
     const w = W(s);
-    for (let d = 0; d < maxDays; d++) { if (s.stations[stId].tiles.every((t) => !w.resv[t])) return true; run(s, 1); }
+    for (let d = 0; d < maxH; d++) { if (s.stations[stId].tiles.every((t) => !w.resv[t])) return true; run(s, 1); }
     return false;
   }
   function truck(s, A, B, cargo, full = true, n = 1) {
@@ -195,7 +195,7 @@ export function expressBot(HH, opt = {}) {
   }
   function goal(s, k, c) { return E.goalState(s).find((g) => g.k === k && (!c || g.c === c)); }
 
-  function play(s, maxDays = 2000) {
+  function play(s, maxH = 2000) {
     const g = E.goalState(s);
     const towns = s.towns;
     const del = (c) => g.find((x) => x.k === 'del' && x.c === c);
@@ -240,11 +240,11 @@ export function expressBot(HH, opt = {}) {
       truck(s, mill, towns[gp.town], 'toys', true, 1);
     }
     // aspetta, e se il tempo passa senza progressi aggiunge un mezzo sulla stessa tratta
-    let lastCheck = s.day;
-    while (!E.isOver(s) && s.day < maxDays) {
+    let lastCheck = s.h;
+    while (!E.isOver(s) && s.h < maxH) {
       run(s, 10);
-      if (s.day - lastCheck >= 120) {
-        lastCheck = s.day;
+      if (s.h - lastCheck >= 120) {
+        lastCheck = s.h;
         for (const v of s.veh.slice()) {
           if (s.money < E.vehCost(v) + 2000 || v.type !== 'truck' && v.type !== 'bus') continue;
           const st = s.stations[v.orders[0].st];

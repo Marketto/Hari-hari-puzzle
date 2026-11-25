@@ -463,28 +463,29 @@ for (const level of [1, 4, 8, 16]) {
 }
 
 // Hari Express: livelli 1–5 (+ sfide 6–8) e mappe libere 32/48/64. Generazione della mappa (< 10 ms in media), partita
-// intera del bot dei test (vede la mappa come il giocatore, usa anteprima e azioni della UI), giorni per vincere contro
-// il tempo delle 3 fragoline (par) e la scadenza; costo di un passo della simulazione con tutti i mezzi del bot
+// intera del bot dei test (vede la mappa come il giocatore, usa anteprima e azioni della UI), ore di gioco per vincere
+// (e minuti veri a ×1: 1 ora = 24 passi = 1,2 s) contro il tempo delle 3 fragoline (par) e la scadenza; costo di un
+// passo della simulazione con tutti i mezzi del bot
 {
   for (const f of ['express-map.js', 'express-net.js', 'express-sim.js', 'express-logic.js']) vm.runInThisContext(fs.readFileSync(path.join(root, 'src/games', f), 'utf8'), { filename: f });
   const EX = globalThis.HH.express;
   const { expressBot } = await import('../tests/_express-bot.mjs');
   const bot = expressBot(globalThis.HH);
   for (const level of [1, 2, 3, 4, 5, 6, 8]) {
-    let gen = 0, won = 0, days = 0, maxD = 0, sim = 0, ticks = 0, three = 0;
+    let gen = 0, won = 0, hrs = 0, maxH = 0, sim = 0, ticks = 0, three = 0;
     const T = 8, c = EX.config(level);
     for (let k = 0; k < T; k++) {
       const t0 = performance.now();
       const s = EX.levelFromSeed(level, level * 9173 + k * 31);
       gen += performance.now() - t0;
       bot.play(s);
-      if (s.won) { won++; days += s.wonDay; maxD = Math.max(maxD, s.wonDay); if (EX.rate(s) === 3) three++; }
-      const t1 = performance.now(), d0 = s.day;
+      if (s.won) { const t = s.wonH - s.h0; won++; hrs += t; maxH = Math.max(maxH, t); if (EX.rate(s) === 3) three++; }
+      const t1 = performance.now(), h0 = s.h;
       s.won = false; s.lost = false; s.deadline = 1e9;
-      EX.step(s, EX.TPD * 30);
-      sim += performance.now() - t1; ticks += (s.day - d0) * EX.TPD;
+      EX.step(s, EX.TPH * 30);
+      sim += performance.now() - t1; ticks += (s.h - h0) * EX.TPH;
     }
-    ok(won === T && gen / T < 10, `Hari Express livello ${level}: mappa ${c.map.size}×${c.map.size}, ${c.days} giorni, par ${c.par}; bot ${won}/${T} in ${(days / Math.max(1, won)).toFixed(0)} giorni (max ${maxD}), 3 fragoline ${three}/${T}; generazione ${(gen / T).toFixed(2)} ms, passo ${(sim / ticks * 1000).toFixed(1)} µs`);
+    ok(won === T && gen / T < 10, `Hari Express livello ${level}: mappa ${c.map.size}×${c.map.size}, scadenza ${c.days} giorni, par ${c.par} ore (${(c.par / 24).toFixed(1)} g); bot ${won}/${T} in ${(hrs / Math.max(1, won)).toFixed(0)} ore (max ${maxH}) = ${(hrs / Math.max(1, won) * 1.2 / 60).toFixed(1)} min veri a ×1, 3 fragoline ${three}/${T}; generazione ${(gen / T).toFixed(2)} ms, passo ${(sim / ticks * 1000).toFixed(1)} µs`);
   }
   for (const size of [32, 48, 64]) {
     const t0 = performance.now();

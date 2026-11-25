@@ -43,21 +43,24 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
    raccolta**: 3 caselle attorno per i treni, 2 per bus e camion (si vede toccando la stazione).
 4. **Mezzi**: bus (30 passeggeri), furgone della posta (20), camion (20 di una merce), locomotiva a vapore "Castagna"
    con fino a 6 vagoni (passeggeri 40, posta 30, latte 30, formaggio 25, grano 35, pane 25, legna 30, giocattoli 25);
-   l'elettrica "Fragola" dall'anno 5. Al massimo 80 mezzi su telefono, 200 su PC.
+   l'elettrica "Fragola" dal 1° marzo dell'anno 1 (in Libera, ~28 minuti veri a ×1). Al massimo 80 mezzi su telefono,
+   200 su PC.
 5. **Percorso**: le fermate in ordine, ciascuna con "aspetta il pieno". A ogni fermata il mezzo scarica quello che la
-   stazione accetta (non quello caricato lì), poi carica; riparte dopo mezzo giorno se non c'è altro da caricare.
+   stazione accetta (non quello caricato lì), poi carica; riparte dopo mezz'ora se non c'è altro da caricare
+   (carico e scarico: 2 unità per vagone ogni 2,5 minuti, un camion pieno in ~25 minuti).
 6. **Merci e catene**: passeggeri e posta tra villaggi; fattoria → latte → caseificio → formaggio → città; campo →
    grano → forno → pane → città; bosco → legna → segheria → giocattoli → città. Le fabbriche trasformano 1:1.
    Un villaggio accetta passeggeri e posta con almeno 1 casa nell'area, formaggio, pane e giocattoli con almeno 2.
 7. **Treni e semafori** (versione semplice ma robusta, vedi sotto). Binari a **senso unico** (frecce).
-8. **Città**: ogni mese crescono se servite bene (passeggeri presi negli ultimi 30 giorni con valutazione ≥ 35%,
-   merci e posta consegnate): `crescita = ⌊punti × (2 + 3% abitanti)⌋`, punti = 1 (servita) + min(3, merci/10) +
-   min(1, posta e passeggeri/40). Le case nuove (una ogni 30 abitanti) nascono vicino alle strade e alle altre case.
-9. **Ghiande finite**: a fine mese, se il saldo è sotto zero, Hari vende il mezzo che rende meno.
+8. **Città**: ogni giorno crescono se servite bene (passeggeri presi nelle ultime 30 ore con valutazione ≥ 35%,
+   merci e posta consegnate nel giorno): `crescita = ⌊punti × (1,6 + 2,4% abitanti)⌋`, punti = 1 (servita) +
+   min(3, merci/8) + min(1, posta e passeggeri/32). Le case nuove (una ogni 30 abitanti) nascono vicino alle strade e
+   alle altre case.
+9. **Ghiande finite**: a fine giornata, se il saldo è sotto zero, Hari vende il mezzo che rende meno.
 
 ## Economia (media)
 - **Pagamento** = quantità × distanza (Manhattan tra le stazioni) × prezzo × fattore tempo; fattore 1 fino a `d1`
-  giorni di viaggio, poi cala fino a 0,3 in `d2` giorni.
+  **ore** di viaggio (dal carico), poi cala fino a 0,3 in `d2` ore.
 
 | Merce | Prezzo (ghiande per unità e casella) | d1 | d2 |
 |---|---|---|---|
@@ -72,22 +75,45 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
 
 - **Costi** di costruzione: strada 25, binario 60, salita +20/+40, albero +10, collina +5, ponte 160 (strada) / 260
   (binario) per casella d'acqua, fermata 220, stazione 360 per casella, semaforo 80, senso unico 30, demolizione 8.
-- **Mezzi**: bus e posta 900 (esercizio 150/anno), camion 1.100 (180), Castagna 3.500 (700), Fragola 7.000 (1.100),
-  vagone 400 (60). Vendita: metà del prezzo.
-- **Manutenzione** mensile: 1 per casella di binario, 0,5 per casella di strada costruita, 3 per casella di stazione.
-- **Valutazione** della stazione per merce (0–100%), ogni giorno verso un obiettivo di 17% + passaggi recenti (40% entro 7
-  giorni … 0 oltre 60) + poca merce in attesa (25% sotto 40 … −10% oltre 300) + velocità del mezzo (fino a 15%), ±2%
-  al giorno. La produzione arriva alla stazione moltiplicata per la valutazione; la merce che aspetta troppo se ne va
-  (3% × (1 − valutazione) al giorno). Una merce compare in una stazione solo dopo il primo passaggio di un mezzo che la
+- **Mezzi**: bus e posta 900 (esercizio 10 al giorno), camion 1.100 (12), Castagna 3.500 (46), Fragola 7.000 (72),
+  vagone 400 (4). Vendita: metà del prezzo.
+- **Manutenzione** giornaliera: 0,8 per casella di binario, 0,4 per casella di strada costruita, 2,4 per casella di
+  stazione (si paga ogni giorno, arrotondata sul totale).
+- **Valutazione** della stazione per merce (0–100%), ogni ora verso un obiettivo di 17% + passaggi recenti (40% entro 7
+  ore … 0 oltre 60) + poca merce in attesa (25% sotto 40 … −10% oltre 300) + velocità del mezzo (fino a 15%), ±2%
+  all'ora. La produzione arriva alla stazione moltiplicata per la valutazione; la merce che aspetta troppo se ne va
+  (3% × (1 − valutazione) all'ora). Una merce compare in una stazione solo dopo il primo passaggio di un mezzo che la
   porta.
-- **Produzione**: fattoria 80 latte al mese, campo 90 grano, bosco 80 legna; villaggi: passeggeri = abitanti / 40 al
-  giorno, posta = abitanti / 120, divisi tra le stazioni in proporzione alle case coperte.
+- **Produzione**: fattoria 64 latte al giorno, campo 72 grano, bosco 64 legna (arrivano un po' ogni ora); villaggi:
+  passeggeri = abitanti / 40 all'ora, posta = abitanti / 120, divisi tra le stazioni in proporzione alle case coperte.
 - Niente prestiti né inflazione.
 
 ## Tempo
-Passo fisso: 1 giorno = 24 passi; a ×1 la UI fa 20 passi al secondo (1,2 s al giorno), poi ×2, ×4 e pausa. Anni di
-365 giorni coi mesi veri (data scritta con `Intl.DateTimeFormat` nella lingua dell'app). Tutto deterministico: lo stato
-contiene anche il generatore casuale (`rs`) usato per le case nuove.
+**L'orologio e i viaggi vanno d'accordo** (prima, 0.32: un "giorno" durava 1,2 s e un camion tra due villaggi ci metteva
+4–6 giorni, mentre il cielo faceva un giro ogni 150 "giorni"). Adesso:
+- passo fisso: **1 ora = 24 passi**, 1 giorno = 24 ore = 576 passi; a ×1 la UI fa 20 passi al secondo: **1 ora = 1,2 s,
+  1 giorno = 28,8 s** (14,4 s a ×2, 7,2 s a ×4), poi pausa. Il ritmo in secondi veri non è cambiato: il "giorno" di
+  prima è l'ora di adesso, quindi i numeri della simulazione al passo (velocità, carico) sono gli stessi.
+- velocità in **caselle all'ora**: bus 1,8, posta 1,9, camion 1,6, Castagna 3, Fragola 5. Tra due villaggi vicini (8–12
+  caselle) un bus ci mette **4–6 ore**, un camion fattoria → caseificio 2–4 ore; una linea di treno di 20–30 caselle
+  6–10 ore. Fermata: carico e scarico in 25–30 minuti (ad "aspetta il pieno" si aspetta la merce: ore).
+- ogni ora produzione, valutazioni e merce che se ne va; ogni giorno esercizio dei mezzi, manutenzione, crescita delle
+  città, ghiande finite; anni di 365 giorni coi mesi veri.
+- la barra mostra **data e ora** ("6 gen · 14:00", ore intere, con `Intl.DateTimeFormat` nella lingua dell'app; dall'anno
+  2 anche l'anno). Una partita nuova parte alle **7:00 del 1° gennaio** (`h0`).
+- durate nell'interfaccia (`dur()` in express-hud.js, unità di `Intl.NumberFormat`): "5 h", "2 giorni 5 h" sotto i 3
+  giorni, poi "14 giorni": tempo che resta, 3 fragoline, ultimo passaggio, giro stimato (anche nella scheda del mezzo).
+- Tutto deterministico: lo stato contiene anche il generatore casuale (`rs`) usato per le case nuove.
+
+| Misura | Prima (0.32.1) | Adesso |
+|---|---|---|
+| un giorno di gioco a ×1 | 1,2 s | 28,8 s (= un giro del cielo) |
+| giro del cielo a ×1 / ×4 | 180 s / 60 s (150 / 50 "giorni") | 28,8 s / 7,2 s (1 giorno) |
+| bus tra due villaggi (≈10 caselle, mediana del bot) | ≈4 giorni | ≈4 ore |
+| treno del livello 4 (mediana) | ≈2 giorni | ≈2,5 ore |
+| sosta in fermata senza "pieno" | mezzo giorno | mezz'ora |
+| livello 1: scadenza / par / bot | 365 / 90 / 39 giorni | 15 giorni / 4 giorni / 34 ore (0,7 min veri) |
+| livello 5: scadenza / par / bot | 730 / 380 / 222 giorni | 30 giorni / 16 giorni / 225 ore (4,5 min veri) |
 
 ## Treni e semafori
 - Ogni treno **prenota** le caselle prima di entrarci (`W.resv`); una casella prenotata da un treno non può esserlo da un
@@ -97,9 +123,9 @@ contiene anche il generatore casuale (`rs`) usato per le case nuove.
   Le caselle si liberano quando l'ultimo vagone le lascia. Il semaforo è rosso se il tratto dopo è prenotato.
 - **Senza semafori** una linea è un tratto unico: un solo treno per volta (due treni su un anello senza semafori si
   aspettano a vicenda: fermi, mai scontrati; Hari lo dice). Coi semafori più treni si seguono.
-- Hari dice "un treno è bloccato" solo se un treno in viaggio è fermo da più di 8 giorni davanti a un tratto prenotato
-  da **un altro treno** (contatore `v.bk`, `S.blocked(v)`); l'attesa del pieno e l'inversione al capolinea non contano.
-- Rete di salvataggio: un treno fermo al rosso da 20 giorni prova a girarsi se dietro c'è una strada per la meta.
+- Hari dice "un treno è bloccato" solo se un treno in viaggio è fermo da più di 8 ore (10 s veri a ×1) davanti a un
+  tratto prenotato da **un altro treno** (contatore `v.bk`, `S.blocked(v)`); l'attesa del pieno e l'inversione al capolinea non contano.
+- Rete di salvataggio: un treno fermo al rosso da 20 ore prova a girarsi se dietro c'è una strada per la meta.
 - I treni si girano solo alle stazioni di testa (binario cieco dopo la banchina) o con la rete di salvataggio; bus e
   camion fanno inversione ai fondi ciechi e alle fermate, e non si scontrano (mondo gentile).
 - Livello 5 (e la soluzione del bot): anello con una freccia di senso unico per via e un semaforo ogni 4 caselle.
@@ -109,16 +135,20 @@ contiene anche il generatore casuale (`rs`) usato per le case nuove.
 obiettivi × (1 + 0,2 · ⌈(livello − 5) / 3⌉). I siti sono piazzati col seme e verificati raggiungibili (BFS con dislivello
 ≤ 1 e ponti ≤ 3); per le ferrovie (4, 5) tra i due siti e 3 caselle attorno non c'è acqua (c'è posto per un anello).
 
-| Livello | Mappa | Obiettivi | Ghiande | Scadenza | Par (3 fragoline) | Bot: giorni medi (max) |
+| Livello | Mappa | Obiettivi | Ghiande | Scadenza | Par (3 fragoline) | Bot: ore medie (max), minuti veri a ×1 |
 |---|---|---|---|---|---|---|
-| 1 Il primo bus | 18×18 | 120 passeggeri | 3.000 | 365 | 90 | 39 (54) |
-| 2 Il camion del latte | 20×20 | 200 latte al caseificio | 4.000 | 365 | 150 | 94 (105) |
-| 3 La catena del formaggio | 24×24 | 150 latte al caseificio, 100 formaggi in città | 8.000 | 540 | 170 | 88 (93) |
-| 4 Il primo treno | 28×28 isola | 400 grano al forno, 1 treno, 100 pani in città | 17.000 | 540 | 260 | 137 (157) |
-| 5 Due treni e i semafori | 32×32 isola | 500 legna alla segheria, 2 treni, città +120 abitanti | 30.000 | 730 | 380 | 222 (223) |
+| 1 Il primo bus | 18×18 | 120 passeggeri | 3.000 | 15 giorni | 96 ore (4 g) | 34 (36), 0,7 min |
+| 2 Il camion del latte | 20×20 | 200 latte al caseificio | 4.000 | 15 giorni | 144 ore (6 g) | 100 (129), 2,0 min |
+| 3 La catena del formaggio | 24×24 | 150 latte al caseificio, 100 formaggi in città | 8.000 | 22 giorni | 168 ore (7 g) | 88 (99), 1,8 min |
+| 4 Il primo treno | 28×28 isola | 400 grano al forno, 1 treno, 100 pani in città | 17.000 | 22 giorni | 264 ore (11 g) | 157 (158), 3,1 min |
+| 5 Due treni e i semafori | 32×32 isola | 500 legna alla segheria, 2 treni, città +120 abitanti | 30.000 | 30 giorni | 384 ore (16 g) | 225 (233), 4,5 min |
 
-Stelle: 3 se vinto entro `par` giorni, 2 entro 1,5 × par, 1 altrimenti (una in meno se restano meno di un quarto delle
-ghiande iniziali). `parTime` (secondi veri per il bonus dell'app) = par × 0,6 + 90. Scadenza superata = sconfitta
+(Prima, 0.32.1: scadenze 365/365/540/540/730 "giorni", par 90/150/170/260/380, bot 39/94/88/137/222 "giorni": stessi
+secondi veri, perché il "giorno" di allora è l'ora di adesso.) Le sfide dal 6 hanno la scadenza del loro modello e il
+par × k (livello 6: 22 giorni, 202 ore; livello 8: 30 giorni, 461 ore).
+
+Stelle: 3 se vinto entro `par` ore dall'inizio, 2 entro 1,5 × par, 1 altrimenti (una in meno se restano meno di un
+quarto delle ghiande iniziali). `parTime` (secondi veri per il bonus dell'app) = par × 0,6 + 90. Scadenza superata = sconfitta
 ("bloccato"). `progress` = media degli obiettivi (Libera: mezzi e stazioni). Generazione media < 10 ms (`npm run bench`).
 
 ## Risolvibilità (regola 3)
@@ -129,18 +159,30 @@ tempo che passa (`step`). Trova industrie e villaggi dagli obiettivi (merce → 
 livelli 1–5 con 6 semi ciascuno e le sfide 6–8. Non fare niente perde ogni livello alla scadenza. Altri test:
 determinismo e ripresa da JSON (anche a metà, con treni in viaggio), anteprima = costo vero, ponti e giri attorno alle
 case, A* dei mezzi (via più corta, senso unico, inversione al fondo cieco), due e tre treni su un anello coi semafori
-senza scontri e senza blocchi, treni frontali su binario unico mai scontrati, pagamento che cala coi giorni, valutazione
-che sale e scende, città che crescono solo se servite, Libera, consigli di Hari, geometria dentro la casella.
+senza scontri e senza blocchi, treni frontali su binario unico mai scontrati, pagamento che cala con le ore di viaggio, valutazione
+che sale e scende, città che crescono solo se servite, Libera, consigli di Hari, geometria dentro la casella; **tempo**: calendario
+e orologio, scadenze di 2–4 settimane, viaggi su strada di poche ore (mediana 1–8, massimo 14), treni entro un giorno,
+soste senza "pieno" entro un'ora; salvataggio v1 migrato con la mappa di allora; acqua collegata per i lati.
 
 ## Salvataggio
-`snapshot()` = lo stato `s` (JSON, `v: 1`): `{ mode, level, seed, opts, day, tk, money, m0, net, cut, towns, inds,
-stations, veh, nid, nv, del, gd, fin, finY, goals, deadline, par, won, lost, wonDay, moves, rs, speed }`. **La mappa non
+`snapshot()` = lo stato `s` (JSON, `v: 2`): `{ mv, mode, level, seed, opts, h, h0, tk, money, m0, net, cut, towns, inds,
+stations, veh, nid, nv, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed }`; `h` = ore
+intere dal 1° gennaio a mezzanotte, `tk` = passi nell'ora, `deadline` assoluta e `par` dall'inizio in ore.
+**Salvataggi vecchi** (`v: 1`, 0.32.x): `migrate()` li apre rinominando `day → h` e `wonDay → wonH` (il "giorno" di
+allora ha gli stessi 24 passi della nostra ora, quindi carichi, passaggi, scadenza e par restano numericamente
+uguali), toglie `tod`, mette `h0 = 0` e **`mv = 1`**: la mappa si rigenera col generatore di allora (test con un
+salvataggio vero della 0.32.1 in `tests/fixtures/express-v1.json` e la firma della sua acqua). **La mappa non
 c'è**: si rigenera dal seme (`scenario(level, seed)` o `generate(opts, rng(seed))`); `net` contiene solo le caselle
 cambiate `{ indice: [binari, strade, semaforo, senso unico] }`, `cut` gli alberi tolti, i villaggi le loro case (anche
 quelle nuove). Le tabelle dense (`W`: altezze, acqua, maschere, stazioni, prenotazioni) sono in una proprietà non
 enumerabile ricostruita da `world(s)`; `nv` (versione della rete) fa ripartire i percorsi nello stesso modo dopo una
-ripresa. Un livello a metà pesa 10–40 KB. In più `tod` (ora del giorno della scena, 3 decimali): solo grafica, la
-simulazione non la legge mai (testato: stessa partita con `tod` diversi = stesso stato).
+ripresa. Un livello a metà pesa 10–40 KB. Il cielo non è più salvato: si ricava dall'orologio.
+
+**Versione della mappa** (`mv`, `HH.expressMap.MV = 2`): dalla 2 l'acqua è collegata per i lati (`joinDiagonals`: in
+ogni quadrato 2×2 con l'acqua solo sulla diagonale una delle altre due caselle diventa acqua, la più bassa), così i
+fiumi che piegano di lato non si spezzano in rettangoli staccati; non usa numeri casuali in più. Disegno e regole
+leggono la stessa tabella `water`, quindi una casella d'angolo che sembra acqua è acqua anche per strade, ponti e
+fermate. Test: nessuno spigolo d'acqua isolato nei livelli 1–5 e in Libera 32/48/64, mv 1 invariato.
 
 ## Comandi
 - **Telefono** (verticale o girato): barra degli strumenti in basso (girato: colonna a destra) — Binari (scelte:
@@ -156,8 +198,8 @@ simulazione non la legge mai (testato: stessa partita con `tod` diversi = stesso
   sposta, Esc chiude.
 - Schede a foglio dal basso (girato: a destra): stazione (valutazione, merci in attesa con icona, merci accettate,
   mezzi, "Nuovo treno/bus o camion"), nuovo mezzo e percorso (mezzo, merce o vagoni, fermate toccate sulla mappa in
-  ordine, aspetta il pieno, giro stimato in giorni, totale, "Compra e parti"), mezzo (guadagno, carico, percorso,
-  vendi), villaggio, industria, conti e obiettivi (obiettivi, conti dell'anno con grafico, mezzi, avversari in arrivo).
+  ordine, aspetta il pieno, giro stimato in ore, totale, "Compra e parti"), mezzo (guadagno, carico, percorso col
+  giro stimato, vendi), villaggio, industria, conti e obiettivi (obiettivi, conti dell'anno con grafico, mezzi, avversari in arrivo).
 - Scelta della modalità: Campagna, Libera (sbloccata al livello 5 in fase 1: seme, grandezza 32/48/64, acqua),
   Mappe reali (lucchetto, fase 3). Appare alla prima partita e con la bandierina.
 
@@ -191,13 +233,15 @@ che hai già fatto (`coach(s)` nella logica, chiavi `ex_c_*`, testato).
 - **Mezzi** a istanze (capsule tonde): faccine kawaii **sul lato della cabina** (texture disegnata una volta coi
   token), merce sopra il cassone con la sua forma (bidoni, spicchi, sacco, pagnotte, tronchi, giocattoli), fumo della
   vaporiera, beccheggio sulle salite, bus e camion tengono la destra.
-- **Giorno e notte** (`express-sky.js`, puro e testato). Ora del giorno `t ∈ [0,1)`: giorno 0–0,58 (il più lungo),
-  tramonto dorato 0,58–0,70, notte 0,70–0,90 (breve, luce azzurro-viola soffice), alba rosa 0,90–1. Un giorno dura
-  **180 s reali a ×1**, 90 s a ×2 e **mai meno di 60 s** (a ×4 al massimo un giro al minuto, niente sfarfallio); in pausa
-  o a partita finita il cielo si ferma. Una partita nuova parte di mattina (`START` = 0,06); il salvataggio porta `tod`.
-  `light(t)` dà pesi e moltiplicatori (`day`, `night`, `gold`, `rose`, `amb`, `sun`, `dir`): curva continua (nessun
-  salto fra un fotogramma e l'altro), luce d'ambiente mai sotto il 62% del giorno e sole sempre alto sull'orizzonte,
-  quindi di notte si legge tutto. I colori vengono dai token (`--exp-sky-dusk`, `--exp-sky-dawn`, `--exp-sky-night`,
+- **Giorno e notte** (`express-sky.js`, puro e testato). Il cielo **è l'orologio**: `t = hourOf(h, tk)` (0 =
+  mezzanotte, più la frazione di passo per un movimento fluido), quindi la notte sullo schermo è la notte dell'orologio:
+  notte 21:00–4:30, alba rosa 4:30–6:30, giorno 6:30–18:30 (il più lungo), tramonto dorato 18:30–21:00. Un giro =
+  un giorno di gioco: 28,8 s a ×1, 14,4 s a ×2, 7,2 s a ×4; in pausa o a partita finita il cielo si ferma con
+  l'orologio. **Niente sfarfallio alle velocità alte**: la notte è meno profonda (`depth`: 1 a ×1, 0,7 a ×2, 0,4 a ×4;
+  la UI ci scivola sopra in un paio di secondi), mentre finestre, lampioni e fari seguono la notte vera (`dark`).
+  `light(t, sempreGiorno, depth)` dà pesi e moltiplicatori (`day`, `night`, `dark`, `gold`, `rose`, `amb`, `sun`,
+  `dir`): curva continua anche a mezzanotte e con depth < 1, luce d'ambiente mai sotto il 62% del giorno e sole sempre
+  alto sull'orizzonte, quindi di notte si legge tutto. I colori vengono dai token (`--exp-sky-dusk`, `--exp-sky-dawn`, `--exp-sky-night`,
   `--exp-sun-gold`, `--exp-moon`, `--exp-amb-night`, `--exp-window-lit`); ogni fotogramma si cambiano solo uniform e
   colori di luci e materiali (sfondo, luce emisferica, sole/luna, tinta dei materiali senza luce, finestre). Di sera si
   accendono le **finestre** delle case, i **lampioni** delle stazioni e delle fermate (palo + lanterna a istanze) e i

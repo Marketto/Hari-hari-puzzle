@@ -2,7 +2,11 @@
  * dei binari coi semafori a blocco, carico e scarico, pagamento, produzione delle industrie e dei villaggi,
  * valutazione delle stazioni, crescita delle città, calendario e conti.
  *
- * Tempo: 1 giorno = TPD passi. Il chiamante (express-logic.js) fa avanzare con tick(s, ev).
+ * Tempo: 1 ora = TPH passi (24), 1 giorno = 24 ore (TPD = 576 passi). L'orologio è s.h (ore intere dall'inizio,
+ *   0 = 1 gennaio dell'anno 1 a mezzanotte) + s.tk (passi nell'ora). Ogni ora: produzione, valutazioni, merce che se ne
+ *   va (hourly); ogni giorno: esercizio dei mezzi, manutenzione, crescita delle città, conti (daily). Velocità dei
+ *   mezzi in caselle all'ora; tempi di pagamento e valutazioni in ore. Il chiamante (express-logic.js) fa avanzare con
+ *   tick(s, ev).
  *
  * Treni e blocchi (versione semplice ma robusta, "path signals" ridotti all'osso):
  *   - ogni treno PRENOTA le caselle prima di entrarci; due treni non possono mai avere la stessa casella prenotata,
@@ -17,11 +21,11 @@
 (function (G) {
   const HH = (G.HH = G.HH || {});
   const N = () => HH.expressNet;
-  const TPD = 24, STUCK = 20;
+  const TPH = 24, HPD = 24, TPD = TPH * HPD, STUCK = 20;
   const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
   const opp = (d) => (d + 2) & 3;
 
-  // merci: prezzo (ghiande per unità e casella), giorni senza calo (d1) e giorni per arrivare al minimo (d2)
+  // merci: prezzo (ghiande per unità e casella), ore di viaggio senza calo (d1) e ore per arrivare al minimo (d2)
   const CARGO = {
     pax: { price: 0.32, d1: 10, d2: 40 }, mail: { price: 0.45, d1: 12, d2: 40 },
     milk: { price: 0.38, d1: 8, d2: 30 }, cheese: { price: 0.55, d1: 15, d2: 50 },
@@ -30,23 +34,26 @@
   };
   const CARGOS = Object.keys(CARGO);
   const GOODS = ['cheese', 'bread', 'toys'];
-  // mezzi: rete, velocità (caselle al giorno), costo, esercizio all'anno, capacità
+  // mezzi: rete, velocità (caselle all'ora), costo, esercizio al giorno, capacità; fromH = disponibile dall'ora (Fragola:
+  // 1° marzo dell'anno 1, ~28 minuti veri a ×1, come l'anno 5 di prima)
   const VT = {
-    bus: { net: 'road', spd: 1.8, cost: 900, run: 150, cargo: ['pax'], cap: 30 },
-    mail: { net: 'road', spd: 1.9, cost: 900, run: 150, cargo: ['mail'], cap: 20 },
-    truck: { net: 'road', spd: 1.6, cost: 1100, run: 180, cargo: ['milk', 'cheese', 'grain', 'bread', 'wood', 'toys'], cap: 20 },
-    castagna: { net: 'rail', spd: 3.0, cost: 3500, run: 700, from: 0 },
-    fragola: { net: 'rail', spd: 5.0, cost: 7000, run: 1100, from: 4 },
+    bus: { net: 'road', spd: 1.8, cost: 900, run: 10, cargo: ['pax'], cap: 30 },
+    mail: { net: 'road', spd: 1.9, cost: 900, run: 10, cargo: ['mail'], cap: 20 },
+    truck: { net: 'road', spd: 1.6, cost: 1100, run: 12, cargo: ['milk', 'cheese', 'grain', 'bread', 'wood', 'toys'], cap: 20 },
+    castagna: { net: 'rail', spd: 3.0, cost: 3500, run: 46 },
+    fragola: { net: 'rail', spd: 5.0, cost: 7000, run: 72, fromH: 59 * 24 },
   };
-  const WAGON = { cost: 400, run: 60, max: 6, cap: { pax: 40, mail: 30, milk: 30, cheese: 25, grain: 35, bread: 25, wood: 30, toys: 25 } };
+  const WAGON = { cost: 400, run: 4, max: 6, cap: { pax: 40, mail: 30, milk: 30, cheese: 25, grain: 35, bread: 25, wood: 30, toys: 25 } };
   const CATCH = { rail: 3, road: 2 };
 
   /* ---------- calendario (anni di 365 giorni) ---------- */
   const MD = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  function date(day) {
+  // ora (intera) dall'inizio → { y, m (0–11), d (1–31), hh (0–23) }
+  function date(h) {
+    const day = Math.floor(h / HPD);
     let y = Math.floor(day / 365), r = day - y * 365, m = 0;
     while (r >= MD[m]) { r -= MD[m]; m++; }
-    return { y: y + 1, m, d: r + 1 };
+    return { y: y + 1, m, d: r + 1, hh: h - day * HPD };
   }
 
   /* ---------- casualità nello stato (mulberry32 con stato intero) ---------- */
@@ -236,14 +243,14 @@
       const [n, from, d0] = v.ld[c];
       if (!n || from === st.id || !cv.acc[c] || !s.stations[from]) continue;
       const fc = cov(s, W, from), dist = Math.max(1, Math.round(Math.abs(fc.cx - cv.cx) + Math.abs(fc.cy - cv.cy)));
-      const money = pay(c, n, dist, s.day - d0);
+      const money = pay(c, n, dist, s.h - d0);
       s.money += money; s.fin.inc += money; v.profit += money;
       s.del[c] = (s.del[c] || 0) + n;
       deliver(s, W, cv, c, n);
       delete v.ld[c];
       ev.push({ k: 'pay', v: v.id, st: st.id, c, n, money });
     }
-    for (const c in my) { st.last[c] = s.day; if (!st.pick[c]) { st.pick[c] = 1; st.rate[c] = 0.55; } st.spd[c] = Math.max(st.spd[c] || 0, VT[v.type].spd); }
+    for (const c in my) { st.last[c] = s.h; if (!st.pick[c]) { st.pick[c] = 1; st.rate[c] = 0.55; } st.spd[c] = Math.max(st.spd[c] || 0, VT[v.type].spd); }
     ev.push({ k: 'arrive', v: v.id, st: st.id });
   }
   function deliver(s, W, cv, c, n) {
@@ -270,10 +277,10 @@
         const have = v.ld[c] ? v.ld[c][0] : 0, free = my[c] - have, w = st.wait[c] || 0;
         if (free <= 0 || w <= 0) continue;
         const take = Math.min(free, w, 2 * cars.filter((x) => x === c).length);
-        const d0 = v.ld[c] ? v.ld[c][2] : s.day;
-        v.ld[c] = [have + take, st.id, Math.round((d0 * have + s.day * take) / (have + take))];
+        const d0 = v.ld[c] ? v.ld[c][2] : s.h;
+        v.ld[c] = [have + take, st.id, Math.round((d0 * have + s.h * take) / (have + take))];
         st.wait[c] = w - take; moved += take;
-        st.last[c] = s.day;
+        st.last[c] = s.h;
       }
       if (moved) ev.push({ k: 'load', v: v.id, st: st.id });
     }
@@ -305,7 +312,7 @@
       if (r) setPath(s, W, v, r); else { if (isTrain(v)) releaseAhead(W, v); v.pt = []; v.pe = []; v.pv = W.ver; }
     }
     const train = isTrain(v);
-    let rem = VT[v.type].spd / TPD;
+    let rem = VT[v.type].spd / TPH;
     for (let guard = 0; guard < 4 && rem > 1e-9; guard++) {
       if (!v.pt.length) {
         const o = v.orders[v.oi];
@@ -316,7 +323,7 @@
           else v.p += rem;
           return;
         }
-        // senza percorso: si ferma in fondo alla casella e riprova ogni giorno
+        // senza percorso: si ferma in fondo alla casella e riprova ogni ora
         v.p = Math.min(0.999, v.p + rem);
         if (s.tk === 0) { const r = plan(s, W, v, v.p > 0.99); if (r) setPath(s, W, v, r); else v.mode = v.p > 0.99 ? 'lost' : v.mode; }
         return;
@@ -328,7 +335,7 @@
         // fermo al rosso per colpa di un altro treno che esiste davvero: è questo che Hari segnala (non il carico, non l'inversione)
         const by = blocker(W, v);
         v.bk = by && by !== v.id && s.veh.some((x) => x.id === by && isTrain(x)) ? (v.bk || 0) + 1 : 0;
-        if (v.wt > STUCK * TPD) unstick(s, W, v, ev);
+        if (v.wt > STUCK * TPH) unstick(s, W, v, ev);
         return;
       }
       rem -= 1 - v.p;
@@ -363,13 +370,14 @@
     const n = Math.floor(st.fr[c]);
     if (n > 0) { st.fr[c] -= n; st.wait[c] = (st.wait[c] || 0) + n; }
   }
-  function daily(s, W, ev) {
+  // ogni ora (prima del nuovo modello del tempo era ogni giorno: stessi numeri, stesso ritmo in secondi veri)
+  function hourly(s, W, ev) {
     const IND = HH.expressMap.IND;
     // stazioni che servono ogni industria e villaggio (solo dopo il primo passaggio di un mezzo per quella merce)
     for (const d of s.inds) {
       const T = IND[d.type];
       let units = 0;
-      if (T.prod) { d.acc += T.prod / 30; units = Math.floor(d.acc); d.acc -= units; }
+      if (T.prod) { d.acc += T.prod / HPD; units = Math.floor(d.acc); d.acc -= units; }
       else { units = d.stock; d.stock = 0; }
       d.made += units;
       if (!units) continue;
@@ -395,8 +403,8 @@
     for (const st of s.stations) {
       if (!st) continue;
       for (const c in st.pick) {
-        const days = s.day - (st.last[c] || 0), w = st.wait[c] || 0;
-        const tg = 0.17 + (days <= 7 ? 0.4 : days <= 14 ? 0.3 : days <= 30 ? 0.18 : days <= 60 ? 0.08 : 0)
+        const hrs = s.h - (st.last[c] || 0), w = st.wait[c] || 0;
+        const tg = 0.17 + (hrs <= 7 ? 0.4 : hrs <= 14 ? 0.3 : hrs <= 30 ? 0.18 : hrs <= 60 ? 0.08 : 0)
           + (w <= 40 ? 0.25 : w <= 120 ? 0.15 : w <= 300 ? 0.05 : -0.1) + Math.min(0.15, (st.spd[c] || 0) * 0.04);
         const r = st.rate[c];
         st.rate[c] = Math.round((r + Math.max(-0.02, Math.min(0.02, tg - r))) * 1000) / 1000;
@@ -405,24 +413,26 @@
       }
     }
   }
-  function monthly(s, W, ev) {
+  // ogni giorno (24 ore; prima ogni mese di 30 "giorni" vecchi = 30 ore di adesso: i numeri sono × 0,8)
+  const MNT = { rail: 0.8, road: 0.4, st: 2.4 };
+  function daily(s, W, ev) {
     // esercizio dei mezzi e manutenzione di binari, strade e stazioni
     let run = 0, mnt = 0;
-    for (const v of s.veh) run += Math.round((VT[v.type].run + (v.cars ? v.cars.length * WAGON.run : 0)) / 12);
+    for (const v of s.veh) run += VT[v.type].run + (v.cars ? v.cars.length * WAGON.run : 0);
     let rail = 0, road = 0, sts = 0;
     for (const k in s.net) { const e = s.net[k]; if (e[0]) rail++; if (e[1] && !W.troad[+k]) road++; }
     for (const st of s.stations) if (st) sts += st.tiles.length;
-    mnt = Math.round(rail * 1 + road * 0.5 + sts * 3);
+    mnt = Math.round(rail * MNT.rail + road * MNT.road + sts * MNT.st);
     s.money -= run + mnt; s.fin.run += run; s.fin.mnt += mnt;
-    // città: crescono se servite bene (passeggeri presi di recente, merci consegnate)
+    // città: crescono se servite bene (passeggeri presi nelle ultime 30 ore, merci consegnate nel giorno)
     for (const tw of s.towns) {
       let served = false;
       for (const st of s.stations) {
         if (!st || !st.pick.pax) continue;
-        if (cov(s, W, st.id).towns[tw.id] && s.day - (st.last.pax || 0) <= 30 && st.rate.pax >= 0.35) served = true;
+        if (cov(s, W, st.id).towns[tw.id] && s.h - (st.last.pax || 0) <= 30 && st.rate.pax >= 0.35) served = true;
       }
-      const score = (served ? 1 : 0) + Math.min(3, tw.gm / 10) + Math.min(1, tw.pm / 40);
-      const grow = Math.floor(score * (2 + tw.pop * 0.03));
+      const score = (served ? 1 : 0) + Math.min(3, tw.gm / 8) + Math.min(1, tw.pm / 32);
+      const grow = Math.floor(score * (1.6 + tw.pop * 0.024));
       tw.lg = grow; tw.gm = 0; tw.pm = 0;
       if (grow > 0) {
         tw.pop += grow;
@@ -467,19 +477,21 @@
   }
 
   // un treno davvero bloccato: in viaggio, fermo da più di `days` giorni davanti a un tratto prenotato da un altro treno
-  function blocked(v, days = 8) { return isTrain(v) && v.mode === 'go' && (v.bk || 0) > TPD * days; }
+  function blocked(v, hours = 8) { return isTrain(v) && v.mode === 'go' && (v.bk || 0) > TPH * hours; }
 
   /* ---------- un passo ---------- */
   function tick(s, W, ev) {
     for (const v of s.veh) move(s, W, v, ev);
     s.tk++;
-    if (s.tk >= TPD) {
+    if (s.tk >= TPH) {
       s.tk = 0;
-      const before = date(s.day);
-      s.day++;
+      const before = date(s.h);
+      s.h++;
+      hourly(s, W, ev);
+      ev.push({ k: 'hour' });
+      if (s.h % HPD) return;
       daily(s, W, ev);
-      const now = date(s.day);
-      if (now.m !== before.m) monthly(s, W, ev);
+      const now = date(s.h);
       if (now.y !== before.y) {
         s.finY = s.fin; s.fin = { inc: 0, run: 0, mnt: 0, bld: 0, veh: 0 };
         for (const v of s.veh) { v.last = v.profit; v.profit = 0; }
@@ -488,6 +500,6 @@
     }
   }
 
-  HH.expressSim = { TPD, CARGO, CARGOS, GOODS, VT, WAGON, CATCH, MD, date, rand, caps, vlen, isTrain, loaded, tilePos, along,
-    tryReserve, releaseAhead, blocked, plan, setPath, coverage, cov, pay, tick, sell, trimTrail, growTown, daily, monthly };
+  HH.expressSim = { TPH, HPD, TPD, MNT, CARGO, CARGOS, GOODS, VT, WAGON, CATCH, MD, date, rand, caps, vlen, isTrain, loaded, tilePos, along,
+    tryReserve, releaseAhead, blocked, plan, setPath, coverage, cov, pay, tick, sell, trimTrail, growTown, hourly, daily };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

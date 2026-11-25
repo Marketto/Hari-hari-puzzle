@@ -11,7 +11,7 @@
   const HH = (G.HH = G.HH || {});
   HH.games = HH.games || [];
   const A = HH.expressArt, { L } = A;
-  const TPS = 20;                      // passi della simulazione al secondo a ×1 (1 giorno = 1,2 s)
+  const TPS = 20;                      // passi della simulazione al secondo a ×1 (1 ora = 1,2 s, 1 giorno = 28,8 s)
   const coarse = () => !!(G.matchMedia && G.matchMedia('(pointer: coarse)').matches);
   let rmAt = -1e9, rmVal = false;
   const reduce = () => { const n = Date.now(); if (n - rmAt > 1000) { rmAt = n; rmVal = !!(G.matchMedia && G.matchMedia('(prefers-reduced-motion: reduce)').matches); } return rmVal; };
@@ -26,8 +26,10 @@
     const sfx = (k, ...a) => { const S1 = ctx.sfx && ctx.sfx[k] ? ctx.sfx : HH.audio && HH.audio.sfx; if (S1 && typeof S1[k] === 'function') S1[k](...a); };
     const perf = { n: 0, sum: 0, max: 0, calls: 0, tris: 0 };
     let slowF = 0, fastF = 0, themeAt = 0;
-    // ora del giorno della scena (solo grafica, la simulazione non la legge): nel salvataggio come s.tod, a 3 decimali
-    let tod = SKY.START, alwaysDay = !!sget('express:alwaysDay', false);
+    // ora del giorno della scena = l'orologio della simulazione (più la frazione di passo, per un cielo fluido);
+    // dep = profondità della notte, che scivola verso quella della velocità (niente sfarfallio a ×4)
+    let tod = SKY.START, dep = 1, alwaysDay = !!sget('express:alwaysDay', false);
+    const skyNow = () => SKY.light(tod, alwaysDay, dep);
 
     const X = {
       el, T, ui: {}, tool: 'info', picking: false, land: false, alive: true, pr: 1,
@@ -59,7 +61,7 @@
     X.blocked = () => !X.ui.home.hidden;
     X.togglePause = () => togglePause();
     X.alwaysDay = () => alwaysDay;
-    X.toggleDay = () => { alwaysDay = !alwaysDay; sset('express:alwaysDay', alwaysDay); sfx('tap'); hud.sky(SKY.light(tod, alwaysDay)); };
+    X.toggleDay = () => { alwaysDay = !alwaysDay; sset('express:alwaysDay', alwaysDay); sfx('tap'); hud.sky(skyNow()); };
     X.cycleSpeed = () => { const order = [1, 2, 4, 0]; const i = order.indexOf(s.speed); E.act(s, { k: 'speed', v: order[(i + 1) % order.length] }); hud.hud(); ctx.changed(); };
     X.escape = () => { if (X.picking) { endPick(); return; } if (!X.ui.confirm.hidden) { cancelBuild(); return; } if (hud.isOpen()) { hud.close(); return; } if (!X.ui.home.hidden && s) { hud.home(false); } };
     X.campLevel = () => { try { return HH.progress && HH.progress.get ? HH.progress.get('express').level : ctx.level; } catch (e) { return ctx.level; } };
@@ -188,14 +190,14 @@
           const st = s.stations[e.st];
           if (st) { const t = st.tiles[0]; hud.pop((t % X.W.w) + 0.5, ((t / X.W.w) | 0) + 0.5, e.money, IN.project); }
           if (now - cashAt > 700) { cashAt = now; sfx('cash'); }
-          if (first && s.day > 0) { first = false; hud.say(L('ex_e_first', { n: hud.nf(e.money) }), 5000); }
+          if (first && s.h > 0) { first = false; hud.say(L('ex_e_first', { n: hud.nf(e.money) }), 5000); }
         } else if (e.k === 'arrive') {
           const v = s.veh.find((x) => x.id === e.v);
           if (v && HH.expressSim.isTrain(v) && now - whistleAt > 4000) { whistleAt = now; sfx('whistle'); }
         } else if (e.k === 'grow') hud.say(L('ex_e_grow', { town: s.towns[e.town].name }), 5000);
         else if (e.k === 'sold') hud.say(L('ex_e_sold', { v: '#' + e.v }), 6000);
         else if (e.k === 'stuck') hud.coach(true);
-        else if (e.k === 'day') {
+        else if (e.k === 'hour') {
           dayN++;
           if (dayN % 10 === 0) ctx.changed();
           if (dayN % 2 === 0) hud.refresh();
@@ -250,8 +252,10 @@
         const n = Math.min(40, Math.floor(acc));
         if (n > 0) { acc -= n; const ev = E.step(s, n); if (ev.length) dispatch(ev); }
         if (acc > 40) acc = 0;
-        tod = SKY.advance(tod, dt, s.speed);
-        s.tod = Math.round(tod * 1000) / 1000;
+      }
+      if (s) {
+        tod = SKY.hourOf(s.h, s.tk, E.TPH, !paused && s.speed && !E.isOver(s) ? Math.min(1, acc) : 0);
+        if (s.speed) { const want = SKY.depth(s.speed); dep += (want - dep) * Math.min(1, dt * 1.5); }
       }
       IN.cam.step(dt);
       if (X.R3 && X.R3.scene) {
@@ -259,7 +263,7 @@
         // da lontano i contorni degli alberi sono più sottili di un pixel: si risparmiano
         const farOl = IN.cam.zoom > 12;
         if (farOl !== X.R3.farOl) { X.R3.farOl = farOl; for (const c of X.R3.dyn.children) if (c.userData.treeOl) c.visible = !farOl; }
-        const LT = SKY.light(tod, alwaysDay);
+        const LT = skyNow();
         D3.applySky(LT); TR.paintLamps(); hud.sky(LT);
         TR.paintSignals();
         if (X.R3.water) X.R3.water.uniforms.uT.value = reduce() ? 0 : now / 1000;
@@ -283,7 +287,7 @@
     function begin(state) {
       stop(); timers.forEach(clearTimeout); timers = [];
       s = state; acc = 0; dayN = 0; first = !Object.keys(s.del).length;
-      tod = SKY.norm(s.tod == null ? SKY.START : s.tod); s.tod = Math.round(tod * 1000) / 1000;
+      tod = SKY.hourOf(s.h, s.tk, E.TPH, 0); dep = SKY.depth(s.speed || 1);
       op = null; prev = null; X.picking = false;
       hud.close(); hud.hideConfirm(); hud.hint('');
       if (!glOk) return;
@@ -345,7 +349,9 @@
       freeze: (on) => { qa.hold = !!on; },
       screen: (x, z) => { const p = IN.project(x + 0.5, 0.02, z + 0.5); return { x: p.x + X.ui.wrap.getBoundingClientRect().left, y: p.y + X.ui.wrap.getBoundingClientRect().top }; },
       cam: IN.cam, step: (n) => dispatch(E.step(s, n)), start: (lv, seed) => begin(E.levelFromSeed(lv, seed)),
-      sky: (t) => { if (t != null) { tod = SKY.norm(t); s.tod = Math.round(tod * 1000) / 1000; } return { t: tod, alwaysDay, phase: SKY.phase(tod) }; },
+      sky: () => ({ t: tod, alwaysDay, dep, phase: SKY.phase(tod), clock: hud.fmtDate(s.h) }),
+      // QA: fa passare il tempo fino all'ora hh (0–23), al più un giorno, senza disegnare nel frattempo
+      until: (hh) => { let n = 0; while ((s.h % 24 !== hh || s.tk) && n++ < 24 * E.TPH) dispatch(E.step(s, 1)); acc = 0; return s.h; },
     };
 
     let restored = null;
