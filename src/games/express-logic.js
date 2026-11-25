@@ -6,7 +6,8 @@
  *   towns, inds, stations, veh, nid, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed }.
  * Tempo: h = ore intere dal 1° gennaio a mezzanotte (si parte alle 7: h0), tk = passi nell'ora; deadline (assoluta) e
  * par (dall'inizio) in ore.
- * mv = versione della mappa generata dal seme (1 fino alla 0.32, 2 con l'acqua collegata per i lati).
+ * mv = versione della mappa generata dal seme (1 fino alla 0.32, 2 con l'acqua collegata per i lati); wj = caselle
+ * d'angolo allagate all'apertura di un salvataggio mv 1 (joinOld), così anche lì il fiume è collegato per i lati.
  * I salvataggi v1 (0.32.x: un "giorno" di 24 passi) si aprono con migrate(): quel giorno è la nostra ora, con gli
  * stessi passi, quindi basta rinominare (day → h, wonDay → wonH) e tenere la mappa di allora (mv 1).
  * La mappa (terreno, acqua, alberi) NON è nello stato: si rigenera dal seme. `net` = solo le caselle cambiate
@@ -72,6 +73,8 @@
     for (const k in s.net) { const e = s.net[k], i = +k; W.rail[i] = e[0]; W.road[i] = e[1]; W.sig[i] = e[2]; W.ow[i] = e[3]; if (e[4]) W.tun[i] = 1; }
     for (const st of s.stations) if (st) for (const t of st.tiles) { W.st[t] = st.id + 1; W.sax[t] = st.ax; W.sk[t] = st.kind === 'rail' ? 1 : 2; }
     for (const v of s.veh) if (S.isTrain(v)) { for (const e of v.trail) W.resv[e[0]] = v.id; for (const t of v.ahead) W.resv[t] = v.id; }
+    // salvataggi con la mappa vecchia (mv 1): le caselle d'angolo allagate all'apertura (joinOld), sempre le stesse
+    if (s.wj) for (const i of s.wj) { W.water[i] = 1; W.ht[i] = 0; W.tree[i] = 0; }
     Object.defineProperty(s, '_w', { value: W, enumerable: false, configurable: true, writable: true });
     return W;
   }
@@ -137,7 +140,21 @@
     let s = typeof json === 'string' ? JSON.parse(json) : JSON.parse(JSON.stringify(json));
     if (!s || !(s = migrate(s))) return null;
     world(s);
+    joinOld(s);
     return s;
+  }
+  // mappa vecchia (mv 1): il fiume che piega di lato tocca l'acqua solo per uno spigolo. Alla prima apertura una delle
+  // due caselle d'angolo diventa acqua (la più bassa, a parità quella in alto), purché sia vuota: niente strade, binari,
+  // stazioni, case, industrie o gallerie (gli alberi si tolgono). Le caselle scelte restano nel salvataggio (`wj`), così
+  // un ponte costruito poi sopra non le fa tornare terra; con tutte e due occupate lo spigolo resta (solo un canaletto
+  // disegnato, senza effetti sul gioco).
+  function joinOld(s) {
+    if ((s.mv || 1) >= 2 || s.wj) return;
+    const W = world(s);
+    const free = (i) => !W.use[i] && !W.rail[i] && !W.road[i] && !W.st[i] && !W.tun[i] && !W.resv[i];
+    s.wj = M.joinDiagonals(W.w, W.h, W.ht, W.water, free);
+    for (const i of s.wj) W.tree[i] = 0;
+    W.covDirty = true;
   }
 
   /* ---------- obiettivi ---------- */
@@ -570,7 +587,7 @@
     return (t ? t.name : '?') + (st.name.ind ? ' ' + (indLabel ? indLabel(st.name.ind) : st.name.ind) : '') + (st.name.n > 1 ? ' ' + st.name.n : '');
   };
 
-  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, SNAP_V, H0, step, act, preview, stationPlan, expandSpots, platformOffer, platforms, ST_LEN, ST_PL, goalState, isOver,
+  HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, joinOld, SNAP_V, H0, step, act, preview, stationPlan, expandSpots, platformOffer, platforms, ST_LEN, ST_PL, goalState, isOver,
     coach, rate, parTime, progress, stationName, vehCost, legs, orderMode, normOrder, MODES, TPH, HPD, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
     isWon: (s) => !!(s && s.won) };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -111,8 +111,11 @@
   }
 
   // per ogni quadrato 2×2 con l'acqua solo sulla diagonale, una delle altre due caselle diventa acqua (la più bassa,
-  // a parità quella in alto); si ripete finché non ce ne sono più (l'acqua cresce soltanto, quindi finisce)
-  function joinDiagonals(w, h, ht, wat) {
+  // a parità quella in alto); si ripete finché non ce ne sono più (l'acqua cresce soltanto, quindi finisce).
+  // free(i) (facoltativo, per i salvataggi vecchi): la casella si può allagare? Se la prima scelta è occupata si prova
+  // l'altra; se lo sono tutte e due lo spigolo resta (il disegno ci fa passare un canaletto). Torna le caselle allagate.
+  function joinDiagonals(w, h, ht, wat, free) {
+    const out = [];
     for (let changed = true; changed;) {
       changed = false;
       for (let y = 0; y < h - 1; y++) for (let x = 0; x < w - 1; x++) {
@@ -121,10 +124,13 @@
         if (wat[a] && wat[d] && !wat[b] && !wat[c]) { p = b; q = c; }
         else if (wat[b] && wat[c] && !wat[a] && !wat[d]) { p = a; q = d; }
         if (p < 0) continue;
-        const k = ht[q] < ht[p] ? q : p;
-        wat[k] = 1; ht[k] = 0; changed = true;
+        let k = ht[q] < ht[p] ? q : p;
+        if (free && !free(k)) k = k === p ? q : p;
+        if (free && !free(k)) continue;
+        wat[k] = 1; ht[k] = 0; changed = true; out.push(k);
       }
     }
+    return out;
   }
   // l'acqua è collegata per i lati? (test: nessun quadrato 2×2 con l'acqua solo sulla diagonale)
   function diagonalOnly(m) {
@@ -324,5 +330,5 @@
     throw new Error('express: real maps arrive in phase 3 (src/maps/' + (pack && pack.name ? pack.name : '?') + ')');
   }
 
-  HH.expressMap = { IND, ANIMALS, DX, DY, generate, scenario, fromShared, reach, diagonalOnly, MV: 2, houseSpots, growHouses, LEVELS, noise };
+  HH.expressMap = { IND, ANIMALS, DX, DY, generate, scenario, fromShared, reach, diagonalOnly, joinDiagonals, MV: 2, houseSpots, growHouses, LEVELS, noise };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

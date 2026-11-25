@@ -360,8 +360,12 @@ test('salvataggi v1 (0.32.x): si aprono, con la stessa mappa di allora, e la par
   // la mappa è quella del salvataggio (acqua uguale a quella generata dalla 0.32: firma calcolata allora)
   const W = E.world(s);
   let sig = 0, wet = 0;
-  for (let i = 0; i < W.n; i++) if (W.water[i]) { sig = (sig * 31 + i) >>> 0; wet++; }
+  for (let i = 0; i < W.n; i++) if (W.base.water[i]) { sig = (sig * 31 + i) >>> 0; wet++; }
   assert.equal(wet, 41); assert.equal(sig, 3633147419);
+  // e il fiume ora è collegato per i lati: acqua = quella di allora + le caselle d'angolo allagate all'apertura
+  assert.ok(Array.isArray(s.wj));
+  for (let i = 0; i < W.n; i++) assert.equal(W.water[i], W.base.water[i] || s.wj.includes(i) ? 1 : 0);
+  assert.equal(HH.expressMap.diagonalOnly(W), 0);
   for (const k in s.net) assert.ok(!W.water[+k] || W.road[+k] || W.rail[+k]);
   // e si gioca: il camion consegna ancora latte, il salvataggio nuovo si riapre uguale
   const before = s.gd['milk@i1'] || 0;
@@ -391,4 +395,113 @@ test('acqua collegata per i lati nelle mappe nuove (niente fiume a pezzi); le ma
   const s = E.levelFromSeed(3, 4321), W = E.world(s);
   const i = Array.from(W.water).findIndex((x, j) => x && !W.base.roads[j]);
   assert.equal(E.act(s, { k: 'station', kind: 'road', tile: i }).ok, false);
+});
+
+/* ---------- salvataggi con la mappa vecchia (mv 1): il fiume si collega per i lati all'apertura ---------- */
+// partita mv 1 come la faceva la 0.32.0/0.32.1 (il generatore di allora), con qualche ora giocata dal bot
+function oldSave(level, seed, hours) {
+  const M = HH.expressMap, mv = M.MV;
+  M.MV = 1;
+  let s;
+  try { s = E.levelFromSeed(level, seed); } finally { M.MV = mv; }
+  assert.equal(s.mv, 1);
+  if (hours) bot.play(s, s.h + hours);
+  const j = json(s); delete j.wj;
+  return j;
+}
+// oracoli indipendenti dal generatore: componenti d'acqua contate per i lati e per lati+spigoli (BFS)
+function comps(W, diag) {
+  const seen = new Uint8Array(W.n); let n = 0;
+  for (let i = 0; i < W.n; i++) {
+    if (!W.water[i] || seen[i]) continue;
+    n++; seen[i] = 1;
+    for (const q = [i]; q.length;) {
+      const k = q.pop(), x = k % W.w, y = (k / W.w) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if ((!dx && !dy) || (!diag && dx && dy)) continue;
+        const nx = x + dx, ny = y + dy, j = ny * W.w + nx;
+        if (nx < 0 || ny < 0 || nx >= W.w || ny >= W.h || !W.water[j] || seen[j]) continue;
+        seen[j] = 1; q.push(j);
+      }
+    }
+  }
+  return n;
+}
+const occupied = (W, i) => !!(W.use[i] || W.rail[i] || W.road[i] || W.st[i] || W.tun[i]);
+function spigoli(W) {
+  const out = [];
+  for (let y = 0; y < W.h - 1; y++) for (let x = 0; x < W.w - 1; x++) {
+    const a = y * W.w + x, b = a + 1, c = a + W.w, d = c + 1, w = W.water;
+    if (w[a] && w[d] && !w[b] && !w[c]) out.push([b, c]);
+    else if (w[b] && w[c] && !w[a] && !w[d]) out.push([a, d]);
+  }
+  return out;
+}
+
+test('salvataggi mv 1: all\'apertura il fiume è collegato per i lati, senza toccare niente di costruito', () => {
+  const M = HH.expressMap;
+  let total = 0, withBuilt = 0;
+  for (let level = 1; level <= 5; level++) for (let k = 0; k < 8; k++) {
+    const raw = oldSave(level, 900 + level * 101 + k * 37, k < 2 ? 72 : 0);
+    // prima: la mappa di allora, con gli spigoli
+    const before = E.world(JSON.parse(JSON.stringify(raw)));
+    const s = E.restore(JSON.stringify(raw)), W = E.world(s);
+    total += s.wj.length;
+    // le caselle allagate erano vuote (niente strade, binari, stazioni, case, industrie) e ora sono acqua bassa senza alberi
+    for (const i of s.wj) {
+      assert.ok(!before.water[i] && !occupied(before, i), `livello ${level} seme ${k}: casella ${i} occupata`);
+      assert.ok(W.water[i] && W.ht[i] === 0 && !W.tree[i]);
+    }
+    // niente di costruito è cambiato
+    for (const f of ['net', 'stations', 'towns', 'inds', 'veh', 'cut', 'money', 'h']) assert.deepEqual(json(s[f]), json(raw[f]), f);
+    if (Object.keys(raw.net).length) withBuilt++;
+    // resta uno spigolo solo dove tutte e due le caselle sono occupate; senza, l'acqua è collegata per i lati
+    const left = spigoli(W);
+    for (const [p, q] of left) assert.ok(occupied(W, p) && occupied(W, q));
+    if (!left.length) assert.equal(comps(W, false), comps(W, true), `livello ${level} seme ${k}`);
+    // chi si raggiungeva via terra (coi ponti) si raggiunge ancora
+    const sites = [...s.towns.map((t) => t.y * W.w + t.x), ...s.inds.map((d) => d.y * W.w + d.x)];
+    for (const b of sites.slice(1)) if (M.reach(before, sites[0], b)) assert.ok(M.reach(W, sites[0], b), `livello ${level} seme ${k}: sito ${b}`);
+    // la scelta resta nel salvataggio: riaprendo è la stessa (anche se nel frattempo ci si è costruito sopra)
+    const again = E.restore(JSON.stringify(s));
+    assert.deepEqual(again.wj, s.wj);
+    assert.deepEqual(Array.from(E.world(again).water), Array.from(W.water));
+  }
+  assert.ok(total > 20, `caselle allagate: ${total}`);
+  assert.ok(withBuilt >= 5, `salvataggi con strade: ${withBuilt}`);
+  // partite nuove (mv 2): niente da allagare, niente wj nel salvataggio
+  const fresh = E.restore(JSON.stringify(E.levelFromSeed(4, 77)));
+  assert.equal(fresh.wj, undefined);
+});
+
+test('salvataggi mv 1: spigolo con una casella occupata → l\'altra; con tutte e due → resta (solo disegno)', () => {
+  // cerca un salvataggio vecchio con almeno uno spigolo
+  let raw = null, sq = null;
+  for (let seed = 1; seed < 200 && !sq; seed++) {
+    raw = oldSave(4, seed, 0);
+    const W0 = E.world(JSON.parse(JSON.stringify(raw)));
+    sq = spigoli(W0).find(([p, q]) => !occupied(W0, p) && !occupied(W0, q));
+  }
+  assert.ok(sq, 'serve uno spigolo libero');
+  const [p, q] = sq;
+  const first = E.restore(JSON.stringify(raw)).wj, pick = first.includes(p) ? p : q, other = pick === p ? q : p;
+  assert.ok(first.includes(pick) && !first.includes(other));
+  // una strada sulla casella scelta: si allaga l'altra, la strada resta com'era
+  const one = JSON.parse(JSON.stringify(raw));
+  one.net[pick] = [0, 10, 0, 0];
+  const s1 = E.restore(JSON.stringify(one)), W1 = E.world(s1);
+  assert.ok(s1.wj.includes(other) && !s1.wj.includes(pick));
+  assert.ok(!W1.water[pick] && W1.road[pick] === 10);
+  assert.deepEqual(s1.net[pick], [0, 10, 0, 0]);
+  // strade su tutte e due: lo spigolo resta, nessuna delle due diventa acqua
+  const two = JSON.parse(JSON.stringify(one));
+  two.net[other] = [0, 5, 0, 0];
+  const s2 = E.restore(JSON.stringify(two)), W2 = E.world(s2);
+  assert.ok(!s2.wj.includes(p) && !s2.wj.includes(q));
+  assert.ok(!W2.water[p] && !W2.water[q] && W2.road[p] && W2.road[q]);
+  assert.ok(spigoli(W2).some(([a, b]) => (a === p && b === q) || (a === q && b === p)));
+  // la casella allagata si attraversa solo col ponte: una fermata lì non si può mettere
+  const s3 = E.restore(JSON.stringify(raw));
+  s3.money = 1e6;
+  assert.equal(E.act(s3, { k: 'station', kind: 'road', tile: pick }).ok, false);
 });

@@ -7,7 +7,6 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
-- [ ] Hari Express: l'anteprima di binari e strade segue il dito (un binario parallelo a una linea non scivola più sulla linea accanto; riusarla è l'«Altra via»); stazioni che si allargano (caselle accanto unite, fino a 4 binari × 6 caselle, «Allarga stazione» nella scheda, «Binario di stazione» costruendo accanto), i treni scelgono il binario libero (branch `wip/rails`)
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)
@@ -40,6 +39,10 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.32.4)
+- [x] Hari Express: l'anteprima di binari e strade segue il dito (un binario parallelo a una linea non scivola più sulla linea accanto; riusarla è l'«Altra via»); stazioni che si allargano (caselle accanto unite, fino a 4 binari × 6 caselle, «Allarga stazione» nella scheda, «Binario di stazione» costruendo accanto), i treni scelgono il binario libero (branch `wip/rails`)
+- [x] Hari Express: fiumi continui con rive tonde, anche nei salvataggi vecchi (caselle d'angolo libere allagate, campo `wj`)
 
 ## Fatto (v0.32.3)
 - [x] Hari Express: percorso dei mezzi modificabile dalla scheda (aggiungi, togli, su/giù, carica e scarica / aspetta il pieno / solo scarica / solo carica, fermate irraggiungibili rifiutate, cambio a metà viaggio); ponti fino a 6 caselle e gallerie fino a 8 proposti trascinando dritto (anteprima col tratto in giallo e il costo, «Altra via», perché non si può), demoliti interi; titolo della scheda sempre visibile; strade est-ovest non più scure
