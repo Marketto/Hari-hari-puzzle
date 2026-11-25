@@ -1275,7 +1275,7 @@
   
   --exp-tree: #6fcf6a; --exp-tree-2: #58bf63; --exp-tree-3: #ffb7d2; --exp-trunk: #9a6342; --exp-bush: #5fbf74;
   
-  --exp-road: #c9b8c4; --exp-road-2: #fff8ee; --exp-ballast: #d8c3ae; --exp-rail: #8a7f96; --exp-sleeper: #a87850; --exp-bridge: #e8cba0;
+  --exp-road: #c9b8c4; --exp-road-2: #fff8ee; --exp-ballast: #d8c3ae; --exp-rail: #8a7f96; --exp-sleeper: #a87850; --exp-bridge: #e8cba0; --exp-stone: #e6dccf; --exp-tunnel: #4a3640;
   --exp-platform: #f2e4d6; --exp-canopy: #ff8fb1; --exp-stop: #7ccfe8; --exp-sign: #ffd66a; --exp-arrow: #ffffff;
   
   --exp-house-bunny: #fff2f6; --exp-roof-bunny: #ff8fb1; --exp-house-cat: #fff1dc; --exp-roof-cat: #ffb45e;
@@ -1311,7 +1311,7 @@
     --exp-grass: #3f7a5a; --exp-grass-2: #397253; --exp-hill: #346a50; --exp-hill-2: #5a6a4a; --exp-sand: #8a7a6a; --exp-bed: #4a4a62;
     --exp-water: #2f5a9a; --exp-water-2: #5a80c0; --exp-foam: #cfe0ff; --exp-sky: #241c3c; --exp-fog: #2a2244;
     --exp-tree: #2f7a5a; --exp-tree-2: #2a6a50; --exp-tree-3: #8a5a8a; --exp-trunk: #6a4a3a; --exp-bush: #2f6a5a;
-    --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060;
+    --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060; --exp-stone: #a89cae; --exp-tunnel: #1c1428;
     --exp-platform: #8a7a8a; --exp-canopy: #b8607a; --exp-stop: #4a8aa8; --exp-sign: #e8c060;
     --exp-house-bunny: #d8c8d8; --exp-roof-bunny: #a8607a; --exp-house-cat: #d8c8b0; --exp-roof-cat: #a8784a;
     --exp-house-panda: #d0d0d8; --exp-roof-panda: #4a4860; --exp-house-bear: #c8b098; --exp-roof-bear: #7a5a40;
@@ -1329,7 +1329,7 @@
   --exp-grass: #3f7a5a; --exp-grass-2: #397253; --exp-hill: #346a50; --exp-hill-2: #5a6a4a; --exp-sand: #8a7a6a; --exp-bed: #4a4a62;
   --exp-water: #2f5a9a; --exp-water-2: #5a80c0; --exp-foam: #cfe0ff; --exp-sky: #241c3c; --exp-fog: #2a2244;
   --exp-tree: #2f7a5a; --exp-tree-2: #2a6a50; --exp-tree-3: #8a5a8a; --exp-trunk: #6a4a3a; --exp-bush: #2f6a5a;
-  --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060;
+  --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060; --exp-stone: #a89cae; --exp-tunnel: #1c1428;
   --exp-platform: #8a7a8a; --exp-canopy: #b8607a; --exp-stop: #4a8aa8; --exp-sign: #e8c060;
   --exp-house-bunny: #d8c8d8; --exp-roof-bunny: #a8607a; --exp-house-cat: #d8c8b0; --exp-roof-cat: #a8784a;
   --exp-house-panda: #d0d0d8; --exp-roof-panda: #4a4860; --exp-house-bear: #c8b098; --exp-roof-bear: #7a5a40;

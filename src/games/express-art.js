@@ -54,6 +54,11 @@
     ex_left_t: '{t} left', ex_stars3_t: '3 strawberries if you finish within {t}', ex_lastv_t: 'Last vehicle {t} ago', ex_trip_t: 'Round trip: about {t}.',
     ex_v_speed_h: '{n} tiles an hour', ex_v_from_d: 'From {date}', ex_growing_d: 'Growing: +{n} yesterday', ex_perday: '{n} a day', ex_upkeep_d: 'Upkeep {n} a day',
     ex_always_day: 'Always day', ex_sky_day: 'Day', ex_sky_sunset: 'Sunset', ex_sky_night: 'Night', ex_sky_dawn: 'Dawn',
+    ex_editroute: 'Edit route', ex_apply: 'Apply', ex_o_at: 'At this stop', ex_o_both: 'Load and unload', ex_o_unload: 'Unload only', ex_o_load: 'Load only',
+    ex_up: 'Move up', ex_down: 'Move down', ex_err_unreach: 'This vehicle can’t get from {a} to {b}', ex_err_dup: 'The same stop twice in a row',
+    ex_bridge: 'Bridge', ex_tunnel: 'Tunnel', ex_go_around: 'Other way', ex_err_long_b: 'Bridge too long: at most {n} tiles of water',
+    ex_err_long_t: 'Tunnel too long: at most {n} tiles', ex_err_bank: 'The two banks aren’t at the same height', ex_err_portal: 'A tunnel must come out at the same height it goes in',
+    ex_err_tunnel: 'No signals inside a tunnel', ex_c_tunnel: 'A hill in the way? Drag straight across it: Hari suggests a tunnel. Across water, a bridge!',
     // già tradotte (comuni e altri giochi)
     ry_nogl: 'This game needs 3D graphics (WebGL).', soon: 'Coming soon', play: 'Play', er_close: 'Close', lf_cancel: 'Cancel', level: 'Level', pa_pause: 'Pause', resume: 'Continue',
   };
@@ -85,6 +90,8 @@
     oneway: svg(ln('M3 12 H19 M14 6 L20 12 L14 18', 2.4)),
     station: svg(ln('M3 20 H21 M5 20 V11 M19 20 V11 M3 11 L12 4 L21 11 Z M9 20 V15 H15 V20')),
     check: svg(ln('M5 12 L10 17 L19 7', 2.6)), close: svg(ln('M6 6 L18 18 M18 6 L6 18', 2.4)),
+    up: svg(ln('M12 19 V5 M6 11 L12 5 L18 11', 2.4)), down: svg(ln('M12 5 V19 M6 13 L12 19 L18 13', 2.4)),
+    edit: svg(ln('M4 20 L5 15 L16 4 L20 8 L9 19 Z M14 6 L18 10', 2.2)), swap: svg(ln('M4 8 H18 M14 4 L18 8 L14 12 M20 16 H6 M10 12 L6 16 L10 20', 2.2)),
     dice: svg(`<rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/>`),
     play: svg('<path d="M8 5 L19 12 L8 19 Z" fill="currentColor"/>'), pause: svg('<rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/>'),
     acorn: `<svg viewBox="0 0 18 20" aria-hidden="true"><path d="M2 8 Q9 1 16 8 Z" fill="var(--acorn-cap)"/><ellipse cx="9" cy="12" rx="6" ry="7" fill="var(--acorn)"/></svg>`,

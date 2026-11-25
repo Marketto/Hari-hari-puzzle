@@ -11,7 +11,7 @@
   HH.express3d = function (X) {
     const T = X.T;
     const COLS = ['ink', 'grass', 'grass-2', 'hill', 'hill-2', 'sand', 'bed', 'water', 'water-2', 'foam', 'sky', 'fog', 'tree', 'tree-2', 'tree-3', 'trunk', 'bush',
-      'road', 'road-2', 'ballast', 'rail', 'sleeper', 'bridge', 'platform', 'canopy', 'stop', 'sign', 'arrow',
+      'road', 'road-2', 'ballast', 'rail', 'sleeper', 'bridge', 'stone', 'tunnel', 'platform', 'canopy', 'stop', 'sign', 'arrow',
       ...['bunny', 'cat', 'panda', 'bear', 'duck', 'fox'].flatMap((a) => ['house-' + a, 'roof-' + a]), 'ear', 'door', 'window',
       'barn', 'barn-2', 'silo', 'dairy', 'cheese', 'field', 'field-2', 'bakery', 'bread', 'conifer', 'log', 'saw', 'toy-1', 'toy-2', 'toy-3', 'metal',
       'bus', 'mail', 'truck', 'loco', 'loco-2', 'wagon', 'base', 'face', 'eye', 'blush', 'glass', 'steam',

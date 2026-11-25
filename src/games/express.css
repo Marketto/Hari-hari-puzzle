@@ -12,7 +12,7 @@
   /* alberi e cespugli */
   --exp-tree: #6fcf6a; --exp-tree-2: #58bf63; --exp-tree-3: #ffb7d2; --exp-trunk: #9a6342; --exp-bush: #5fbf74;
   /* strade, binari, stazioni */
-  --exp-road: #c9b8c4; --exp-road-2: #fff8ee; --exp-ballast: #d8c3ae; --exp-rail: #8a7f96; --exp-sleeper: #a87850; --exp-bridge: #e8cba0;
+  --exp-road: #c9b8c4; --exp-road-2: #fff8ee; --exp-ballast: #d8c3ae; --exp-rail: #8a7f96; --exp-sleeper: #a87850; --exp-bridge: #e8cba0; --exp-stone: #e6dccf; --exp-tunnel: #4a3640;
   --exp-platform: #f2e4d6; --exp-canopy: #ff8fb1; --exp-stop: #7ccfe8; --exp-sign: #ffd66a; --exp-arrow: #ffffff;
   /* case degli animali: muro, tetto */
   --exp-house-bunny: #fff2f6; --exp-roof-bunny: #ff8fb1; --exp-house-cat: #fff1dc; --exp-roof-cat: #ffb45e;
@@ -48,7 +48,7 @@
     --exp-grass: #3f7a5a; --exp-grass-2: #397253; --exp-hill: #346a50; --exp-hill-2: #5a6a4a; --exp-sand: #8a7a6a; --exp-bed: #4a4a62;
     --exp-water: #2f5a9a; --exp-water-2: #5a80c0; --exp-foam: #cfe0ff; --exp-sky: #241c3c; --exp-fog: #2a2244;
     --exp-tree: #2f7a5a; --exp-tree-2: #2a6a50; --exp-tree-3: #8a5a8a; --exp-trunk: #6a4a3a; --exp-bush: #2f6a5a;
-    --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060;
+    --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060; --exp-stone: #a89cae; --exp-tunnel: #1c1428;
     --exp-platform: #8a7a8a; --exp-canopy: #b8607a; --exp-stop: #4a8aa8; --exp-sign: #e8c060;
     --exp-house-bunny: #d8c8d8; --exp-roof-bunny: #a8607a; --exp-house-cat: #d8c8b0; --exp-roof-cat: #a8784a;
     --exp-house-panda: #d0d0d8; --exp-roof-panda: #4a4860; --exp-house-bear: #c8b098; --exp-roof-bear: #7a5a40;
@@ -66,7 +66,7 @@
   --exp-grass: #3f7a5a; --exp-grass-2: #397253; --exp-hill: #346a50; --exp-hill-2: #5a6a4a; --exp-sand: #8a7a6a; --exp-bed: #4a4a62;
   --exp-water: #2f5a9a; --exp-water-2: #5a80c0; --exp-foam: #cfe0ff; --exp-sky: #241c3c; --exp-fog: #2a2244;
   --exp-tree: #2f7a5a; --exp-tree-2: #2a6a50; --exp-tree-3: #8a5a8a; --exp-trunk: #6a4a3a; --exp-bush: #2f6a5a;
-  --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060;
+  --exp-road: #6a6080; --exp-road-2: #d8d0e8; --exp-ballast: #6a5a6a; --exp-rail: #b8b0d0; --exp-sleeper: #6a4a3a; --exp-bridge: #8a7060; --exp-stone: #a89cae; --exp-tunnel: #1c1428;
   --exp-platform: #8a7a8a; --exp-canopy: #b8607a; --exp-stop: #4a8aa8; --exp-sign: #e8c060;
   --exp-house-bunny: #d8c8d8; --exp-roof-bunny: #a8607a; --exp-house-cat: #d8c8b0; --exp-roof-cat: #a8784a;
   --exp-house-panda: #d0d0d8; --exp-roof-panda: #4a4860; --exp-house-bear: #c8b098; --exp-roof-bear: #7a5a40;
@@ -189,6 +189,9 @@
 .ex-confirm .acts .ex-btn { flex: 1 0 auto; }
 .ex-confirm .cost b svg { width: 16px; height: 18px; }
 .ex-confirm .cost .bad { color: var(--bad); font-weight: 800; }
+.ex-confirm .cost .span { color: var(--exp-ui-hi-ink); font-weight: 800; white-space: normal; }
+.ex-confirm .cost .bad { white-space: normal; }
+.ex-confirm .alt { flex: 1 0 100%; justify-content: center; min-height: 44px; box-shadow: none; background: var(--exp-ui-2); }
 .ex-confirm .cost span { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* schede a foglio dal basso */
@@ -197,6 +200,10 @@
   animation: ex-up .25s cubic-bezier(.3, 1.3, .5, 1); }
 .ex-sheet[hidden] { display: none; }
 @keyframes ex-up { from { transform: translateY(40%); opacity: 0; } }
+/* niente figli schiacciati dal foglio a colonna; l'intestazione resta in cima mentre si scorre (prima, scorrendo fino a
+ * "Vendi", il titolo del mezzo finiva tagliato sotto il bordo del foglio) */
+.ex-sheet > * { flex-shrink: 0; }
+.ex-sheet > header { position: sticky; top: -10px; z-index: 2; margin: 0 -16px; padding: 4px 16px 6px; background: var(--card-solid); }
 .ex-sheet .grab { align-self: center; width: 44px; height: 5px; border-radius: 3px; background: var(--line-2); flex: none; }
 .ex-sheet header { display: flex; align-items: center; gap: 12px; }
 .ex-sheet header .ic { width: 48px; height: 48px; border-radius: 16px; background: var(--exp-ui-hi); display: grid; place-items: center; flex: none; }
@@ -231,6 +238,20 @@
 .ex-order div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ex-order small { color: var(--ink-2); font-size: 12px; }
 .ex-order .ex-chip { height: 32px; box-shadow: none; background: var(--exp-ui-2); }
+/* modifica del percorso: per ogni fermata il modo (scelta nativa) e su, giù, togli da 44 px */
+.ex-order.ed { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 6px 10px; padding: 8px; }
+.ex-order.ed .nm { min-width: 0; overflow-wrap: anywhere; line-height: 1.2; }
+.ex-order.ed .mv { display: flex; gap: 4px; }
+.ex-order.ed .ex-sel { grid-column: 2 / 4; }
+.ex-order.ed.bad { box-shadow: inset 0 0 0 2px var(--bad); }
+.ex-order.cur .n { box-shadow: 0 0 0 3px var(--exp-ui-hi); }
+.ex-btn.sq { width: 44px; padding: 0; }
+.ex-sel { min-height: 44px; max-width: 100%; padding: 0 10px; border-radius: 14px; border: 2px solid var(--line-2); background: var(--exp-ui-2); color: var(--ink);
+  font: 700 14px var(--font-body); }
+.ex-sel:focus-visible { outline: 3px solid var(--focus, var(--accent)); outline-offset: 2px; }
+.ex-card p.bad { color: var(--bad); font-weight: 800; }
+.ex-card > .ex-btn { align-self: stretch; box-shadow: none; }
+.ex-total.ed .ex-btn { flex: 1; }
 .ex-total { position: sticky; bottom: -16px; margin: 0 -16px -16px; padding: 10px 16px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
   background: var(--card-solid); box-shadow: 0 -8px 16px -12px rgba(0, 0, 0, .35); }
 .ex-total b { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; }

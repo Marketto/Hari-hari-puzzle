@@ -55,7 +55,7 @@
       X.tool = t; sfx('tap');
       cancelBuild();
       hud.paintTools();
-      if (hud.isOpen() && hud.sheetKind !== 'new') hud.close();
+      if (hud.isOpen() && hud.sheetKind !== 'new' && hud.sheetKind !== 'route') hud.close();
     };
     X.setSub = (k) => { subs[X.tool] = k; sfx('tap'); cancelBuild(); hud.paintTools(); };
     X.blocked = () => !X.ui.home.hidden;
@@ -84,12 +84,15 @@
 
     /* ---------- azioni ---------- */
     const ERR = { money: 'ex_err_money', blocked: 'ex_err_blocked', busy: 'ex_err_busy', axis: 'ex_err_axis', slope: 'ex_err_slope', town: 'ex_err_town',
-      orders: 'ex_err_orders', line: 'ex_err_line', empty: 'ex_err_empty', size: 'ex_err_size', noroute: 'ex_err_noroute', locked: 'ex_err_blocked', max: 'ex_err_busy' };
+      orders: 'ex_err_orders', line: 'ex_err_line', empty: 'ex_err_empty', size: 'ex_err_size', noroute: 'ex_err_noroute', locked: 'ex_err_blocked', max: 'ex_err_busy',
+      unreach: 'ex_err_orders', tunnel: 'ex_err_tunnel', long_b: 'ex_err_long_b', long_t: 'ex_err_long_t', bank: 'ex_err_bank', portal: 'ex_err_portal' };
+    // perché un ponte o una galleria dritti non si possono fare (con la lunghezza massima)
+    const why = (k) => L(ERR[k] || 'ex_err_noroute', { n: k === 'long_t' ? HH.expressNet.MAX_TUNNEL : HH.expressNet.MAX_BRIDGE });
     function act(a) {
       if (!s) return { ok: false };
       if (a.k === 'buy' && s.veh.length >= X.maxVehicles()) { hud.hint(L('ex_err_busy'), 2500); sfx('bad'); return { ok: false, err: 'max' }; }
       const r = E.act(s, a);
-      if (!r.ok) { if (r.err !== 'over') { hud.hint(L(ERR[r.err] || 'ex_err_blocked'), 2600); sfx('bad'); } return r; }
+      if (!r.ok) { if (r.err !== 'over' && r.err !== 'unreach') { hud.hint(L(ERR[r.err] || 'ex_err_blocked'), 2600); sfx('bad'); } else if (r.err === 'unreach') sfx('bad'); return r; }
       if (a.k === 'build' || a.k === 'station') sfx('place');
       else if (a.k === 'demolish') sfx('boing');
       else if (a.k === 'signal' || a.k === 'oneway') sfx('mark');
@@ -126,9 +129,7 @@
       if ((X.tool === 'rail' && X.sub === 'track') || X.tool === 'road') {
         if (t === op.a) { prev = null; TR.overlay([{ t, c: 'sel' }], 's' + t); return; }
         prev = E.preview(s, kindOf(), op.a, t);
-        const good = prev.ok && prev.afford;
-        TR.overlay((prev.ok ? prev.tiles : [op.a, t]).map((x) => ({ t: x, c: good ? 'ok' : 'bad' })), 'p' + op.a + ':' + t + good);
-        hud.hint(prev.ok ? `${L('ex_tiles', { n: prev.tiles.length })} · ${hud.nf(prev.cost)}` : L('ex_err_noroute'), 0);
+        showPlan('p' + op.a + ':' + t);
       } else if (X.tool === 'stop' && X.sub === 'station') {
         op.line = line(op.a, t);
         TR.overlay(op.line.map((x) => ({ t: x, c: 'ok' })), 'l' + op.line.join());
@@ -139,8 +140,8 @@
       const o = op; op = null;
       if (X.tool === 'demolish') { TR.overlay([], ''); return; }
       if ((X.tool === 'rail' && X.sub === 'track') || X.tool === 'road') {
-        if (prev && prev.ok) { hud.hint(''); hud.confirm(prev, kindOf()); return; }
-        TR.overlay([], ''); hud.hint(moved ? L('ex_err_noroute') : L(X.tool === 'rail' ? 'ex_h_rail' : 'ex_h_road'), 2400); prev = null;
+        if (prev && prev.ok) { hud.hint(''); hud.confirm(prev, kindOf(), prev.why ? why(prev.why) : ''); return; }
+        TR.overlay([], ''); hud.hint(moved ? (prev && prev.why ? why(prev.why) : L('ex_err_noroute')) : L(X.tool === 'rail' ? 'ex_h_rail' : 'ex_h_road'), 2600); prev = null;
         return;
       }
       TR.overlay([], '');
@@ -151,7 +152,24 @@
       else if (X.tool === 'stop') act({ k: 'station', kind: 'road', tile: t });
     };
     X.opCancel = () => { op = null; cancelBuild(); };
-    X.commitBuild = () => { if (prev && prev.ok) act({ k: 'build', kind: kindOf(), tiles: prev.tiles }); cancelBuild(); };
+    // anteprima: caselle (verdi; ponte e galleria in giallo), costo, tratti speciali e perché manca un salto dritto
+    function showPlan(key) {
+      const good = prev.ok && prev.afford, sp = new Set();
+      if (prev.ok) for (const x of prev.spans || []) for (const t of x.tiles) sp.add(t);
+      TR.overlay((prev.ok ? prev.tiles : [op ? op.a : prev.tiles[0], op ? op.b : prev.tiles[0]]).map((x) => ({ t: x, c: !good ? 'bad' : sp.has(x) ? 'sign' : 'ok', a: sp.has(x) ? 0.75 : undefined })), key + good + (prev.tn || []).length);
+      const st = prev.ok ? hud.spanText(prev) : '';
+      hud.hint(prev.ok ? `${L('ex_tiles', { n: prev.tiles.length })} · ${hud.nf(prev.cost)}${st ? ' · ' + st : ''}${prev.why ? ' · ' + why(prev.why) : ''}` : prev.why ? why(prev.why) : L('ex_err_noroute'), 0);
+    }
+    // la proposta alternativa (galleria ↔ sopra la collina, ponte ↔ giro lungo)
+    X.swapPlan = () => {
+      if (!prev || !prev.alt) return;
+      const a = prev.alt; prev.alt = null; a.alt = prev; a.why = prev.why; prev = a;
+      sfx('tap');
+      showPlan('w' + prev.tiles.join());
+      hud.hint('');
+      hud.confirm(prev, kindOf(), prev.why ? why(prev.why) : '');
+    };
+    X.commitBuild = () => { if (prev && prev.ok) act({ k: 'build', kind: kindOf(), tiles: prev.tiles, tn: prev.tn }); cancelBuild(); };
     function cancelBuild() { prev = null; hud.hideConfirm(); TR.overlay([], ''); }
     X.cancelBuild = cancelBuild;
     X.hover = (p) => {

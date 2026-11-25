@@ -63,13 +63,13 @@
       w: m.w, h: m.h, n, base: m, ver: s.nv || 1, covDirty: true, cov: null,
       ht: Uint8Array.from(m.ht), water: Uint8Array.from(m.water), tree: Uint8Array.from(m.tree),
       use: new Uint8Array(n), own: new Int16Array(n).fill(-1), rail: new Uint8Array(n), road: new Uint8Array(n), troad: new Uint8Array(n),
-      st: new Int16Array(n), sax: new Uint8Array(n), sk: new Uint8Array(n), sig: new Uint8Array(n), ow: new Uint8Array(n), resv: new Int32Array(n),
+      st: new Int16Array(n), sax: new Uint8Array(n), sk: new Uint8Array(n), sig: new Uint8Array(n), ow: new Uint8Array(n), resv: new Int32Array(n), tun: new Uint8Array(n),
     };
     for (const k in m.roads) { W.road[+k] = m.roads[k]; W.troad[+k] = 1; }
     for (const t of s.cut) W.tree[t] = 0;
     for (const d of s.inds) for (let dy = 0; dy <= 1; dy++) for (let dx = 0; dx <= 1; dx++) { const i = (d.y + dy) * m.w + d.x + dx; W.use[i] = 2; W.own[i] = d.id; W.tree[i] = 0; }
     for (const tw of s.towns) for (const i of tw.houses) { W.use[i] = 1; W.own[i] = tw.id; W.tree[i] = 0; }
-    for (const k in s.net) { const e = s.net[k], i = +k; W.rail[i] = e[0]; W.road[i] = e[1]; W.sig[i] = e[2]; W.ow[i] = e[3]; }
+    for (const k in s.net) { const e = s.net[k], i = +k; W.rail[i] = e[0]; W.road[i] = e[1]; W.sig[i] = e[2]; W.ow[i] = e[3]; if (e[4]) W.tun[i] = 1; }
     for (const st of s.stations) if (st) for (const t of st.tiles) { W.st[t] = st.id + 1; W.sax[t] = st.ax; W.sk[t] = st.kind === 'rail' ? 1 : 2; }
     for (const v of s.veh) if (S.isTrain(v)) { for (const e of v.trail) W.resv[e[0]] = v.id; for (const t of v.ahead) W.resv[t] = v.id; }
     Object.defineProperty(s, '_w', { value: W, enumerable: false, configurable: true, writable: true });
@@ -77,8 +77,10 @@
   }
   function saveTile(s, W, i) {
     const base = W.base.roads[i] || 0;
-    if (W.rail[i] || W.road[i] !== base || W.sig[i] || W.ow[i]) s.net[i] = [W.rail[i], W.road[i], W.sig[i], W.ow[i]];
-    else delete s.net[i];
+    // quinto valore solo per le caselle dentro una galleria (i salvataggi di prima ne hanno quattro)
+    if (W.tun[i] && (W.rail[i] || W.road[i])) s.net[i] = [W.rail[i], W.road[i], W.sig[i], W.ow[i], 1];
+    else if (W.rail[i] || W.road[i] !== base || W.sig[i] || W.ow[i]) { W.tun[i] = 0; s.net[i] = [W.rail[i], W.road[i], W.sig[i], W.ow[i]]; }
+    else { W.tun[i] = 0; delete s.net[i]; }
     if (W.base.tree[i] && !W.tree[i] && !W.use[i] && !s.cut.includes(i)) s.cut.push(i);
   }
   const bump = (s, W) => { s.nv = (s.nv || 1) + 1; W.ver = s.nv; W.covDirty = true; };
@@ -168,16 +170,18 @@
   function spend(s, c) { s.money -= c; s.fin.bld += c; s.moves++; }
   function preview(s, kind, a, b) {
     const W = world(s);
-    const r = NET.plan(W, kind, a, b);
+    const r = NET.propose(W, kind, a, b);
+    if (r.alt) r.alt.afford = r.alt.cost <= s.money;
     return Object.assign(r, { afford: r.cost <= s.money });
   }
   function build(s, a) {
     const W = world(s), kind = a.kind;
     if (kind !== 'rail' && kind !== 'road') return fail('kind');
-    if (!NET.valid(W, kind, a.tiles)) return fail('blocked');
-    const c = NET.cost(W, kind, a.tiles);
+    const tn = a.tn || [];
+    if (!NET.valid(W, kind, a.tiles, tn)) return fail('blocked');
+    const c = NET.cost(W, kind, a.tiles, tn);
     if (c > s.money) return fail('money');
-    NET.apply(W, kind, a.tiles);
+    NET.apply(W, kind, a.tiles, tn);
     for (const t of a.tiles) saveTile(s, W, t);
     spend(s, c); bump(s, W);
     return { ok: true, cost: c };
@@ -200,7 +204,7 @@
     }
     const h0 = W.ht[tiles[0]], other = kind === 'rail' ? 'road' : 'rail';
     for (const t of tiles) {
-      if (!(t >= 0 && t < W.n) || W.water[t] || W.use[t] || W.st[t]) return fail('blocked');
+      if (!(t >= 0 && t < W.n) || W.water[t] || W.use[t] || W.st[t] || W.tun[t]) return fail('blocked');
       if (W.ht[t] !== h0) return fail('slope');
       if (W[kind][t] & ~AXIS[ax]) return fail('axis');
       if (W[other][t] || W.sig[t] || W.ow[t]) return fail('blocked');
@@ -239,11 +243,30 @@
   function demolish(s, a) {
     const W = world(s), t = a.tile;
     if (!(t >= 0 && t < W.n)) return fail('blocked');
-    if (W.resv[t]) return fail('busy');
-    if (s.veh.some((v) => v.t === t || (v.mode === 'load' && s.stations[v.orders[v.oi].st] && s.stations[v.orders[v.oi].st].tiles.includes(t)))) return fail('busy');
-    const c = NET.COST.demolish;
-    if (c > s.money) return fail('money');
+    const busy = (x) => W.resv[x] || s.veh.some((v) => { const o = v.orders[v.oi], st = o && s.stations[o.st]; return v.t === x || (v.mode === 'load' && st && st.tiles.includes(x)); });
     const opp = NET.opp, w = W.w;
+    // ponti e gallerie si tolgono interi: toccandoli, o togliendo la casella di riva o d'imbocco a cui sono attaccati
+    const spans = [], here = NET.spanAt(W, t);
+    if (here) spans.push(here);
+    else if (!W.st[t] && !W.sig[t] && !W.ow[t]) {
+      const kind = W.rail[t] ? 'rail' : W.road[t] && W.road[t] !== (W.base.roads[t] || 0) ? 'road' : null;
+      if (kind) for (let d = 0; d < 4; d++) if (W[kind][t] & (1 << d)) {
+        const x = (t % w) + NET.DX[d], y = ((t / w) | 0) + NET.DY[d];
+        if (x < 0 || y < 0 || x >= w || y >= W.h) continue;
+        const sp = NET.spanAt(W, y * w + x);
+        if (sp && sp.kind === kind) spans.push(sp);
+      }
+    }
+    const gone = new Set([t]);
+    for (const sp of spans) for (const x of sp.tiles) gone.add(x);
+    for (const x of gone) if (busy(x)) return fail('busy');
+    const c = NET.COST.demolish * gone.size;
+    if (c > s.money) return fail('money');
+    for (const sp of spans) {
+      for (const x of sp.tiles) { W[sp.kind][x] = 0; W.tun[x] = 0; saveTile(s, W, x); }
+      for (const [e, d] of sp.ends) { W[sp.kind][e] &= ~(1 << d); saveTile(s, W, e); }
+    }
+    if (here) { spend(s, c); bump(s, W); return { ok: true, cost: c, n: gone.size }; }
     const clear = (kind, keep) => {
       const m = W[kind][t] & ~keep;
       for (let d = 0; d < 4; d++) if (m & (1 << d)) {
@@ -269,11 +292,11 @@
     else return fail(W.troad[t] ? 'town' : 'empty');
     saveTile(s, W, t);
     spend(s, c); bump(s, W);
-    return { ok: true, cost: c };
+    return { ok: true, cost: c, n: gone.size };
   }
   function signal(s, a) {
     const W = world(s), t = a.tile;
-    if (!(t >= 0 && t < W.n) || !NET.straight(W.rail[t]) || W.st[t] || W.road[t]) return fail('blocked');
+    if (!(t >= 0 && t < W.n) || !NET.straight(W.rail[t]) || W.st[t] || W.road[t] || W.tun[t]) return fail(W.tun[t] ? 'tunnel' : 'blocked');
     if (W.sig[t]) { W.sig[t] = 0; saveTile(s, W, t); bump(s, W); s.moves++; return { ok: true, cost: 0 }; }
     if (NET.COST.signal > s.money) return fail('money');
     W.sig[t] = 1; saveTile(s, W, t); spend(s, NET.COST.signal); bump(s, W);
@@ -282,7 +305,7 @@
   // senso unico: nessuno → avanti (sud o est) → indietro (nord o ovest) → nessuno; oppure a.dir esplicita
   function oneway(s, a) {
     const W = world(s), t = a.tile;
-    if (!(t >= 0 && t < W.n) || !NET.straight(W.rail[t]) || W.st[t] || W.road[t]) return fail('blocked');
+    if (!(t >= 0 && t < W.n) || !NET.straight(W.rail[t]) || W.st[t] || W.road[t] || W.tun[t]) return fail(W.tun[t] ? 'tunnel' : 'blocked');
     const fwd = W.rail[t] === 5 ? 2 : 1;
     let nx;
     if (a.dir != null) nx = a.dir < 0 ? 0 : a.dir + 1;
@@ -294,8 +317,62 @@
   }
   function checkOrders(s, net, orders) {
     if (!Array.isArray(orders) || orders.length < 2) return 'orders';
-    for (const o of orders) { const st = s.stations[o.st]; if (!st || (net === 'rail') !== (st.kind === 'rail')) return 'orders'; }
+    for (const o of orders) { const st = s.stations[o && o.st]; if (!st || (net === 'rail') !== (st.kind === 'rail')) return 'orders'; }
     return null;
+  }
+  // un ordine: { st, full } (aspetta il pieno), più nl: 1 (solo scarica: non carica) o nu: 1 (solo carica: non scarica).
+  // I modi si escludono; i salvataggi di prima hanno solo { st, full } e restano validi così come sono.
+  const MODES = ['both', 'full', 'unload', 'load'];
+  const orderMode = (o) => (o.full ? 'full' : o.nl ? 'unload' : o.nu ? 'load' : 'both');
+  function normOrder(o) {
+    const m = o.mode || orderMode(o), r = { st: o.st, full: m === 'full' };
+    if (m === 'unload') r.nl = 1; else if (m === 'load') r.nu = 1;
+    return r;
+  }
+  // tratti del giro (da ogni fermata alla successiva, l'ultima torna alla prima): lunghezza in caselle o -1 se quel
+  // mezzo non ci arriva. Si parte da ogni uscita della stazione (anche girandosi), come un mezzo che riparte da lì.
+  function legs(s, net, orders) {
+    const W = world(s), out = [];
+    for (let i = 0; i < orders.length; i++) {
+      const a = s.stations[orders[i].st], b = s.stations[orders[(i + 1) % orders.length].st];
+      if (!a || !b) { out.push(-1); continue; }
+      const starts = [];
+      for (const t of a.tiles) for (let d = 0; d < 4; d++) {
+        if (!(W[net][t] & (1 << d))) continue;
+        const nx = (t % W.w) + NET.DX[d], ny = ((t / W.w) | 0) + NET.DY[d];
+        starts.push({ t: ny * W.w + nx, a: NET.opp(d), g: 0, k: d });
+      }
+      const r = a === b ? { len: 0 } : NET.route(W, net, starts, b.id, b.tiles);
+      out.push(r ? r.len : -1);
+    }
+    return out;
+  }
+  // nuovo percorso di un mezzo già in servizio. Controlli: almeno 2 fermate, della rete giusta, niente fermata ripetuta
+  // subito dopo sé stessa, ogni tratto percorribile da quel mezzo (A*), altrimenti { err: 'unreach', leg }.
+  // A metà viaggio: se la meta di adesso c'è ancora il mezzo ci va (o continua a caricare); se è stata tolta va alla
+  // fermata successiva del vecchio giro che c'è ancora. Il carico resta a bordo e si scarica dove è accettato.
+  function setOrders(s, a) {
+    const v = s.veh.find((x) => x.id === a.id);
+    if (!v) return fail('none');
+    const net = VT[v.type].net;
+    const e = checkOrders(s, net, a.orders);
+    if (e) return fail(e);
+    if (a.orders.length > 12) return fail('orders');
+    const orders = a.orders.map(normOrder), n = orders.length;
+    for (let i = 0; i < n; i++) if (orders[i].st === orders[(i + 1) % n].st) return fail('orders');
+    const lg = legs(s, net, orders), bad = lg.findIndex((x) => x < 0);
+    if (bad >= 0) return Object.assign(fail('unreach'), { leg: bad });
+    const W = world(s), old = v.orders, cur = old[v.oi];
+    let ni = -1;
+    if (cur) ni = orders[v.oi] && orders[v.oi].st === cur.st ? v.oi : orders.findIndex((o) => o.st === cur.st);
+    const keep = ni >= 0;
+    for (let k = 1; !keep && ni < 0 && k <= old.length; k++) { const st = old[(v.oi + k) % old.length].st; ni = orders.findIndex((o) => o.st === st); }
+    if (ni < 0) ni = 0;
+    v.orders = orders; v.oi = ni;
+    if (v.mode === 'load' && !keep) { v.oi = (ni + n - 1) % n; S.depart(s, W, v, []); }
+    else if (v.mode !== 'load') { v.pv = -1; if (v.mode === 'lost') v.mode = 'go'; }
+    s.moves++;
+    return { ok: true, cost: 0 };
   }
   function vehCost(a) { const T = VT[a.type]; return T.cost + (T.net === 'rail' ? (a.cars || []).length * WAGON.cost : 0); }
   function buy(s, a) {
@@ -309,7 +386,7 @@
     const c = vehCost(a);
     if (c > s.money) return fail('money');
     const st = s.stations[a.orders[0].st];
-    const v = { id: s.nid, type: a.type, n: 1 + s.veh.filter((x) => x.type === a.type).length, orders: a.orders.map((o) => ({ st: o.st, full: !!o.full })), oi: 0,
+    const v = { id: s.nid, type: a.type, n: 1 + s.veh.filter((x) => x.type === a.type).length, orders: a.orders.map(normOrder), oi: 0,
       t: 0, a: 0, b: 0, p: 0.5, pt: [], pe: [], pv: W.ver, trail: [], ahead: [], mode: 'load', wt: 0, ld: {}, profit: 0, last: 0, value: c, born: s.h };
     if (T.net === 'road') v.cargo = a.cargo || T.cargo[0]; else v.cars = a.cars.slice();
     const tiles = st.tiles.slice().sort((p, q) => p - q);
@@ -338,17 +415,7 @@
       case 'oneway': return oneway(s, a);
       case 'buy': return buy(s, a);
       case 'sell': { const v = s.veh.find((x) => x.id === a.id); if (!v) return fail('none'); const back = S.sell(s, world(s), a.id); s.moves++; return { ok: true, cost: -back }; }
-      case 'orders': {
-        const v = s.veh.find((x) => x.id === a.id);
-        if (!v) return fail('none');
-        const e = checkOrders(s, VT[v.type].net, a.orders);
-        if (e) return fail(e);
-        v.orders = a.orders.map((o) => ({ st: o.st, full: !!o.full }));
-        if (v.oi >= v.orders.length) v.oi = 0;
-        v.pv = -1; if (v.mode === 'lost') v.mode = 'go';
-        s.moves++;
-        return { ok: true, cost: 0 };
-      }
+      case 'orders': return setOrders(s, a);
       case 'speed': s.speed = [0, 1, 2, 4].includes(a.v) ? a.v : 1; return { ok: true, cost: 0 };
       default: return fail('action');
     }
@@ -360,7 +427,12 @@
     const trains = s.veh.filter(S.isTrain), road = s.veh.filter((v) => !S.isTrain(v));
     if (trains.some((v) => S.blocked(v))) return 'ex_c_stuck';
     if (s.money < 300 && !s.veh.length) return 'ex_c_money';
-    if (s.mode === 'free') return 'ex_c_free';
+    if (s.mode === 'free') {
+      // con le colline e qualche pezzo di rete già fatto, Hari ricorda ponti e gallerie (finché non ne fai una)
+      let mine = 0, tun = 0;
+      for (const k in s.net) { const e = s.net[k]; if (e[4]) tun++; else if (e[0] || (e[1] && !W.troad[+k])) mine++; }
+      return mine >= 8 && !tun && W.ht.some((h) => h > 0) ? 'ex_c_tunnel' : 'ex_c_free';
+    }
     const sts = s.stations.filter(Boolean), rs = sts.filter((x) => x.kind === 'rail'), ro = sts.filter((x) => x.kind === 'road');
     let myRoad = 0, myRail = 0;
     for (const k in s.net) { if (s.net[k][0]) myRail++; if (s.net[k][1] && !W.troad[+k]) myRoad++; }
@@ -401,6 +473,6 @@
   };
 
   HH.express = { LV, LAST, FREE_AT, config, world, newLevel, levelFromSeed, newFree, restore, migrate, SNAP_V, H0, step, act, preview, goalState, isOver,
-    coach, rate, parTime, progress, stationName, vehCost, TPH, HPD, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
+    coach, rate, parTime, progress, stationName, vehCost, legs, orderMode, normOrder, MODES, TPH, HPD, TPD, date, VT, WAGON, CARGO: S.CARGO, CARGOS: S.CARGOS, COST: NET.COST,
     isWon: (s) => !!(s && s.won) };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -17,6 +17,13 @@
       const w = W();
       deck = new Float32Array(w.n).fill(NaN);
       for (let i = 0; i < w.n; i++) {
+        // dentro una galleria: il fondo è alla quota degli imbocchi (il binario non sale sulla collina)
+        if (w.tun[i] && (w.rail[i] || w.road[i])) {
+          const m = w.rail[i] || w.road[i], d = m & 5 ? 0 : 1;
+          let x = i % w.w, y = (i / w.w) | 0, k = 0;
+          while (k++ < 12) { x += DX[d]; y += DY[d]; if (x < 0 || y < 0 || x >= w.w || y >= w.h) break; const j = y * w.w + x; if (!w.tun[j]) { deck[i] = w.ht[j] * X.HU; break; } }
+          continue;
+        }
         if (!w.water[i] || !(w.rail[i] || w.road[i])) continue;
         const m = w.rail[i] || w.road[i], ax = m & 5 ? [0, 2] : [1, 3];
         let hi = 0;
@@ -27,7 +34,7 @@
         deck[i] = hi * X.HU + 0.1;
       }
     }
-    const tH = (i) => (W().water[i] ? (deck && !isNaN(deck[i]) ? deck[i] : -0.2) : W().ht[i] * X.HU);
+    const tH = (i) => { const w = W(); if (deck && !isNaN(deck[i])) return deck[i]; return w.water[i] ? -0.2 : w.ht[i] * X.HU; };
     function hVr(vx, vz) {
       const w = W(), ox = vx & 1, oz = vz & 1, x = vx >> 1, z = vz >> 1;
       const th = (tx, tz) => (tx < 0 || tz < 0 || tx >= w.w || tz >= w.h ? -0.2 : tH(tz * w.w + tx));
@@ -46,7 +53,11 @@
 
     /* ---------- costruttore di geometria (posizioni, normali, colori) ---------- */
     function Geo() { return { P: [], N: [], C: [] }; }
+    // il giro dei vertici segue la normale data: con DoubleSide una faccia vista "da dietro" prende la normale rovesciata
+    // e la luce toon la fa scura (prima le strade est-ovest erano grigio scuro)
     function tri(g, a, b, c, col, n) {
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      if ((uy * vz - uz * vy) * n[0] + (uz * vx - ux * vz) * n[1] + (ux * vy - uy * vx) * n[2] < 0) { const t = b; b = c; c = t; }
       for (const p of [a, b, c]) { g.P.push(p[0], p[1], p[2]); g.N.push(n[0], n[1], n[2]); g.C.push(col.r, col.g, col.b); }
     }
     const UP = [0, 1, 0];
@@ -97,12 +108,26 @@
         const rd = w.road[t], rl = w.rail[t];
         if (!rd && !rl && !w.st[t]) continue;
         const tx = t % w.w, tz = (t / w.w) | 0;
-        // ponte: impalcato, pilastri e ringhiere
+        // dentro la galleria non si vede niente: la collina copre tutto
+        if (w.tun[t]) continue;
+        // imbocco di una galleria: arco di pietra sul lato verso la collina
+        for (const k of [rl, rd]) for (let d = 0; d < 4; d++) {
+          if (!(k & (1 << d))) continue;
+          const nx = tx + DX[d], nz = tz + DY[d];
+          if (nx >= 0 && nz >= 0 && nx < w.w && nz < w.h && w.tun[nz * w.w + nx]) portal(g, tx, tz, d, w.ht[t] * X.HU);
+        }
+        // ponte: impalcato con il bordo, pilastri tondi a ogni casella, ringhiere coi paletti
         if (w.water[t] && (rd || rl)) {
-          const ax = (rd || rl) & 5 ? Math.PI / 2 : 0, y = deck[t];
-          box(g, tx + 0.5, y - 0.09, tz + 0.5, 1.02, 0.08, 0.62, ax, C.bridge);
-          for (const s of [-1, 1]) box(g, tx + 0.5 + (ax ? s * 0.3 : 0), y, tz + 0.5 + (ax ? 0 : s * 0.3), ax ? 0.05 : 1.02, 0.12, ax ? 1.02 : 0.05, 0, C.bridge);
-          box(g, tx + 0.5, -0.3, tz + 0.5, 0.14, y + 0.22, 0.14, 0, C.bridge.clone().multiplyScalar(0.85));
+          const ns = (rd || rl) & 5, ax = ns ? Math.PI / 2 : 0, y = deck[t], cx = tx + 0.5, cz = tz + 0.5;
+          box(g, cx, y - 0.1, cz, 1.02, 0.09, 0.66, ax, C.bridge);
+          box(g, cx, y - 0.13, cz, 1.02, 0.04, 0.72, ax, C.bridge.clone().multiplyScalar(0.88));
+          for (const s of [-1, 1]) {
+            const ox = ns ? s * 0.31 : 0, oz = ns ? 0 : s * 0.31;
+            box(g, cx + ox, y + 0.07, cz + oz, ns ? 0.04 : 1.02, 0.035, ns ? 1.02 : 0.04, 0, C.bridge);
+            for (const f of [-0.5, 0]) box(g, cx + ox + (ns ? 0 : f), y - 0.02, cz + oz + (ns ? f : 0), 0.05, 0.11, 0.05, 0, C.bridge.clone().multiplyScalar(0.92));
+          }
+          // pilastro: tronco largo sotto l'impalcato, che entra nell'acqua
+          box(g, cx, -0.32, cz, ns ? 0.36 : 0.16, y + 0.2, ns ? 0.16 : 0.36, 0, C.bridge.clone().multiplyScalar(0.85));
         }
         if (rd) {
           for (const [a, b] of piecesOf(rd)) {
@@ -176,6 +201,38 @@
       const mat = X.R3.mats.vc2 || (X.R3.mats.vc2 = X.keep(new T.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: X.R3.grad, side: T.DoubleSide })));
       return new T.Mesh(geo, mat);
     }
+    /* ---------- imbocco della galleria: arco di pietra con la chiave colorata e il buio dentro ----------
+     * t = casella fuori (quota y0), d = lato verso la collina. L'arco sta sul confine tra le due caselle, un po' in fuori;
+     * il binario o la strada continuano sotto la collina (che li copre), i mezzi lì dentro non si disegnano. */
+    function portal(g, tx, tz, d, y0) {
+      const C = X.C, nx = DX[d], nz = DY[d], ux = -nz, uz = nx;          // n = verso la collina, u = di traverso
+      const bx = tx + 0.5 + nx * 0.5, bz = tz + 0.5 + nz * 0.5;
+      const P = (u, v, o) => [bx + ux * u + nx * o, y0 + v, bz + uz * u + nz * o];
+      const r0 = 0.25, r1 = 0.36, sp = 0.15, front = -0.2, back = -0.04, N = 9, stone = C.stone, dark = C.tunnel;
+      const nF = [-nx, 0, -nz];
+      // il buio: mezzo disco + rettangolo, appena dietro l'arco
+      for (let k = 0; k < N; k++) {
+        const a0 = Math.PI * k / N, a1 = Math.PI * (k + 1) / N;
+        tri(g, P(0, sp, back + 0.03), P(Math.cos(a0) * r0, sp + Math.sin(a0) * r0, back + 0.03), P(Math.cos(a1) * r0, sp + Math.sin(a1) * r0, back + 0.03), dark, nF);
+      }
+      tri(g, P(-r0, -0.03, back + 0.03), P(r0, -0.03, back + 0.03), P(r0, sp, back + 0.03), dark, nF);
+      tri(g, P(-r0, -0.03, back + 0.03), P(r0, sp, back + 0.03), P(-r0, sp, back + 0.03), dark, nF);
+      // l'arco: conci (fronte, estradosso, intradosso), il centrale con la chiave colorata
+      for (let k = 0; k < N; k++) {
+        const a0 = Math.PI * k / N, a1 = Math.PI * (k + 1) / N, col = k === (N >> 1) ? C.sign : (k & 1 ? stone : stone.clone().multiplyScalar(0.93));
+        const c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
+        const i0 = P(c0 * r0, sp + s0 * r0, front), i1 = P(c1 * r0, sp + s1 * r0, front), o0 = P(c0 * r1, sp + s0 * r1, front), o1 = P(c1 * r1, sp + s1 * r1, front);
+        tri(g, i0, o0, o1, col, nF); tri(g, i0, o1, i1, col, nF);
+        const o0b = P(c0 * r1, sp + s0 * r1, back), o1b = P(c1 * r1, sp + s1 * r1, back), i0b = P(c0 * r0, sp + s0 * r0, back), i1b = P(c1 * r0, sp + s1 * r0, back);
+        const cm = Math.cos((a0 + a1) / 2), sm = Math.sin((a0 + a1) / 2), nO = [ux * cm, sm, uz * cm], nI = [-ux * cm, -sm, -uz * cm];
+        tri(g, o0, o0b, o1b, col, nO); tri(g, o0, o1b, o1, col, nO);
+        tri(g, i0, i1, i1b, col, nI); tri(g, i0, i1b, i0b, col, nI);
+      }
+      // piedritti
+      const yaw = d & 1 ? Math.PI / 2 : 0, cx = (u) => bx + ux * u + nx * (front + back) / 2, cz = (u) => bz + uz * u + nz * (front + back) / 2;
+      for (const s of [-1, 1]) box(g, cx(s * (r0 + r1) / 2), y0 - 0.06, cz(s * (r0 + r1) / 2), r1 - r0 + 0.02, sp + 0.06, back - front, yaw, stone);
+    }
+
     /* ---------- semafori (istanze ricolorate) ---------- */
     let sigs = [], sigKey = '';
     function buildSignals(group) {

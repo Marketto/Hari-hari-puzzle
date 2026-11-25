@@ -238,8 +238,8 @@
     v.mode = 'load'; v.wt = 0; v.bk = 0; v.pt = []; v.pe = [];
     if (!st) return;
     const cv = cov(s, W, st.id), my = caps(v);
-    // scarico: le merci che la stazione accetta (non quelle caricate qui)
-    for (const c of Object.keys(v.ld)) {
+    // scarico: le merci che la stazione accetta (non quelle caricate qui); "solo carica" (nu) non scarica
+    if (!o.nu) for (const c of Object.keys(v.ld)) {
       const [n, from, d0] = v.ld[c];
       if (!n || from === st.id || !cv.acc[c] || !s.stations[from]) continue;
       const fc = cov(s, W, from), dist = Math.max(1, Math.round(Math.abs(fc.cx - cv.cx) + Math.abs(fc.cy - cv.cy)));
@@ -250,7 +250,8 @@
       delete v.ld[c];
       ev.push({ k: 'pay', v: v.id, st: st.id, c, n, money });
     }
-    for (const c in my) { st.last[c] = s.h; if (!st.pick[c]) { st.pick[c] = 1; st.rate[c] = 0.55; } st.spd[c] = Math.max(st.spd[c] || 0, VT[v.type].spd); }
+    // "solo scarica" (nl): qui non si carica, quindi la stazione non comincia a raccogliere quella merce
+    if (!o.nl) for (const c in my) { st.last[c] = s.h; if (!st.pick[c]) { st.pick[c] = 1; st.rate[c] = 0.55; } st.spd[c] = Math.max(st.spd[c] || 0, VT[v.type].spd); }
     ev.push({ k: 'arrive', v: v.id, st: st.id });
   }
   function deliver(s, W, cv, c, n) {
@@ -271,7 +272,7 @@
     const o = v.orders[v.oi], st = s.stations[o.st];
     v.wt++;
     let moved = 0;
-    if (st) {
+    if (st && !o.nl) {
       const my = caps(v), cars = isTrain(v) ? v.cars : [v.cargo];
       for (const c in my) {
         const have = v.ld[c] ? v.ld[c][0] : 0, free = my[c] - have, w = st.wait[c] || 0;
@@ -285,7 +286,7 @@
       if (moved) ev.push({ k: 'load', v: v.id, st: st.id });
     }
     if (v.wt < 12 || moved) return;
-    if (o.full && st) {
+    if (o.full && st && !o.nl) {
       const my = caps(v);
       for (const c in my) if (!v.ld[c] || v.ld[c][0] < my[c]) return;
     }
@@ -454,9 +455,9 @@
     const fake = { w: W.w, h: W.h, water: W.water, roads: { length: 0 }, towns: [] };
     // houseSpots guarda strade e case: qui le strade sono quelle vere (W.road) e le caselle occupate W.use/rail/stazioni
     const used = new Uint8Array(W.n);
-    for (let i = 0; i < W.n; i++) used[i] = W.use[i] || W.rail[i] || W.st[i] ? 1 : 0;
+    for (let i = 0; i < W.n; i++) used[i] = W.use[i] || W.rail[i] || W.st[i] || (W.tun && W.tun[i]) ? 1 : 0;
     const roads = {};
-    for (let i = 0; i < W.n; i++) if (W.road[i]) roads[i] = W.road[i];
+    for (let i = 0; i < W.n; i++) if (W.road[i] && !(W.tun && W.tun[i])) roads[i] = W.road[i];
     fake.roads = roads;
     while (tw.houses.length < target) {
       const sp = M.houseSpots(fake, tw, used);
@@ -501,5 +502,5 @@
   }
 
   HH.expressSim = { TPH, HPD, TPD, MNT, CARGO, CARGOS, GOODS, VT, WAGON, CATCH, MD, date, rand, caps, vlen, isTrain, loaded, tilePos, along,
-    tryReserve, releaseAhead, blocked, plan, setPath, coverage, cov, pay, tick, sell, trimTrail, growTown, hourly, daily };
+    tryReserve, releaseAhead, blocked, plan, setPath, depart, arrive, coverage, cov, pay, tick, sell, trimTrail, growTown, hourly, daily };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

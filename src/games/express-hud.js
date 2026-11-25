@@ -94,6 +94,7 @@
       U.goal.onclick = () => { X.sfx('tap'); accounts(); };
       U.hari.onclick = () => { U.hari.hidden = true; };
       U.sheet.addEventListener('click', onSheet);
+      U.sheet.addEventListener('change', onSheetChange);
       U.home.addEventListener('click', onHome);
       fitTools();
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (X.ui.tools && X.ui.tools.isConnected) fitTools(); });
@@ -212,16 +213,23 @@
     }
 
     /* ---------- anteprima del costo ---------- */
-    function confirm(p, kind) {
+    // tratti di ponte e galleria di una proposta: "Ponte · 4 caselle · 960"
+    const spanText = (p) => (p.spans || []).map((x) => `${L(x.k === 'b' ? 'ex_bridge' : 'ex_tunnel')} · ${L('ex_tiles', { n: x.tiles.length })} · ${nf(x.cost)}`).join(' · ');
+    function altLabel(p) {
+      const sp = (p.spans || []).find((x) => x.k === 't') || (p.spans || [])[0];
+      return (sp ? L(sp.k === 'b' ? 'ex_bridge' : 'ex_tunnel') : L('ex_go_around')) + ' · ' + nf(p.cost);
+    }
+    function confirm(p, kind, note) {
       const U = X.ui, s = X.s, n = p.tiles.length;
       const upkeep = n * (kind === 'rail' ? S.MNT.rail : S.MNT.road);
-      const poor = p.cost > s.money;
+      const poor = p.cost > s.money, st = spanText(p);
       U.confirm.innerHTML = `<small>${esc(L('ex_preview'))}</small>
-        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep_d', { n: nf1(upkeep) }))}</span>`}</div>
+        <div class="cost"><b>${esc(L('ex_tiles', { n }))} · ${acorn}${nf(p.cost)}</b>${st ? `<span class="span">${esc(st)}</span>` : ''}${note ? `<span class="bad">${esc(note)}</span>` : ''}${poor ? `<span class="bad">${esc(L('ex_err_money'))}</span>` : `<span>${esc(L('ex_upkeep_d', { n: nf1(upkeep) }))}</span>`}</div>
+        ${p.alt ? `<button class="ex-chip alt" type="button" data-c="alt">${IC.swap}<span>${esc(altLabel(p.alt))}</span></button>` : ''}
         <div class="acts"><button class="ex-btn soft" type="button" data-c="no">${IC.close}<span>${esc(L('lf_cancel'))}</span></button>
         <button class="ex-btn main" type="button" data-c="ok"${poor ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_build'))}</span></button></div>`;
       U.confirm.hidden = false;
-      U.confirm.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'ok') X.commitBuild(); else X.cancelBuild(); };
+      U.confirm.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; if (b.dataset.c === 'ok') X.commitBuild(); else if (b.dataset.c === 'alt') X.swapPlan(); else X.cancelBuild(); };
       const ok = U.confirm.querySelector('[data-c="ok"]'); if (ok && !poor) ok.focus({ preventScroll: true });
     }
     const hideConfirm = () => { X.ui.confirm.hidden = true; X.ui.confirm.innerHTML = ''; };
@@ -285,6 +293,7 @@
     }
     const tripMemo = new WeakMap();
     function vehicle(id) {
+      if (draft && draft.edit) draft = null;
       const s = X.s, v = s.veh.find((x) => x.id === id);
       if (!v) { close(); return; }
       const caps = S.caps(v);
@@ -296,9 +305,43 @@
         + `<div class="ex-card"><div class="ex-row"><span>${esc(L('ex_profit'))}</span><b class="${v.profit >= 0 ? 'pos' : 'neg'}">${v.profit >= 0 ? '+' : ''}${nf(v.profit)}</b></div>
           <div class="ex-row"><span>${esc(L('ex_lastyear'))}</span><b>${nf(v.last)}</b></div></div>
         <div class="ex-card"><h4>${esc(L('ex_load'))}</h4>${Object.keys(caps).map((c) => `<div class="ex-row">${cargoIc(c)}<span>${esc(cargoName(c))}</span><b>${nf(v.ld[c] ? v.ld[c][0] : 0)} / ${nf(caps[c])}</b></div>`).join('')}</div>
-        <div class="ex-card"><h4>${esc(L('ex_route'))}</h4>${v.orders.map((o, i) => `<div class="ex-order"><span class="n">${i + 1}</span><div><b>${esc(stName(s.stations[o.st]))}</b>${o.full ? `<small>${esc(L('ex_full'))}</small>` : ''}</div></div>`).join('')}${trip > 0 ? `<p>${esc(L('ex_trip_t', { t: dur(trip) }))}</p>` : ''}</div>
+        <div class="ex-card"><h4>${esc(L('ex_route'))}</h4>${v.orders.map((o, i) => { const m = E.orderMode(o); return `<div class="ex-order${i === v.oi ? ' cur' : ''}"><span class="n">${i + 1}</span><div><b>${esc(stName(s.stations[o.st]))}</b>${m !== 'both' ? `<small>${esc(modeName(m))}</small>` : ''}</div></div>`; }).join('')}${trip > 0 ? `<p>${esc(L('ex_trip_t', { t: dur(trip) }))}</p>` : ''}
+          <button class="ex-btn main" type="button" data-k="edit">${IC.edit}<span>${esc(L('ex_editroute'))}</span></button></div>
         <div class="ex-acts"><button class="ex-btn soft" type="button" data-k="sell">${esc(L('ex_sell'))} · +${nf(v.value * 0.5)}</button></div>`;
       open(html, 'veh', id);
+    }
+    const modeName = (m) => L(m === 'full' ? 'ex_full' : 'ex_o_' + m);
+    /* ---------- modifica del percorso di un mezzo in servizio ----------
+     * Una bozza (draft.edit = id del mezzo) con le fermate e il modo di ognuna; aggiungere usa la stessa scelta sulla
+     * mappa del mezzo nuovo; su e giù per riordinare (pulsanti da 44 px, niente trascinamento); "Applica" passa da
+     * X.act({ k: 'orders' }) che controlla che il mezzo arrivi a ogni fermata. */
+    function editRoute(id) {
+      const v = X.s.veh.find((x) => x.id === id);
+      if (!v) return;
+      draft = { edit: id, from: id, rail: S.isTrain(v), type: v.type, orders: v.orders.map((o) => ({ st: o.st, mode: E.orderMode(o) })), err: '' };
+      drawEdit();
+    }
+    function drawEdit() {
+      const s = X.s, v = s.veh.find((x) => x.id === draft.edit);
+      if (!v) { draft = null; close(); return; }
+      const os = draft.orders, n = os.length, net = draft.rail ? 'rail' : 'road';
+      const nm = (i) => stName(s.stations[os[(i + n) % n].st]);
+      const dup = n > 1 ? os.findIndex((o, i) => o.st === os[(i + 1) % n].st) : -1;
+      const lg = n >= 2 ? E.legs(s, net, os) : [], bad = lg.findIndex((x) => x < 0);
+      let msg = '';
+      if (n < 2) msg = L('ex_err_orders');
+      else if (dup >= 0) msg = L('ex_err_dup');
+      else if (bad >= 0) msg = L('ex_err_unreach', { a: nm(bad), b: nm(bad + 1) });
+      const hrs = !msg ? Math.max(1, Math.round(lg.reduce((a, x) => a + x, 0) / S.VT[v.type].spd + n * 0.5)) : 0;
+      const sel = (o, i) => `<select class="ex-sel" data-om="${i}" aria-label="${esc(L('ex_o_at'))} ${esc(nm(i))}">${E.MODES.map((m) => `<option value="${m}"${o.mode === m ? ' selected' : ''}>${esc(modeName(m))}</option>`).join('')}</select>`;
+      const rows = os.map((o, i) => `<div class="ex-order ed${(bad === i || (bad >= 0 && (bad + 1) % n === i)) || (dup >= 0 && (dup === i || (dup + 1) % n === i)) ? ' bad' : ''}"><span class="n">${i + 1}</span>
+<b class="nm">${esc(nm(i))}</b><span class="mv"><button class="ex-btn soft sq" type="button" data-oup="${i}" aria-label="${esc(L('ex_up'))}: ${esc(nm(i))}"${i ? '' : ' disabled'}>${IC.up}</button><button class="ex-btn soft sq" type="button" data-odn="${i}" aria-label="${esc(L('ex_down'))}: ${esc(nm(i))}"${i < n - 1 ? '' : ' disabled'}>${IC.down}</button><button class="ex-btn soft sq" type="button" data-odel="${i}" aria-label="${esc(L('ex_remove'))}: ${esc(nm(i))}"${n > 2 ? '' : ' disabled'}>${IC.close}</button></span>${sel(o, i)}</div>`).join('');
+      const html = head(vehIc(v.type), L('ex_editroute'), vName(v))
+        + `<div class="ex-card"><h4>${esc(L('ex_route'))}<small>${n}</small></h4>${rows}
+          <button class="ex-btn soft" type="button" data-k="pick"${n >= 12 ? ' disabled' : ''}>${IC.plus}<span>${esc(L('ex_addstop'))}</span></button>
+          ${msg ? `<p class="bad" role="alert">${esc(msg)}</p>` : hrs ? `<p>${esc(L('ex_trip_t', { t: dur(hrs) }))}</p>` : ''}${draft.err ? `<p class="bad" role="alert">${esc(draft.err)}</p>` : ''}</div>
+        <div class="ex-total ed"><button class="ex-btn soft" type="button" data-k="edcancel">${IC.close}<span>${esc(L('lf_cancel'))}</span></button><button class="ex-btn main" type="button" data-k="apply"${msg ? ' disabled' : ''}>${IC.check}<span>${esc(L('ex_apply'))}</span></button></div>`;
+      open(html, 'route', draft.edit);
     }
     function town(id) {
       const t = X.s.towns[id];
@@ -370,6 +413,7 @@
       return Math.max(1, Math.round(len / S.VT[type].spd + os.length * 0.5));
     }
     function drawDraft() {
+      if (draft && draft.edit) { drawEdit(); return; }
       const s = X.s, rail = draft.rail;
       const types = rail ? ['castagna', 'fragola'] : ['bus', 'mail', 'truck'];
       const opt = (t) => {
@@ -398,7 +442,8 @@
       const st = X.s.stations[stId];
       if (!st || (st.kind === 'rail') !== draft.rail) return false;
       if (draft.orders.length && draft.orders[draft.orders.length - 1].st === stId) return false;
-      draft.orders.push({ st: stId, full: false });
+      if (draft.edit && draft.orders.length >= 12) return false;
+      draft.orders.push(draft.edit ? { st: stId, mode: 'both' } : { st: stId, full: false });
       return true;
     }
     function onSheet(e) {
@@ -409,6 +454,7 @@
       if (k === 'close') { close(); return; }
       if (k === 'newv') { draft = null; newVehicle(sheetArg); return; }
       if (k === 'sell') { X.act({ k: 'sell', id: sheetArg }); close(); return; }
+      if (k === 'edit') { editRoute(sheetArg); return; }
       if (b.dataset.v) { vehicle(+b.dataset.v); return; }
       if (!draft) return;
       if (b.dataset.type) { draft.type = b.dataset.type; drawDraft(); return; }
@@ -416,14 +462,37 @@
       if (b.dataset.wadd) { if (draft.cars.length < S.WAGON.max) draft.cars.push(b.dataset.wadd); drawDraft(); return; }
       if (b.dataset.wdel) { const i = draft.cars.lastIndexOf(b.dataset.wdel); if (i >= 0) draft.cars.splice(i, 1); drawDraft(); return; }
       if (b.dataset.full) { const o = draft.orders[+b.dataset.full]; o.full = !o.full; drawDraft(); return; }
-      if (b.dataset.odel) { draft.orders.splice(+b.dataset.odel, 1); drawDraft(); return; }
+      if (b.dataset.odel) { draft.orders.splice(+b.dataset.odel, 1); draft.err = ''; drawDraft(); return; }
+      if (b.dataset.oup || b.dataset.odn) {
+        const i = +(b.dataset.oup || b.dataset.odn), j = b.dataset.oup ? i - 1 : i + 1, os = draft.orders;
+        if (j < 0 || j >= os.length) return;
+        [os[i], os[j]] = [os[j], os[i]]; draft.err = '';
+        drawDraft();
+        // il fuoco resta sulla stessa fermata, che si è spostata
+        const f = X.ui.sheet.querySelector(`[data-${b.dataset.oup ? 'oup' : 'odn'}="${j}"]`);
+        if (f && !f.disabled) f.focus({ preventScroll: true });
+        return;
+      }
       if (k === 'pick') { X.startPick(); return; }
+      if (k === 'edcancel') { const id = draft.edit; draft = null; vehicle(id); return; }
+      if (k === 'apply') {
+        const r = X.act({ k: 'orders', id: draft.edit, orders: draft.orders });
+        if (r.ok) { const id = draft.edit; draft = null; vehicle(id); }
+        else { draft.err = r.err === 'unreach' ? L('ex_err_unreach', { a: stName(X.s.stations[draft.orders[r.leg].st]), b: stName(X.s.stations[draft.orders[(r.leg + 1) % draft.orders.length].st]) }) : L('ex_err_orders'); drawEdit(); }
+        return;
+      }
       if (k === 'buy') {
         const r = X.act({ k: 'buy', type: draft.type, cargo: draft.type === 'truck' ? draft.cargo : undefined, cars: draft.rail ? draft.cars : undefined, orders: draft.orders });
         if (r.ok) { const rail = draft.rail; draft = null; close(); X.sfx(rail ? 'whistle' : 'horn'); }
       }
     }
-    const draftOpen = () => sheetKind === 'new' && draft;
+    function onSheetChange(e) {
+      const t = e.target;
+      if (!t.dataset || t.dataset.om == null || !draft || !draft.edit) return;
+      const o = draft.orders[+t.dataset.om];
+      if (o && E.MODES.includes(t.value)) { o.mode = t.value; X.sfx('tap'); }
+    }
+    const draftOpen = () => (sheetKind === 'new' || sheetKind === 'route') && draft;
 
     /* ---------- scelta della modalità ---------- */
     let freeOpts = null;
@@ -501,7 +570,7 @@
       X.ui.labels.appendChild(e); pops++;
       setTimeout(() => { e.remove(); pops--; }, 1400);
     }
-    return { build, fitTools, hud, sky, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder,
+    return { build, fitTools, hud, sky, hint, say, coach, confirm, hideConfirm, open, close, isOpen, refresh, station, vehicle, town, industry, accounts, newVehicle, addOrder, editRoute, spanText,
       draftOpen, drawDraft, home, labels, pop, paintTools, fmtDate, fmtDay, dur, nf, stName, vName, levelTitle, get sheetKind() { return sheetKind; }, get sheetArg() { return sheetArg; } };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

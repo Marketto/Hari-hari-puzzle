@@ -131,6 +131,7 @@
       const a = S.along(v, Math.max(0, back - lead));
       const q = Math.min(1, a.q + (back - lead < 0 ? lead - back : 0));
       S.tilePos(X.W.w, a.t, a.a, a.b, q, TP);
+      TP.t = a.t;
       return TP;
     }
     function update(frac, time) {
@@ -149,6 +150,8 @@
         const back = train ? 0.25 + 0.5 * it.k : 0.25;
         const p = place(v, back, lead);
         let x = p.x, z = p.y, h = p.h;
+        // dentro una galleria non si vede (scala 0: le istanze restano nello stesso ordine)
+        const hid = !!X.W.tun[p.t];
         // su strada si tiene la destra: i mezzi che si incrociano non si sovrappongono
         if (!train) { x += -Math.sin(h) * -0.13; z += Math.cos(h) * -0.13; x -= 0; }
         const y = X.hR(x, z);
@@ -157,17 +160,17 @@
         const pitch = Math.atan2(X.hR(fx, fz) - X.hR(bx, bz), 0.36);
         const bob = v.mode === 'go' ? Math.sin(time * 14 + v.id * 1.7 + it.k) * 0.006 : 0;
         E.set(0, -h, pitch); Q.setFromEuler(E);
-        V.set(x, y + 0.01 + bob, z); SC.set(1, 1, 1);
+        V.set(x, y + 0.01 + bob, z); if (hid) SC.set(0, 0, 0); else SC.set(1, 1, 1);
         CM.compose(V, Q, SC);
         const parts = PARTS[it.kind];
         for (const pt of parts) { const pool = pools[pt.g]; if (cnt[pt.g] < pool.instanceMatrix.count) { M.multiplyMatrices(CM, partMatrix(pt)); pool.setMatrixAt(cnt[pt.g], M); } cnt[pt.g]++; }
         if (it.full) for (const pt of CARGO[it.cargo]) { const pool = pools[pt.g]; if (cnt[pt.g] < pool.instanceMatrix.count) { M.multiplyMatrices(CM, partMatrix(pt)); pool.setMatrixAt(cnt[pt.g], M); } cnt[pt.g]++; }
-        if (lights && it.k === 0 && LIGHTS[it.kind] && lamps + 2 <= pools.lamp.instanceMatrix.count) {
+        if (lights && !hid && it.k === 0 && LIGHTS[it.kind] && lamps + 2 <= pools.lamp.instanceMatrix.count) {
           const [lx, ly, lz] = LIGHTS[it.kind];
           for (const sz of [-lz, lz]) { V.set(lx, ly, sz).applyMatrix4(CM); M.compose(V, Q, LAMP_S); pools.lamp.setMatrixAt(lamps++, M); }
         }
         // fumo della vaporiera in marcia
-        if (it.k === 0 && v.type === 'castagna' && v.mode === 'go' && puffs + 3 <= pools.puff.instanceMatrix.count) {
+        if (!hid && it.k === 0 && v.type === 'castagna' && v.mode === 'go' && puffs + 3 <= pools.puff.instanceMatrix.count) {
           for (let j = 0; j < 3; j++) {
             const ph = (time * 0.9 + j / 3 + v.id * 0.37) % 1;
             V.set(0.15, 0.36 + ph * 0.5, 0).applyMatrix4(CM); V.x -= Math.cos(h) * ph * 0.25; V.z -= Math.sin(h) * ph * 0.25;

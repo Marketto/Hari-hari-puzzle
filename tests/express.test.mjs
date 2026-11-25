@@ -77,13 +77,14 @@ test('anteprima = costo vero; il costruttore evita case e acqua larga, fa ponti 
   W.use[at(7, 10)] = 1;
   const q = E.preview(s, 'rail', at(2, 10), at(12, 10));
   assert.ok(q.ok && !q.tiles.includes(at(7, 10)) && q.tiles.length === 13);
-  // fiume largo 2 (ponte) e lago largo 5 (niente ponte: giro lungo)
+  // fiume largo 2 (ponte) e lago largo 7 (oltre i 6 del ponte più lungo: niente ponte)
   for (let y = 0; y < W.h; y++) { W.water[at(20, y)] = 1; W.water[at(21, y)] = 1; }
   const r = E.preview(s, 'road', at(18, 3), at(24, 3));
   assert.ok(r.ok && r.tiles.includes(at(20, 3)) && r.tiles.includes(at(21, 3)));
   assert.ok(E.act(s, { k: 'build', kind: 'road', tiles: r.tiles }).ok);
-  for (let y = 0; y < W.h; y++) for (let x = 20; x <= 24; x++) W.water[at(x, y)] = 1;
-  assert.equal(E.preview(s, 'rail', at(18, 12), at(26, 12)).ok, false);
+  for (let y = 0; y < W.h; y++) for (let x = 20; x <= 26; x++) W.water[at(x, y)] = 1;
+  const far = E.preview(s, 'rail', at(18, 12), at(28, 12));
+  assert.equal(far.ok, false); assert.equal(far.why, 'long_b');
   // un percorso storto o non adiacente viene rifiutato
   assert.equal(E.act(s, { k: 'build', kind: 'road', tiles: [at(1, 1), at(3, 1)] }).ok, false);
 });

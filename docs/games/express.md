@@ -35,7 +35,7 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
    all'isola, laghi, fiumi), alberi e cespugli, villaggi con le loro strade a croce, industrie 2×2.
 2. **Costruire**: si trascina da una casella all'altra; Hari propone il percorso più economico (A* sui costi: casella
    libera, albero da togliere, collina, salita, curva) e mostra caselle e costo prima di confermare. Pezzi già fatti
-   costano 0. **Ponti** dritti fino a 3 caselle d'acqua tra due rive alla stessa altezza. **Passaggi a livello**:
+   costano 0. **Ponti e gallerie**: vedi la sezione sotto. **Passaggi a livello**:
    strada e binario si incrociano solo dritti e perpendicolari. Dove due linee si toccano nasce uno **scambio
    automatico** (il mezzo sceglie l'uscita col suo percorso).
 3. **Stazioni e fermate**: stazione dei treni dritta da 1 a 5 caselle (in piano), fermata di bus e camion su una strada
@@ -45,9 +45,11 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
    con fino a 6 vagoni (passeggeri 40, posta 30, latte 30, formaggio 25, grano 35, pane 25, legna 30, giocattoli 25);
    l'elettrica "Fragola" dal 1° marzo dell'anno 1 (in Libera, ~28 minuti veri a ×1). Al massimo 80 mezzi su telefono,
    200 su PC.
-5. **Percorso**: le fermate in ordine, ciascuna con "aspetta il pieno". A ogni fermata il mezzo scarica quello che la
-   stazione accetta (non quello caricato lì), poi carica; riparte dopo mezz'ora se non c'è altro da caricare
-   (carico e scarico: 2 unità per vagone ogni 2,5 minuti, un camion pieno in ~25 minuti).
+5. **Percorso**: le fermate in ordine (da 2 a 12), ciascuna con un modo: **carica e scarica** (normale), **aspetta il
+   pieno**, **solo scarica** (lì non carica, e la stazione non comincia a raccogliere quella merce), **solo carica**
+   (lì non scarica). A ogni fermata il mezzo scarica quello che la stazione accetta (non quello caricato lì), poi
+   carica; riparte dopo mezz'ora se non c'è altro da caricare (carico e scarico: 2 unità per vagone ogni 2,5 minuti, un
+   camion pieno in ~25 minuti). Il percorso si **modifica** in ogni momento dalla scheda del mezzo (vedi sotto).
 6. **Merci e catene**: passeggeri e posta tra villaggi; fattoria → latte → caseificio → formaggio → città; campo →
    grano → forno → pane → città; bosco → legna → segheria → giocattoli → città. Le fabbriche trasformano 1:1.
    Un villaggio accetta passeggeri e posta con almeno 1 casa nell'area, formaggio, pane e giocattoli con almeno 2.
@@ -57,6 +59,48 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
    min(3, merci/8) + min(1, posta e passeggeri/32). Le case nuove (una ogni 30 abitanti) nascono vicino alle strade e
    alle altre case.
 9. **Ghiande finite**: a fine giornata, se il saldo è sotto zero, Hari vende il mezzo che rende meno.
+
+## Ponti e gallerie
+- **Ponte**: dalla riva, dritto sopra 1–**6** caselle d'acqua, fino alla riva opposta **alla stessa altezza** (se no:
+  "Le due rive non sono alla stessa altezza"). Costo per casella d'acqua 160 (strada) / 260 (binario) × (1 + 0,25 per
+  ogni casella oltre la terza): fino a 3 caselle come prima, 6 caselle = × 1,75. Sopra l'acqua niente incroci.
+- **Galleria**: da una casella a quota h, dritto dentro la collina (caselle più alte di h, niente acqua), fino alla
+  prima casella di nuovo a quota h; al massimo **8** caselle dentro; 140 (strada) / 220 (binario) per casella. Dentro
+  (`W.tun`) non ci sono altri pezzi, case, stazioni né semafori ("Niente semafori in galleria"); sopra restano alberi e
+  terreno. Se l'uscita è più bassa o è acqua: "La galleria deve uscire alla stessa altezza da cui entra".
+- Entrambi sono **archi** dell'A* della costruzione (`hop()` in express-net.js: un salto da una casella all'altra, con
+  regole e costo), ma restano maschere casella per casella: gli A* dei mezzi non cambiano e i mezzi ci passano come
+  su ogni altra casella (test). Un ponte o una galleria già fatti si riusano gratis.
+- **Trascinamento dritto** (stessa riga o colonna, al più una casella di scarto alla fine; `propose()`): se sulla linea
+  c'è acqua o una collina da attraversare, la proposta è la **linea dritta col ponte o la galleria** (tratto in giallo
+  nell'anteprima, con "Ponte · 4 caselle · 825" nel pannello) e la proposta dell'A* diventa l'alternativa ("Altra via ·
+  costo", pulsante ⇄). Il dito che si ferma sull'acqua porta il ponte alla riva di là; il dito che si ferma *dentro* la
+  collina propone di salirci, con la galleria fino all'altra parte come alternativa. Se il salto dritto è impossibile
+  il pannello (o il suggerimento) dice perché: "Ponte troppo lungo: al massimo 6 caselle d'acqua", rive diverse,
+  galleria troppo lunga o uscita sbagliata.
+- Perché prima "non si potevano fare i ponti" (0.32.x): il limite era 3 caselle, ma soprattutto l'A* sceglieva sempre
+  il giro più economico (un ponte costa come 6 caselle di strada per casella d'acqua): trascinando attraverso il fiume
+  compariva un giro lungo e il ponte non si vedeva mai, senza nessun messaggio. Nelle mappe generate (livelli 1–5,
+  Libera 32/64) un attraversamento dritto su tre è più lungo di 3 caselle e uno su sei ha le rive ad altezze diverse.
+- **Demolire** una casella di un ponte o di una galleria (o la riva / l'imbocco a cui è attaccato) toglie tutto il
+  ponte o la galleria: 8 ghiande per casella, come ogni demolizione, niente rimborso; non si può con un mezzo sopra o
+  dentro.
+- Libera con colline: con almeno 8 pezzi di rete fatti e nessuna galleria Hari dice "Una collina in mezzo? Trascina
+  dritto attraverso: Hari propone una galleria. Sull'acqua, un ponte!" (`ex_c_tunnel`).
+
+## Modifica del percorso
+- Nella scheda del mezzo: **Modifica percorso** → elenco delle fermate con il modo (scelta nativa), **su / giù / togli**
+  (pulsanti da 44 px, niente trascinamento), **Aggiungi una fermata** (stessa scelta sulla mappa del mezzo nuovo:
+  si toccano le stazioni, poi Fatto), Annulla / Applica. Il giro stimato si aggiorna mentre si modifica.
+- Controlli (`act({ k: 'orders' })` → `setOrders()`): 2–12 fermate della rete giusta, niente stessa fermata due volte di
+  fila (anche dall'ultima alla prima), ogni tratto percorribile da quel mezzo (A* dei mezzi da ogni uscita della
+  stazione, `legs()`); se no niente cambia e l'editor dice "Questo mezzo non arriva da A a B" con le due fermate
+  evidenziate (Applica è spento finché non si sistema).
+- **A metà viaggio**: se la meta di adesso c'è ancora il mezzo continua ad andarci (o a caricare lì, coi modi nuovi);
+  se è stata tolta va alla fermata successiva del vecchio giro che c'è ancora (se nessuna, alla prima); un mezzo fermo
+  a caricare in una fermata tolta riparte subito. Il carico resta a bordo e si scarica nella prima fermata che lo
+  accetta (e che non è "solo carica"). Tutto deterministico (test).
+- Non fatto: cambiare i vagoni di un treno già comprato.
 
 ## Economia (media)
 - **Pagamento** = quantità × distanza (Manhattan tra le stazioni) × prezzo × fattore tempo; fattore 1 fino a `d1`
@@ -74,7 +118,7 @@ Test: `tests/express.test.mjs`, `tests/express-sky.test.mjs` + bot `tests/_expre
 | giocattoli | 0,62 | 20 | 80 |
 
 - **Costi** di costruzione: strada 25, binario 60, salita +20/+40, albero +10, collina +5, ponte 160 (strada) / 260
-  (binario) per casella d'acqua, fermata 220, stazione 360 per casella, semaforo 80, senso unico 30, demolizione 8.
+  (binario) per casella d'acqua (× 1 + 0,25 oltre la terza), galleria 140 / 220 per casella, fermata 220, stazione 360 per casella, semaforo 80, senso unico 30, demolizione 8.
 - **Mezzi**: bus e posta 900 (esercizio 10 al giorno), camion 1.100 (12), Castagna 3.500 (46), Fragola 7.000 (72),
   vagone 400 (4). Vendita: metà del prezzo.
 - **Manutenzione** giornaliera: 0,8 per casella di binario, 0,4 per casella di strada costruita, 2,4 per casella di
@@ -163,17 +207,27 @@ senza scontri e senza blocchi, treni frontali su binario unico mai scontrati, pa
 che sale e scende, città che crescono solo se servite, Libera, consigli di Hari, geometria dentro la casella; **tempo**: calendario
 e orologio, scadenze di 2–4 settimane, viaggi su strada di poche ore (mediana 1–8, massimo 14), treni entro un giorno,
 soste senza "pieno" entro un'ora; salvataggio v1 migrato con la mappa di allora; acqua collegata per i lati.
+`tests/express-route.test.mjs` (mondi piatti fatti a mano, costi contati dalla tabella): ponte col trascinamento dritto
+(strada e binario, costo, alternativa, dito sull'acqua), limite di 6, rive diverse, costo che cresce; galleria (costo,
+alberi sopra, niente semafori, stazioni o strade sopra, dito dentro la collina, troppo lunga, uscita sbagliata, galleria
+inventata rifiutata); treno e bus che passano in galleria e sul ponte e arrivano; demolizione intera (anche dalla riva),
+vietata con un treno dentro; salvataggio con gallerie e salvataggi di prima; percorso (aggiungi, riordina, modi, togli,
+minimo 2, doppioni, rete sbagliata, irraggiungibile col tratto giusto), cambio a metà viaggio col carico consegnato
+alla fermata nuova, solo carica / solo scarica, fermata tolta mentre carica, determinismo.
 
 ## Salvataggio
 `snapshot()` = lo stato `s` (JSON, `v: 2`): `{ mv, mode, level, seed, opts, h, h0, tk, money, m0, net, cut, towns, inds,
 stations, veh, nid, nv, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed }`; `h` = ore
 intere dal 1° gennaio a mezzanotte, `tk` = passi nell'ora, `deadline` assoluta e `par` dall'inizio in ore.
+Ordini dei mezzi: `{ st, full }` più `nl: 1` (solo scarica) o `nu: 1` (solo carica) quando servono; i salvataggi di prima
+hanno solo `{ st, full }` e valgono così come sono (nessuna migrazione: test con un salvataggio v2 senza i campi nuovi).
 **Salvataggi vecchi** (`v: 1`, 0.32.x): `migrate()` li apre rinominando `day → h` e `wonDay → wonH` (il "giorno" di
 allora ha gli stessi 24 passi della nostra ora, quindi carichi, passaggi, scadenza e par restano numericamente
 uguali), toglie `tod`, mette `h0 = 0` e **`mv = 1`**: la mappa si rigenera col generatore di allora (test con un
 salvataggio vero della 0.32.1 in `tests/fixtures/express-v1.json` e la firma della sua acqua). **La mappa non
 c'è**: si rigenera dal seme (`scenario(level, seed)` o `generate(opts, rng(seed))`); `net` contiene solo le caselle
-cambiate `{ indice: [binari, strade, semaforo, senso unico] }`, `cut` gli alberi tolti, i villaggi le loro case (anche
+cambiate `{ indice: [binari, strade, semaforo, senso unico] }` (un quinto valore `1` solo per le caselle dentro una
+galleria: i salvataggi di prima, a quattro valori, si aprono uguali), `cut` gli alberi tolti, i villaggi le loro case (anche
 quelle nuove). Le tabelle dense (`W`: altezze, acqua, maschere, stazioni, prenotazioni) sono in una proprietà non
 enumerabile ricostruita da `world(s)`; `nv` (versione della rete) fa ripartire i percorsi nello stesso modo dopo una
 ripresa. Un livello a metà pesa 10–40 KB. Il cielo non è più salvato: si ricava dall'orologio.
@@ -196,10 +250,11 @@ fermate. Test: nessuno spigolo d'acqua isolato nei livelli 1–5 e in Libera 32/
 - **PC**: rotella = zoom verso il puntatore, tasto destro o centrale = sposta (vista libera: gira), tasti 1–5 strumenti
   (Binari, Strade, Fermate, Demolisci, Info), 6 conti, R/Q ruota, F vista libera, spazio pausa, +/− zoom, frecce
   sposta, Esc chiude.
-- Schede a foglio dal basso (girato: a destra): stazione (valutazione, merci in attesa con icona, merci accettate,
+- Schede a foglio dal basso (girato: a destra), con l'intestazione che resta in cima mentre si scorre (prima, scorrendo
+  fino a "Vendi", il titolo del mezzo finiva tagliato sotto il bordo del foglio): stazione (valutazione, merci in attesa con icona, merci accettate,
   mezzi, "Nuovo treno/bus o camion"), nuovo mezzo e percorso (mezzo, merce o vagoni, fermate toccate sulla mappa in
-  ordine, aspetta il pieno, giro stimato in ore, totale, "Compra e parti"), mezzo (guadagno, carico, percorso col
-  giro stimato, vendi), villaggio, industria, conti e obiettivi (obiettivi, conti dell'anno con grafico, mezzi, avversari in arrivo).
+  ordine, aspetta il pieno, giro stimato in ore, totale, "Compra e parti"), mezzo (guadagno, carico, percorso coi modi
+  e la fermata di adesso evidenziata, giro stimato, Modifica percorso, vendi), modifica del percorso, villaggio, industria, conti e obiettivi (obiettivi, conti dell'anno con grafico, mezzi, avversari in arrivo).
 - Scelta della modalità: Campagna, Libera (sbloccata al livello 5 in fase 1: seme, grandezza 32/48/64, acqua),
   Mappe reali (lucchetto, fase 3). Appare alla prima partita e con la bandierina.
 
@@ -228,7 +283,11 @@ che hai già fatto (`coach(s)` nella logica, chiavi `ex_c_*`, testato).
   `bake()` (stalla col silo e la mucca, caseificio con lo spicchio di formaggio, campo a righe con lo spaventapasseri,
   forno con la pagnotta, bosco di conifere coi tronchi, segheria con la sega e i giocattoli).
 - Rete: una geometria coi colori nei vertici, ricostruita solo quando cambia (strade coi trattini, massicciata,
-  traversine, rotaie, curve, scambi, paraurti, ponti con pilastri e ringhiere, frecce del senso unico, banchine con
+  traversine, rotaie, curve, scambi, paraurti, ponti con impalcato a bordo, pilastro largo per casella e ringhiere coi
+  paletti, **imbocchi delle gallerie**: arco di pietra a conci (`--exp-stone`) con la chiave gialla e il buio dentro
+  (`--exp-tunnel`), sul confine con la collina; binario e strada continuano sotto la collina, che li copre, e i mezzi
+  in galleria non si disegnano (scala 0, stesse istanze); ogni triangolo segue la normale data, così le strade est-ovest
+  non vengono più scure (prima con `DoubleSide` erano viste "da dietro"), frecce del senso unico, banchine con
   pensilina, fermate con pensilina e palina). Semafori a istanze ricolorati quando cambia una prenotazione.
 - **Mezzi** a istanze (capsule tonde): faccine kawaii **sul lato della cabina** (texture disegnata una volta coi
   token), merce sopra il cassone con la sua forma (bidoni, spicchi, sacco, pagnotte, tronchi, giocattoli), fumo della
@@ -265,6 +324,7 @@ SwiftShader, cioè GPU software, 402×874; `el._express.info()`):
 | Livello 1, 1 bus | 23 | 24 k | 2,8 / — ms |
 | Livello 4, 1 treno | 21–30 | 50–68 k | 2,7–3,0 ms |
 | Livello 4 dopo 45 giorni del bot, tutta la mappa: giorno / notte (con lampioni e fari) | 40 / 41 (prima 37) | 52 k | 2,4 ms |
+| Livello 4 con un ponte di 4 caselle, una galleria di 8, bus e treno (0.33, zoom 7) | 38–46 | 50–53 k | 1,9–2,3 / 6–11 ms |
 | Libera 64×64, 80 mezzi a ×4, zoom normale | 61 | 307 k | 6,8 / 13,5 ms |
 | Libera 64×64, 80 mezzi a ×4, tutta la mappa | 69 | 262 k | 8,2 / 22,6 ms |
 

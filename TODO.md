@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
+- [ ] Hari Express: percorso dei mezzi modificabile dalla scheda (aggiungi, togli, su/giù, carica e scarica / aspetta il pieno / solo scarica / solo carica, fermate irraggiungibili rifiutate, cambio a metà viaggio); ponti fino a 6 caselle e gallerie fino a 8 proposti trascinando dritto (anteprima col tratto in giallo e il costo, «Altra via», perché non si può), demoliti interi; titolo della scheda sempre visibile; strade est-ovest non più scure
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)
