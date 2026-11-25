@@ -217,7 +217,7 @@ alla fermata nuova, solo carica / solo scarica, fermata tolta mentre carica, det
 
 ## Salvataggio
 `snapshot()` = lo stato `s` (JSON, `v: 2`): `{ mv, mode, level, seed, opts, h, h0, tk, money, m0, net, cut, towns, inds,
-stations, veh, nid, nv, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed }`; `h` = ore
+stations, veh, nid, nv, del, gd, fin, finY, goals, deadline, par, won, lost, wonH, moves, rs, speed, wj? }`; `h` = ore
 intere dal 1° gennaio a mezzanotte, `tk` = passi nell'ora, `deadline` assoluta e `par` dall'inizio in ore.
 Ordini dei mezzi: `{ st, full }` più `nl: 1` (solo scarica) o `nu: 1` (solo carica) quando servono; i salvataggi di prima
 hanno solo `{ st, full }` e valgono così come sono (nessuna migrazione: test con un salvataggio v2 senza i campi nuovi).
@@ -237,6 +237,18 @@ ogni quadrato 2×2 con l'acqua solo sulla diagonale una delle altre due caselle 
 fiumi che piegano di lato non si spezzano in rettangoli staccati; non usa numeri casuali in più. Disegno e regole
 leggono la stessa tabella `water`, quindi una casella d'angolo che sembra acqua è acqua anche per strade, ponti e
 fermate. Test: nessuno spigolo d'acqua isolato nei livelli 1–5 e in Libera 32/48/64, mv 1 invariato.
+
+**Salvataggi con la mappa vecchia** (`mv` 1, o assente): la mappa resta quella di allora, ma alla prima apertura
+(`restore` → `joinOld`) lo stesso `joinDiagonals` allaga una delle due caselle d'angolo di ogni spigolo **solo se è
+vuota** (niente strade, binari, stazioni, case, industrie, gallerie, treni prenotati; gli alberi si tolgono): prima la
+più bassa (a parità quella in alto), se è occupata l'altra, se lo sono tutte e due lo spigolo resta e il disegno ci
+passa il canaletto, senza effetti sul gioco. Le caselle allagate vanno nel salvataggio (`wj`, pochi numeri) e
+`world()` le riapplica: riaprendo sono le stesse anche se poi ci si è costruito sopra un ponte. Niente di costruito
+cambia. Test: livelli 1–5 × 8 semi (alcuni con strade e treni del bot) → acqua collegata per i lati (componenti per lati
+= per lati e spigoli, BFS indipendente) o spigoli rimasti solo tra caselle occupate, caselle allagate prima vuote,
+rete/stazioni/città/mezzi invariati, siti raggiungibili prima raggiungibili dopo, `wj` stabile alla riapertura; casella
+scelta occupata → l'altra; tutte e due occupate → spigolo che resta; casella allagata non costruibile; il salvataggio
+vero della 0.32.1 (stessa acqua di allora + `wj`).
 
 ## Comandi
 - **Telefono** (verticale o girato): barra degli strumenti in basso (girato: colonna a destra) — Binari (scelte:
@@ -271,12 +283,25 @@ che hai già fatto (`coach(s)` nella logica, chiavi `ex_c_*`, testato).
   `.ex-wrap` e lì vince sui ritocchi del tema scuro (che restano per card e tutorial); l'interfaccia sopra la scena
   invece segue il tema. Alto contrasto e colori per daltonici valgono anche dentro la scena.
 - Terreno a blocchi da 32×32 caselle con altezze morbide (griglia a mezza casella) e colori a scacchi leggeri, sabbia
-  sulle rive, bordo "a torta".
-- **Acqua** (ShaderMaterial, una mesh): fasce toon turchese/azzurro (bassa vicino a riva, `--exp-water-2`; media
-  `--exp-water`; al largo `--exp-water-3`), **schiuma bianca** lungo le rive (ogni casella sa quali lati e spigoli
-  toccano terra: attributi `aE`/`aC`) con un secondo filo di schiuma che va e viene, **linee d'onda** lente a tratti.
-  Di giorno le creste hanno qualche riflesso chiaro allungato; di notte prendono la luce della luna (`--exp-moon`).
-  Mai puntini (sembravano stelle: l'acqua pareva cielo). Con `prefers-reduced-motion` l'acqua è ferma.
+  che sfuma avvicinandosi alla riva (nei vertici, segue la riva curva e non la casella), bordo "a torta".
+- **Acqua** (ShaderMaterial, **una mesh**, una chiamata di disegno): la riva è **morbida**. Ogni casella ha una distanza
+  con segno dalla riva (centro → centro della casella dell'altro tipo più vicina, ± ½: > 0 acqua, < 0 terra, entro 3
+  caselle); una **B-spline quadratica** sui centri (3×3 vicine) la rende un campo continuo e liscio, la riva è il suo
+  livello −0,08. Così: lungo una riva dritta il bordo passa sul lato fra acqua e terra (pendenza 1, schiuma larga come
+  prima), gli spigoli in fuori sono arrotondati, quelli in dentro raccordati, il fiume che piega di lato fa una
+  **curva**; fra due caselle d'acqua vicine il campo resta alto, quindi **niente schiuma in mezzo al fiume** (prima ogni
+  casella aveva il suo bordo e il fiume sembrava una fila di laghetti). Dove due caselle d'acqua si toccano solo per uno
+  spigolo (salvataggi vecchi con le due caselle d'angolo occupate) il campo vale 0 nello spigolo: ne esce un
+  **canaletto** stretto, solo disegno. Mesh: griglia a quarti di casella (vertici condivisi) sulle caselle d'acqua e
+  vicine, saltando i quadratini tutti di terra; un quadrato solo per le caselle con tutte le 8 vicine d'acqua (bordo
+  piatto: niente fessure). Dove la riva arrotondata sale sulla sponda la superficie sta 8 mm sopra il terreno esatto
+  (stessi triangoli di `buildTerrain`); le caselle d'acqua sotto sono sabbia (spiaggetta negli spigoli arrotondati).
+  Shader: `discard` fuori dalla riva (un po' irregolare, fissa), fasce toon turchese/azzurro con la distanza (bassa
+  vicino a riva, `--exp-water-2`; media `--exp-water`; al largo `--exp-water-3`), **schiuma bianca** lungo la riva con
+  un secondo filo che va e viene, **linee d'onda** lente a tratti. Di giorno le creste hanno qualche riflesso chiaro
+  allungato; di notte prendono la luce della luna (`--exp-moon`). Mai puntini (sembravano stelle: l'acqua pareva
+  cielo). Con `prefers-reduced-motion` l'acqua è ferma. Costo: livello 4 circa +6 000 triangoli (80 000 in tutto),
+  stesse chiamate di disegno; Libera 64 con molta acqua al più ~45 000.
 - **Alberi sferici** (icosaedri) e **cespugli tondi** più piccoli, a istanze per blocchi da 16×16 con sfera di ingombro
   (fuori vista non si disegnano; da lontano niente contorni); **case** con **tetti a punta**, porta, finestre e
   orecchie dell'animale (coniglio lunghe, gatto e volpe a punta, panda e orso tonde) a istanze; industrie fuse con

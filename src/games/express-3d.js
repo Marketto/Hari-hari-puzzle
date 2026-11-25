@@ -169,32 +169,38 @@
       const a = hV(ix, iz), b = hV(ix + 1, iz), c = hV(ix, iz + 1), d = hV(ix + 1, iz + 1);
       return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz;
     }
+    // le caselle d'acqua sono sabbia sotto il pelo dell'acqua: dove la riva è arrotondata (spigoli in fuori) si vede
+    // una spiaggetta, non il fondo scuro (la sabbia della terra vicino alla riva è nei vertici, in buildTerrain)
     function tileColor(i, out) {
       const w = W(), x = i % w.w, y = (i / w.w) | 0;
-      if (w.water[i]) return out.copy(X.C.bed);
+      if (w.water[i]) return out.copy(X.C.sand).lerp(X.C.bed, 0.2);
       out.copy((x + y) & 1 ? X.C.grass : X.C['grass-2']);
       if (w.ht[i] === 1) out.lerp(X.C.hill, 0.6);
       if (w.ht[i] === 2) out.lerp(X.C['hill-2'], 0.55);
-      if (w.ht[i] === 0) {
-        for (let d = 0; d < 4; d++) {
-          const nx = x + [0, 1, 0, -1][d], ny = y + [-1, 0, 1, 0][d];
-          if (nx >= 0 && ny >= 0 && nx < w.w && ny < w.h && w.water[ny * w.w + nx]) { out.lerp(X.C.sand, 0.75); break; }
-        }
-      }
       return out;
     }
+    // altezza esatta del terreno disegnato (triangoli sulla griglia a mezza casella, diagonale b–c come in buildTerrain)
+    function hTri(x, z) {
+      const gx = Math.max(0, Math.min(2 * W().w, x * 2)), gz = Math.max(0, Math.min(2 * W().h, z * 2));
+      const ix = Math.min(2 * W().w - 1, Math.floor(gx)), iz = Math.min(2 * W().h - 1, Math.floor(gz)), fx = gx - ix, fz = gz - iz;
+      const a = hV(ix, iz), b = hV(ix + 1, iz), c = hV(ix, iz + 1), d = hV(ix + 1, iz + 1);
+      return fx + fz <= 1 ? a + (b - a) * fx + (c - a) * fz : d + (c - d) * (1 - fx) + (b - d) * (1 - fz);
+    }
     function buildTerrain(group) {
-      const w = W(), CH = 32, col = new T.Color();
+      const w = W(), CH = 32, col = new T.Color(), col0 = new T.Color(), F = X.R3.wf;
       for (let cy = 0; cy < w.h; cy += CH) for (let cx = 0; cx < w.w; cx += CH) {
         const x1 = Math.min(w.w, cx + CH), y1 = Math.min(w.h, cy + CH), n = (x1 - cx) * (y1 - cy);
         const P = new Float32Array(n * 9 * 3), Nn = new Float32Array(n * 9 * 3), Cc = new Float32Array(n * 9 * 3), I = new Uint32Array(n * 24);
         let v = 0, k = 0;
         for (let y = cy; y < y1; y++) for (let x = cx; x < x1; x++) {
           const i = y * w.w + x;
-          tileColor(i, col);
+          tileColor(i, col0);
           const base = v;
           for (let j = 0; j <= 2; j++) for (let q = 0; q <= 2; q++) {
             const vx = 2 * x + q, vz = 2 * y + j;
+            // spiaggia: la terra bassa diventa sabbia avvicinandosi alla riva morbida (segue la curva, non la casella)
+            col.copy(col0);
+            if (F && !w.water[i] && w.ht[i] < 2) { const f = fieldAt(F, vx / 2, vz / 2), k = Math.max(0, Math.min(1, (f + 0.6) / 0.45)); col.lerp(X.C.sand, k * k * (3 - 2 * k) * (w.ht[i] ? 0.45 : 0.8)); }
             P[v * 3] = vx / 2; P[v * 3 + 1] = hV(vx, vz); P[v * 3 + 2] = vz / 2;
             const dx = hV(Math.min(2 * w.w, vx + 1), vz) - hV(Math.max(0, vx - 1), vz), dz = hV(vx, Math.min(2 * w.h, vz + 1)) - hV(vx, Math.max(0, vz - 1));
             const l = Math.hypot(dx, 1, dz);
@@ -222,41 +228,98 @@
       wg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); wg.computeVertexNormals();
       group.add(new T.Mesh(wg, toon(X.C.bed.clone().lerp(X.C.trunk, 0.35))));
     }
-    /* ---------- acqua: una mesh per le caselle d'acqua; nello shader fasce "toon" (bassa vicino a riva, alta al largo),
-     * schiuma bianca lungo le rive (lati e spigoli di terra di ogni casella, attributi aE e aC), linee d'onda lente;
-     * di giorno qualche riflesso allungato sulle creste, di notte le creste prendono la luce della luna. Niente puntini. */
-    function buildWater(group) {
-      const w = W(), P = [], UV = [], EG = [], CR = [];
-      const land = (x, z) => x >= 0 && z >= 0 && x < w.w && z < w.h && !w.water[z * w.w + x] ? 1 : 0;
+    /* ---------- acqua: UNA mesh con la riva morbida. Ogni casella ha una distanza con segno dalla riva (centro della
+     * casella → centro della casella dell'altro tipo più vicina, ± mezza casella: > 0 acqua, < 0 terra); interpolata in
+     * modo bilineare fra i centri dà un campo continuo il cui livello SHORE è la riva: dritta lungo i lati, arrotondata
+     * sugli spigoli in fuori, raccordata in quelli in dentro, e un canaletto dove due caselle d'acqua si toccano solo
+     * per uno spigolo. Fra due caselle d'acqua vicine il campo resta alto: niente schiuma in mezzo al fiume.
+     * La mesh è una griglia a quarti di casella vicino alla riva (un solo quadrato per le caselle in mezzo all'acqua);
+     * dove la riva arrotondata sale sulla sponda la superficie segue il terreno di un soffio. Nello shader: fasce "toon"
+     * con la distanza dalla riva (bassa vicino a riva, alta al largo), schiuma lungo la riva, linee d'onda lente; di
+     * giorno qualche riflesso allungato sulle creste, di notte le creste prendono la luce della luna. */
+    const SHORE = -0.08, SUB = 4;
+    function waterField() {
+      const w = W(), F = new Float32Array(w.n), R = 3;
       for (let i = 0; i < w.n; i++) {
-        if (!w.water[i]) continue;
-        const x = i % w.w, z = (i / w.w) | 0, e = 0.02;
-        const eg = [land(x, z - 1), land(x + 1, z), land(x, z + 1), land(x - 1, z)];
-        const cr = [land(x - 1, z - 1), land(x + 1, z - 1), land(x + 1, z + 1), land(x - 1, z + 1)];
-        for (const [u, v] of [[-e, -e], [-e, 1 + e], [1 + e, -e], [1 + e, -e], [-e, 1 + e], [1 + e, 1 + e]]) {
-          P.push(x + u, WATER_Y, z + v); UV.push(u, v); EG.push(...eg); CR.push(...cr);
+        const x = i % w.w, z = (i / w.w) | 0, wet = w.water[i];
+        let best = R + 0.5;
+        for (let dz = -R; dz <= R; dz++) for (let dx = -R; dx <= R; dx++) {
+          const nx = x + dx, nz = z + dz;
+          if (nx < 0 || nz < 0 || nx >= w.w || nz >= w.h || !w.water[nz * w.w + nx] === !wet) continue;
+          const d = Math.hypot(dx, dz);
+          if (d < best) best = d;
+        }
+        F[i] = wet ? best - 0.5 : 0.5 - best;
+      }
+      return F;
+    }
+    // B-spline quadratica sui centri delle caselle (3×3 vicine): continua con la sua pendenza, quindi rive senza
+    // spigoli; lungo una riva dritta passa esattamente sul lato fra acqua e terra con pendenza 1 (schiuma uguale)
+    const BW = [0, 0, 0], BV = [0, 0, 0];
+    function fieldAt(F, px, pz) {
+      const w = W(), ix = Math.floor(px), iz = Math.floor(pz), fx = px - ix - 0.5, fz = pz - iz - 0.5;
+      BW[0] = 0.5 * (0.5 - fx) * (0.5 - fx); BW[1] = 0.75 - fx * fx; BW[2] = 0.5 * (0.5 + fx) * (0.5 + fx);
+      BV[0] = 0.5 * (0.5 - fz) * (0.5 - fz); BV[1] = 0.75 - fz * fz; BV[2] = 0.5 * (0.5 + fz) * (0.5 + fz);
+      let v = 0;
+      for (let j = 0; j < 3; j++) {
+        const z = Math.max(0, Math.min(w.h - 1, iz + j - 1));
+        for (let k = 0; k < 3; k++) v += BV[j] * BW[k] * F[z * w.w + Math.max(0, Math.min(w.w - 1, ix + k - 1))];
+      }
+      return v;
+    }
+    function buildWater(group) {
+      const w = W();
+      let any = false;
+      for (let i = 0; i < w.n && !any; i++) any = !!w.water[i];
+      if (!any) return;
+      const F = X.R3.wf, GW = w.w * SUB + 1, vid = new Int32Array(GW * (w.h * SUB + 1)).fill(-1);
+      const P = [], D = [], I = [];
+      const vert = (vx, vz) => {
+        const k = vz * GW + vx;
+        if (vid[k] >= 0) return vid[k];
+        const x = vx / SUB, z = vz / SUB;
+        vid[k] = P.length / 3;
+        P.push(x, Math.max(WATER_Y, hTri(x, z) + 0.008), z); D.push(fieldAt(F, x, z) - SHORE);
+        return vid[k];
+      };
+      const wetAt = (x, z) => x < 0 || z < 0 || x >= w.w || z >= w.h || w.water[z * w.w + x];
+      for (let z = 0; z < w.h; z++) for (let x = 0; x < w.w; x++) {
+        let near = 0, all = 1;
+        for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { const wt = wetAt(x + dx, z + dz), inb = x + dx >= 0 && z + dz >= 0 && x + dx < w.w && z + dz < w.h; if (wt && inb) near = 1; if (!wt) all = 0; }
+        if (!near) continue;
+        if (all) {
+          // in mezzo all'acqua: un quadrato solo (il bordo è piatto alla quota dell'acqua, niente fessure coi vicini)
+          const a = vert(x * SUB, z * SUB), b = vert(x * SUB + SUB, z * SUB), c = vert(x * SUB, z * SUB + SUB), d = vert(x * SUB + SUB, z * SUB + SUB);
+          I.push(a, c, b, b, c, d);
+          continue;
+        }
+        for (let j = 0; j < SUB; j++) for (let q = 0; q < SUB; q++) {
+          const vx = x * SUB + q, vz = z * SUB + j;
+          const a = vert(vx, vz), b = vert(vx + 1, vz), c = vert(vx, vz + 1), d = vert(vx + 1, vz + 1);
+          if (Math.max(D[a], D[b], D[c], D[d]) < -0.1) continue;   // tutto terra: niente triangoli
+          I.push(a, c, b, b, c, d);
         }
       }
-      if (!P.length) return;
+      if (!I.length) return;
       const g = keep(new T.BufferGeometry());
       g.setAttribute('position', new T.Float32BufferAttribute(P, 3));
-      g.setAttribute('aUV', new T.Float32BufferAttribute(UV, 2));
-      g.setAttribute('aE', new T.Float32BufferAttribute(EG, 4));
-      g.setAttribute('aC', new T.Float32BufferAttribute(CR, 4));
+      g.setAttribute('aD', new T.Float32BufferAttribute(D, 1));
+      g.setIndex(I);
+      g.computeBoundingSphere();
       const m = keep(new T.ShaderMaterial({
         uniforms: { uT: { value: 0 }, uA: { value: X.C.water.clone() }, uB: { value: X.C['water-2'].clone() }, uD: { value: X.C['water-3'].clone() }, uF: { value: X.C.foam.clone() },
           uM: { value: X.C.moon.clone() }, uL: { value: new T.Color(1, 1, 1) }, uDay: { value: 1 } },
-        vertexShader: 'attribute vec2 aUV; attribute vec4 aE; attribute vec4 aC; varying vec2 vP; varying vec2 vU; varying vec4 vE; varying vec4 vC; uniform float uT;\n' +
-          'void main(){ vP = position.xz; vU = aUV; vE = aE; vC = aC; vec3 p = position; p.y += sin(p.x * 1.7 + uT * 1.3) * 0.01 + cos(p.z * 1.3 - uT) * 0.01; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }',
-        fragmentShader: 'varying vec2 vP; varying vec2 vU; varying vec4 vE; varying vec4 vC; uniform float uT; uniform vec3 uA; uniform vec3 uB; uniform vec3 uD; uniform vec3 uF; uniform vec3 uM; uniform vec3 uL; uniform float uDay;\n' +
+        vertexShader: 'attribute float aD; varying vec2 vP; varying float vD;\n' +
+          'void main(){ vP = position.xz; vD = aD; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: 'varying vec2 vP; varying float vD; uniform float uT; uniform vec3 uA; uniform vec3 uB; uniform vec3 uD; uniform vec3 uF; uniform vec3 uM; uniform vec3 uL; uniform float uDay;\n' +
           'void main(){\n' +
-          ' float d = 1.0;\n' +
-          ' if (vE.x > 0.5) d = min(d, vU.y); if (vE.y > 0.5) d = min(d, 1.0 - vU.x); if (vE.z > 0.5) d = min(d, 1.0 - vU.y); if (vE.w > 0.5) d = min(d, vU.x);\n' +
-          ' if (vC.x > 0.5) d = min(d, length(vU)); if (vC.y > 0.5) d = min(d, length(vU - vec2(1.0, 0.0))); if (vC.z > 0.5) d = min(d, length(vU - vec2(1.0))); if (vC.w > 0.5) d = min(d, length(vU - vec2(0.0, 1.0)));\n' +
-          ' float wob = 0.03 * sin(vP.x * 5.0 + vP.y * 3.0 + uT * 1.4) + 0.02 * sin(vP.y * 7.0 - uT * 1.1);\n' +
+          // riva un po' irregolare (fissa) e un respiro lento della schiuma
+          ' float d = vD + 0.022 * sin(vP.x * 2.3 + vP.y * 1.7) + 0.014 * sin(vP.y * 3.1 - vP.x * 1.3);\n' +
+          ' if (d < 0.0) discard;\n' +
+          ' float wob = 0.02 * sin(vP.x * 5.0 + vP.y * 3.0 + uT * 1.4) + 0.012 * sin(vP.y * 7.0 - uT * 1.1);\n' +
           ' float dd = d + wob;\n' +
           ' vec3 c = mix(uD, uA, step(dd, 0.62));\n' +
-          ' c = mix(c, mix(uA, uB, 0.6), step(dd, 0.3));\n' +
+          ' c = mix(c, mix(uA, uB, 0.6), step(dd, 0.22));\n' +
           ' float w = sin(vP.x * 3.4 + vP.y * 2.1 + uT * 0.9 + 0.8 * sin(vP.y * 2.3 - uT * 0.5));\n' +
           ' float seg = 0.5 + 0.5 * sin(vP.x * 1.7 - vP.y * 2.4 + uT * 0.35);\n' +
           ' float crest = smoothstep(0.95, 0.985, w) * smoothstep(0.3, 0.65, seg) * step(0.2, dd);\n' +
@@ -428,6 +491,7 @@
       sun.position.set(-20, 40, 12); scene.add(sun); scene.add(sun.target);
       X.R3.hemi = hemi; X.R3.sunL = sun; X.R3.winMat = null; X.R3.lampMat = null; X.R3.skyKey = '';
       const terr = new T.Group(); scene.add(terr);
+      X.R3.wf = waterField();
       buildTerrain(terr); buildWater(terr); buildIndustries(terr);
       X.R3.terr = terr;
       X.R3.dyn = new T.Group(); scene.add(X.R3.dyn);         // alberi e case (ricostruiti quando cambiano)
