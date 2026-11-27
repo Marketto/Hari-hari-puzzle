@@ -591,8 +591,37 @@
     c.x += Math.cos(c.a) * c.v * dt;
     c.y += Math.sin(c.a) * c.v * dt;
     walls(s, ev);
+    if (!carOk(s)) fixCar(s);     // mai fuori dalla città giocabile (bordo della mappa o dentro un muro)
     c.x = nz(c.x); c.y = nz(c.y); c.v = nz(c.v);
   }
+  // Hari è nella zona giocabile: dentro la mappa e col centro sull'asfalto (griglia fine delle mappe reali, caselle
+  // della città di Hari); i muri spingono fuori solo i cerchi che sfiorano, un centro dentro un muro non si salva più
+  function carOk(s) {
+    const c = s.car;
+    if (!c || !Number.isFinite(c.x) || !Number.isFinite(c.y) || !Number.isFinite(c.a) || !Number.isFinite(c.v)) return false;
+    if (c.x < 0.5 || c.y < 0.5 || c.x > s.W - 0.5 || c.y > s.H - 0.5) return false;
+    const g = geo(s), K = g.cs || 1, SOL = g.csolid || g.solid;
+    return !SOL[Math.floor(c.y * K) * s.W * K + Math.floor(c.x * K)];
+  }
+  // riporta Hari sulla fermata (strada percorribile, componente principale) più vicina, rivolto lungo la strada, fermo
+  function fixCar(s) {
+    const g = geo(s), c = s.car || (s.car = { x: 0, y: 0, a: 0, v: 0, rev: false });
+    const x0 = Number.isFinite(c.x) ? c.x : s.W / 2, y0 = Number.isFinite(c.y) ? c.y : s.H / 2;
+    let best = null, bd = Infinity;
+    for (const p of g.spots) {
+      const tx = Math.floor(p.zx), ty = Math.floor(p.zy);
+      if (g.osm && !g.pass[ty * s.W + tx]) continue;
+      const d = (p.zx - x0) ** 2 + (p.zy - y0) ** 2;
+      if (d < bd) { bd = d; best = p; }
+    }
+    if (!best) return false;
+    const a = best.a != null ? best.a : Math.atan2(DIRS[best.h][1], DIRS[best.h][0]);
+    c.a = +(+a).toFixed(3); c.v = 0; c.rev = false;
+    c.x = nz(best.zx - Math.cos(c.a) * 0.6); c.y = nz(best.zy - Math.sin(c.a) * 0.6);
+    return true;
+  }
+  // salvataggi (o stati) con Hari fuori posto: lo si rimette sulla strada più vicina
+  function heal(s) { return carOk(s) ? false : fixCar(s); }
   // cerchi di collisione lungo il veicolo
   function circles(x, y, a, hw, len, out) {
     const n = len > 1.4 ? 3 : len - 2 * hw > 0.05 ? 2 : 1, hx = Math.cos(a), hy = Math.sin(a), off = len / 2 - hw;
@@ -755,6 +784,6 @@
     VEH, NPCS, TYPES, VEH_OF, PEDS, DISHES, DIRS,
     config, newLevel, buildCity, step, tick, start, geo, field, route, targets, light, perimPos, crossings,
     AR, HWC, ASPH, SIDE, isOsm, mapData, buildings, vectors, walkOf, along, turnOf, polyOf, offsetLine,
-    isWon, isLost, isOver, rate, progress, par, wrap,
+    isWon, isLost, isOver, rate, progress, par, wrap, carOk, heal,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

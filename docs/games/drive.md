@@ -108,6 +108,10 @@ percorso (anche dove saranno tra 0,5 s) contando il tempo di reazione, stop col 
 - determinismo e ripresa da JSON; incidenti (auto: un cuore e invulnerabilità; piano piano solo "bonk"; pedone: un
   cuore e salto; muri: nessun cuore e mai dentro un isolato); scadenza = un cuore anche con più pacchi; traffico che
   entra negli incroci solo col suo verde, pedoni solo col loro verde; curva monotona; generazione < 10 ms.
+- **partenza** su ogni mappa (città di Hari e le tre reali), livelli 1–16 con molti semi e con `Math.random`: Hari
+  dentro la mappa, su una casella della rete rifatta dal grafo (oracolo del bot) e entro mezza carreggiata dalla mezzeria
+  OSM, prima meta raggiungibile; **ripresa** da salvataggi con Hari fuori mappa, in un edificio, in mare o NaN: torna su
+  strada (e una posizione buona non si tocca); **bordi**: a tutto gas in 8 direzioni Hari non lascia mai la zona giocabile.
 In CI i limiti di tempo valgono il triplo (`SLOW`).
 
 ## Interfaccia (`drive-ui.js`)
@@ -117,6 +121,15 @@ In CI i limiti di tempo valgono il triplo (`SLOW`).
 - Hari al volante è un adesivo sempre dritto sopra il veicolo (cappellino da tassista, casco da scooter, berretto da
   corriere); il passeggero viaggia dietro, i pacchi sul tetto del furgone.
 - Tema scuro = notte: lampioni accesi (bagliore cotto nei blocchi), fari, tetti e strade più scuri.
+- **Memoria grafica persa**: Android (Chrome/WebView) può svuotare i canvas fuori schermo quando l'app va in secondo
+  piano; senza ridipingerli restava solo il prato di fondo, con le ombre dei veicoli ma senza strade, sprite e minimappa
+  (sembrava di essere fuori dalla mappa). Ora a ogni ritorno in primo piano (`visibilitychange`, `pageshow` da bfcache),
+  a `contextrestored` e quando un contesto in cache risponde `isContextLost()` si buttano blocchi, sprite e minimappa e si
+  ridipinge tutto (quel fotogramma senza il limite di 3 blocchi).
+- **Hari sempre nella zona giocabile** (`carOk`, `heal` in `drive-logic.js`): centro dentro la mappa e sull'asfalto (griglia
+  fine delle mappe reali, caselle della città di Hari); se no (salvataggio rovinato, NaN, fuori mappa) torna fermo sulla
+  fermata carrabile più vicina, rivolto lungo la strada. Si controlla alla ripresa e dopo ogni passo di guida (in gioco
+  normale non scatta mai: i muri spingono fuori prima).
 - Schermo intero del riquadro: la città occupa tutto lo spazio rimasto (`.board:has(> .dr-wrap)` in colonna).
 - `el._drive.state()` sul `#board` restituisce lo stato vivo della partita (per i controlli con Playwright);
   `el._drive.peek(x, y)` fa guardare la camera un punto (foto dei luoghi lontani dalla strada), `peek()` torna su Hari.

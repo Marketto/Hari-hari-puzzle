@@ -66,7 +66,7 @@
     let s, g0, raf = 0, last = 0, paused = false, party = 0, over = 0, timers = [], goTimer = 0;
     let wrap, stage, cv, g, msg, pauseEl, bar, pauseBtn, misEl, timeEl, loadEl;
     let W = 300, H = 400, dpr = 1, TS = 40, rs = 1, camX = 0, camY = 0;
-    let C = {}, IMG = {}, themeKey = '', themeAt = 0, bakedAt = '', chunks = new Map(), mini = null, showMap = true;
+    let C = {}, IMG = {}, themeKey = '', themeAt = 0, bakedAt = '', chunks = new Map(), mini = null, showMap = true, burst = false;
     let joy = null, keys = {}, lastChanged = 0, parts = [], ghosts = [], routeAt = 0, routePt = null, shake = 0;
     let peekPt = null, lastBar = '', mmRect = null, sndHonk = 0, streetAt = 0, streetKey = '', budget = 0, mapsEl = null, mbtn, streetEl;
     const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
@@ -94,6 +94,7 @@
       stage = el.querySelector('.dr-stage');
       cv = el.querySelector('.dr-cv');
       g = cv.getContext('2d');
+      cv.addEventListener('contextrestored', () => { flush(); if (s) draw(performance.now()); });
       msg = el.querySelector('.dr-msg');
       pauseEl = el.querySelector('.dr-pause');
       bar = el.querySelector('.dr-bar');
@@ -157,13 +158,28 @@
       im.onload = () => {
         const c = document.createElement('canvas');
         c.width = im.width || 64; c.height = im.height || 64;
-        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        c._g = c.getContext('2d');
+        c._g.drawImage(im, 0, 0, c.width, c.height);
         IMG[name] = c;
       };
       im.onerror = () => { if (G.console) G.console.warn('drive: sprite non valido', name); };
       im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
+    // Android (Chrome, WebView) può buttare la memoria grafica dei canvas fuori schermo quando l'app va in secondo
+    // piano: blocchi della città, sprite e minimappa tornano vuoti (resta il prato e Hari sembra fuori dalla mappa).
+    // gone(c) = contenuto perso; flush() ridipinge tutto (al ritorno in primo piano, a contesto ripristinato, a ogni perdita)
+    const gone = (c) => { const x = c && c._g; return !!(x && x.isContextLost && x.isContextLost()); };
+    function flush() {
+      if (!stage) return;
+      chunks.clear(); mini = null; bakedAt = ''; burst = true;
+      bakeAll();
+    }
+    // a ogni fotogramma (costo trascurabile): sprite, minimappa e tela principale ancora vivi?
+    function vet() {
+      if (gone(IMG.me) || gone(IMG.hari)) { flush(); return; }
+      if (gone(mini)) mini = null;
+    }
     function measure() {
       W = stage.clientWidth || 300; H = stage.clientHeight || 400;
       dpr = Math.min(2, G.devicePixelRatio || 1);
@@ -384,6 +400,7 @@
       get showMap() { return showMap; }, get shake() { return shake; }, get ghosts() { return ghosts; }, set ghosts(v) { ghosts = v; },
       get routeAt() { return routeAt; }, set routeAt(v) { routeAt = v; }, get routePt() { return routePt; }, set routePt(v) { routePt = v; },
       get parts() { return parts; }, set parts(v) { parts = v; }, get budget() { return budget; }, set budget(v) { budget = v; },
+      get burst() { return burst; }, set burst(v) { burst = v; }, gone, vet,
       get mmRect() { return mmRect; }, set mmRect(v) { mmRect = v; }, get streetEl() { return streetEl; },
       get streetAt() { return streetAt; }, set streetAt(v) { streetAt = v; },
       get streetKey() { return streetKey; }, set streetKey(v) { streetKey = v; }, get OS() { return OS; }, set OS(v) { OS = v; } };
@@ -506,7 +523,12 @@
       }
     }
     function onKeyUp(e) { if (e.key in KEYS) keys[KEYS[e.key]] = false; }
-    function onVis() { if (!el.isConnected) { detach(); return; } if (document.hidden) pause(); }
+    function onVis() {
+      if (!el.isConnected) { detach(); return; }
+      if (document.hidden) pause();
+      else { flush(); if (s && g) draw(performance.now()); }       // le bitmap in cache possono essere sparite
+    }
+    function onShow(e) { if (!el.isConnected) { detach(); return; } if (e && e.persisted) { flush(); if (s && g) draw(performance.now()); } }
     function onTheme() { if (!el.isConnected) { detach(); return; } theme(false); draw(performance.now()); }
     const mq = G.matchMedia ? G.matchMedia('(prefers-color-scheme: dark)') : null;
     function detach() {
@@ -514,6 +536,7 @@
       G.removeEventListener('keyup', onKeyUp);
       G.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVis);
+      G.removeEventListener('pageshow', onShow);
       if (mq && mq.removeEventListener) mq.removeEventListener('change', onTheme);
       if (el._drRO) { el._drRO.disconnect(); el._drRO = null; }
       clearTimers();
@@ -525,12 +548,14 @@
     G.addEventListener('keyup', onKeyUp);
     G.addEventListener('blur', onBlur);
     document.addEventListener('visibilitychange', onVis);
+    G.addEventListener('pageshow', onShow);
     if (mq && mq.addEventListener) mq.addEventListener('change', onTheme);
 
     /* ---------- avvio ---------- */
     function begin(state, startPaused) {
       stop();
       s = state;
+      P.heal(s);                                            // salvataggio con Hari fuori dalla strada: sulla più vicina
       s.waitMode = true; s.wait = true; s.inp = null;       // parte al primo tocco/freccia, mai da sola
       paused = false; joy = null; keys = {};
       build();

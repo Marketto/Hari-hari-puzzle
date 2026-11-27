@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
+- [x] Hari Taxi: al ritorno in primo piano su Android la città poteva restare vuota (solo prato, Hari "fuori mappa"): blocchi, sprite e minimappa in cache si ridipingono se il sistema ne butta la memoria grafica; Hari riportato sulla strada più vicina se un salvataggio lo mette fuori posto e mai fuori dalla zona giocabile in gioco; test su partenza, ripresa e bordi per ogni mappa
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)

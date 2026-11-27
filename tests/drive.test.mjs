@@ -475,3 +475,95 @@ test('mappe reali: curva di difficoltà monotona anche sulle mappe grandi', () =
     prev = c;
   }
 });
+
+/* ---------- partenza di Hari: sempre su strada, dentro la mappa, con la prima meta raggiungibile ---------- */
+// Oracolo: caselle di strada rifatte dal grafo pubblico (mappe reali) o dalla stringa della mappa (città di Hari) con
+// roadDist del bot, e distanza dalla mezzeria OSM più vicina; non usa spots, pass né csolid del gioco.
+const ALL_MAPS = ['hari', ...MAPS];
+function nearCenter(s, x, y) {
+  const md = D.mapData(s.mapId);
+  let best = Infinity, hw = 0;
+  for (const e of md.edges) {
+    if (e.slow) continue;
+    for (let i = 1; i < e.pts.length; i++) {
+      const [ax, ay] = e.pts[i - 1], [bx, by] = e.pts[i], vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy || 1e-9;
+      const u = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L2)), d = Math.hypot(x - ax - u * vx, y - ay - u * vy);
+      if (d < best) { best = d; hw = D.HWC[e.c]; }
+    }
+  }
+  return { d: best, hw };
+}
+function startOk(s, why) {
+  const c = s.car;
+  assert.ok([c.x, c.y, c.a, c.v].every(Number.isFinite), `${why}: posizione non valida ${JSON.stringify(c)}`);
+  assert.ok(c.x >= 0.5 && c.y >= 0.5 && c.x <= s.W - 0.5 && c.y <= s.H - 0.5, `${why}: fuori dalla mappa (${c.x}, ${c.y}) in ${s.W}×${s.H}`);
+  const from = tile(s, c.x, c.y), f = roadDist(s, from);
+  assert.ok(f.has(from), `${why}: partenza fuori strada (${c.x.toFixed(1)}, ${c.y.toFixed(1)})`);
+  if (D.isOsm(s)) { const n = nearCenter(s, c.x, c.y); assert.ok(n.d <= n.hw + D.ASPH, `${why}: ${n.d.toFixed(2)} caselle dalla mezzeria`); }
+  else assert.equal(s.map[from], '.', `${why}: partenza non su strada`);
+  const T = D.targets(s);
+  assert.ok(T.length > 0, `${why}: nessuna meta`);
+  for (const t of T) assert.ok(f.has(tile(s, t.zx, t.zy)), `${why}: meta (${t.kind}) irraggiungibile dalla partenza`);
+  assert.ok(D.carOk(s), `${why}: carOk`);
+}
+
+test('partenza: su ogni mappa e livello (1–16, molti semi) Hari parte su strada, dentro la mappa, con la prima meta raggiungibile', () => {
+  for (const id of ALL_MAPS) {
+    for (let level = 1; level <= 16; level++) {
+      for (let k = 0; k < (id === 'hari' ? 10 : 6); k++) {
+        const seed = level * 977 + k * 31 + id.length;
+        startOk(fresh(level, seed, id), `${id} L${level} seme ${seed}`);
+      }
+    }
+  }
+});
+
+test('partenza: anche con il generatore casuale vero (Math.random, come nell\'app)', () => {
+  for (const id of ALL_MAPS) for (let level = 1; level <= 9; level++) for (let k = 0; k < 4; k++) {
+    const s = D.newLevel(level, Math.random, id);
+    startOk(s, `${id} L${level} (Math.random)`);
+  }
+});
+
+test('ripresa: un salvataggio con Hari fuori posto (fuori mappa, dentro un edificio o in mare, NaN) torna sulla strada più vicina', () => {
+  for (const id of ALL_MAPS) {
+    for (const level of [1, 2, 3, 7]) {
+      const s0 = fresh(level, 4242 + level, id);
+      for (const [x, y] of [[-30, -30], [s0.W + 50, s0.H / 2], [1, 1], [s0.W - 1, s0.H - 1], [s0.W / 2 + 0.37, s0.H / 3 + 0.71], [NaN, 3], [s0.W * 0.13, s0.H * 0.87]]) {
+        const s = JSON.parse(JSON.stringify(s0));
+        Object.assign(s.car, { x, y, v: 3 });
+        const before = D.carOk(s);
+        const moved = D.heal(s);
+        assert.equal(moved, !before, `${id} L${level} (${x}, ${y}): heal solo se serve`);
+        startOk(s, `${id} L${level} ripreso da (${x}, ${y})`);
+        if (moved) assert.equal(s.car.v, 0);
+      }
+      // una posizione valida non si tocca
+      const s = JSON.parse(JSON.stringify(s0)), c0 = JSON.stringify(s.car);
+      assert.equal(D.heal(s), false); assert.equal(JSON.stringify(s.car), c0);
+    }
+  }
+});
+
+test('in gioco: Hari non lascia mai la zona giocabile, nemmeno a tutto gas contro il bordo o dentro un muro', () => {
+  for (const id of ALL_MAPS) {
+    const s = fresh(3, 99, id);
+    // a tutto gas in otto direzioni per 8 s ciascuna, sterzando un po'
+    for (let dir = 0; dir < 8; dir++) {
+      s.car.a = (dir * Math.PI) / 4; s.car.v = 0;
+      for (let i = 0; i < 8 * 60; i++) {
+        D.step(s, DT, { gas: 1, steer: i % 120 < 20 ? 1 : i % 120 < 40 ? -1 : 0 });
+        if (D.isOver(s)) break;
+        assert.ok(D.carOk(s), `${id} direzione ${dir}, passo ${i}: fuori zona (${s.car.x.toFixed(2)}, ${s.car.y.toFixed(2)})`);
+      }
+      if (D.isOver(s)) break;
+    }
+    // teletrasporto in un punto impossibile durante la partita: al passo dopo è di nuovo su strada
+    const s2 = fresh(2, 5, id);
+    Object.assign(s2.car, { x: s2.W - 0.6, y: 0.6, a: -Math.PI / 4, v: 5 });
+    D.step(s2, DT, { gas: 1, steer: 0 });
+    for (let i = 0; i < 30; i++) D.step(s2, DT, { gas: 1, steer: 0 });
+    assert.ok(D.carOk(s2), `${id}: dopo il teletrasporto`);
+    startOk(Object.assign(JSON.parse(JSON.stringify(s2)), {}), `${id}: dopo il teletrasporto`);
+  }
+});

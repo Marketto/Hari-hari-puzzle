@@ -13,6 +13,7 @@
       DX.mini = document.createElement('canvas');
       DX.mini.width = DX.s.W * k; DX.mini.height = DX.s.H * k;
       const b = DX.mini.getContext('2d');
+      DX.mini._g = b;
       for (let y = 0; y < DX.s.H; y++) for (let x = 0; x < DX.s.W; x++) {
         const ch = DX.s.map[y * DX.s.W + x];
         b.fillStyle = ch === '.' ? DX.C['mm-road'] : ch === 'p' ? DX.C['mm-park'] : ch === '#' ? DX.C['mm-bld'] : DX.C['mm-park'];
@@ -46,7 +47,8 @@
       world();
       const vx0 = DX.camX - DX.W / 2 / DX.TS - 1, vy0 = DX.camY - DX.H / 2 / DX.TS - 1, vx1 = DX.camX + DX.W / 2 / DX.TS + 1, vy1 = DX.camY + DX.H / 2 / DX.TS + 1;
       DX.g.imageSmoothingEnabled = true;
-      DX.budget = 3;
+      DX.vet();
+      DX.budget = DX.burst ? 64 : 3; DX.burst = false;   // dopo una ridipintura completa: tutti i blocchi a vista subito
       for (let cy = Math.floor(vy0 / CH); cy <= Math.floor(vy1 / CH); cy++) for (let cx = Math.floor(vx0 / CH); cx <= Math.floor(vx1 / CH); cx++) {
         if (cx < 0 || cy < 0 || cx * CH > DX.s.W || cy * CH > DX.s.H) continue;
         const ck = chunk(cx, cy);

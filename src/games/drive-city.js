@@ -11,7 +11,8 @@
     function chunk(cx, cy) {
       const k = cx + ',' + cy;
       let c = chunks.get(k);
-      if (c) return c;
+      if (c && !DX.gone(c)) return c;
+      if (c) chunks.delete(k);     // memoria grafica persa (app in secondo piano su Android): si ridipinge
       // mappe reali: al massimo pochi blocchi nuovi per fotogramma (niente scatti quando si entra in una zona nuova)
       if (DX.g0.osm && DX.budget <= 0) return null;
       DX.budget--;
@@ -19,6 +20,7 @@
       c = document.createElement('canvas');
       c.width = c.height = Math.ceil(CH * DX.TS * DX.rs);
       const b = c.getContext('2d');
+      c._g = b;
       b.setTransform(DX.TS * DX.rs, 0, 0, DX.TS * DX.rs, -cx * CH * DX.TS * DX.rs, -cy * CH * DX.TS * DX.rs);
       if (DX.g0.osm) DX.paintOsm(b, cx * CH, cy * CH, CH, CH); else paintArea(b, cx * CH, cy * CH, CH, CH);
       chunks.set(k, c);

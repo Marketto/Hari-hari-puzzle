@@ -553,6 +553,7 @@
       const md = P.mapData(DX.s.mapId), A = P.AR, Wm = md.W, Hm = md.H;
       DX.mini = document.createElement('canvas'); DX.mini.width = Wm; DX.mini.height = Hm;
       const b = DX.mini.getContext('2d');
+      DX.mini._g = b;
       const col = { [A.LAND]: DX.C['mm-bld'], [A.PARK]: DX.C['mm-park'], [A.FIELD]: DX.C['mm-park'], [A.SAND]: DX.C['mm-sand'], [A.WATER]: DX.C['mm-water'], [A.PLAZA]: DX.C.walk, [A.PIER]: DX.C.wood, [A.PARKING]: DX.C['mm-bld'], [A.RAIL]: DX.C['mm-bld'] };
       for (let y = 0; y < Hm; y++) {
         let x = 0;
