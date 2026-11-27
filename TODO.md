@@ -7,6 +7,7 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
+- [x] Hari Airlines: l'atterraggio della card finale non è più un decollo al contrario: l'aereo scende nel verso del muso, richiama, tocca con le ruote principali (sbuffo), abbassa il muso e rulla rallentando; carrello visibile; con movimento ridotto solo una dissolvenza sulla posa finale
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)

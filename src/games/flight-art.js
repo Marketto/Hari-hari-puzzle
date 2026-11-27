@@ -176,10 +176,14 @@
       <path d="M36 60h52" stroke="var(--fl-stripe)" stroke-width="3" stroke-linecap="round"/>
       <path d="M96 27a4 4 0 0 1 6 1l-3 6z" fill="var(--fl-scarf)"/>${extra}`;
   }
+  /* carrello d'atterraggio, da disegnare prima di plane() (sta dietro la fusoliera): ruote principali dietro l'ala,
+   * con il fondo a y=73 (perno dell'animazione d'atterraggio), e ruotino anteriore sotto il muso */
+  const gear = () => `<path d="M80 62v8M28 61v8" stroke="var(--fl-ink)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="80" cy="70" r="3" fill="var(--fl-wing)" ${o(1.6)}/><circle cx="28" cy="70.6" r="2.4" fill="var(--fl-wing)" ${o(1.4)}/>`;
   const art = () => `<svg viewBox="0 0 120 90" class="fl-art" aria-hidden="true">
     <ellipse class="fl-a-cloud" cx="24" cy="24" rx="16" ry="6" fill="var(--fl-cloud)"/><ellipse class="fl-a-cloud b" cx="96" cy="74" rx="18" ry="6" fill="var(--fl-cloud)"/>
     <g class="fl-a-plane">${plane(`<g transform="translate(36.5 48.5) scale(.07)">${HH.mascot ? HH.mascot.mini().replace('<svg class="mini-hari" viewBox="0 0 100 100" aria-hidden="true">', '').replace('</svg>', '') : ''}</g>`)}</g>
     <circle cx="104" cy="16" r="2" fill="var(--fl-star)"/><circle cx="12" cy="76" r="1.6" fill="var(--fl-star)"/></svg>`;
 
-  HH.flightArt = { head, captain, hari, CREW, item, ing, trash, sack, bag, win, phaseIcon, beltOn, beltOff, beltSign, plane, art, SPECIES: Object.keys(SP) };
+  HH.flightArt = { head, captain, hari, CREW, item, ing, trash, sack, bag, win, phaseIcon, beltOn, beltOff, beltSign, plane, gear, art, SPECIES: Object.keys(SP) };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

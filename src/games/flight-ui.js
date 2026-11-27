@@ -507,7 +507,8 @@
       intro.innerHTML = `<div class="fl-card fl-landcard">
         <svg viewBox="0 0 120 90" class="fl-landart" aria-hidden="true"><rect x="0" y="66" width="120" height="24" fill="var(--fl-runway)"/>
           <path d="M8 78h16M36 78h16M64 78h16M92 78h16" stroke="var(--fl-runway-line)" stroke-width="3" stroke-linecap="round"/>
-          <g class="fl-landing">${A().plane()}</g></svg>
+          <g transform="translate(10 12) scale(.82)"><ellipse class="fl-puff" cx="99" cy="77" rx="6" ry="3" fill="var(--fl-puff)"/><ellipse class="fl-puff b" cx="95" cy="76" rx="4.4" ry="2.6" fill="var(--fl-puff)"/>
+          <g class="fl-landing">${A().gear()}${A().plane()}</g></g></svg>
         <h3>${L('fl_land')}</h3>
         <p class="fl-sum"><span>${L('fl_happy')}</span><b>${sm.happy}/${sm.pax}</b></p>
         <div class="fl-faces">${s.pax.map((p) => `<span>${A().head(p.sp, s.mood[p.id] >= 3 ? 'joy' : 'sad')}</span>`).join('')}</div>
