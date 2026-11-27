@@ -32,7 +32,7 @@
   --fl-card: #fffaf6; --fl-card-line: #e2cfc2; --fl-bubble: #ffffff; --fl-track: #f3e6dc;
   --fl-jet: #c9d2e6; --fl-jet-2: #aeb9d2; --fl-door: #e7ecf6; --fl-door-2: #c8d0e2; --fl-jetlight: #fff6c4;
   --fl-nose: #ffffff; --fl-cp: #bfe4ff; --fl-plane: #ffffff; --fl-tail: #6f8ce8; --fl-wing: #dfe4ee; --fl-stripe: #ff6f9c;
-  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
+  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-puff: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
   --fl-oven: #dfe4ee; --fl-oven-2: #b8c2d6; --fl-ovwin: #4a3a48;
   --fl-ok: #6fcf7a; --fl-mid: #ffc23d; --fl-low: #ff6f6f; --fl-zone: #7fdc86; --fl-cold: #9cd4ff; --fl-hot: #ff8a6a;
   --fl-exit: #3fbf6a; --fl-exit-ic: #ffffff; --fl-sel: #ff6f9c; --fl-good: #6fcf7a; --fl-bad: #ff6f6f;
@@ -51,7 +51,7 @@
     --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
     --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
     --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
-    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-puff: #d9d2ee; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
     --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
   }
 }
@@ -66,7 +66,7 @@
     --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
     --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
     --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
-    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-puff: #d9d2ee; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
     --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
 }
 
@@ -331,8 +331,24 @@
 .fl-toast.show { opacity: 1; transform: none; }
 .fl-toast.bad { box-shadow: 0 0 0 2px var(--fl-low), var(--shadow-s); }
 .fl-landart { width: 100%; max-width: 220px; border-radius: 16px; background: linear-gradient(180deg, var(--fl-sky-sea), var(--fl-cabin)); }
-.fl-landing { animation: fl-land 2.4s cubic-bezier(.2, .7, .3, 1) both; }
-@keyframes fl-land { from { transform: translate(-60px, -40px) rotate(-8deg); } to { transform: translate(0, 10px) rotate(0); } }
+/* Atterraggio. L'aereo ha il muso a sinistra: arriva dal cielo a destra e avanza verso sinistra, nel verso del muso
+ * (anche in RTL: la scena è fisica e non si specchia). Il perno è il punto in cui le ruote del carrello principale
+ * toccano la pista (80,73 nelle coordinate dell'aereo), così rotate(+) alza il muso (richiamata) e, al contatto,
+ * il muso si abbassa senza staccare le ruote posteriori. Avvicinamento con lieve muso in su, richiamata,
+ * contatto delle ruote principali (sbuffo), muso giù, rullaggio che rallenta. */
+.fl-landing { transform-origin: 80px 73px; animation: fl-land 3s both; }
+@keyframes fl-land {
+  0% { transform: translate(132px, -50px) rotate(2deg); animation-timing-function: linear; }
+  38% { transform: translate(48px, -6px) rotate(3deg); animation-timing-function: ease-out; }
+  52% { transform: translate(24px, 4px) rotate(6deg); animation-timing-function: ease-out; }
+  58% { transform: translate(17px, 6px) rotate(7deg); animation-timing-function: ease-in-out; }
+  72% { transform: translate(8px, 6px) rotate(0deg); animation-timing-function: cubic-bezier(.2, .6, .3, 1); }
+  100% { transform: translate(0, 6px) rotate(0deg); }
+}
+.fl-puff { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; animation: fl-puff 3s ease-out both; }
+.fl-puff.b { animation-name: fl-puff-b; }
+@keyframes fl-puff { 0%, 57% { opacity: 0; transform: translate(0, 0) scale(.3); } 61% { opacity: .95; } 100% { opacity: 0; transform: translate(10px, -3px) scale(1.6); } }
+@keyframes fl-puff-b { 0%, 58% { opacity: 0; transform: translate(0, 0) scale(.3); } 63% { opacity: .8; } 100% { opacity: 0; transform: translate(16px, -6px) scale(1.9); } }
 .fl-sum { display: flex; gap: 8px; align-items: center; }
 .fl-sum b { font: 20px 'Mochiy Pop One', system-ui, sans-serif; color: var(--fl-text); }
 .fl-faces { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 260px; }
@@ -341,4 +357,7 @@
 @media (prefers-reduced-motion: reduce) {
   .fl-wrap *, .fl-a-plane, .fl-a-cloud { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
   .fl-walker { animation-duration: var(--d) !important; }
+  .fl-wrap .fl-landing { animation: fl-land-rm .6s ease-out both !important; transform: translate(0, 6px); }
+  .fl-wrap .fl-puff { animation: none !important; opacity: 0; }
 }
+@keyframes fl-land-rm { from { opacity: 0; } to { opacity: 1; } }

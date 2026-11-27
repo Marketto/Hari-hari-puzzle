@@ -7,7 +7,6 @@
 - [ ] Hari Home su telefono: fluidità del canvas (~30 fps), dimensione dei tocchi nel menu radiale e nel catalogo
 
 ## In revisione (prossima versione)
-- [x] Hari Taxi: al ritorno in primo piano su Android la città poteva restare vuota (solo prato, Hari "fuori mappa"): blocchi, sprite e minimappa in cache si ridipingono se il sistema ne butta la memoria grafica; Hari riportato sulla strada più vicina se un salvataggio lo mette fuori posto e mai fuori dalla zona giocabile in gioco; test su partenza, ripresa e bordi per ogni mappa
 
 ## Prossimo
 - [ ] Hari Express su telefono vero (fluidità, comandi di costruzione)
@@ -40,6 +39,10 @@
 - [ ] Boba Sort: "+1 bicchiere" una volta per livello
 - [ ] Impostazioni: tema chiaro/scuro/sistema, vibrazione, azzera progressi
 - [ ] Revisione madrelingua: mt, ga, cy, lb, eu, is (in particolare i nomi di attrezzi/guasti di Fix-It House)
+
+## Fatto (v0.32.5)
+- [x] Hari Taxi: al ritorno in primo piano su Android la città poteva restare vuota (solo prato, Hari "fuori mappa"): blocchi, sprite e minimappa in cache si ridipingono se il sistema ne butta la memoria grafica; Hari riportato sulla strada più vicina se un salvataggio lo mette fuori posto e mai fuori dalla zona giocabile in gioco; test su partenza, ripresa e bordi per ogni mappa
+- [x] Hari Airlines: l'atterraggio della card finale non è più un decollo al contrario: l'aereo scende nel verso del muso, richiama, tocca con le ruote principali (sbuffo), abbassa il muso e rulla rallentando; carrello visibile; con movimento ridotto solo una dissolvenza sulla posa finale
 
 ## Fatto (v0.32.4)
 - [x] Hari Express: l'anteprima di binari e strade segue il dito (un binario parallelo a una linea non scivola più sulla linea accanto; riusarla è l'«Altra via»); stazioni che si allargano (caselle accanto unite, fino a 4 binari × 6 caselle, «Allarga stazione» nella scheda, «Binario di stazione» costruendo accanto), i treni scelgono il binario libero (branch `wip/rails`)

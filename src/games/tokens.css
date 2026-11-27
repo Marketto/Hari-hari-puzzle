@@ -920,7 +920,7 @@
   --fl-card: #fffaf6; --fl-card-line: #e2cfc2; --fl-bubble: #ffffff; --fl-track: #f3e6dc;
   --fl-jet: #c9d2e6; --fl-jet-2: #aeb9d2; --fl-door: #e7ecf6; --fl-door-2: #c8d0e2; --fl-jetlight: #fff6c4;
   --fl-nose: #ffffff; --fl-cp: #bfe4ff; --fl-plane: #ffffff; --fl-tail: #6f8ce8; --fl-wing: #dfe4ee; --fl-stripe: #ff6f9c;
-  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
+  --fl-runway: #8a8fa4; --fl-runway-line: #ffffff; --fl-puff: #ffffff; --fl-galley: #f3ebe4; --fl-galley-2: #e4d6ca; --fl-counter: #d7c4b4;
   --fl-oven: #dfe4ee; --fl-oven-2: #b8c2d6; --fl-ovwin: #4a3a48;
   --fl-ok: #6fcf7a; --fl-mid: #ffc23d; --fl-low: #ff6f6f; --fl-zone: #7fdc86; --fl-cold: #9cd4ff; --fl-hot: #ff8a6a;
   --fl-exit: #3fbf6a; --fl-exit-ic: #ffffff; --fl-sel: #ff6f9c; --fl-good: #6fcf7a; --fl-bad: #ff6f6f;
@@ -939,7 +939,7 @@
     --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
     --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
     --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
-    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-puff: #d9d2ee; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
     --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
   }
 }
@@ -954,7 +954,7 @@
     --fl-card: #2e2242; --fl-card-line: #6a5c96; --fl-bubble: #f6efff; --fl-track: #241c38;
     --fl-jet: #2a2a4a; --fl-jet-2: #3a3a62; --fl-door: #8a90b8; --fl-door-2: #6a6f98; --fl-jetlight: #ffe7a0;
     --fl-nose: #4c4170; --fl-cp: #1a2050; --fl-plane: #e6e8f6; --fl-tail: #5c74d6; --fl-wing: #b8bfdc; --fl-stripe: #ff8fb3;
-    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
+    --fl-runway: #3a3550; --fl-runway-line: #e8e2f6; --fl-puff: #d9d2ee; --fl-galley: #574a7c; --fl-galley-2: #43395f; --fl-counter: #6a5c8e;
     --fl-oven: #4a4466; --fl-oven-2: #33304c; --fl-ovwin: #241f36;
 }
 .fl-a-plane { animation: fl-float 3.2s ease-in-out infinite; transform-box: fill-box; }
